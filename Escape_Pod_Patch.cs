@@ -175,6 +175,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(EnterExitHelper __instance, GameObject gameObject)
             { // entering escape pod using top hatch
+                //__instance is null !
                 if (Player.main.currentEscapePod && EscapePod.main.damageEffectsShowing && EscapePod.main.bottomHatchUsed && !EscapePod.main.topHatchUsed)
                 {
                     LetSmokeOut(EscapePod.main);

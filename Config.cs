@@ -68,7 +68,7 @@ namespace Tweaks_Fixes
         public int activeSlot = -1;
         public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
-        {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} };
+        {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}     };
         public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
         //public Dictionary<string, Dictionary<int, bool>> test = new Dictionary<string, Dictionary<int, bool>>();
     }
