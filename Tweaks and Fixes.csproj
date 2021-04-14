@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B647499A-9F29-493E-8711-6D4F16D79E57}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Tweaks_and_Fixes</RootNamespace>
+    <AssemblyName>Tweaks and Fixes</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp-firstpass_publicized">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\Assembly-CSharp-firstpass_publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="QModInstaller">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\QModManager\QModInstaller.dll</HintPath>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\core\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp_publicized">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\Assembly-CSharp_publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="UnityEngine">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="SMLHelper">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\QMods\SMLHelper\SMLHelper.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Databox_Light_Patch.cs" />
+    <Compile Include="Crush_Damage.cs" />
+    <Compile Include="Creature_Tweaks.cs" />
+    <Compile Include="Destroy Drooping Stingers.cs" />
+    <Compile Include="Disable_Goals.cs" />
+    <Compile Include="Eat_fish_on_release.cs" />
+    <Compile Include="Escape_Pod_Patch.cs" />
+    <Compile Include="Exosuit_Patch.cs" />
+    <Compile Include="Food_Patch.cs" />
+    <Compile Include="Knife_Patch.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="NoBreakingWithHands.cs" />
+    <Compile Include="Player_Movement.cs" />
+    <Compile Include="Player_Patches.cs" />
+    <Compile Include="QuickSlots_Patch.cs" />
+    <Compile Include="ScannerTool_Patch.cs" />
+    <Compile Include="Sealed_Door_Patch.cs" />
+    <Compile Include="SeaTreaderChunks.cs" />
+    <Compile Include="Cyclops_Patch.cs" />
+    <Compile Include="UI_Tweaks.cs" />
+    <Compile Include="Vehicle_Move_Patch.cs" />
+    <Compile Include="Wreck_Bulkdoor_Fix.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Config.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\QMods\$(TargetName)\$(TargetFileName)"
+	</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+</Project>
