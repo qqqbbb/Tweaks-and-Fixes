@@ -68,6 +68,7 @@ namespace Tweaks_Fixes
             }
             //ErrorMessage.AddDebug("currentSlot " + SaveLoadManager.main.currentSlot);
             Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot] = true;
+            Main.config.Save();
 
         }
 

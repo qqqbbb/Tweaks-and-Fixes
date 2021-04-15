@@ -3,18 +3,40 @@ using UnityEngine;
 
 namespace Tweaks_Fixes
 {
-    [HarmonyPatch(typeof(LiveMixin), "Start")]
-    class LiveMixin_Start_Patch
+    [HarmonyPatch(typeof(HangingStinger), "Start")]
+    class HangingStinger_Start_Patch
     {
-        public static void Postfix(LiveMixin __instance)
+        public static void Postfix(HangingStinger __instance)
         {
-            if (__instance.GetComponent<HangingStinger>())
+            LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
+            if (liveMixin)
             {
                 //ErrorMessage.AddDebug("HangingStinger");
-                __instance.data.destroyOnDeath = true;
-                __instance.data.explodeOnDestroy = false;
+                liveMixin.data.destroyOnDeath = true;
+                liveMixin.data.explodeOnDestroy = false;
+                //CapsuleCollider col = __instance.GetComponentInChildren<CapsuleCollider>();
+                //col.gameObject.EnsureComponent<HangingStingerCollision>();
+                //__instance.gameObject.EnsureComponent<HangingStingerCollision>();
+                //collider.isTrigger = true;
+                //collider.bounds = col.bounds;
                 //ErrorMessage.AddDebug("invincibleInCreative " + __instance.invincibleInCreative);
             }
+        }
+    }
+
+    //[HarmonyPatch(typeof(HangingStinger), "OnCollisionEnter")]
+    class HangingStinger_OnCollisionEnter_Patch
+    {
+        public static void Postfix(HangingStinger __instance, Collision other)
+        {
+            //if (__instance.GetComponent<HangingStinger>())
+            //{
+            ErrorMessage.AddDebug("OnCollisionEnter " + other.gameObject.name);
+            CapsuleCollider col = __instance.GetComponentInChildren<CapsuleCollider>();
+            col.isTrigger = true;
+            //__instance.data.explodeOnDestroy = false;
+            //ErrorMessage.AddDebug("invincibleInCreative " + __instance.invincibleInCreative);
+            //}
         }
     }
 

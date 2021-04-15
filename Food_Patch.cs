@@ -8,8 +8,8 @@ namespace Tweaks_Fixes
     class Food_Patch
     {
         static bool crafterOpen = false;
-        static float waterValueMult = 0f;
-        static float foodValueMult = 0f;
+        static float waterValueMult = 1f;
+        static float foodValueMult = 1f;
         [HarmonyPatch(typeof(Eatable), "Awake")]
         class Eatable_Awake_patch
         {
@@ -31,18 +31,25 @@ namespace Tweaks_Fixes
                 { 
                     if (crafterOpen)
                     { // food values not saved and will reset after reload
-                        __instance.waterValue *= waterValueMult;
-                        __instance.foodValue *= foodValueMult;
+                        //ErrorMessage.AddDebug("waterValueMult " + waterValueMult);
+                        //ErrorMessage.AddDebug("foodValueMult " + foodValueMult);
+                        //if (waterValueMult != 0)
+                            __instance.waterValue *= waterValueMult;
+                        //if (foodValueMult != 0)
+                            __instance.foodValue *= foodValueMult;
                     }
                     else if (Main.IsEatableFishAlive(__instance.gameObject))
                     {
-                        //Main.Log("creature awake " + __instance.gameObject.name);
                         __instance.waterValue = Mathf.Abs(__instance.foodValue) * .5f;
                     }
                     else if (__instance.decomposes )
                     {
-                        if (Main.IsEatableFish(__instance.gameObject) )
+                        if (Main.IsEatableFish(__instance.gameObject))
+                        {
+                            //ErrorMessage.AddDebug("dead Fish " + __instance.gameObject.name);
                             __instance.waterValue = Mathf.Abs(__instance.foodValue) * .5f;
+                        }
+                     
                         //Main.Log(tt + " decomposes " + __instance.kDecayRate);
                         //Main.Log(tt + " decomposes half" + __instance.kDecayRate);
                     }
@@ -71,12 +78,18 @@ namespace Tweaks_Fixes
                 if (Main.config.foodTweaks && crafterOpen)
                 { // cooking fish
                     //TechType tt = item.item.GetTechType();
-                    Eatable eatable = item.item.GetComponent<Eatable>();
-                    if (eatable)
+
+                    if (Main.IsEatableFishAlive(item.item.gameObject))
                     {
-                        //Main.Log(" NotifyRemoveItem waterValue " + eatable.GetWaterValue() + " " + eatable.GetFoodValue());
+                        Eatable eatable = item.item.GetComponent<Eatable>();
+                        //ErrorMessage.AddDebug(" NotifyRemoveItem waterValue " + eatable.GetWaterValue() + " " + eatable.GetFoodValue());
                         waterValueMult = eatable.GetWaterValue() / eatable.waterValue;
                         foodValueMult = eatable.GetFoodValue() / eatable.foodValue;
+                    }
+                    else
+                    {
+                        waterValueMult = 1f;
+                        foodValueMult = 1f;
                     }
                 }
             }

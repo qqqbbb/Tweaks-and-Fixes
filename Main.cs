@@ -17,6 +17,7 @@ namespace Tweaks_Fixes
         public static GUIHand gUIHand;
         public static PDA pda;
 
+
         internal static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
         public static float NormalizeTo01range(int value, int min, int max)
@@ -150,10 +151,12 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
+                //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
                 gUIHand = Player.main.GetComponent<GUIHand>();
                 pda = Player.main.GetPDA();
                 if (config.cantScanExosuitClawArm)
                     DisableExosuitClawArmScan();
+
 
             }
         }

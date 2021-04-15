@@ -51,7 +51,7 @@ namespace Tweaks_Fixes
     {
         public static void Postfix(SeaMoth __instance)
         {
-            if (Main.config.vehicleMoveTweaks) 
+            if (Main.config.seamothMoveTweaks) 
             { 
                 __instance.sidewardForce = __instance.forwardForce * .5f;
                 __instance.verticalForce = __instance.forwardForce * .5f;
@@ -65,7 +65,7 @@ namespace Tweaks_Fixes
     { // dont play sound when move backward is pressed
         public static bool Prefix(SeaMoth __instance)
         {
-            if (!Main.config.vehicleMoveTweaks)
+            if (!Main.config.seamothMoveTweaks)
                 return true;
 
             Vector3 input = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
@@ -104,7 +104,9 @@ namespace Tweaks_Fixes
     { // fix seamoth move diagonally, disable exosuit strafe
         public static bool Prefix(Vehicle __instance)
         {
-            if (!Main.config.vehicleMoveTweaks)
+            if (Main.config.seamothMoveTweaks || Main.config.exosuitMoveTweaks)
+            { }
+            else
                 return true;
 
             //ErrorMessage.AddDebug("ControlSheme  " + __instance.controlSheme);
@@ -194,7 +196,7 @@ namespace Tweaks_Fixes
 
         public static bool Prefix(SeaMoth __instance)
         {
-            if (!Main.config.vehicleMoveTweaks)
+            if (!Main.config.seamothMoveTweaks)
                 return true;
 
             VehicleUpdate(__instance as Vehicle);

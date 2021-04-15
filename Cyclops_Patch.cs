@@ -31,6 +31,7 @@ namespace Tweaks_Fixes
                 {
                     Main.config.subThrottleIndex = (int)cyclopsMotorMode.cyclopsMotorMode;
                     //ErrorMessage.AddDebug("save subThrottleIndex");
+                    Main.config.Save();
                 }
             }
         }
@@ -53,7 +54,7 @@ namespace Tweaks_Fixes
         { // fix max diagonal speed
             public static bool Prefix(SubControl __instance)
             {
-                if (!Main.config.vehicleMoveTweaks)
+                if (!Main.config.cyclopsMoveTweaks)
                     return true;
 
                 if (!__instance.LOD.IsFull())
@@ -112,20 +113,20 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(SubControl __instance)
             {
-                if (Main.config.vehicleMoveTweaks) 
-                { 
+                //if (Main.config.vehicleMoveTweaks) 
+                //{ 
                     rb = __instance.GetComponent<Rigidbody>();
                     //__instance.BaseVerticalAccel = __instance.BaseForwardAccel * .5f;
-                }
+                //}
             }
         }
         
         [HarmonyPatch(typeof(SubControl), "FixedUpdate")]
         class SubControl_FixedUpdate_Patch
         {// halve vertical and backward speed
-        public static bool Prefix(SubControl __instance)
-        {
-            if (!Main.config.vehicleMoveTweaks)
+            public static bool Prefix(SubControl __instance)
+            {
+            if (!Main.config.cyclopsMoveTweaks)
                 return true;
 
                 if (!__instance.LOD.IsFull() || __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)

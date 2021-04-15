@@ -54,6 +54,7 @@ namespace Tweaks_Fixes
                     Main.config.openedWreckDoors[slot] = new Dictionary<int, bool>();
 
                 Main.config.openedWreckDoors[slot][doorKey] = !__instance.isOpen;
+                Main.config.Save();
             }
         }
 

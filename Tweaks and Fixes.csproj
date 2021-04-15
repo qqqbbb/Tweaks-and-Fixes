@@ -80,7 +80,7 @@
     <Compile Include="Databox_Light_Patch.cs" />
     <Compile Include="Crush_Damage.cs" />
     <Compile Include="Creature_Tweaks.cs" />
-    <Compile Include="Destroy Drooping Stingers.cs" />
+    <Compile Include="Drooping Stinger.cs" />
     <Compile Include="Disable_Goals.cs" />
     <Compile Include="Eat_fish_on_release.cs" />
     <Compile Include="Escape_Pod_Patch.cs" />

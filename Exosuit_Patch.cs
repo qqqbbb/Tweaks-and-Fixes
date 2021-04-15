@@ -122,7 +122,7 @@ namespace Tweaks_Fixes
         {
             //Vehicle vehicle = __instance as Vehicle;
             //vehicle.Update();
-            if (!Main.config.vehicleMoveTweaks)
+            if (!Main.config.exosuitMoveTweaks)
                 return true;
 
             VehicleUpdate(__instance);

@@ -135,7 +135,6 @@ namespace Tweaks_Fixes
                     Main.config.playerCamRot = -1f;
 
                 Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
-
                 Main.config.Save();
             }
         }
