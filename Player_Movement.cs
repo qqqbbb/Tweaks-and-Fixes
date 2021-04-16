@@ -26,7 +26,28 @@ namespace Tweaks_Fixes
             }
         }
 
-        private static float GetInvMult()
+        public static float GetInvMult()
+        {
+            float massTotal = 0f;
+            foreach (InventoryItem inventoryItem in Inventory.main.container)
+            {
+                Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
+                if (rb)
+                    massTotal += rb.mass;
+            }
+
+            float mult;
+            if (Player.main.IsSwimming())
+                mult = 100f - massTotal * Main.config.InvMultWater;
+            else
+                mult = 100f - massTotal * Main.config.InvMultLand;      
+
+            //float mult = massTotal * Main.config.InvMult;
+            mult = Mathf.Clamp(mult, 0f, 100f);
+            return mult * .01f;
+        }
+
+        private static float GetInvMultOld()
         {
             int invCellsFull = 0;
             foreach (InventoryItem inventoryItem in Inventory.main.container)
@@ -36,6 +57,36 @@ namespace Tweaks_Fixes
             //ErrorMessage.AddDebug("invSize " + invSize + " invCellsFull " + invCellsFull + " invMult " + invMult);
             invMult = 1.0f - invMult * .5f;
             return invMult;
+        }
+
+        [HarmonyPatch(typeof(Seaglide), "UpdateActiveState")]
+        internal class Seaglide_UpdateActiveState_Patch
+        {
+            public static bool Prefix(Seaglide __instance)
+            {
+                if (!Main.config.playerMoveSpeedTweaks)
+                    return true;
+
+                int num1 = __instance.activeState ? 1 : 0;
+                __instance.activeState = false;
+                if (__instance.energyMixin.charge > 0f)
+                {
+                    if (__instance.screenEffectModel != null)
+                        __instance.screenEffectModel.SetActive(__instance.usingPlayer != null);
+                    if (__instance.usingPlayer != null && __instance.usingPlayer.IsSwimming())
+                    {
+                        Vector3 moveDirection = GameInput.GetMoveDirection();
+                        __instance.activeState = moveDirection.z > 0.0;
+                    }
+                    if (__instance.powerGlideActive)
+                        __instance.activeState = true;
+                }
+                int num2 = __instance.activeState ? 1 : 0;
+                if (num1 == num2)
+                    return false;
+                __instance.SetVFXActive(__instance.activeState);
+                return false;
+            }
         }
 
         [HarmonyPatch(typeof(UnderwaterMotor), "AlterMaxSpeed")]
@@ -85,11 +136,15 @@ namespace Tweaks_Fixes
                 if (tank == TechType.Tank || tank == TechType.DoubleTank || tank == TechType.HighCapacityTank)
                     __result *= 0.9f;
 
+    
                 if (Main.pda.isInUse)
                     __result *= 0.5f;
-                else if (Inventory.main.GetHeldTool() != null)
-                    __result *= 0.7f;
-
+                else 
+                {
+                    PlayerTool tool = Inventory.main.GetHeldTool();
+                    if (tool && !(tool is Seaglide))
+                        __result *= 0.7f;                      
+                }
                 if (Player.main.gameObject.transform.position.y > oceanLevel)
                     __result *= 1.3f;
 
@@ -101,7 +156,7 @@ namespace Tweaks_Fixes
 
             public static void Postfix(float inMaxSpeed, ref float __result)
             {
-                if (Main.config.InvAffectSpeed)
+                if (Main.config.playerMoveSpeedTweaks && Main.config.InvMultWater > 0f)
                     __result *= GetInvMult();
                 //__instance.movementSpeed = __instance.playerController.velocity.magnitude / 5f;
                 //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;
@@ -203,6 +258,7 @@ namespace Tweaks_Fixes
                 __instance.fastSwimMode = Application.isEditor && UnityEngine.Input.GetKey(KeyCode.LeftShift);
                 Vector3 velocity = rb.velocity;
                 Vector3 input = __instance.movementInputDirection;
+                Vector3 inputRaw = input;
                 input.Normalize();
                 input.y *= .5f;
                 input.x *= .5f;
@@ -236,18 +292,21 @@ namespace Tweaks_Fixes
                     input.y = 0.0f;
                     input.Normalize();
                 }
-                float num5 = __instance.airAcceleration;
+                float acceleration = __instance.airAcceleration;
                 if (__instance.grounded)
-                    num5 = __instance.groundAcceleration;
+                    acceleration = __instance.groundAcceleration;
                 else if (__instance.underWater)
                 {
-                    num5 = __instance.acceleration;
+                    acceleration = __instance.acceleration;
                     //if (Player.main.GetBiomeString() == "wreck")
                     //    num5 *= 0.5f;
-                    if (Player.main.motorMode == Player.MotorMode.Seaglide)
-                        num5 *= 1.45f;
+                    if (inputRaw.z > 0 && Player.main.motorMode == Player.MotorMode.Seaglide)
+                    {
+                        acceleration *= 1.45f;
+                    }
+
                 }
-                float num7 = (num1 * num5) * Time.deltaTime;
+                float num7 = (num1 * acceleration) * Time.deltaTime;
                 if (num7 > 0f)
                 {
                     Vector3 lhs = velocity + input * num7;
@@ -317,7 +376,13 @@ namespace Tweaks_Fixes
             if (fins != TechType.None)
                 maxSpeed *= 0.9f;
 
-            if (Main.config.InvAffectSpeed)
+            TechType tank = equipment.GetTechTypeInSlot("Tank");
+            if (tank == TechType.Tank || tank == TechType.DoubleTank || tank == TechType.HighCapacityTank)
+                maxSpeed *= 0.9f;
+            else if (tank == TechType.PlasteelTank)
+                maxSpeed *= 0.95f;
+
+            if (Main.config.InvMultWater > 0f)
                 maxSpeed *= GetInvMult();
 
             //ErrorMessage.AddDebug("AdjustGroundSpeed " + maxSpeed);

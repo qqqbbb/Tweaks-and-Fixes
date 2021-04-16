@@ -173,14 +173,13 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(EnterExitHelper), "Enter")]
         class EnterExitHelper_Enter_Patch
-        {
-            public static void Postfix(EnterExitHelper __instance, GameObject gameObject)
+        { // the method is static
+            public static void Postfix( GameObject gameObject)
             { // entering escape pod using top hatch
-                //__instance is null !
                 if (Player.main.currentEscapePod && EscapePod.main.damageEffectsShowing && EscapePod.main.bottomHatchUsed && !EscapePod.main.topHatchUsed)
                 {
                     LetSmokeOut(EscapePod.main);
-                    //ErrorMessage.AddDebug(" Clear smoke " );
+                 
                 }
             }
         }

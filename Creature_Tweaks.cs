@@ -25,10 +25,10 @@ namespace Tweaks_Fixes
             [HarmonyPatch(nameof(Creature.Start))]
             public static void Postfix(Creature __instance)
             {
-                TechType techType = CraftData.GetTechType(__instance.gameObject);
                 //Main.Log(__instance.gameObject.name + " " + __instance.GetComponent<Rigidbody>().mass);
-                if (techType == TechType.Spadefish)
-                { 
+                if (__instance is Spadefish)
+                {
+                    //ErrorMessage.AddDebug("Spadefish");
                     __instance.GetComponent<Rigidbody>().mass = 4f;
                 }
             }

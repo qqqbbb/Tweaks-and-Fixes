@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
     [QModCore]
     public class Main
     {
-        public static GUIHand gUIHand;
+        public static GUIHand guiHand;
         public static PDA pda;
 
 
@@ -112,6 +112,7 @@ namespace Tweaks_Fixes
 
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights = new List<GameObject>();
+            Base_Light.SubRoot_Awake_Patch.bases = new HashSet<SubRoot>();
         }
 
         public static void Message(string str)
@@ -146,17 +147,30 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Player), "Start")]
+        [HarmonyPatch(typeof(Language), "Awake")]
+        class Language_Awake_Patch
+        {
+            static void Postfix(Language __instance)
+            {
+                if (Language.main.currentLanguage == "English")
+                {
+                    //ErrorMessage.AddDebug("English");
+                    //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
+                    LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
+                }
+            }
+        }
+
+         [HarmonyPatch(typeof(Player), "Start")]
         class Player_Start_Patch
         {
             static void Postfix(Player __instance)
             {
                 //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
-                gUIHand = Player.main.GetComponent<GUIHand>();
+                guiHand = Player.main.GetComponent<GUIHand>();
                 pda = Player.main.GetPDA();
                 if (config.cantScanExosuitClawArm)
                     DisableExosuitClawArmScan();
-
 
             }
         }
@@ -191,6 +205,9 @@ namespace Tweaks_Fixes
             config.Load();
             Assembly assembly = Assembly.GetExecutingAssembly();
             new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
+
+           
+
         }
     }
 }

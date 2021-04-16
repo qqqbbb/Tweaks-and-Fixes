@@ -12,13 +12,13 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Knife __instance)
             {
-                BreakableResource breakableResource = Main.gUIHand.activeTarget.GetComponent<BreakableResource>();
+                BreakableResource breakableResource = Main.guiHand.activeTarget.GetComponent<BreakableResource>();
                 if (breakableResource)
                 {
                     breakableResource.BreakIntoResources();
                     //ErrorMessage.AddDebug("BreakableResource");
                 }
-                Pickupable pickupable = Main.gUIHand.activeTarget.GetComponent<Pickupable>();
+                Pickupable pickupable = Main.guiHand.activeTarget.GetComponent<Pickupable>();
                 if (pickupable)
                 {
                     TechType techType = pickupable.GetTechType();
@@ -26,7 +26,7 @@ namespace Tweaks_Fixes
                     {
                         Rigidbody rb = pickupable.GetComponent<Rigidbody>();
                         if (rb && rb.isKinematic)  // attached to wall
-                            pickupable.OnHandClick(Main.gUIHand);
+                            pickupable.OnHandClick(Main.guiHand);
                     }
                 }
 

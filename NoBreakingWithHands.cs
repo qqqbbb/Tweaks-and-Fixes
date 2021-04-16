@@ -113,7 +113,7 @@ namespace Tweaks_Fixes
             {
                 if (knife)
                 {
-                    Main.gUIHand.usedToolThisFrame = true;
+                    Main.guiHand.usedToolThisFrame = true;
                     knife.OnToolActionStart();
                     rb.isKinematic = false;
                     //return false;

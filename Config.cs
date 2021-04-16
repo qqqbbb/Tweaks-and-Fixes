@@ -10,11 +10,13 @@ namespace Tweaks_Fixes
     {
         //[Toggle("disable damage")]
         //public bool disableDamage = false;
-        public float version = 1.02f;
-        [Toggle("Player movement speed tweaks", Tooltip = "Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 10% both in water and on land. Fins reduce your speed by 10% when on land. No speed reduction when near wrecks. You can sprint only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%.")]
+        public float version = 1.03f;
+        [Toggle("Player movement tweaks", Tooltip = "Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 10% both in water and on land. Fins reduce your speed by 10% when on land. Lightweight high capacity tank reduces your speed by 5% when on land. Every other tank reduces your speed by 10% when on land. No speed reduction when near wrecks. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%.")]
         public bool playerMoveSpeedTweaks = false;
-        [Toggle("Inventory affects your movement speed", Tooltip = "The more items you have in inventory the slower you move. When your inventory is full your movement speed is reduced to 50%. Works only if 'Player movement speed tweaks' is enabled.")]
-        public bool InvAffectSpeed = false;
+        [Slider("Inventory weight multiplier in water", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are swimming you lose 1% of your max speed for every kilo of weight in your inventory multiplied by this. Works only if 'Player movement tweaks' is enabled.")]
+        public float InvMultWater = 0f;
+        [Slider("Inventory weight multiplier on land", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are on land you lose 1% of your max speed for every kilo of weight in your inventory multiplied by this. Works only if 'Player movement tweaks' is enabled.")]
+        public float InvMultLand = 0f;
         [Toggle("Seamoth movement tweaks", Tooltip = "Seamoth does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and sideways speed is halved and  it can not move backward.")]
         public bool seamothMoveTweaks = false;
         [Toggle("Prawn suit movement tweaks", Tooltip = "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power than walking.")]
@@ -63,8 +65,12 @@ namespace Tweaks_Fixes
         public bool escapePodPowerTweak = false;
         [Toggle("No easy shale outcrops from sea treaders", Tooltip = "Sea treaders unearth shale outcrops only when stomping the ground.")]
         public bool seaTreaderChunks = false;
+        [Toggle("No metal clicking sound when walking", Tooltip = "Removes metal clicking sound when walking on metal surface.")]
+        public bool fixFootstepSound = false;
         [Keybind("Quickslot cycle key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to cycle tools in your current quickslot.")]
         public KeyCode quickslotKey = KeyCode.LeftAlt;
+        [Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
+        public bool baseLightOff = false;
 
         public int subThrottleIndex = -1;
         public float knifeRangeDefault = 0f;
@@ -75,5 +81,10 @@ namespace Tweaks_Fixes
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
         public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
         //public Dictionary<string, Dictionary<int, bool>> test = new Dictionary<string, Dictionary<int, bool>>();
+
+        static void UpdateBaseLight()
+        {
+            Base_Light.SubRoot_Awake_Patch.UpdateBaseLight(); 
+        }
     }
 }

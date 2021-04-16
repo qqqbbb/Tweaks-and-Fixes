@@ -77,6 +77,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base_Light.cs" />
+    <Compile Include="Footsteps_Patch.cs" />
     <Compile Include="Databox_Light_Patch.cs" />
     <Compile Include="Crush_Damage.cs" />
     <Compile Include="Creature_Tweaks.cs" />
@@ -96,6 +98,7 @@
     <Compile Include="Sealed_Door_Patch.cs" />
     <Compile Include="SeaTreaderChunks.cs" />
     <Compile Include="Cyclops_Patch.cs" />
+    <Compile Include="Testing.cs" />
     <Compile Include="UI_Tweaks.cs" />
     <Compile Include="Vehicle_Move_Patch.cs" />
     <Compile Include="Wreck_Bulkdoor_Fix.cs" />
