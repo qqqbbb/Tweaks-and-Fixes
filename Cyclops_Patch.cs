@@ -139,11 +139,13 @@ namespace Tweaks_Fixes
 
                 float b1 = 0.0f;
                 float b2 = 0.0f;
+
                 if (Mathf.Abs(__instance.throttle.x) > 0.0001f)
                 {
                     float baseTurningTorque = __instance.BaseTurningTorque;
                     if (__instance.canAccel)
                         rb.AddTorque(__instance.sub.subAxis.up * baseTurningTorque * __instance.turnScale * __instance.throttle.x, ForceMode.Acceleration);
+
                     ShipSide useShipSide;
                     if (__instance.throttle.x > 0.0)
                     {

@@ -78,13 +78,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base_Light.cs" />
+    <Compile Include="Flare_Patch.cs" />
+    <Compile Include="Craft_Patch.cs" />
+    <Compile Include="Damage_Patch.cs" />
     <Compile Include="Footsteps_Patch.cs" />
     <Compile Include="Databox_Light_Patch.cs" />
     <Compile Include="Crush_Damage.cs" />
     <Compile Include="Creature_Tweaks.cs" />
     <Compile Include="Drooping Stinger.cs" />
     <Compile Include="Disable_Goals.cs" />
-    <Compile Include="Eat_fish_on_release.cs" />
+    <Compile Include="Fish_Patches.cs" />
     <Compile Include="Escape_Pod_Patch.cs" />
     <Compile Include="Exosuit_Patch.cs" />
     <Compile Include="Food_Patch.cs" />

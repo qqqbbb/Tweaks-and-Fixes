@@ -19,21 +19,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Creature))]
-        class Creature_Start_patch
-        {
-            [HarmonyPatch(nameof(Creature.Start))]
-            public static void Postfix(Creature __instance)
-            {
-                //Main.Log(__instance.gameObject.name + " " + __instance.GetComponent<Rigidbody>().mass);
-                if (__instance is Spadefish)
-                {
-                    //ErrorMessage.AddDebug("Spadefish");
-                    __instance.GetComponent<Rigidbody>().mass = 4f;
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
@@ -116,28 +101,28 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(LiveMixin), nameof(LiveMixin.Kill))]
-        class LiveMixin_Kill_Patch
+        [HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
+        class CreatureDeath_OnKill_Patch
         {
-            public static void Postfix(LiveMixin __instance, DamageType damageType)
+            public static void Postfix(CreatureDeath __instance)
             {
                 Stalker stalker = __instance.GetComponent<Stalker>();
-                ReaperLeviathan reaper = __instance.GetComponent<ReaperLeviathan>();
-                SandShark sandShark = __instance.GetComponent<SandShark>();
-                if (sandShark)
-                {
+                //ReaperLeviathan reaper = __instance.GetComponent<ReaperLeviathan>();
+                //SandShark sandShark = __instance.GetComponent<SandShark>();
+                //if (sandShark)
+                //{
                     //Animator animator = __instance.GetComponentInChildren<Animator>();
                     //animator.GetCurrentAnimatorStateInfo(animator.layerCount -1);
                     //if (animator != null)
                     //    animator.enabled = false;
-                }
-                if (reaper != null)
-                {
+                //}
+                //if (reaper != null)
+                //{
                     //Animator animator = __instance.GetComponentInChildren<Animator>();
                     //if (animator != null)
                     //    animator.enabled = false;
-                }
-                else if (stalker != null)
+                //}
+                if (stalker != null)
                 {
                     //Main.Log("Stalker kill");
                     //__instance.tempDamage = 1.1111f;

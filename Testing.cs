@@ -10,24 +10,23 @@ using UnityEngine;
 using FMOD;
 using FMOD.Studio;
 using FMODUnity;
-
+using System.Text;
 
 namespace Tweaks_Fixes
 {
     class Testing
     {
 
-		//[HarmonyPatch(typeof(Player), "Update")]
+        //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                //Player.main.oxygenMgr.AddOxygen(115f);
+                Player.main.oxygenMgr.AddOxygen(115f);
                 //ErrorMessage.AddDebug("timePassedAsFloat " + DayNightCycle.main.timePassedAsFloat);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 //if (uGUI.main.loading.IsLoading)
                 //    Main.Message("Loading");
-                //else
                 if (Input.GetKey(KeyCode.B))
                 {
                     //ErrorMessage.AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
@@ -50,26 +49,17 @@ namespace Tweaks_Fixes
 
                 if (Input.GetKey(KeyCode.C))
                 {
+                    if (Player.main._currentWaterPark)
+                        ErrorMessage.AddDebug(" WaterPark");
+                    //QualitySettings.anisotropicFiltering
                     //PlayerTool tool = Inventory.main.GetHeldTool();
-                    ErrorMessage.AddDebug(" " + Player_Movement.GetInvMult());
-                    //ErrorMessage.AddDebug("IsSwimming " + Player.main.IsSwimming());
+                    //ErrorMessage.AddDebug(" anisotropicFiltering " + QualitySettings.anisotropicFiltering);
+                    //AnisotropicFiltering a = AnisotropicFiltering
                 }
 
                 if (Input.GetKey(KeyCode.X))
                 {
-                    //__instance._currentEscapePod.lightingController.SnapToState((int)LightingController.LightingState.Operational);
-                    //LightingController.LightingState currentState = __instance._currentEscapePod.lightingController.state;
-                    //if (done)
-                    //    return;
-
-                    //for (int index = 0; index < __instance._currentEscapePod.lightingController.skies.Length; ++index)
-                    //{
-                    //    LightingController.MultiStatesSky sky = __instance._currentEscapePod.lightingController.skies[index];
-                    //    Main.Log(currentState + "sky MasterIntensity " + sky.sky.MasterIntensity);
-                    //    Main.Log(currentState + "sky DiffIntensity " + sky.sky.DiffIntensity);
-                    //    Main.Log(currentState + "sky specIntensity " + sky.sky.specIntensity);
-                    //}
-                    //done = true;
+                    //HandReticle.main.UnrequestCrosshairHide();
                 }
                 if (Input.GetKey(KeyCode.Z))
                 {
@@ -103,14 +93,7 @@ namespace Tweaks_Fixes
                         //RadiatePlayerInRange radiatePlayerInRange = Main.guiHand.activeTarget.GetComponent<RadiatePlayerInRange>();
                         //if (radiatePlayerInRange)
                         {
-                            //Main.Log("check radiatePlayerInRange enabled " + radiatePlayerInRange.enabled);
-                            //Main.Log("check radiatePlayerInRange isActiveAndEnabled " + radiatePlayerInRange.isActiveAndEnabled);
-                            //Radiation_Patches.MakeRadioactive(radiatePlayerInRange.gameObject, false);
-                            ////radiatePlayerInRange.enabled = false;
-                            //Main.Log("check! radiatePlayerInRange enabled " + radiatePlayerInRange.enabled);
-                            //Main.Log("check! radiatePlayerInRange isActiveAndEnabled " + radiatePlayerInRange.isActiveAndEnabled);
-                            //ErrorMessage.AddDebug("radiatePlayerInRange " + radiatePlayerInRange.enabled);
-                            //ErrorMessage.AddDebug("IsClosestToPlayer " + Radiation_Patches.IsClosestToPlayer(radiatePlayerInRange));
+    
                         }
                         //else
                         //    ErrorMessage.AddDebug("no radiatePlayerInRange " );

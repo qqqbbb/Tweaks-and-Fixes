@@ -33,25 +33,22 @@ namespace Tweaks_Fixes
             }
         } 
 
-        [HarmonyPatch(typeof(PlayerTool), nameof(PlayerTool.OnDraw))]
-        class Knife_OnDraw_Patch
+        [HarmonyPatch(typeof(PlayerTool), nameof(PlayerTool.Awake))]
+        class Knife_Awake_Patch
         {
-            static float KnifeRangeDefault = 0;
+            //static float KnifeRangeDefault = 0;
 
             public static void Postfix(PlayerTool __instance)
             {
                 Knife knife = __instance as Knife;
                 if (knife)
                 {
-                    if (KnifeRangeDefault == 0)
-                    {
-                        KnifeRangeDefault = knife.attackDist;
-                        //Main.config.KnifeRangeDefault = knife.attackDist;
-                        //Main.Message(" save default !" + KnifeRangeDefault);
-                    }
-                    //Main.Message(" attackDist before " + knife.attackDist);
-                    knife.attackDist = KnifeRangeDefault * Main.config.KnifeRangeMult * 0.01f;
-                    //Main.Message(" attackDist after " + knife.attackDist);
+                    //ErrorMessage.AddDebug(" attackDist before " + knife.attackDist);
+                    //ErrorMessage.AddDebug(" damage before " + knife.damage);
+                    knife.attackDist *= Main.config.knifeRangeMult;
+                    knife.damage *= Main.config.knifeDamageMult;
+                    //ErrorMessage.AddDebug(" attackDist after " + knife.attackDist);
+                    //ErrorMessage.AddDebug(" damage before " + knife.damage);
                 }
 
             }

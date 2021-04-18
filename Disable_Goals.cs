@@ -9,6 +9,7 @@ namespace Tweaks_Fixes
         {
             internal static bool Prefix(PlayerWorldArrows __instance)
             {
+                //ErrorMessage.AddDebug("CreateWorldArrows");
                 return !Main.config.disableGoals;
             }
         }

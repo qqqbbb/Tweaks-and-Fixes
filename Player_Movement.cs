@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UWE;
 using HarmonyLib;
+using System.Text;
 
 namespace Tweaks_Fixes
 {
@@ -20,7 +21,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 oceanLevel = Ocean.main.GetOceanLevel();
-                invSize = Inventory.main.container.sizeX * Inventory.main.container.sizeY;
+                //invSize = Inventory.main.container.sizeX * Inventory.main.container.sizeY;
                 equipment = Inventory.main.equipment;
                 survival = Player.main.GetComponent<Survival>();
             }
@@ -38,9 +39,9 @@ namespace Tweaks_Fixes
 
             float mult;
             if (Player.main.IsSwimming())
-                mult = 100f - massTotal * Main.config.InvMultWater;
+                mult = 100f - massTotal * Main.config.invMultWater;
             else
-                mult = 100f - massTotal * Main.config.InvMultLand;      
+                mult = 100f - massTotal * Main.config.invMultLand;      
 
             //float mult = massTotal * Main.config.InvMult;
             mult = Mathf.Clamp(mult, 0f, 100f);
@@ -156,7 +157,7 @@ namespace Tweaks_Fixes
 
             public static void Postfix(float inMaxSpeed, ref float __result)
             {
-                if (Main.config.playerMoveSpeedTweaks && Main.config.InvMultWater > 0f)
+                if (Main.config.playerMoveSpeedTweaks && Main.config.invMultWater > 0f)
                     __result *= GetInvMult();
                 //__instance.movementSpeed = __instance.playerController.velocity.magnitude / 5f;
                 //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;
@@ -304,7 +305,6 @@ namespace Tweaks_Fixes
                     {
                         acceleration *= 1.45f;
                     }
-
                 }
                 float num7 = (num1 * acceleration) * Time.deltaTime;
                 if (num7 > 0f)
@@ -320,7 +320,9 @@ namespace Tweaks_Fixes
                         lhs -= num8 * __instance.surfaceNormal;
                     bool flag1 = vector3_2.y > swimMaxAllowedY;
                     bool flag2 = vector3_2.y < -0.3f;
+                    //bool flag2 = vector3_2.y < -0.0f;
                     bool flag3 = y < 0f;
+                    //bool flag3 = y < -0.3f;
                     if (__instance.transform.position.y >= swimMaxAllowedY && !flag1 && (!flag2 && !flag3))
                         lhs.y = 0.0f;
                     rb.velocity = lhs;
@@ -382,7 +384,7 @@ namespace Tweaks_Fixes
             else if (tank == TechType.PlasteelTank)
                 maxSpeed *= 0.95f;
 
-            if (Main.config.InvMultWater > 0f)
+            if (Main.config.invMultWater > 0f)
                 maxSpeed *= GetInvMult();
 
             //ErrorMessage.AddDebug("AdjustGroundSpeed " + maxSpeed);
@@ -477,6 +479,19 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
+        class TooltipFactory_ItemCommons_Patch
+        {
+            static void Postfix(StringBuilder sb, TechType techType, GameObject obj)
+            {
+                if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
+                {
+                    Rigidbody rb = obj.GetComponent<Rigidbody>();
+                    if (rb)
+                        TooltipFactory.WriteDescription(sb, "mass " + rb.mass);
+                }
+            }
+        }
 
 
     }

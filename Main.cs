@@ -109,7 +109,7 @@ namespace Tweaks_Fixes
         public static void CleanUp()
         {
             //gameLoaded = false;
-
+            Fish_Patches.gravSphereFish = new HashSet<Pickupable>();
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights = new List<GameObject>();
             Base_Light.SubRoot_Awake_Patch.bases = new HashSet<SubRoot>();
