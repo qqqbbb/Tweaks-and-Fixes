@@ -14,9 +14,8 @@ namespace Tweaks_Fixes
 {
     class Player_Patches
     {
-        static float updateHungerInterval = 10f;
-        static Survival survival;
-        static LiveMixin liveMixin;
+        //static Survival survival;
+        //static LiveMixin liveMixin;
         public static GUIHand gUIHand;
         public static float exitWaterOffset = 0.8f; // 0.8f
         public static float crushPeriod = 3f;
@@ -27,24 +26,6 @@ namespace Tweaks_Fixes
             {
                 //Main.Message("DisableExosuitClawArmScan");
                 PDAScanner.mapping.Remove(TechType.ExosuitClawArmFragment);
-            }
-        }
-
-        [HarmonyPatch(typeof(Survival), "UpdateHunger")]
-        internal class Survival_UpdateHunger_Patch
-        {// remove health regen from food
-            internal static bool Prefix(Survival __instance)
-            {
-                if (!Main.config.noHealthRegenFromFood)
-                    return true;
-
-                if (!GameModeUtils.RequiresSurvival() || __instance.freezeStats)
-                    return false;
-                //ErrorMessage.AddDebug("kUpdateHungerInterval " + __instance.kUpdateHungerInterval);
-                float originalDamage = __instance.UpdateStats(updateHungerInterval);
-                if (liveMixin && originalDamage > 1.4f)
-                    liveMixin.TakeDamage(originalDamage, Player.main.transform.position, DamageType.Starve);
-                return false;
             }
         }
 
@@ -75,14 +56,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Survival), nameof(Survival.Reset))]
+        //[HarmonyPatch(typeof(Survival), nameof(Survival.Reset))]
         internal class Survival_Reset_Patch
         {
             [HarmonyPostfix]
             public static void Postfix(Survival __instance)
             {
-                survival = Player.main.GetComponent<Survival>();
-                liveMixin = Player.main.GetComponent<LiveMixin>();
+                //survival = Player.main.GetComponent<Survival>();
+                //liveMixin = Player.main.GetComponent<LiveMixin>();
                 //Main.Log("1.40129846432482E-45  " + (int)1.40129846432482E-45);
                 //Main.Message("Survival_Reset_Patch "); 
                 //__instance.food = 11f;
@@ -109,33 +90,8 @@ namespace Tweaks_Fixes
                 if (Main.config.cantScanExosuitClawArm)
                     DisableExosuitClawArmScan();
 
-
                 //__instance.StartCoroutine(Test());
-                //Eatable ds = Player.main.gameObject.GetComponent<Eatable>();
-                //if (ds == null)
-                //{
-                //    ErrorMessage.AddDebug("AddComponent DoorSave");
-                //    ds = Player.main.gameObject.AddComponent<Eatable>();
-                //    ds.timeDecayStart = -111f;
-                //}
-                //else
-                //    ErrorMessage.AddDebug(" DoorSave " + ds.timeDecayStart);
-            }
-        }
 
-        [HarmonyPatch(typeof(IngameMenu), "SaveGame")]
-        internal class SaveGamePatch
-        {
-            public static void Postfix()
-            {
-                //Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
-                if (Player.main.mode == Player.Mode.Normal)
-                    Main.config.playerCamRot = MainCameraControl.main.viewModel.localRotation.eulerAngles.y;
-                else
-                    Main.config.playerCamRot = -1f;
-
-                Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
-                Main.config.Save();
             }
         }
 
@@ -186,44 +142,25 @@ namespace Tweaks_Fixes
             public static void Postfix(Inventory __instance)
             {
                 if (Main.config.activeSlot == -1)
-                    //Inventory.main.quickSlots.DeselectImmediate();
                     Inventory.main.quickSlots.Deselect();
                 else
                     Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);
             }
         }
 
-        [HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
-        class DamageSystem_CalculateDamage_Patch
+        [HarmonyPatch(typeof(Inventory), "GetUseItemAction")]
+        internal class Inventory_GetUseItemAction_Patch
         {
-            static System.Random rndm = new System.Random();
-
-            public static void Postfix(float damage, ref float __result, GameObject target, DamageType type, GameObject dealer)
+            internal static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
             {
-                //if (dealer == null) 
-                //Main.Message("CalculateDamage no dealer");
-                //else
-                //    Main.Message("dealer " + dealer.name);
-                //if (target == Player.mainObject)
-                //{
-                    //if (Main.config.disableDamage)
-                    //    __result = .0f;
-                //}
-                if (Main.config.dropHeldTool && target == Player.mainObject)
+                if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
                 {
-                    if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
+                    Pickupable pickupable = item.item;
+                    if (pickupable.gameObject.GetComponent<Eatable>())
                     {
-                        int rnd = rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
-                        if (rnd < damage)
-                        {
-                            //ErrorMessage.AddDebug("DropHeldItem");
-                            Inventory.main.DropHeldItem(true);
-                        }
+                        __result = ItemAction.None;
                     }
                 }
-                //else 
-                //__result *= 2222f;
-
             }
         }
 

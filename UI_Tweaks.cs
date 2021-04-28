@@ -74,6 +74,18 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(uGUI_FeedbackCollector), "HintShow")]
+        class uGUI_FeedbackCollector_HintShow_Patch
+        {
+            static bool Prefix(uGUI_FeedbackCollector __instance)
+            {
+                if (Main.config.disableGoals)
+                    return false;
+
+                return true;
+            }
+        }
+
         //[HarmonyPatch(typeof(uGUI_MainMenu), "OnRightSideOpened")]
         class uGUI_MainMenu_OnRightSideOpened_Patch
         {

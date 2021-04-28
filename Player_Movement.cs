@@ -10,7 +10,7 @@ namespace Tweaks_Fixes
     internal class Player_Movement
     {
         static float oceanLevel;
-        static int invSize;
+        //static int invSize;
         static Equipment equipment;
         static Survival survival;
         static float swimMaxAllowedY = .6f; // .6
@@ -25,6 +25,23 @@ namespace Tweaks_Fixes
                 equipment = Inventory.main.equipment;
                 survival = Player.main.GetComponent<Survival>();
             }
+        }
+
+        public static float GetWeaknessSpeedMult()
+        {
+            float foodPen = 1f;
+            float waterPen = 1f;
+            if (Main.survival.food < 0f)
+            {
+                foodPen = Mathf.Abs(Main.survival.food / 100f);
+                foodPen = 1f - foodPen;
+            }
+            if (Main.survival.water < 0f)
+            {
+                waterPen = Mathf.Abs(Main.survival.water / 100f);
+                waterPen = 1f - waterPen;
+            }
+            return (foodPen + waterPen) * .5f;
         }
 
         public static float GetInvMult()
@@ -48,21 +65,9 @@ namespace Tweaks_Fixes
             return mult * .01f;
         }
 
-        private static float GetInvMultOld()
-        {
-            int invCellsFull = 0;
-            foreach (InventoryItem inventoryItem in Inventory.main.container)
-                invCellsFull += inventoryItem.height * inventoryItem.width;
-
-            float invMult = Main.NormalizeTo01range(invCellsFull, 0, invSize);
-            //ErrorMessage.AddDebug("invSize " + invSize + " invCellsFull " + invCellsFull + " invMult " + invMult);
-            invMult = 1.0f - invMult * .5f;
-            return invMult;
-        }
-
         [HarmonyPatch(typeof(Seaglide), "UpdateActiveState")]
         internal class Seaglide_UpdateActiveState_Patch
-        {
+        { // seaglide works only if moving forward
             public static bool Prefix(Seaglide __instance)
             {
                 if (!Main.config.playerMoveSpeedTweaks)
@@ -111,22 +116,12 @@ namespace Tweaks_Fixes
                 __result = inMaxSpeed;
 
                 TechType suit = equipment.GetTechTypeInSlot("Body");
-
                 if (suit != TechType.None)  
                     __result *= 0.9f;
 
-                if (survival.food < 20f)
-                {
-                    float foodMult = 1f;
-                    foodMult -= ((20.0f - survival.food) * 0.0125f);
-                    __result *= foodMult;
-                }
-                if (survival.water < 20f)
-                {
-                    float waterMult = 1f;
-                    waterMult -= ((20.0f - survival.water) * 0.0125f);
-                    __result *= waterMult;
-                }
+                if (Player.main.motorMode != Player.MotorMode.Seaglide)
+                    Utils.AdjustSpeedScalarFromWeakness(ref __result);
+
                 TechType fins = equipment.GetTechTypeInSlot("Foots");
                 if (fins == TechType.Fins)
                     __result *= 1.2f;
@@ -358,19 +353,8 @@ namespace Tweaks_Fixes
 
         private static float AdjustGroundSpeed(float maxSpeed)
         {
-            //Utils.AdjustSpeedScalarFromWeakness(ref maxSpeed);
-            if (survival.food < 20f)
-            {
-                float foodMult = 1f;
-                foodMult -= ((20.0f - survival.food) * 0.0125f);
-                maxSpeed *= foodMult;
-            }
-            if (survival.water < 20f)
-            {
-                float waterMult = 1f;
-                waterMult -= ((20.0f - survival.water) * 0.0125f);
-                maxSpeed *= waterMult;
-            }
+            Utils.AdjustSpeedScalarFromWeakness(ref maxSpeed);
+
             TechType suit = equipment.GetTechTypeInSlot("Body");
             if (suit != TechType.None)
                 maxSpeed *= 0.9f;
@@ -389,15 +373,6 @@ namespace Tweaks_Fixes
 
             //ErrorMessage.AddDebug("AdjustGroundSpeed " + maxSpeed);
             return maxSpeed;
-        }
-
-        //[HarmonyPatch(typeof(Survival), "UpdateStats")]
-        internal class Survival_UpdateStats_Patch
-        {
-            public static void Postfix(Survival __instance)
-            {
-                ErrorMessage.AddDebug("UpdateStats");
-            }
         }
 
         [HarmonyPatch(typeof(GroundMotor), "ApplyInputVelocityChange")]

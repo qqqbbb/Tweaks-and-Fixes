@@ -8,6 +8,8 @@ namespace Tweaks_Fixes
 {
     class Damage_Patch
     {
+        static System.Random rndm = new System.Random();
+
         [HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
         class DamageSystem_CalculateDamage_Patch
         {
@@ -19,6 +21,42 @@ namespace Tweaks_Fixes
                     {
                         //ErrorMessage.AddDebug("Player takes damage");
                         __result *= Main.config.playerDamageMult;
+
+                        if (Main.config.dropHeldTool)
+                        {
+                            if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
+                            {
+                                int rnd = rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
+                                if (rnd < damage)
+                                {
+                                    //ErrorMessage.AddDebug("DropHeldItem");
+                                    Inventory.main.DropHeldItem(true);
+                                }
+                            }
+                        }
+                        if (Main.config.replacePoisonDamage && type == DamageType.Poison)
+                        {
+                            //ErrorMessage.AddDebug("Player takes Poison damage " + damage);
+                            Survival survival = Player.main.GetComponent<Survival>();
+                            int foodMin = Main.config.replaceHungerDamage ? -99 : 1;
+                            int damageLeft = 0;
+                            for (int i = (int)__result; i > 0; i--)
+                            {
+                                if (survival.food > foodMin)
+                                    survival.food -= 1f;
+                                else
+                                    damageLeft++;
+
+                                if (survival.water > foodMin)
+                                    survival.water -= 1f;
+                                else
+                                    damageLeft++;
+                            }
+                            //DamageType.
+                            //ErrorMessage.AddDebug("damageLeft " + damageLeft);
+                            Player.main.liveMixin.TakeDamage(damageLeft, target.transform.position, DamageType.Starve, dealer);
+                            __result = 0f;
+                        }
                     }
                     else if (target.GetComponent<Vehicle>() || target.GetComponent<SubControl>())
                     {

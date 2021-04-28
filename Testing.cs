@@ -23,6 +23,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 Player.main.oxygenMgr.AddOxygen(115f);
+                //ErrorMessage.AddDebug("health " + (int)Player.main.liveMixin.health);
                 //ErrorMessage.AddDebug("timePassedAsFloat " + DayNightCycle.main.timePassedAsFloat);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 //if (uGUI.main.loading.IsLoading)
@@ -49,34 +50,38 @@ namespace Tweaks_Fixes
 
                 if (Input.GetKey(KeyCode.C))
                 {
-                    if (Player.main._currentWaterPark)
-                        ErrorMessage.AddDebug(" WaterPark");
-                    //QualitySettings.anisotropicFiltering
-                    //PlayerTool tool = Inventory.main.GetHeldTool();
-                    //ErrorMessage.AddDebug(" anisotropicFiltering " + QualitySettings.anisotropicFiltering);
-                    //AnisotropicFiltering a = AnisotropicFiltering
+                    Survival survival = Player.main.GetComponent<Survival>();
+
+                    if (Input.GetKey(KeyCode.LeftShift))
+                        survival.water++;
+                    else
+                        survival.food++;
                 }
 
                 if (Input.GetKey(KeyCode.X))
                 {
-                    //HandReticle.main.UnrequestCrosshairHide();
+                    Survival survival = Player.main.GetComponent<Survival>();
+                    if (Input.GetKey(KeyCode.LeftShift))
+                        survival.water--;
+                    else
+                        survival.food--;
                 }
                 if (Input.GetKey(KeyCode.Z))
                 {
+                    Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
+                    if (target)
+                    {
+                        ErrorMessage.AddDebug(" " + target.name);
+                        ErrorMessage.AddDebug(" " + CraftData.GetTechType(target));
+
+                    }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
                     }
                     else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
                     {
                     }
-                    Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
-                    if (target)
-                    {
 
-                        //ErrorMessage.AddDebug(" " + target.name);
-                        //ErrorMessage.AddDebug(" " + GetParent(target).name);
-
-                    }
                     //else
 
                     //Inventory.main.DropHeldItem(true);
@@ -89,11 +94,12 @@ namespace Tweaks_Fixes
 
                     if (Main.guiHand.activeTarget)
                     {
-                        //ErrorMessage.AddDebug("activeTarget " + gUIHand.activeTarget.name);
+                        //ErrorMessage.AddDebug("activeTarget " + Main.guiHand.activeTarget.name);
+                        //ErrorMessage.AddDebug(" " + CraftData.GetTechType(Main.guiHand.activeTarget));
                         //RadiatePlayerInRange radiatePlayerInRange = Main.guiHand.activeTarget.GetComponent<RadiatePlayerInRange>();
                         //if (radiatePlayerInRange)
                         {
-    
+
                         }
                         //else
                         //    ErrorMessage.AddDebug("no radiatePlayerInRange " );
@@ -240,16 +246,16 @@ namespace Tweaks_Fixes
                     }
                     if (__instance.activeTarget)
                         //ErrorMessage.AddDebug("OnUpdate 2 " + __instance.activeTarget.name);
-
-                        // ProfilingUtils.EndSample();
                         HandReticle.main.SetTargetDistance(__instance.activeHitDistance);
-                    // ProfilingUtils.BeginSample("GUIHandUpdate-TargetToolTips");
+
                     if (__instance.activeTarget != null && !__instance.suppressTooltip)
                     {
                         TechType techType = CraftData.GetTechType(__instance.activeTarget);
                         if (techType != TechType.None)
                         {
-                            HandReticle.main.SetInteractInfo(techType.AsString());
+                            string name = Language.main.Get(techType);
+                            //HandReticle.main.SetInteractInfo(techType.AsString());
+                            HandReticle.main.SetInteractText(name, string.Empty);
                             //ErrorMessage.AddDebug("OnUpdate "+ techType.AsString());
                         }
 

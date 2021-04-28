@@ -1,12 +1,14 @@
 ﻿using HarmonyLib;
 using UnityEngine;
-
+using System.Collections.Generic;
 
 namespace Tweaks_Fixes
 {
-    class Crush_Damage
+    public class Crush_Damage
     {
-        public static float crushPeriod = 3f;
+        public static float crushInterval = 3f;
+        public static int extraCrushDepth = 0;
+        public static Dictionary<TechType, int> crushDepthEquipment = new Dictionary<TechType, int>();
 
         public static void CrushDamage()
         {
@@ -14,7 +16,7 @@ namespace Tweaks_Fixes
                 return;
 
             float depth = Ocean.main.GetDepthOf(Player.main.gameObject);
-            float crushDepth = Main.config.crushDepth;
+            float crushDepth = Main.config.crushDepth + extraCrushDepth;
             if (depth < crushDepth || !Player.main.IsSwimming())
                 return;
 
@@ -25,6 +27,41 @@ namespace Tweaks_Fixes
             Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
+        [HarmonyPatch(typeof(Inventory), "OnEquip")]
+        class Inventory_OnEquip_Patch
+        {
+            static void Postfix(Inventory __instance, InventoryItem item)
+            {
+                //ErrorMessage.AddDebug("crushDepthEquipment.Count " + crushDepthEquipment.Count);
+                TechType tt = item.item.GetTechType();
+                
+                if (crushDepthEquipment.ContainsKey(tt))
+                {
+                    //Main.config.crushDepth += crushDepthEquipment[tt];
+                    extraCrushDepth += crushDepthEquipment[tt];
+                    //ErrorMessage.AddDebug("crushDepth " + Main.config.crushDepth);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory), "OnUnequip")]
+        class Inventory_OnUnequip_Patch
+        {
+            static void Postfix(Inventory __instance, InventoryItem item)
+            {
+                //Main.Message("Depth Class " + __instance.GetDepthClass());
+                //TechTypeExtensions.FromString(loot.Key, out TechType tt, false);
+                TechType tt = item.item.GetTechType();
+
+                if (crushDepthEquipment.ContainsKey(tt))
+                {
+                    //Main.config.crushDepth -= crushDepthEquipment[tt];
+                    extraCrushDepth -= crushDepthEquipment[tt];
+                    //ErrorMessage.AddDebug("crushDepth " + Main.config.crushDepth);
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -32,7 +69,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (Main.config.crushDamageMult > 0f && Time.time - crushTime > crushPeriod)
+                if (Main.config.crushDamageMult > 0f && Time.time - crushTime > crushInterval)
                 {
                     crushTime = Time.time;
                     CrushDamage();

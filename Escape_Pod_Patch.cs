@@ -68,8 +68,6 @@ namespace Tweaks_Fixes
             }
             //ErrorMessage.AddDebug("currentSlot " + SaveLoadManager.main.currentSlot);
             Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot] = true;
-            Main.config.Save();
-
         }
 
         [HarmonyPatch(typeof(EscapePod), "ShowDamagedEffects")]
@@ -173,13 +171,13 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(EnterExitHelper), "Enter")]
         class EnterExitHelper_Enter_Patch
-        { // the method is static
+        { // patched method is static
             public static void Postfix( GameObject gameObject)
             { // entering escape pod using top hatch
-                if (Player.main.currentEscapePod && EscapePod.main.damageEffectsShowing && EscapePod.main.bottomHatchUsed && !EscapePod.main.topHatchUsed)
+                //ErrorMessage.AddDebug("position.y " + gameObject.transform.position.y);
+                if (Player.main.currentEscapePod && EscapePod.main.damageEffectsShowing && gameObject.transform.position.y > 2f)
                 {
                     LetSmokeOut(EscapePod.main);
-                 
                 }
             }
         }

@@ -11,20 +11,6 @@ namespace Tweaks_Fixes
 {
     internal static class BulkheadDoorPatch
     {
-        public static long GetKey(string saveSlot)
-        {
-            long key = 0;
-
-            if (!string.IsNullOrEmpty(saveSlot))
-            {
-                SaveLoadManager.GameInfo gameInfo = SaveLoadManager.main.GetGameInfo(saveSlot);
-                if (gameInfo != null)
-                    key = gameInfo.startTicks;
-            }
-            return key;
-        }
-
-
 
         //[HarmonyPatch(typeof(BulkheadDoor), "OnHandHover")]
         static class BulkheadDoor_OnHandHover_Patch
@@ -54,7 +40,7 @@ namespace Tweaks_Fixes
                     Main.config.openedWreckDoors[slot] = new Dictionary<int, bool>();
 
                 Main.config.openedWreckDoors[slot][doorKey] = !__instance.isOpen;
-                Main.config.Save();
+                //Main.config.Save();
             }
         }
 

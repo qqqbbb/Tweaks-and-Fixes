@@ -22,8 +22,8 @@ namespace Tweaks_Fixes
             //Main.Log("GetTools " );
             foreach (InventoryItem item in Inventory.main.container)
             {
-                if (item.isBindable)
-                {
+                if (item.item.GetComponent<PlayerTool>() && !item.item.GetComponent<Eatable>())
+                { // eatable fish is PlayerTool
                     TechType techType = item.item.GetTechType();
                     if (!eqiupped.Contains(techType) && !toEqiupTT.Contains(techType))
                     {

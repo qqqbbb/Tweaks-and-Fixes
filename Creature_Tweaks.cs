@@ -5,6 +5,15 @@ namespace Tweaks_Fixes
 {
     class Creature_Tweaks
     {
+        [HarmonyPatch(typeof(CreatureEgg), "Awake")]
+        class CreatureEgg_Awake_Patch
+        {
+            public static void Postfix(CreatureEgg __instance)
+            {
+                __instance.explodeOnHatch = false;
+            }
+        }
+
         [HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.Start))]
         class CreatureDeath_Start_Patch
         {
@@ -85,7 +94,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(FMOD_CustomEmitter), nameof(FMOD_CustomEmitter.Play))]
+        //[HarmonyPatch(typeof(FMOD_CustomEmitter), nameof(FMOD_CustomEmitter.Play))]
         public static class ReaperLeviathan_FMOD_CustomEmitter_Patch
         {
             public static bool Prefix(FMOD_CustomEmitter __instance)
@@ -98,6 +107,28 @@ namespace Tweaks_Fixes
                     return false;
                 }
                 return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Creature), nameof(Creature.Start))]
+        public static class Creature_Start_Patch
+        {
+            public static void Postfix(Creature __instance)
+            {
+                if (__instance is Spadefish)
+                {
+                    //ErrorMessage.AddDebug("Spadefish");
+                    __instance.GetComponent<Rigidbody>().mass = 4f;
+                }
+               else if (Main.config.disableReaperRoar && __instance is ReaperLeviathan)
+                {
+                    FMOD_CustomEmitter ce = __instance.GetComponent<FMOD_CustomEmitter>();
+                    if (ce)
+                    {
+                        ce.enabled = false;
+                        //ErrorMessage.AddDebug("shut up reaper ");
+                    }
+                }
             }
         }
 

@@ -7,7 +7,6 @@ namespace Tweaks_Fixes
 {
     class Fish_Patches
     {
-
         static public HashSet<Pickupable> gravSphereFish = new HashSet<Pickupable>();
 
         [HarmonyPatch(typeof(Pickupable), "Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
@@ -15,6 +14,9 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(Pickupable __instance, Vector3 dropPosition)
             {
+                if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
+                    return true;
+
                 Inventory playerInv = Inventory.main;
                 if (Main.config.eatFishOnRelease && playerInv.GetHeldTool() != null)
                 {
@@ -90,21 +92,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Creature))]
-        class Creature_Start_patch
-        {
-            [HarmonyPatch(nameof(Creature.Start))]
-            public static void Postfix(Creature __instance)
-            {
-                //Main.Log(__instance.gameObject.name + " " + __instance.GetComponent<Rigidbody>().mass);
-                if (__instance is Spadefish)
-                {
-                    //ErrorMessage.AddDebug("Spadefish");
-                    __instance.GetComponent<Rigidbody>().mass = 4f;
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(SwimBehaviour))]
         class SwimBehaviour_SwimToInternal_patch
         {
@@ -121,6 +108,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
+
 
     }
 }

@@ -35,6 +35,9 @@
     <Reference Include="Assembly-CSharp-firstpass_publicized">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\Assembly-CSharp-firstpass_publicized.dll</HintPath>
     </Reference>
+    <Reference Include="DayNightSpeed">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\QMods\DayNightSpeed\DayNightSpeed.dll</HintPath>
+    </Reference>
     <Reference Include="QModInstaller">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\QModManager\QModInstaller.dll</HintPath>
     </Reference>
@@ -78,6 +81,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base_Light.cs" />
+    <Compile Include="Boulder_Fix.cs" />
+    <Compile Include="Pickupable_Patch.cs" />
+    <Compile Include="Oxygen_Patch.cs" />
+    <Compile Include="Starting_Loot_Patch.cs" />
     <Compile Include="Flare_Patch.cs" />
     <Compile Include="Craft_Patch.cs" />
     <Compile Include="Damage_Patch.cs" />

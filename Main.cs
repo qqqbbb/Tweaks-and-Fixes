@@ -1,6 +1,7 @@
 ﻿
 using HarmonyLib;
 using QModManager.API.ModLoading;
+using QModManager.API;
 using System.Reflection;
 using System;
 using SMLHelper.V2.Handlers;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 
+
 namespace Tweaks_Fixes
 {
     [QModCore]
@@ -16,9 +18,9 @@ namespace Tweaks_Fixes
     {
         public static GUIHand guiHand;
         public static PDA pda;
+        public static Survival survival;
 
-
-        internal static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
+        public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
         public static float NormalizeTo01range(int value, int min, int max)
         {
@@ -109,10 +111,13 @@ namespace Tweaks_Fixes
         public static void CleanUp()
         {
             //gameLoaded = false;
+            //ErrorMessage.AddDebug("CleanUp");
             Fish_Patches.gravSphereFish = new HashSet<Pickupable>();
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights = new List<GameObject>();
             Base_Light.SubRoot_Awake_Patch.bases = new HashSet<SubRoot>();
+            Crush_Damage.extraCrushDepth = 0;
+
         }
 
         public static void Message(string str)
@@ -136,7 +141,7 @@ namespace Tweaks_Fixes
             QModManager.Utility.Logger.Log(lvl, str);
         }
 
-        [HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
+        //[HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
         internal class IngameMenu_QuitGameAsync_Patch
         {
             public static void Postfix(IngameMenu __instance, bool quitToDesktop)
@@ -166,9 +171,10 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
+                survival = __instance.GetComponent<Survival>();
                 //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
-                guiHand = Player.main.GetComponent<GUIHand>();
-                pda = Player.main.GetPDA();
+                guiHand = __instance.GetComponent<GUIHand>();
+                pda = __instance.GetPDA();
                 if (config.cantScanExosuitClawArm)
                     DisableExosuitClawArmScan();
 
@@ -199,15 +205,55 @@ namespace Tweaks_Fixes
             }
         }
 
+        static void SaveData()
+        {
+            //Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
+            if (Player.main.mode == Player.Mode.Normal)
+                config.playerCamRot = MainCameraControl.main.viewModel.localRotation.eulerAngles.y;
+            else
+                config.playerCamRot = -1f;
+
+            config.activeSlot = Inventory.main.quickSlots.activeSlot;
+            //config.crushDepth -= Crush_Damage.extraCrushDepth;
+            config.Save();
+            //config.crushDepth += Crush_Damage.extraCrushDepth;
+        }
+
         [QModPatch]
         public static void Load()
         {
+
             config.Load();
             Assembly assembly = Assembly.GetExecutingAssembly();
             new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
+            IngameMenuHandler.RegisterOnSaveEvent(SaveData);
+            IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
 
-           
 
+        }
+        //public static bool dayNightSpeedLoaded = false;
+        [QModPostPatch]
+        public static void PostPatch()
+        {
+            //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
+            //dayNightSpeedLoaded = iqMod != null;
+
+            foreach (var item in config.crushDepthEquipment)
+            {
+                TechTypeExtensions.FromString(item.Key, out TechType tt, false);
+                //Log("crushDepthEquipment str " + item.Key);
+                //Log("crushDepthEquipment TechType " + tt);
+                if (tt != TechType.None)
+                    Crush_Damage.crushDepthEquipment[tt] = item.Value;
+            }
+            foreach (var item in config.itemMass)
+            {
+                TechTypeExtensions.FromString(item.Key, out TechType tt, false);
+                //Log("crushDepthEquipment str " + item.Key);
+                //Log("crushDepthEquipment TechType " + tt);
+                if (tt != TechType.None)
+                    Pickupable_Patch.itemMass[tt] = item.Value;
+            }
         }
     }
 }
