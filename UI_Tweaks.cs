@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
+using System.Text;
 
 namespace Tweaks_Fixes
 {
@@ -83,6 +84,24 @@ namespace Tweaks_Fixes
                     return false;
 
                 return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
+        class TooltipFactory_ItemCommons_Patch
+        {
+            static void Postfix(StringBuilder sb, TechType techType, GameObject obj)
+            {
+                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                {
+                    TooltipFactory.WriteDescription(sb, "Increases your safe diving depth by " + Crush_Damage.crushDepthEquipment[techType] + " meters.");
+                }
+                if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
+                {
+                    Rigidbody rb = obj.GetComponent<Rigidbody>();
+                    if (rb)
+                        TooltipFactory.WriteDescription(sb, "mass " + rb.mass);
+                }
             }
         }
 

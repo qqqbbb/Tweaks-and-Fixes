@@ -101,67 +101,77 @@ namespace Tweaks_Fixes
 
     [HarmonyPatch(typeof(Vehicle), "ApplyPhysicsMove")]
     class Vehicle_ApplyPhysicsMove_Prefix_patch
-    { // fix seamoth move diagonally, disable exosuit strafe
-        public static bool Prefix(Vehicle __instance)
+    {      // fix seamoth move diagonally
+        static void ApplyPhysicsMoveSeamoth(Vehicle __instance)
         {
-            if (Main.config.seamothMoveTweaks || Main.config.exosuitMoveTweaks)
-            { }
-            else
-                return true;
-
-            //ErrorMessage.AddDebug("ControlSheme  " + __instance.controlSheme);
-            if (!__instance.GetPilotingMode())
-                return false;
-
+            //ErrorMessage.AddDebug("ApplyPhysicsMoveSeamoth  " + __instance.controlSheme);
             if (__instance.worldForces.IsAboveWater() != __instance.wasAboveWater)
             {
                 __instance.PlaySplashSound();
                 __instance.wasAboveWater = __instance.worldForces.IsAboveWater();
             }
             if (!(__instance.moveOnLand | (__instance.transform.position.y < Ocean.main.GetOceanLevel() && __instance.transform.position.y < __instance.worldForces.waterDepth && !__instance.precursorOutOfWater)))
-                return false;
-            //ErrorMessage.AddDebug("onGround   " + __instance.onGround);
-            if (__instance.controlSheme == Vehicle.ControlSheme.Submersible)
+                return;
+
+            Vector3 input = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
+            input.Normalize();
+            float z = input.z > 0 ? input.z * __instance.forwardForce : input.z * __instance.backwardForce;
+            Vector3 acceleration = new Vector3(input.x * __instance.sidewardForce, input.y * __instance.verticalForce, z);
+            acceleration = __instance.transform.rotation * acceleration * Time.deltaTime;
+            for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
+                __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
+            __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
+        }
+        //disable exosuit strafe
+        static void ApplyPhysicsMoveExosuit(Vehicle __instance)
+        {
+            //ErrorMessage.AddDebug("ApplyPhysicsMoveExosuit  " + __instance.controlSheme);
+            if (__instance.worldForces.IsAboveWater() != __instance.wasAboveWater)
             {
-                Vector3 input = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-                //ErrorMessage.AddDebug("sidewardForce  " + __instance.sidewardForce);
-                //ErrorMessage.AddDebug("verticalForce  " + __instance.verticalForce);
-                //ErrorMessage.AddDebug("backwardForce  " + __instance.backwardForce);
-                input.Normalize();
-                float z = input.z > 0 ? input.z * __instance.forwardForce : input.z * __instance.backwardForce;
-
-                //ErrorMessage.AddDebug("z   " + z);
-                Vector3 acceleration = new Vector3(input.x * __instance.sidewardForce, input.y * __instance.verticalForce, z);
-                acceleration = __instance.transform.rotation * acceleration * Time.deltaTime;
-                for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
-                    __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
-                __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
+                __instance.PlaySplashSound();
+                __instance.wasAboveWater = __instance.worldForces.IsAboveWater();
             }
-            else if (__instance.controlSheme == Vehicle.ControlSheme.Mech)
-            { // disable strafing
-                Vector3 inputRaw = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-                Vector3 input = new Vector3(0.0f, 0.0f, inputRaw.z);
-                float num = Mathf.Abs(input.x) * __instance.sidewardForce + Mathf.Max(0.0f, input.z) * __instance.forwardForce + Mathf.Max(0.0f, -input.z) * __instance.backwardForce;
-                Vector3 vector3_3 = __instance.transform.rotation * input;
-                vector3_3.y = 0.0f;
-                Vector3 vector = Vector3.Normalize(vector3_3);
-                if (__instance.onGround)
-                {
-                    vector = Vector3.ProjectOnPlane(vector, __instance.surfaceNormal);
-                    vector.y = Mathf.Clamp(vector.y, -0.5f, 0.5f);
-                    num *= __instance.onGroundForceMultiplier;
-                    //Main.Message("surfaceNormal " + __instance.surfaceNormal);
-                }
+            if (!(__instance.moveOnLand | (__instance.transform.position.y < Ocean.main.GetOceanLevel() && __instance.transform.position.y < __instance.worldForces.waterDepth && !__instance.precursorOutOfWater)))
+                return;
 
-                Vector3 vector3_4 = new Vector3(0.0f, inputRaw.y, 0.0f);
-                vector3_4.y *= __instance.verticalForce * Time.deltaTime;
-                Vector3 acceleration = num * vector * Time.deltaTime + vector3_4;
-                __instance.OverrideAcceleration(ref acceleration);
-                for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
-                    __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
-                __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
+            Vector3 inputRaw = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
+            Vector3 input = new Vector3(0.0f, 0.0f, inputRaw.z);
+            float num = Mathf.Abs(input.x) * __instance.sidewardForce + Mathf.Max(0.0f, input.z) * __instance.forwardForce + Mathf.Max(0.0f, -input.z) * __instance.backwardForce;
+            Vector3 vector3_3 = __instance.transform.rotation * input;
+            vector3_3.y = 0.0f;
+            Vector3 vector = Vector3.Normalize(vector3_3);
+            if (__instance.onGround)
+            {
+                vector = Vector3.ProjectOnPlane(vector, __instance.surfaceNormal);
+                vector.y = Mathf.Clamp(vector.y, -0.5f, 0.5f);
+                num *= __instance.onGroundForceMultiplier;
             }
-            return false;
+            Vector3 vector3_4 = new Vector3(0.0f, inputRaw.y, 0.0f);
+            vector3_4.y *= __instance.verticalForce * Time.deltaTime;
+            Vector3 acceleration = num * vector * Time.deltaTime + vector3_4;
+            __instance.OverrideAcceleration(ref acceleration);
+            for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
+                __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
+            __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
+        }
+
+        public static bool Prefix(Vehicle __instance)
+        {
+            //ErrorMessage.AddDebug("ControlSheme  " + __instance.controlSheme);
+            if (!__instance.GetPilotingMode())
+                return false;
+
+            if (Main.config.seamothMoveTweaks && __instance.controlSheme == Vehicle.ControlSheme.Submersible)
+            {
+                ApplyPhysicsMoveSeamoth(__instance);
+                return false;
+            }
+            else if (Main.config.exosuitMoveTweaks && __instance.controlSheme == Vehicle.ControlSheme.Mech)
+            {
+                ApplyPhysicsMoveExosuit(__instance);
+                return false;
+            }
+            return true;
         }
     }
 

@@ -16,6 +16,25 @@ namespace Tweaks_Fixes
 {
     class Testing
     {
+        //[HarmonyPatch(typeof(Beacon), "Start")]
+        class Beacon_Start_Patch
+        {
+            static void Postfix(Beacon __instance)
+            {
+                //ErrorMessage.AddDebug("Beacon start");
+            }
+        }
+
+        private Vector3 ClipWithTerrain(GameObject go)
+        {
+            Vector3 origin = go.transform.position;
+            //origin.y = go.transform.position.y + 5f;
+            //RaycastHit hitInfo;
+            //if (!Physics.Raycast(new Ray(origin, Vector3.down), out hitInfo, 10f, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore))
+            //    return;
+            //go.transform.position.y = Mathf.Max(go.transform.position.y, hitInfo.point.y + 0.3f);
+            return origin;
+        }
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch

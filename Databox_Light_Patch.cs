@@ -8,7 +8,7 @@ namespace Tweaks_Fixes
     {
         public static List<GameObject> databoxLights = new List<GameObject>();
 
-        public static GameObject GetClosetToPlayer()
+        public static GameObject GetClosestToPlayer()
         {
             GameObject closest = null;
             //float shortestDist = float.PositiveInfinity;
@@ -36,7 +36,7 @@ namespace Tweaks_Fixes
             {
                 if (Main.config.disableDataboxLight && __instance.GetComponent<BlueprintHandTarget>())
                 {
-                    GameObject closestLight = GetClosetToPlayer();
+                    GameObject closestLight = GetClosestToPlayer();
                     if (closestLight != null)
                     {
                         //ErrorMessage.AddDebug("remove light");
@@ -53,10 +53,13 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(VFXVolumetricLight __instance)
             {
-                if (Main.config.disableDataboxLight && __instance.transform.parent.name == "DataboxLight(Clone)")
+                if (Main.config.disableDataboxLight)
                 {
-                    //Main.Log("VFXVolumetricLight Awake parent " + __instance.transform.parent.name);
-                    databoxLights.Add(__instance.transform.parent.gameObject);
+                    if (__instance.transform.parent.name == "DataboxLight(Clone)" || __instance.transform.parent.name == "DataboxLight_small(Clone)")
+                    {
+                        //Main.Log("VFXVolumetricLight Awake parent " + __instance.transform.parent.name);
+                        databoxLights.Add(__instance.transform.parent.gameObject);
+                    }
                 }
             }
         }

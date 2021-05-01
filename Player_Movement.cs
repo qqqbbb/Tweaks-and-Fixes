@@ -454,19 +454,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
-        class TooltipFactory_ItemCommons_Patch
-        {
-            static void Postfix(StringBuilder sb, TechType techType, GameObject obj)
-            {
-                if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
-                {
-                    Rigidbody rb = obj.GetComponent<Rigidbody>();
-                    if (rb)
-                        TooltipFactory.WriteDescription(sb, "mass " + rb.mass);
-                }
-            }
-        }
 
 
     }
