@@ -9,6 +9,7 @@ namespace Tweaks_Fixes
     class Cyclops_Patch
     {
         static Rigidbody rb;
+        public static CyclopsEntryHatch ceh;
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -196,6 +197,35 @@ namespace Tweaks_Fixes
                 Player.main.playerAnimator.SetFloat("cyclops_pitch", __instance.steeringWheelPitch);
 
             return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(CyclopsEntryHatch), "OnTriggerEnter")]
+        class CyclopsEntryHatch_Start_Patch
+        { // OnTriggerExit does not fire if you use closest ladder so hatch does not close
+            static void Postfix(CyclopsEntryHatch __instance, Collider col)
+            {
+                if (!col.gameObject.Equals(Player.main.gameObject))
+                    return;
+                ceh = __instance;
+                //ErrorMessage.AddDebug("OnTriggerEnter " + __instance.hatchOpen);
+            }
+        }
+
+        [HarmonyPatch(typeof(CinematicModeTriggerBase), "OnHandClick")]
+        class CinematicModeTriggerBase_OnHandClick_Patch
+        {
+            static void Postfix(CinematicModeTriggerBase __instance, GUIHand hand)
+            {
+                if (ceh && ceh.hatchOpen && Player.main.IsInSubmarine())
+                {
+                    CinematicModeTrigger cmt = __instance as CinematicModeTrigger;
+                    if (cmt && cmt.handText == "ClimbLadder")
+                    {
+                        //ErrorMessage.AddDebug("CLOSE !!! " );
+                        ceh.hatchOpen = false;
+                    }
+                }
             }
         }
 

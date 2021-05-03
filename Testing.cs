@@ -16,14 +16,7 @@ namespace Tweaks_Fixes
 {
     class Testing
     {
-        //[HarmonyPatch(typeof(Beacon), "Start")]
-        class Beacon_Start_Patch
-        {
-            static void Postfix(Beacon __instance)
-            {
-                //ErrorMessage.AddDebug("Beacon start");
-            }
-        }
+
 
         private Vector3 ClipWithTerrain(GameObject go)
         {
@@ -36,7 +29,7 @@ namespace Tweaks_Fixes
             return origin;
         }
 
-        //[HarmonyPatch(typeof(Player), "Update")]
+        [HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
@@ -87,12 +80,18 @@ namespace Tweaks_Fixes
                 }
                 if (Input.GetKey(KeyCode.Z))
                 {
+                    //ErrorMessage.AddDebug("CanBeAttacked " + Player.main.CanBeAttacked());
+                    
                     Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
                     if (target)
                     {
-                        ErrorMessage.AddDebug(" " + target.name);
-                        ErrorMessage.AddDebug(" " + CraftData.GetTechType(target));
+  
 
+                    }
+                    if (Main.guiHand.activeTarget)
+                    {
+                        ErrorMessage.AddDebug(" " + Main.guiHand.activeTarget.name);
+                        ErrorMessage.AddDebug("TechType " + CraftData.GetTechType(Main.guiHand.activeTarget));
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {

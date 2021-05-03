@@ -176,17 +176,30 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(PlayerController), "SetMotorMode")]
-        internal class Player_Movement_Speed_Patch
+        [HarmonyPatch(typeof(Inventory), "LoseItems")]
+        internal class Inventory_LoseItems_Patch
         {
-            public static void Postfix(PlayerController __instance)
+            public static void Postfix(Inventory __instance)
             {
-                ErrorMessage.AddDebug("PlayerController SetMotorMode");
-                __instance.underWaterController.backwardMaxSpeed = __instance.underWaterController.forwardMaxSpeed * .5f;
-                __instance.underWaterController.strafeMaxSpeed = __instance.underWaterController.backwardMaxSpeed;
-
-                __instance.groundController.backwardMaxSpeed = __instance.groundController.forwardMaxSpeed * .5f;
-                __instance.groundController.strafeMaxSpeed = __instance.groundController.backwardMaxSpeed;
+                //ErrorMessage.AddDebug("LoseItems");
+                if (Main.config.dropAllitemsOndeath)
+                {
+                    List<InventoryItem> inventoryItemList = new List<InventoryItem>();
+                    foreach (InventoryItem inventoryItem in Inventory.main.container)
+                    {
+                        inventoryItemList.Add(inventoryItem);
+                    }
+                    foreach (InventoryItem inventoryItem in (IItemsContainer)Inventory.main.equipment)
+                    {
+                        //ErrorMessage.AddDebug("equipment " + inventoryItem.item.GetTechName());
+                        inventoryItemList.Add(inventoryItem);
+                    }
+                    foreach (InventoryItem item in inventoryItemList)
+                    {
+                        //ErrorMessage.AddDebug("DROP " + item.item.GetTechName());
+                        __instance.InternalDropItem(item.item, false);
+                    }
+                }
             }
         }
 

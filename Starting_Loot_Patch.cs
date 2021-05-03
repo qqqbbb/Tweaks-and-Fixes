@@ -17,7 +17,7 @@ namespace Tweaks_Fixes
                 __instance.escapePodTechTypes = new List<TechType>();
                 foreach (KeyValuePair<string, int> loot in Main.config.startingLoot)
                 {
-                    TechTypeExtensions.FromString(loot.Key, out TechType tt, false);
+                    TechTypeExtensions.FromString(loot.Key, out TechType tt, true);
                     //Main.Log("Start Loot " + tt);
                     //ErrorMessage.AddDebug("Start Loot " + tt);
                     if (tt == TechType.None)

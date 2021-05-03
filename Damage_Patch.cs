@@ -21,6 +21,8 @@ namespace Tweaks_Fixes
                     {
                         //ErrorMessage.AddDebug("Player takes damage");
                         __result *= Main.config.playerDamageMult;
+                        if (__result == 0f)
+                            return;
 
                         if (Main.config.dropHeldTool)
                         {

@@ -8,7 +8,6 @@ namespace Tweaks_Fixes
 {
      class Food_Patch : MonoBehaviour
     {
-        static bool crafterOpen = false;
         static float waterValueMult = 1f;
         static float foodValueMult = 1f;
         static float foodCons = .5f; // vanilla 0.4
@@ -243,7 +242,7 @@ namespace Tweaks_Fixes
                 }
                 if (Main.config.foodTweaks) 
                 { 
-                    if (crafterOpen)
+                    if (Main.crafterOpen)
                     { // food values not saved and will reset after reload
                         //ErrorMessage.AddDebug("waterValueMult " + waterValueMult);
                         //ErrorMessage.AddDebug("foodValueMult " + foodValueMult);
@@ -278,7 +277,7 @@ namespace Tweaks_Fixes
             {
                 //ErrorMessage.AddDebug(" GhostCrafter OnOpenedChanged " + opened);
                 //Main.Log(" GhostCrafter OnOpenedChanged " + opened);
-                crafterOpen = opened;
+                Main.crafterOpen = opened;
                 //__instance.PlayerIsInRange
             }
         }
@@ -289,7 +288,7 @@ namespace Tweaks_Fixes
             public static void Postfix(ItemsContainer __instance, InventoryItem item)
             {
                 //if (crafterOpem && Inventory.main._container == __instance)
-                if (Main.config.foodTweaks && crafterOpen)
+                if (Main.config.foodTweaks && Main.crafterOpen)
                 { // cooking fish
                     //TechType tt = item.item.GetTechType();
 

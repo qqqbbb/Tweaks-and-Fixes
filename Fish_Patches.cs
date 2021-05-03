@@ -7,7 +7,6 @@ namespace Tweaks_Fixes
 {
     class Fish_Patches
     {
-        static public HashSet<Pickupable> gravSphereFish = new HashSet<Pickupable>();
 
         [HarmonyPatch(typeof(Pickupable), "Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
         class Pickupable_Drop_Patch
@@ -56,7 +55,7 @@ namespace Tweaks_Fixes
                         __result = true;
                         return;
                     }
-                    foreach (Pickupable p in gravSphereFish)
+                    foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
                     {
                         if (p == __instance) 
                         {
@@ -67,28 +66,6 @@ namespace Tweaks_Fixes
                     }
                 }
       
-            }
-        }
-
-        [HarmonyPatch(typeof(Gravsphere))]
-        class Gravsphere_Patch
-        {   
-            [HarmonyPostfix]
-            [HarmonyPatch(nameof(Gravsphere.OnPickedUp))]
-            public static void OnPickedUp(Gravsphere __instance)
-            {
-                //ErrorMessage.AddDebug("OnPickedUp ");
-                gravSphereFish = new HashSet<Pickupable>();
-            }
-            [HarmonyPostfix]
-            [HarmonyPatch(nameof(Gravsphere.AddAttractable))]
-            public static void AddAttractable(Gravsphere __instance, Rigidbody r)
-            {
-                if (Main.IsEatableFishAlive(r.gameObject)) 
-                { 
-                    //ErrorMessage.AddDebug("AddAttractable ");
-                    gravSphereFish.Add(r.GetComponent<Pickupable>());
-                }
             }
         }
 

@@ -19,6 +19,7 @@ namespace Tweaks_Fixes
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
+        public static bool crafterOpen = false;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -112,12 +113,14 @@ namespace Tweaks_Fixes
         {
             //gameLoaded = false;
             //ErrorMessage.AddDebug("CleanUp");
-            Fish_Patches.gravSphereFish = new HashSet<Pickupable>();
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights = new List<GameObject>();
             Base_Light.SubRoot_Awake_Patch.bases = new HashSet<SubRoot>();
             Crush_Damage.extraCrushDepth = 0;
-
+            crafterOpen = false;
+            Cyclops_Patch.ceh = null;
+            Gravsphere_Patch.gasPods = new HashSet<GasPod>();
+            Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
         }
 
         public static void Message(string str)
@@ -240,7 +243,7 @@ namespace Tweaks_Fixes
 
             foreach (var item in config.crushDepthEquipment)
             {
-                TechTypeExtensions.FromString(item.Key, out TechType tt, false);
+                TechTypeExtensions.FromString(item.Key, out TechType tt, true);
                 //Log("crushDepthEquipment str " + item.Key);
                 //Log("crushDepthEquipment TechType " + tt);
                 if (tt != TechType.None)
@@ -248,11 +251,18 @@ namespace Tweaks_Fixes
             }
             foreach (var item in config.itemMass)
             {
-                TechTypeExtensions.FromString(item.Key, out TechType tt, false);
+                TechTypeExtensions.FromString(item.Key, out TechType tt, true);
                 //Log("crushDepthEquipment str " + item.Key);
                 //Log("crushDepthEquipment TechType " + tt);
                 if (tt != TechType.None)
                     Pickupable_Patch.itemMass[tt] = item.Value;
+            }
+            foreach (string name in config.gravTrappable)
+            {
+                TechTypeExtensions.FromString(name, out TechType tt, true);
+
+                if (tt != TechType.None)
+                    Gravsphere_Patch.gravTrappable.Add(tt);
             }
         }
     }

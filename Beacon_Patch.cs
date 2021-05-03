@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
         {
             // x and z does not matter, it will stabilize itself
             __instance.gameObject.transform.rotation = Camera.main.transform.rotation;
-            __instance.transform.Rotate(0.0f, 180f, 0.0f);
+            __instance.transform.Rotate(0f, 180f, 0f);
         }
     }
 }

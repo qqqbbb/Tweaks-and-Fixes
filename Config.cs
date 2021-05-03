@@ -11,7 +11,7 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-        public float version = 1.06f;
+        public float version = 1.07f;
         //[Slider("humgerUpdateInterval", 1, 33, DefaultValue = 10, Step = 1, Format = "{0:F0}")]
         public int hungerUpdateInterval = 10;
         [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
@@ -81,7 +81,7 @@ namespace Tweaks_Fixes
 
         [Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
         public bool predatorsDontFlee = false;
-        [Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed. Game has to be reloaded after changing this.")]
+        [Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player. Game has to be reloaded after changing this.")]
         public bool creaturesRespawn = false;
 
         [Slider("flare light intensity", 0.1f, 1f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "You have to reequip your flare after changing this.")]
@@ -89,16 +89,21 @@ namespace Tweaks_Fixes
         [Toggle("Unlock prawn suit only by scanning prawn suit", Tooltip = "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arms. Game has to be reloaded after changing this.")]
         public bool cantScanExosuitClawArm = false;
 
-        [Toggle("Disable reaper's roar", Tooltip = "Game has to be reloaded after changing this.")]
-        public bool disableReaperRoar = false;
+
         [Toggle("Remove light from open databox", Tooltip = "Disable databox light when you open it so it does not draw your attention next time you see it. Game has to be reloaded after changing this.")]
         public bool disableDataboxLight = false;
         [Slider("Life pod power cell max charge", 10, 100, DefaultValue = 25, Step = 1, Format = "{0:F0}", Tooltip = "Max charge for each of its 3 power cells. Game has to be reloaded after changing this.")]
         public int escapePodMaxPower = 25;
         [Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are 30% charged. Game has to be reloaded after changing this.")]
         public bool escapePodPowerTweak = false;
+        [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries you craft will be set to this.")]
+        public int craftedBatteryCharge = 100;
+        [Toggle("Drop every item when you die", Tooltip = "You will drop every item in your inventory when you die.")]
+        public bool dropAllitemsOndeath = false;
         [Toggle("No easy shale outcrops from sea treaders", Tooltip = "Sea treaders unearth shale outcrops only when stomping the ground.")]
         public bool seaTreaderChunks = false;
+        [Toggle("Disable reaper's roar", Tooltip = "Game has to be reloaded after changing this.")]
+        public bool disableReaperRoar = false;
         [Toggle("No metal clicking sound when walking", Tooltip = "Removes metal clicking sound when walking on metal surface.")]
         public bool fixFootstepSound = false;
         [Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
@@ -129,9 +134,52 @@ namespace Tweaks_Fixes
         {
             { "ScrapMetal", 120 },
         };
+        public HashSet<string> nonRechargeable = new HashSet<string>{
+            { "someBattery" },
+        };
+
+        public HashSet<string> gravTrappable = new HashSet<string>{
+            { "seaglide" },
+            { "airbladder" },
+            { "flare" },
+            { "flashlight" },
+            { "builder" },
+            { "lasercutter" },
+            { "ledlight" },
+            { "divereel" },
+            { "propulsioncannon" },
+            { "welder" },
+            { "repulsioncannon" },
+            { "scanner" },
+            { "stasisrifle" },
+            { "knife" },
+            { "heatblade" },
+
+            { "precursorkey_blue" },
+            { "precursorkey_orange" },
+            { "precursorkey_purple" },
+            { "compass" },
+            { "fins" },
+            { "fireextinguisher" },
+            { "firstaidkit" },
+            { "doubletank" },
+            { "plasteeltank" },
+            { "radiationsuit" },
+            { "radiationhelmet" },
+            { "radiationgloves" },
+            { "rebreather" },
+            { "reinforceddivesuit" },
+            { "maproomhudchip" },
+            { "tank" },
+            { "stillsuit" },
+            { "swimchargefins" },
+            { "ultraglidefins" },
+            { "highcapacitytank" },
+        };
+
         static void UpdateBaseLight()
         {
-            Base_Light.SubRoot_Awake_Patch.UpdateBaseLight(); 
+            Base_Light.SubRoot_Awake_Patch.UpdateBaseLight();
         }
 
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }

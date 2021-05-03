@@ -27,23 +27,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static float GetWeaknessSpeedMult()
-        {
-            float foodPen = 1f;
-            float waterPen = 1f;
-            if (Main.survival.food < 0f)
-            {
-                foodPen = Mathf.Abs(Main.survival.food / 100f);
-                foodPen = 1f - foodPen;
-            }
-            if (Main.survival.water < 0f)
-            {
-                waterPen = Mathf.Abs(Main.survival.water / 100f);
-                waterPen = 1f - waterPen;
-            }
-            return (foodPen + waterPen) * .5f;
-        }
-
         public static float GetInvMult()
         {
             float massTotal = 0f;

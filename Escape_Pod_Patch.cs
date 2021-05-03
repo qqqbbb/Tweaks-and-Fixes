@@ -158,6 +158,12 @@ namespace Tweaks_Fixes
                 //ErrorMessage.AddDebug("EscapePod damageEffectsShowing " + __instance.damageEffectsShowing);
                 //ErrorMessage.AddDebug("health " + __instance.liveMixin.health);
                 //ErrorMessage.AddDebug("OnProtoDeserialize " + __instance.liveMixin.GetHealthFraction()); 
+                Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                rb.constraints = RigidbodyConstraints.None;
+
+                if (GameModeUtils.SpawnsInitialItems()) // creative mode
+                    return;
+
                 if (__instance.liveMixin.GetHealthFraction() < 0.99f)
                 {
                     ShowDamagedEffects_Patch.DamagePod(__instance);
