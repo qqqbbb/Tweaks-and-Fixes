@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {   // to fix: Boulder with floaters move up
@@ -21,7 +22,7 @@ namespace Tweaks_Fixes
                         Floater[] floaters = __instance.GetAllComponentsInChildren<Floater>();
                         if (floaters.Length < 5)
                         {
-                            //ErrorMessage.AddDebug("floaters == null");
+                            //AddDebug("floaters == null");
                             wf.handleGravity = false;
                         }
                         PlayerDistanceTracker pdt = __instance.gameObject.EnsureComponent<PlayerDistanceTracker>();
@@ -39,7 +40,7 @@ namespace Tweaks_Fixes
                 if (!__instance.GetComponent<Drillable>())
                     return;
                 //float magnitude = (__instance.transform.position - Player.main.transform.position).magnitude;
-                //ErrorMessage.AddDebug("magnitude " + magnitude);
+                //AddDebug("magnitude " + magnitude);
                 WorldForces wf = __instance.GetComponent<WorldForces>();
                 if (!wf)
                     return;
@@ -47,7 +48,7 @@ namespace Tweaks_Fixes
                 if (!wf.handleGravity && __instance._playerNearby)
                 {
                     wf.handleGravity = true;
-                    //ErrorMessage.AddDebug("handleGravity  true ");
+                    //AddDebug("handleGravity  true ");
 
                 }
                 else if (wf.handleGravity)
@@ -57,7 +58,7 @@ namespace Tweaks_Fixes
                     {
                         wf.handleGravity = false;
                     }
-                    ErrorMessage.AddDebug("floaters " + floaters.Count());
+                    AddDebug("floaters " + floaters.Count());
                 }
             }
         }

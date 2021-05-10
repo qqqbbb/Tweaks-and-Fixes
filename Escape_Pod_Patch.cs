@@ -1,6 +1,7 @@
 ﻿
 using UnityEngine;
 using HarmonyLib;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -14,7 +15,7 @@ namespace Tweaks_Fixes
     {
         public static void RepairPod(EscapePod escapePod)
         {
-            //ErrorMessage.AddDebug("RepairPod");
+            //AddDebug("RepairPod");
             if (escapePod.vfxSpawner.spawnedObj != null)
             {
                 ParticleSystem particleSystem = escapePod.vfxSpawner.spawnedObj.GetComponent<ParticleSystem>();
@@ -39,6 +40,7 @@ namespace Tweaks_Fixes
             {
                 foreach (RegeneratePowerSource cell in cells)
                 {
+                    //AddDebug("maxPower " + maxPower);
                     cell.powerSource.maxPower = maxPower;
                 }
             }
@@ -54,7 +56,7 @@ namespace Tweaks_Fixes
 
         public static void LetSmokeOut(EscapePod escapePod)
         {
-            //ErrorMessage.AddDebug("LetSmokeOut");
+            //AddDebug("LetSmokeOut");
             if (escapePod.vfxSpawner.spawnedObj != null)
             {
                 ParticleSystem particleSystem = escapePod.vfxSpawner.spawnedObj.GetComponent<ParticleSystem>();
@@ -66,7 +68,7 @@ namespace Tweaks_Fixes
                 LightingController.MultiStatesSky sky = escapePod.lightingController.skies[index];
                 sky.sky.AffectedByDayNightCycle = true;
             }
-            //ErrorMessage.AddDebug("currentSlot " + SaveLoadManager.main.currentSlot);
+            //AddDebug("currentSlot " + SaveLoadManager.main.currentSlot);
             Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot] = true;
         }
 
@@ -76,9 +78,11 @@ namespace Tweaks_Fixes
             [HarmonyPrefix]
             public static bool DamagePod(EscapePod __instance)
             {
-                //if (__instance.damageEffectsShowing)
-                //    return false;
-                //ErrorMessage.AddDebug("DamagePod");
+                //AddDebug("try DamagePod " + __instance.introCinematic.state);
+                if (__instance.isNewBorn && __instance.introCinematic.state == PlayerCinematicController.State.None)
+                    return false; // dont damage before intro cinematic
+
+                //AddDebug("DamagePod");
                 if (!IsSmokeOut(SaveLoadManager.main.currentSlot))
                     __instance.vfxSpawner.SpawnManual();
 
@@ -91,11 +95,21 @@ namespace Tweaks_Fixes
                 uGUI_EscapePod.main.SetPower(Language.main.Get("IntroEscapePod3Power"), (Color)new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue));
                 RegeneratePowerSource[] cells = __instance.GetAllComponentsInChildren<RegeneratePowerSource>();
                 int maxPower = Main.config.escapePodMaxPower;
-                if (Main.config.escapePodPowerTweak && cells != null)
+                if (cells != null)
                 {
+                    //AddDebug("cells " + cells.Length);
                     foreach (RegeneratePowerSource cell in cells)
                     {
-                        cell.powerSource.maxPower = maxPower * .5f;
+                        //AddDebug("maxPower " + maxPower);
+                        if (Main.config.escapePodPowerTweak)
+                        {
+                            cell.powerSource.maxPower = maxPower * .5f;
+                        }
+                        else
+                        {
+                            cell.powerSource.maxPower = maxPower;
+                            cell.powerSource.power = maxPower;
+                        }
                     }
                 }
                 return false;
@@ -150,14 +164,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(EscapePod), "OnProtoDeserialize")]
-        class EscapePod_OnProtoDeserialize_Patch
-        {
+        //[HarmonyPatch(typeof(EscapePod), "OnProtoDeserialize")]
+        public class EscapePod_OnProtoDeserialize_Patch
+        { // power cells not loaded when OnProtoDeserialize runs
             public static void Postfix(EscapePod __instance)
             {
-                //ErrorMessage.AddDebug("EscapePod damageEffectsShowing " + __instance.damageEffectsShowing);
-                //ErrorMessage.AddDebug("health " + __instance.liveMixin.health);
-                //ErrorMessage.AddDebug("OnProtoDeserialize " + __instance.liveMixin.GetHealthFraction()); 
+                //AddDebug("EscapePod damageEffectsShowing " + __instance.damageEffectsShowing);
+                //AddDebug("health " + __instance.liveMixin.health);
+                //AddDebug("OnProtoDeserialize " + __instance.liveMixin.GetHealthFraction()); 
                 Rigidbody rb = __instance.GetComponent<Rigidbody>();
                 rb.constraints = RigidbodyConstraints.None;
 
@@ -180,30 +194,10 @@ namespace Tweaks_Fixes
         { // patched method is static
             public static void Postfix( GameObject gameObject)
             { // entering escape pod using top hatch
-                //ErrorMessage.AddDebug("position.y " + gameObject.transform.position.y);
+                //AddDebug("position.y " + gameObject.transform.position.y);
                 if (Player.main.currentEscapePod && EscapePod.main.damageEffectsShowing && gameObject.transform.position.y > 2f)
                 {
                     LetSmokeOut(EscapePod.main);
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(Player), "Update")]
-        class Player_Update_Patch
-        {
-
-            static void Postfix(Player __instance)
-            {
-                if (Input.GetKey(KeyCode.Z))
-                {
-                    //ErrorMessage.AddDebug("bottomHatchUsed " + EscapePod.main.bottomHatchUsed);
-                    //ErrorMessage.AddDebug("topHatchUsed " + EscapePod.main.topHatchUsed);
-                    ErrorMessage.AddDebug(" escapePod " + Player.main.escapePod.value);
-                    if (Player.main.currentEscapePod)
-                    {
-                        ErrorMessage.AddDebug(" currentEscapePod " + Player.main.currentEscapePod);
-                    }
-
                 }
             }
         }
@@ -217,12 +211,13 @@ namespace Tweaks_Fixes
                 int maxPower = Main.config.escapePodMaxPower;
                 if (cells != null)
                 {
+                    //AddDebug("EscapePod start cells " + cells.Length);
                     foreach (RegeneratePowerSource cell in cells)
                     {
-                        if (Main.config.escapePodPowerTweak && __instance.damageEffectsShowing)
-                            cell.powerSource.maxPower = maxPower * .5f;
-                        else
-                            cell.powerSource.maxPower = maxPower;
+                        //if (Main.config.escapePodPowerTweak && __instance.damageEffectsShowing)
+                        //    cell.powerSource.maxPower = maxPower * .5f;
+                        //else
+                        //    cell.powerSource.maxPower = maxPower;
                     }
                 }
             }

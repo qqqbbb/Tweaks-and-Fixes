@@ -4,6 +4,7 @@ using UnityEngine;
 using UWE;
 using HarmonyLib;
 using System.Text;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -87,15 +88,15 @@ namespace Tweaks_Fixes
                     return true;
 
                 //if (Main.pda == null)
-                //    ErrorMessage.AddDebug("pda = null ");
+                //    AddDebug("pda = null ");
                 //if (Inventory.main.container == null)
-                //    ErrorMessage.AddDebug("Inventory.main.container = null ");
+                //    AddDebug("Inventory.main.container = null ");
                 //if (equipment == null)
-                //    ErrorMessage.AddDebug("equipment = null ");
+                //    AddDebug("equipment = null ");
                 //if (survival == null)
-                //    ErrorMessage.AddDebug("survival = null ");
+                //    AddDebug("survival = null ");
 
-                //ErrorMessage.AddDebug("AlterMaxSpeed");
+                //AddDebug("AlterMaxSpeed");
                 __result = inMaxSpeed;
 
                 TechType suit = equipment.GetTechTypeInSlot("Body");
@@ -151,7 +152,7 @@ namespace Tweaks_Fixes
             {
                 if (Main.config.playerMoveSpeedTweaks)
                 { // underWaterController ignores these
-                    //ErrorMessage.AddDebug("SetMotorMode");
+                    //AddDebug("SetMotorMode");
                     __instance.underWaterController.backwardMaxSpeed = __instance.underWaterController.forwardMaxSpeed * .5f;
                     __instance.underWaterController.strafeMaxSpeed = __instance.underWaterController.backwardMaxSpeed;
                     __instance.underWaterController.verticalMaxSpeed = __instance.underWaterController.backwardMaxSpeed;
@@ -159,7 +160,7 @@ namespace Tweaks_Fixes
                     __instance.groundController.backwardMaxSpeed = __instance.groundController.forwardMaxSpeed * .5f;
                     __instance.groundController.strafeMaxSpeed = __instance.groundController.backwardMaxSpeed;
                     __instance.groundController.verticalMaxSpeed = __instance.groundController.backwardMaxSpeed;
-                    //ErrorMessage.AddDebug("backwardMaxSpeed " + __instance.underWaterController.backwardMaxSpeed);
+                    //AddDebug("backwardMaxSpeed " + __instance.underWaterController.backwardMaxSpeed);
                     //Main.Log("forwardMaxSpeed " + __instance.forwardMaxSpeed);
                     //Main.Log("backwardMaxSpeed " + __instance.backwardMaxSpeed);
                 }
@@ -185,7 +186,7 @@ namespace Tweaks_Fixes
 
                 input.Normalize();
                 float z = input.z > 0 ? input.z * forwardForce : input.z * backwardForce;
-                //ErrorMessage.AddDebug("z   " + z);
+                //AddDebug("z   " + z);
                 Vector3 acceleration = new Vector3(input.x * sidewardForce, input.y * verticalForce, z);
                 //Vector3 inputRotated = playerMotor.playerController.forwardReference.rotation * input;
                 //Main.Message("acceleration magnitude " + acceleration.magnitude);
@@ -354,7 +355,7 @@ namespace Tweaks_Fixes
             if (Main.config.invMultWater > 0f)
                 maxSpeed *= GetInvMult();
 
-            //ErrorMessage.AddDebug("AdjustGroundSpeed " + maxSpeed);
+            //AddDebug("AdjustGroundSpeed " + maxSpeed);
             return maxSpeed;
         }
 
@@ -366,7 +367,7 @@ namespace Tweaks_Fixes
                 if (!Main.config.playerMoveSpeedTweaks)
                     return true;
 
-                //ErrorMessage.AddDebug("movementInputDirection "+ __instance.movementInputDirection);
+                //AddDebug("movementInputDirection "+ __instance.movementInputDirection);
                 if (__instance.playerController == null || __instance.playerController.forwardReference == null)
                 { 
                     __result = Vector3.zero;
@@ -396,7 +397,7 @@ namespace Tweaks_Fixes
                 {
                     float maxSpeed = 1f;
                     //Utils.AdjustSpeedScalarFromWeakness(ref maxSpeed);
-                    //ErrorMessage.AddDebug("maxSpeed " + maxSpeed);
+                    //AddDebug("maxSpeed " + maxSpeed);
                     if (!__instance.underWater && __instance.sprintPressed && __instance.movementInputDirection.z > 0f)
                     {
                         maxSpeed *= __instance.sprintModifier;

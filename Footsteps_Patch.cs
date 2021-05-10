@@ -6,6 +6,7 @@ using UnityEngine;
 using FMOD;
 using FMOD.Studio;
 using FMODUnity;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -38,7 +39,7 @@ namespace Tweaks_Fixes
                     return false;
                 if (__instance.fmodIndexSpeed < 0)
                     __instance.fmodIndexSpeed = FMODUWE.GetEventInstanceParameterIndex(evt, "speed");
-                //ErrorMessage.AddDebug("Velocity.magnitude " + __instance.groundMoveable.GetVelocity().magnitude);
+                //AddDebug("Velocity.magnitude " + __instance.groundMoveable.GetVelocity().magnitude);
                 ATTRIBUTES_3D attributes = xform.To3DAttributes();
                 evt.set3DAttributes(attributes);
                 float velMag = __instance.groundMoveable.GetVelocity().magnitude;
@@ -47,7 +48,7 @@ namespace Tweaks_Fixes
                 evt.setVolume(1f);
                 if (asset != __instance.landSound)
                 {
-                    //ErrorMessage.AddDebug("FIX");
+                    //AddDebug("FIX");
                     evt.setParameterValueByIndex(__instance.fmodIndexSpeed, 7f);
                     if (velMag < 6f)
                         evt.setVolume(.3f);

@@ -9,7 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
-
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -20,6 +20,8 @@ namespace Tweaks_Fixes
         public static PDA pda;
         public static Survival survival;
         public static bool crafterOpen = false;
+        public static bool canBreathe = false;
+        public static bool loadingDone = false;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -111,8 +113,8 @@ namespace Tweaks_Fixes
 
         public static void CleanUp()
         {
-            //gameLoaded = false;
-            //ErrorMessage.AddDebug("CleanUp");
+            canBreathe = false;
+            //AddDebug("CleanUp");
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights = new List<GameObject>();
             Base_Light.SubRoot_Awake_Patch.bases = new HashSet<SubRoot>();
@@ -125,15 +127,15 @@ namespace Tweaks_Fixes
 
         public static void Message(string str)
         {
-            int count = ErrorMessage.main.messages.Count;
+            int count = main.messages.Count;
 
             if (count == 0)
             {
-                ErrorMessage.AddDebug(str);
+                AddDebug(str);
             }
             else
             {
-                ErrorMessage._Message message = ErrorMessage.main.messages[ErrorMessage.main.messages.Count - 1];
+                _Message message = main.messages[main.messages.Count - 1];
                 message.messageText = str;
                 message.entry.text = str;
             }
@@ -149,7 +151,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(IngameMenu __instance, bool quitToDesktop)
             {
-                //ErrorMessage.AddDebug("QuitGameAsync " + quitToDesktop);
+                //AddDebug("QuitGameAsync " + quitToDesktop);
                 if (!quitToDesktop)
                     CleanUp();
             }
@@ -162,7 +164,7 @@ namespace Tweaks_Fixes
             {
                 if (Language.main.currentLanguage == "English")
                 {
-                    //ErrorMessage.AddDebug("English");
+                    //AddDebug("English");
                     //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
                     LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
                 }
@@ -184,15 +186,27 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(uGUI_MainMenu), "StartNewGame")]
-        internal class Initialize_NewGame_Patch
-        {
-            public static void Postfix(uGUI_MainMenu __instance)
+        [HarmonyPatch(typeof(uGUI_SceneLoading), "End")]
+        internal class uGUI_SceneLoading_End_Patch
+        { // fires after game loads
+            public static void Postfix(uGUI_SceneLoading __instance)
             {
-                //ErrorMessage.AddDebug("StartNewGame ");
-                //config.escapePodSmokeOut = false;
-                //config.openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
-                //config.Save();
+                if (!uGUI.main.hud.active)
+                {
+                    //AddDebug(" is Loading");
+                    return;
+                }
+                //AddDebug(" uGUI_SceneLoading end");
+                loadingDone = true;
+                if (Cyclops_Patch.cyclopsHelmHUDManager)
+                {
+                    if (Cyclops_Patch.cyclopsHelmHUDManager.LOD.IsFull() && Player.main.currentSub != Cyclops_Patch.cyclopsHelmHUDManager.subRoot && !Cyclops_Patch.cyclopsHelmHUDManager.subRoot.subDestroyed)
+                    {
+                        Cyclops_Patch.cyclopsHelmHUDManager.canvasGroup.alpha = 0f;
+                    }
+                }
+                if (EscapePod.main)
+                    Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
             }
         }
 
@@ -201,7 +215,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(SaveLoadManager __instance, string slotName)
             {
-                //ErrorMessage.AddDebug("ClearSlotAsync " + slotName);
+                //AddDebug("ClearSlotAsync " + slotName);
                 config.escapePodSmokeOut.Remove(slotName);
                 config.openedWreckDoors.Remove(slotName);
                 config.Save();

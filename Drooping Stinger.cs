@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -11,7 +12,7 @@ namespace Tweaks_Fixes
             LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
             if (liveMixin)
             {
-                //ErrorMessage.AddDebug("HangingStinger");
+                //AddDebug("HangingStinger");
                 liveMixin.data.destroyOnDeath = true;
                 liveMixin.data.explodeOnDestroy = false;
                 //CapsuleCollider col = __instance.GetComponentInChildren<CapsuleCollider>();
@@ -19,8 +20,10 @@ namespace Tweaks_Fixes
                 //__instance.gameObject.EnsureComponent<HangingStingerCollision>();
                 //collider.isTrigger = true;
                 //collider.bounds = col.bounds;
-                //ErrorMessage.AddDebug("invincibleInCreative " + __instance.invincibleInCreative);
+                //AddDebug("invincibleInCreative " + __instance.invincibleInCreative);
             }
+            VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
+            vFXSurface.surfaceType = VFXSurfaceTypes.vegetation;
         }
     }
 
@@ -31,11 +34,11 @@ namespace Tweaks_Fixes
         {
             //if (__instance.GetComponent<HangingStinger>())
             //{
-            ErrorMessage.AddDebug("OnCollisionEnter " + other.gameObject.name);
+            AddDebug("OnCollisionEnter " + other.gameObject.name);
             CapsuleCollider col = __instance.GetComponentInChildren<CapsuleCollider>();
             col.isTrigger = true;
             //__instance.data.explodeOnDestroy = false;
-            //ErrorMessage.AddDebug("invincibleInCreative " + __instance.invincibleInCreative);
+            //AddDebug("invincibleInCreative " + __instance.invincibleInCreative);
             //}
         }
     }
@@ -47,11 +50,11 @@ namespace Tweaks_Fixes
         {
             if (__instance.GetComponent<HangingStinger>())
             {
-                //ErrorMessage.AddDebug("IsAlive" + __instance.IsAlive());
-                //ErrorMessage.AddDebug("destroyOnDeath" + __instance.destroyOnDeath);
-                //ErrorMessage.AddDebug("explodeOnDestroy " + __instance.explodeOnDestroy);
-                //ErrorMessage.AddDebug("invincible " + __instance.invincible);
-                //ErrorMessage.AddDebug("health " + __instance.health);
+                //AddDebug("IsAlive" + __instance.IsAlive());
+                //AddDebug("destroyOnDeath" + __instance.destroyOnDeath);
+                //AddDebug("explodeOnDestroy " + __instance.explodeOnDestroy);
+                //AddDebug("invincible " + __instance.invincible);
+                //AddDebug("health " + __instance.health);
             }
         }
     }
@@ -63,9 +66,9 @@ namespace Tweaks_Fixes
         {
             if (__instance.GetComponent<HangingStinger>())
             {
-                ErrorMessage.AddDebug("Kill");
-                //ErrorMessage.AddDebug("Damage " + originalDamage);
-                //ErrorMessage.AddDebug("health " + __instance.health);
+                AddDebug("Kill");
+                //AddDebug("Damage " + originalDamage);
+                //AddDebug("health " + __instance.health);
             }
         }
     }
@@ -77,9 +80,9 @@ namespace Tweaks_Fixes
         {
             //if (__instance.GetComponent<HangingStinger>())
             //{
-                ErrorMessage.AddDebug("ExplodeGameObject " + go.name);
-            //ErrorMessage.AddDebug("Damage " + originalDamage);
-            //ErrorMessage.AddDebug("health " + __instance.health);
+                AddDebug("ExplodeGameObject " + go.name);
+            //AddDebug("Damage " + originalDamage);
+            //AddDebug("health " + __instance.health);
             //}   UnityEngine.Object.Destroy(o, time);
         }
     }
@@ -92,9 +95,9 @@ namespace Tweaks_Fixes
         {
             //if (__instance.GetComponent<HangingStinger>())
             //{
-            ErrorMessage.AddDebug("CleanUp " );
-            //ErrorMessage.AddDebug("Damage " + originalDamage);
-            //ErrorMessage.AddDebug("health " + __instance.health);
+            AddDebug("CleanUp " );
+            //AddDebug("Damage " + originalDamage);
+            //AddDebug("health " + __instance.health);
             //}   UnityEngine.Object.Destroy(o, time);
         }
     }

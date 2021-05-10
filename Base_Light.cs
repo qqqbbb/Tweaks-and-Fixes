@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
                 foreach (SubRoot subRoot in bases)
                 {
                     subRoot.subLightsOn = !Main.config.baseLightOff;
-                    //ErrorMessage.AddDebug(" subLightsOn " + subRoot.subLightsOn);
+                    //AddDebug(" subLightsOn " + subRoot.subLightsOn);
                 }
             }
 
@@ -26,7 +26,7 @@ namespace Tweaks_Fixes
                 {
                     __instance.subLightsOn = !Main.config.baseLightOff;
                     bases.Add(__instance);
-                    //ErrorMessage.AddDebug(" SubRoot awake isBase " + __instance.isBase);
+                    //AddDebug(" SubRoot awake isBase " + __instance.isBase);
                 }
 
             }

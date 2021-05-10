@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -19,7 +20,7 @@ namespace Tweaks_Fixes
                 {
                     TechTypeExtensions.FromString(loot.Key, out TechType tt, true);
                     //Main.Log("Start Loot " + tt);
-                    //ErrorMessage.AddDebug("Start Loot " + tt);
+                    //AddDebug("Start Loot " + tt);
                     if (tt == TechType.None)
                         continue;
 

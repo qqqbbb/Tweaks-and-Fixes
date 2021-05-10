@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {   // not tested with more than 1 grav trap
@@ -14,7 +15,7 @@ namespace Tweaks_Fixes
         {
             if (Gravsphere_Patch.gasPods.Contains(__instance))
             {
-                //ErrorMessage.AddDebug("GasPod.OnDrop ");
+                //AddDebug("GasPod.OnDrop ");
                 Gravsphere_Patch.gasPods.Remove(__instance);
                 __instance.grabbedByPropCannon = false;
             }
@@ -56,7 +57,7 @@ namespace Tweaks_Fixes
             else
             {
                 Pickupable p = r.GetComponent<Pickupable>();
-                //ErrorMessage.AddDebug("AddAttractable ");
+                //AddDebug("AddAttractable ");
                 if (p)
                 {
                     gravSphereFish.Add(p);
@@ -68,7 +69,7 @@ namespace Tweaks_Fixes
         [HarmonyPostfix] [HarmonyPatch(nameof(Gravsphere.ClearAll))]
         public static void ClearAll(Gravsphere __instance)
         {
-            //ErrorMessage.AddDebug("ClearAll ");
+            //AddDebug("ClearAll ");
             foreach (GasPod gp in gasPods)
             {
                 gp.grabbedByPropCannon = false;
@@ -83,7 +84,7 @@ namespace Tweaks_Fixes
             InventoryItem item = Inventory.main.quickSlots.heldItem;
             if (item != null && item.item.transform.root.gameObject == collider.transform.root.gameObject)
             {
-                //ErrorMessage.AddDebug("OnTriggerEnter heldItem ");
+                //AddDebug("OnTriggerEnter heldItem ");
                 return false;
             }
             return true;
@@ -99,7 +100,7 @@ namespace Tweaks_Fixes
                     int num = gravSphere.attractableList.IndexOf(__instance.GetComponent<Rigidbody>());
                     if (num == -1)
                         return;
-                    //ErrorMessage.AddDebug("Pick up gravSphere");
+                    //AddDebug("Pick up gravSphere");
                     gravSphere.removeList.Add(num);
                 }
             }

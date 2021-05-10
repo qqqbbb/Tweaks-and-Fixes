@@ -2,6 +2,7 @@
 using UnityEngine;
 using HarmonyLib;
 using System.Collections.Generic;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -44,14 +45,14 @@ namespace Tweaks_Fixes
                     if (Player.main._currentWaterPark)
                     {
                         __result = true;
-                        //ErrorMessage.AddDebug("WaterPark ");
+                        //AddDebug("WaterPark ");
                         return;
                     }
 
                    PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
                     if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
                     {
-                        //ErrorMessage.AddDebug("PropulsionCannonWeapon ");
+                        //AddDebug("PropulsionCannonWeapon ");
                         __result = true;
                         return;
                     }
@@ -59,7 +60,7 @@ namespace Tweaks_Fixes
                     {
                         if (p == __instance) 
                         {
-                            //ErrorMessage.AddDebug("Gravsphere ");
+                            //AddDebug("Gravsphere ");
                             __result = true;
                             return;
                         }

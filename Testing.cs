@@ -11,13 +11,12 @@ using FMOD;
 using FMOD.Studio;
 using FMODUnity;
 using System.Text;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class Testing
     {
-
-
         private Vector3 ClipWithTerrain(GameObject go)
         {
             Vector3 origin = go.transform.position;
@@ -34,28 +33,25 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                Player.main.oxygenMgr.AddOxygen(115f);
-                //ErrorMessage.AddDebug("health " + (int)Player.main.liveMixin.health);
-                //ErrorMessage.AddDebug("timePassedAsFloat " + DayNightCycle.main.timePassedAsFloat);
+                //AddDebug("health " + (int)Player.main.liveMixin.health);
+                //AddDebug("timePassedAsFloat " + DayNightCycle.main.timePassedAsFloat);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
-                //if (uGUI.main.loading.IsLoading)
-                //    Main.Message("Loading");
                 if (Input.GetKey(KeyCode.B))
                 {
-                    //ErrorMessage.AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
+                    //AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
                     //if (Player.main.IsInBase())
-                    //    ErrorMessage.AddDebug("IsInBase");
+                    //    AddDebug("IsInBase");
                     //else if (Player.main.IsInSubmarine())
-                    //    ErrorMessage.AddDebug("IsInSubmarine");
+                    //    AddDebug("IsInSubmarine");
                     //else if (Player.main.inExosuit)
-                    //    ErrorMessage.AddDebug("GetInMechMode");
+                    //    AddDebug("GetInMechMode");
                     //else if (Player.main.inSeamoth)
-                    //    ErrorMessage.AddDebug("inSeamoth");
+                    //    AddDebug("inSeamoth");
                     int x = Mathf.RoundToInt(Player.main.transform.position.x);
                     int y = Mathf.RoundToInt(Player.main.transform.position.y);
                     int z = Mathf.RoundToInt(Player.main.transform.position.z);
-                    ErrorMessage.AddDebug(x + " " + y + " " + z);
-                    ErrorMessage.AddDebug("" + Player.main.GetBiomeString());
+                    AddDebug(x + " " + y + " " + z);
+                    AddDebug("" + Player.main.GetBiomeString());
                     //Inventory.main.container.Resize(8,8);   GetPlayerBiome()
                     //HandReticle.main.SetInteractText(nameof(startingFood) + " " + dict[i]);
                 }
@@ -74,14 +70,17 @@ namespace Tweaks_Fixes
                 {
                     Survival survival = Player.main.GetComponent<Survival>();
                     if (Input.GetKey(KeyCode.LeftShift))
-                        survival.water--;
+                        //survival.water--;
+                        __instance.liveMixin.health--;
                     else
-                        survival.food--;
+                        //survival.food--;
+                        __instance.liveMixin.health++;
                 }
+
                 if (Input.GetKey(KeyCode.Z))
                 {
-                    //ErrorMessage.AddDebug("CanBeAttacked " + Player.main.CanBeAttacked());
-                    
+                    AddDebug("Time " + Time.time);
+
                     Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
                     if (target)
                     {
@@ -90,8 +89,13 @@ namespace Tweaks_Fixes
                     }
                     if (Main.guiHand.activeTarget)
                     {
-                        ErrorMessage.AddDebug(" " + Main.guiHand.activeTarget.name);
-                        ErrorMessage.AddDebug("TechType " + CraftData.GetTechType(Main.guiHand.activeTarget));
+                        VFXSurface[] vFXSurfaces = __instance.GetAllComponentsInChildren<VFXSurface>();
+                        if (vFXSurfaces.Length == 0)
+                            AddDebug(" " + Main.guiHand.activeTarget.name + " no VFXSurface");
+                        else
+                            AddDebug(" " + Main.guiHand.activeTarget.name);
+
+                        AddDebug("TechType " + CraftData.GetTechType(Main.guiHand.activeTarget));
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
@@ -105,22 +109,22 @@ namespace Tweaks_Fixes
                     //Inventory.main.DropHeldItem(true);
                     //Player.main.liveMixin.TakeDamage(99);
                     //Pickupable held = Inventory.main.GetHeld();
-                    //ErrorMessage.AddDebug("isUnderwaterForSwimming " + Player.main.isUnderwaterForSwimming.value);
-                    //ErrorMessage.AddDebug("isUnderwater " + Player.main.isUnderwater.value);
+                    //AddDebug("isUnderwaterForSwimming " + Player.main.isUnderwaterForSwimming.value);
+                    //AddDebug("isUnderwater " + Player.main.isUnderwater.value);
                     //LaserCutObject laserCutObject = 
                     //Inventory.main.quickSlots.Select(1);
 
                     if (Main.guiHand.activeTarget)
                     {
-                        //ErrorMessage.AddDebug("activeTarget " + Main.guiHand.activeTarget.name);
-                        //ErrorMessage.AddDebug(" " + CraftData.GetTechType(Main.guiHand.activeTarget));
+                        //AddDebug("activeTarget " + Main.guiHand.activeTarget.name);
+                        //AddDebug(" " + CraftData.GetTechType(Main.guiHand.activeTarget));
                         //RadiatePlayerInRange radiatePlayerInRange = Main.guiHand.activeTarget.GetComponent<RadiatePlayerInRange>();
                         //if (radiatePlayerInRange)
                         {
 
                         }
                         //else
-                        //    ErrorMessage.AddDebug("no radiatePlayerInRange " );
+                        //    AddDebug("no radiatePlayerInRange " );
 
                     }
                     //if (target)
@@ -145,7 +149,7 @@ namespace Tweaks_Fixes
             {
                 if (!done && __instance.activeTarget && CraftData.GetTechType(__instance.activeTarget) == TechType.Stalker)
                 {
-                    ErrorMessage.AddDebug("UpdateActiveTarget 0 " + __instance.activeTarget.name);
+                    AddDebug("UpdateActiveTarget 0 " + __instance.activeTarget.name);
                     Main.Log("UpdateActiveTarget 0 " + __instance.activeTarget.name);
                 }
 
@@ -163,7 +167,7 @@ namespace Tweaks_Fixes
                 }
                 else if (__instance.activeTarget.layer == LayerID.NotUseable)
                 {
-                    ErrorMessage.AddDebug("layer NotUseable");
+                    AddDebug("layer NotUseable");
                     __instance.activeTarget = null;
                 }
                 else
@@ -192,11 +196,11 @@ namespace Tweaks_Fixes
                         switch (CraftData.GetHarvestTypeFromTech(CraftData.GetTechType(__instance.activeTarget)))
                         {
                             case HarvestType.None:
-                                ErrorMessage.AddDebug("HarvestType.None");
+                                AddDebug("HarvestType.None");
                                 __instance.activeTarget = null;
                                 break;
                             case HarvestType.Pick:
-                                ErrorMessage.AddDebug("HarvestType.Pick");
+                                AddDebug("HarvestType.Pick");
                                 if (Utils.FindAncestorWithComponent<Pickupable>(__instance.activeTarget) == null)
                                 {
                                     LargeWorldEntity ancestorWithComponent = Utils.FindAncestorWithComponent<LargeWorldEntity>(__instance.activeTarget);
@@ -255,15 +259,15 @@ namespace Tweaks_Fixes
                     else if (!string.IsNullOrEmpty(text1))
                     {
                         HandReticle.main.SetUseTextRaw(text1, string.Empty);
-                        //ErrorMessage.AddDebug("OnUpdate " + text1);
+                        //AddDebug("OnUpdate " + text1);
                     }
                     if (__instance.grabMode == GUIHand.GrabMode.None)
                     {
                         __instance.UpdateActiveTarget();
-                        //ErrorMessage.AddDebug("OnUpdate " );
+                        //AddDebug("OnUpdate " );
                     }
                     if (__instance.activeTarget)
-                        //ErrorMessage.AddDebug("OnUpdate 2 " + __instance.activeTarget.name);
+                        //AddDebug("OnUpdate 2 " + __instance.activeTarget.name);
                         HandReticle.main.SetTargetDistance(__instance.activeHitDistance);
 
                     if (__instance.activeTarget != null && !__instance.suppressTooltip)
@@ -274,7 +278,7 @@ namespace Tweaks_Fixes
                             string name = Language.main.Get(techType);
                             //HandReticle.main.SetInteractInfo(techType.AsString());
                             HandReticle.main.SetInteractText(name, string.Empty);
-                            //ErrorMessage.AddDebug("OnUpdate "+ techType.AsString());
+                            //AddDebug("OnUpdate "+ techType.AsString());
                         }
 
 

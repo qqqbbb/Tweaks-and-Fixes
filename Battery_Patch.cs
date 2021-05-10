@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -18,7 +19,7 @@ namespace Tweaks_Fixes
                     TechTypeExtensions.FromString(name, out TechType tt, true);
                     if (tt != TechType.None && __instance.allowedTech.Contains(tt))
                     {
-                            //ErrorMessage.AddDebug("nonRechargeable " + name);
+                            //AddDebug("nonRechargeable " + name);
                         __instance.allowedTech.Remove(tt);
                     }
                 }
@@ -41,7 +42,7 @@ namespace Tweaks_Fixes
 
                 if (tt != TechType.None && Main.config.nonRechargeable.Contains(name) && tt == t)
                 {
-                    ErrorMessage.AddDebug("nonRechargeable " + name);
+                    AddDebug("nonRechargeable " + name);
                     __result = false;
                     return false;
                 }
@@ -59,7 +60,7 @@ namespace Tweaks_Fixes
             {
                 if (Main.crafterOpen)
                 {
-                    //ErrorMessage.AddDebug("crafterOpen");
+                    //AddDebug("crafterOpen");
                     float mult = Main.config.craftedBatteryCharge * .01f;
                     __instance._charge = __instance._capacity * mult;
                 }

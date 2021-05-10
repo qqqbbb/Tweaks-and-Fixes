@@ -9,6 +9,7 @@ using ProtoBuf;
 using FMOD;
 using FMOD.Studio;
 using FMODUnity;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -26,33 +27,6 @@ namespace Tweaks_Fixes
             {
                 //Main.Message("DisableExosuitClawArmScan");
                 PDAScanner.mapping.Remove(TechType.ExosuitClawArmFragment);
-            }
-        }
-
-        [HarmonyPatch(typeof(Player), "GetBreathPeriod")]
-        internal class Player_GetBreathPeriod_Patch
-        {
-            internal static bool Prefix(Player __instance, ref float __result)
-            {
-                //ErrorMessage.AddDebug("depthLevel " + (int)__instance.depthLevel);
-                //ErrorMessage.AddDebug("depthOf " + (int)Ocean.main.GetDepthOf(__instance.gameObject);
-                if (!Main.config.realOxygenCons)
-                    return true;
-
-                if (__instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting)
-                {
-                    __result = 3f;
-                    return false;
-                }
-                if (Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
-                {
-                    __result = 3f;
-                    return false;
-                }
-                float depth = Mathf.Abs(__instance.depthLevel);
-                float mult = 1.5f / Main.config.crushDepth;
-                __result = 3f - depth * mult;
-                return false;
             }
         }
 
@@ -77,11 +51,11 @@ namespace Tweaks_Fixes
         {
             static IEnumerator Test()
             {
-                //ErrorMessage.AddDebug("Test start ");
+                //AddDebug("Test start ");
                 //Main.Log("Test start ");
                 while (!uGUI.main.hud.active)
                     yield return null;
-                ErrorMessage.AddDebug("Test end ");
+                AddDebug("Test end ");
             }
 
             static void Postfix(Player __instance)
@@ -95,13 +69,32 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(CrushDamage), "GetDepth")]
+        internal class CrushDamage_GetDepth_Patch
+        {
+            public static void Prefix(CrushDamage __instance)
+            {
+                if (__instance.depthCache == null)
+                {
+                    AddDebug("__instance.depthCache == null");
+                }
+                else
+                    AddDebug("depthCache" + __instance.depthCache.Get());
+            }
+        }
+
         [HarmonyPatch(typeof(Player), "GetDepthClass")]
         internal class Player_GetDepthClass_Patch
         {
             public static bool Prefix(Player __instance, ref Ocean.DepthClass __result)
             {
-                //ErrorMessage.AddDebug("GetDepthClass");
+                //AddDebug("GetDepthClass");
                 Ocean.DepthClass depthClass = Ocean.DepthClass.Surface;
+                if (!Main.loadingDone)
+                { // avoid null reference exception when loading game inside cyclops
+                    __result = depthClass;
+                    return false;
+                }
                 CrushDamage crushDamage = null;
                 if (__instance.currentSub != null && !__instance.currentSub.isBase || __instance.mode == Player.Mode.LockedPiloting)
                     crushDamage = __instance.currentSub == null ? __instance.gameObject.GetComponentInParent<CrushDamage>() : __instance.currentSub.gameObject.GetComponent<CrushDamage>();
@@ -148,40 +141,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), "GetUseItemAction")]
-        internal class Inventory_GetUseItemAction_Patch
-        {
-            internal static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
-            {
-                if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
-                {
-                    Pickupable pickupable = item.item;
-                    if (pickupable.gameObject.GetComponent<Eatable>())
-                    {
-                        __result = ItemAction.None;
-                    }
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(uGUI_SceneLoading), "End")]
-        internal class uGUI_SceneLoading_End_Patch
-        {
-            public static void Postfix(uGUI_SceneLoading __instance)
-            {
-                //ErrorMessage.AddDebug("uGUI_SceneLoading End");
-                //Main.config.activeSlot = -1;
-                //Main.config.openedWreckDoors = new Dictionary<int, bool>();
-                //Main.config.Save();
-            }
-        }
-
         [HarmonyPatch(typeof(Inventory), "LoseItems")]
         internal class Inventory_LoseItems_Patch
         {
             public static void Postfix(Inventory __instance)
             {
-                //ErrorMessage.AddDebug("LoseItems");
+                //AddDebug("LoseItems");
                 if (Main.config.dropAllitemsOndeath)
                 {
                     List<InventoryItem> inventoryItemList = new List<InventoryItem>();
@@ -191,12 +156,12 @@ namespace Tweaks_Fixes
                     }
                     foreach (InventoryItem inventoryItem in (IItemsContainer)Inventory.main.equipment)
                     {
-                        //ErrorMessage.AddDebug("equipment " + inventoryItem.item.GetTechName());
+                        //AddDebug("equipment " + inventoryItem.item.GetTechName());
                         inventoryItemList.Add(inventoryItem);
                     }
                     foreach (InventoryItem item in inventoryItemList)
                     {
-                        //ErrorMessage.AddDebug("DROP " + item.item.GetTechName());
+                        //AddDebug("DROP " + item.item.GetTechName());
                         __instance.InternalDropItem(item.item, false);
                     }
                 }

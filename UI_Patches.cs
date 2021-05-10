@@ -3,11 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
 using System.Text;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class UI_Tweaks
+    class UI_Patches
     {
+
+        [HarmonyPatch(typeof(StorageContainer), "Open", new Type[] { typeof(Transform) })]
+        class StorageContainer_Open_Patch
+        {// fixes bug: when opening standing locker from a distance your PDA does not open
+            public static bool Prefix(StorageContainer __instance, Transform useTransform)
+            {
+                //float dist = (useTransform.position - Player.main.transform.position).magnitude;
+                //AddDebug("Open dist " + dist);
+                PDA pda = Player.main.GetPDA();
+                Inventory.main.SetUsedStorage((IItemsContainer)__instance.container);
+                Transform target = useTransform;
+                PDA.OnClose onCloseCallback = new PDA.OnClose(__instance.OnClosePDA);
+                //double num = __instance.modelSizeRadius + 2.0;
+                if (!pda.Open(PDATab.Inventory, target, onCloseCallback, 4))
+                    return false;
+
+                __instance.open = true;
+                return false;
+            }
+        }
+
         [HarmonyPatch(typeof(GUIHand), "OnUpdate")]
         class GUIHand_OnUpdate_Patch
         { // UI tells you if looking at dead fish 
@@ -21,17 +43,30 @@ namespace Tweaks_Fixes
                 TechType techType = CraftData.GetTechType(__instance.activeTarget);
                 if (techType != TechType.None)
                 {
-                    //Main.Message("techType " + techType.AsString());
                     LiveMixin liveMixin = __instance.activeTarget.GetComponent<LiveMixin>();
                     if (liveMixin && !liveMixin.IsAlive())
                     {
+                        //AddDebug("health " + liveMixin.health);
                         Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
+                        //CreatureEgg ce = liveMixin.GetComponent<CreatureEgg>();
+                        //if (ce)
+                        //    name = Language.main.Get(ce.overrideEggType);
                         string name = Language.main.Get(techType);
-                        name = Language.main.GetFormat<string>("DeadFormat", name);
+                        //AddDebug("name " + name);
                         if (pickupable)
+                        {
+                            if (pickupable.overrideTechType != TechType.None)
+                                name = Language.main.Get(pickupable.overrideTechType);
+
+                            name = Language.main.GetFormat<string>("DeadFormat", name);
                             HandReticle.main.SetInteractText(name);
+                        }
                         else
+                        {
+                            name = Language.main.GetFormat<string>("DeadFormat", name);
                             HandReticle.main.SetInteractTextRaw(name, string.Empty);
+                        }
+
                     }
                 }
             }
@@ -42,7 +77,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(uGUI_MainMenu __instance)
             {
-                //ErrorMessage.AddDebug("lastGroup " +__instance.lastGroup);
+                //AddDebug("lastGroup " +__instance.lastGroup);
                 if (__instance.lastGroup == "SavedGames")
                 {
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
@@ -80,10 +115,49 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(uGUI_FeedbackCollector __instance)
             {
-                if (Main.config.disableGoals)
+                if (Main.config.disableHints)
                     return false;
 
                 return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(uGUI_SceneIntro), "ControlsHints")]
+        class uGUI_SceneIntro_ControlsHints_Patch
+        {
+            static bool Prefix(uGUI_SceneIntro __instance)
+            {
+                if (Main.config.disableHints)
+                    return false;
+
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerWorldArrows), "CreateWorldArrows")]
+        internal class PlayerWorldArrows_CreateWorldArrows_Patch
+        {
+            internal static bool Prefix(PlayerWorldArrows __instance)
+            {
+                //AddDebug("CreateWorldArrows");
+                return !Main.config.disableHints;
+            }
+        }
+
+        [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
+        class TooltipFactory_ItemCommons_Prefix_Patch
+        {
+            static void Prefix(StringBuilder sb, TechType techType, GameObject obj)
+            {
+                CreatureEgg creatureEgg = obj.GetComponent<CreatureEgg>();
+                if (creatureEgg)
+                {
+                    LiveMixin liveMixin = obj.GetComponent<LiveMixin>();
+                    if (!liveMixin.IsAlive())
+                    {
+                        TooltipFactory.WriteTitle(sb, "Dead ");
+                    }
+                }
             }
         }
 
@@ -102,6 +176,10 @@ namespace Tweaks_Fixes
                     if (rb)
                         TooltipFactory.WriteDescription(sb, "mass " + rb.mass);
                 }
+                if (techType == TechType.FirstAidKit)
+                {
+                    TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
+                }
             }
         }
 
@@ -110,7 +188,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(uGUI_MainMenu __instance, GameObject root)
             {
-                ErrorMessage.AddDebug("OnRightSideOpened " + __instance.GetCurrentSubMenu());
+                AddDebug("OnRightSideOpened " + __instance.GetCurrentSubMenu());
                 //__instance.subMenu = root.GetComponentInChildren<uGUI_INavigableIconGrid>();
                 //__instance.subMenu.
                 //if (Input.GetKey(KeyCode.LeftShift))
@@ -128,7 +206,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(GUIHand __instance)
             {
-                ErrorMessage.AddDebug("uGUI_MainMenu OnButtonOptions");
+                AddDebug("uGUI_MainMenu OnButtonOptions");
             }
         }
 

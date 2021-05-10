@@ -4,6 +4,7 @@ using UnityEngine;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -29,7 +30,7 @@ namespace Tweaks_Fixes
                     {
                         toEqiup.Enqueue(item);
                         toEqiupTT.Add(techType);
-                        //ErrorMessage.AddDebug("toEqiup " + techType);
+                        //AddDebug("toEqiup " + techType);
                         //Main.Log("toEqiup " + techType);
                     }
                 }
@@ -57,9 +58,9 @@ namespace Tweaks_Fixes
             int activeSlot = Inventory.main.quickSlots.activeSlot;
             InventoryItem currentItem = Inventory.main.quickSlots.binding[activeSlot];
             //if (currentItem == null) 
-            //    ErrorMessage.AddDebug("currentItem == null ");
-            //ErrorMessage.AddDebug("currentItem " + currentItem.item.GetTechName());
-            //ErrorMessage.AddDebug("toEqiup Remove " + toEqiup.Peek().item.GetTechName());
+            //    AddDebug("currentItem == null ");
+            //AddDebug("currentItem " + currentItem.item.GetTechName());
+            //AddDebug("toEqiup Remove " + toEqiup.Peek().item.GetTechName());
             Inventory.main.quickSlots.Bind(activeSlot, toEqiup.Peek());
             toEqiup.Dequeue();
             toEqiup.Enqueue(currentItem);
@@ -76,7 +77,7 @@ namespace Tweaks_Fixes
                 {
                     //GetTools();
                     invChanged = true;
-                    //ErrorMessage.AddDebug("Inventory OnAddItem ");
+                    //AddDebug("Inventory OnAddItem ");
                 }
             }
         }
@@ -90,7 +91,7 @@ namespace Tweaks_Fixes
                 {
                     //GetTools();
                     invChanged = true;
-                    //ErrorMessage.AddDebug("Inventory OnRemoveItem ");
+                    //AddDebug("Inventory OnRemoveItem ");
                 }
             }
         }
@@ -102,7 +103,7 @@ namespace Tweaks_Fixes
             {
                 //GetEquippedTools();
                 invChanged = false;
-                //ErrorMessage.AddDebug("PDA Close ");
+                //AddDebug("PDA Close ");
             }
         }
 
@@ -112,7 +113,7 @@ namespace Tweaks_Fixes
             public static void Postfix(QuickSlots __instance)
             {
                 GetEquippedTools();
-                //ErrorMessage.AddDebug(" Bind ");
+                //AddDebug(" Bind ");
             }
         }
 

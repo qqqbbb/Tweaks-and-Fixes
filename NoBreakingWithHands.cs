@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -30,14 +31,14 @@ namespace Tweaks_Fixes
     {
         public static bool Prefix(BreakableResource __instance)
         {
-            //ErrorMessage.AddDebug("BreakableResource OnHandHover");
+            //AddDebug("BreakableResource OnHandHover");
             //if (Player.main.inExosuit)
             //{
             //    HandReticle.main.SetInteractText(__instance.breakText);
             //    return false;
             //}
             //if (__instance.GetComponent<LiveMixin>() != null)
-            //    ErrorMessage.AddDebug("BreakableResource LiveMixin");
+            //    AddDebug("BreakableResource LiveMixin");
             if (!Main.config.noBreakingWithHand)
                 return true;
 
@@ -48,7 +49,7 @@ namespace Tweaks_Fixes
                 //if (GameInput.GetButtonDown(GameInput.Button.RightHand))
                 //{
                 //    __instance.BreakIntoResources();
-                //    ErrorMessage.AddDebug("RightHand");
+                //    AddDebug("RightHand");
                 //}
             }
             else
@@ -90,7 +91,7 @@ namespace Tweaks_Fixes
         [HarmonyPrefix]
         public static bool PickupableOnHandHover(Pickupable __instance)
         {
-            //ErrorMessage.AddDebug("Can Collect " + CanCollect(__instance, __instance.GetTechType()));
+            //AddDebug("Can Collect " + CanCollect(__instance, __instance.GetTechType()));
             return CanCollect(__instance, __instance.GetTechType());
         }
 

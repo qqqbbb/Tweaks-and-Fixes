@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -23,7 +24,7 @@ namespace Tweaks_Fixes
             float damage = (depth - crushDepth) * Main.config.crushDamageMult;
             if (!Player.main.liveMixin)
                 return;
-            //ErrorMessage.AddDebug(" CrushDamageUpdate " + damage);
+            //AddDebug(" CrushDamageUpdate " + damage);
             Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
@@ -32,14 +33,14 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Inventory __instance, InventoryItem item)
             {
-                //ErrorMessage.AddDebug("crushDepthEquipment.Count " + crushDepthEquipment.Count);
+                //AddDebug("crushDepthEquipment.Count " + crushDepthEquipment.Count);
                 TechType tt = item.item.GetTechType();
                 
                 if (crushDepthEquipment.ContainsKey(tt))
                 {
                     //Main.config.crushDepth += crushDepthEquipment[tt];
                     extraCrushDepth += crushDepthEquipment[tt];
-                    //ErrorMessage.AddDebug("crushDepth " + Main.config.crushDepth);
+                    //AddDebug("crushDepth " + Main.config.crushDepth);
                 }
             }
         }
@@ -57,7 +58,7 @@ namespace Tweaks_Fixes
                 {
                     //Main.config.crushDepth -= crushDepthEquipment[tt];
                     extraCrushDepth -= crushDepthEquipment[tt];
-                    //ErrorMessage.AddDebug("crushDepth " + Main.config.crushDepth);
+                    //AddDebug("crushDepth " + Main.config.crushDepth);
                 }
             }
         }
@@ -69,7 +70,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (Main.config.crushDamageMult > 0f && Time.time - crushTime > crushInterval)
+                if (Main.config.crushDamageMult > 0f && crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
                     CrushDamage();
@@ -93,7 +94,7 @@ namespace Tweaks_Fixes
                     return false;
 
                 float damage = (depth - __instance.crushDepth) * Main.config.vehicleCrushDamageMult;
-                //ErrorMessage.AddDebug("damage " + damage);
+                //AddDebug("damage " + damage);
                 __instance.liveMixin.TakeDamage(damage, __instance.transform.position, DamageType.Pressure);
                 if (__instance.soundOnDamage)
                     __instance.soundOnDamage.Play();

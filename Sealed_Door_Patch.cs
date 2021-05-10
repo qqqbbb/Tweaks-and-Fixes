@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -12,14 +13,14 @@ namespace Tweaks_Fixes
 		{
 			private static bool Prefix(StarshipDoor __instance)
 			{
-                //ErrorMessage.AddDebug("doorOpenMethod " + __instance.doorOpenMethod);
+                //AddDebug("doorOpenMethod " + __instance.doorOpenMethod);
 				LaserCutObject laserCutObject = __instance.GetComponent<LaserCutObject>();
                 if (laserCutObject != null && laserCutObject.isCutOpen)
 				{
 					//if (Input.GetKey(KeyCode.Z))
 					//{ 
 					//	laserCutObject.cutObject.SetActive(true);
-					//	ErrorMessage.AddDebug("cutObject.SetActive ");
+					//	AddDebug("cutObject.SetActive ");
 					//}
 					return false;
 				}

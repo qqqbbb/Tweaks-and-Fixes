@@ -1,7 +1,8 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 using UnityEngine;
-
+using static ErrorMessage;
+     
 namespace Tweaks_Fixes
 {
     class Databox_Light_Patch
@@ -39,7 +40,7 @@ namespace Tweaks_Fixes
                     GameObject closestLight = GetClosestToPlayer();
                     if (closestLight != null)
                     {
-                        //ErrorMessage.AddDebug("remove light");
+                        //AddDebug("remove light");
                         closestLight.SetActive(false);
                         databoxLights.Remove(closestLight);
                     }

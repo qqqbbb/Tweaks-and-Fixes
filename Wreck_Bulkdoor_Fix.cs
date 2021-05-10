@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ProtoBuf;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -17,8 +18,8 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(BulkheadDoor __instance)
             {
-                //ErrorMessage.AddDebug("isOpen " + __instance.isOpen);
-                //ErrorMessage.AddDebug("initiallyOpen " + __instance.initiallyOpen);
+                //AddDebug("isOpen " + __instance.isOpen);
+                //AddDebug("initiallyOpen " + __instance.initiallyOpen);
             }
         }
 
@@ -57,7 +58,7 @@ namespace Tweaks_Fixes
                 if (Main.config.openedWreckDoors.ContainsKey(slot) && Main.config.openedWreckDoors[slot].ContainsKey(doorKey))
                 {
                     //Main.Log("load door " + slot + " " + doorKey + " " + Main.config.openedWreckDoors[slot][doorKey]);
-                    //ErrorMessage.AddDebug("load door " + slot + " " + doorKey + " " + Main.config.openedWreckDoors[slot][doorKey]);
+                    //AddDebug("load door " + slot + " " + doorKey + " " + Main.config.openedWreckDoors[slot][doorKey]);
                     __instance.initiallyOpen = Main.config.openedWreckDoors[slot][doorKey];
                 }
             }

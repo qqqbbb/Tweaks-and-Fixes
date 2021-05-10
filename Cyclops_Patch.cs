@@ -3,13 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Cyclops_Patch
+    public class Cyclops_Patch
     {
         static Rigidbody rb;
         public static CyclopsEntryHatch ceh;
+        public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -22,6 +25,39 @@ namespace Tweaks_Fixes
                 instance.image.sprite = instance.inactiveSprite;
         }
 
+        //[HarmonyPatch(typeof(SubRoot), "Start")]
+        class SubRoot_Start_Patch
+        {
+            public static void Postfix(SubRoot __instance)
+            {
+                //__instance.interiorSky.affectedByDayNightCycle = !__instance.subLightsOn;
+            }
+        }
+
+        [HarmonyPatch(typeof(SubRoot), "ForceLightingState")]
+        class SubRoot_ForceLightingState_Patch
+        {
+            public static void Postfix(SubRoot __instance, bool lightingOn)
+            {
+                __instance.interiorSky.affectedByDayNightCycle = !lightingOn;
+                //AddDebug("affectedByDayNightCycle " + __instance.interiorSky.affectedByDayNightCycle);
+            }
+        }
+
+        [HarmonyPatch(typeof(CyclopsHelmHUDManager), "Start")]
+        class CyclopsHelmHUDManager_Start_Patch
+        {
+            public static void Postfix(CyclopsHelmHUDManager __instance)
+            {
+                //if (__instance.LOD.IsFull() && Player.main.currentSub != __instance.subRoot && !__instance.subRoot.subDestroyed)
+                { 
+                    cyclopsHelmHUDManager = __instance;
+                    //AddDebug("CyclopsHelmHUDManager Update ");
+                    //__instance.canvasGroup.alpha = 0f;
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(SubRoot), "OnProtoSerialize")]
         class SubRoot_OnProtoSerialize_Patch
         {
@@ -31,7 +67,7 @@ namespace Tweaks_Fixes
                 if (cyclopsMotorMode)
                 {
                     Main.config.subThrottleIndex = (int)cyclopsMotorMode.cyclopsMotorMode;
-                    //ErrorMessage.AddDebug("save subThrottleIndex");
+                    //AddDebug("save subThrottleIndex");
                     Main.config.Save();
                 }
             }
@@ -44,7 +80,7 @@ namespace Tweaks_Fixes
             {
                 if (Main.config.subThrottleIndex != -1)
                 {
-                    //ErrorMessage.AddDebug("restore  subThrottleIndex");
+                    //AddDebug("restore  subThrottleIndex");
                     SetCyclopsMotorMode(__instance, (CyclopsMotorMode.CyclopsMotorModes)Main.config.subThrottleIndex);
                 }
             }
@@ -55,6 +91,13 @@ namespace Tweaks_Fixes
         { // fix max diagonal speed
             public static bool Prefix(SubControl __instance)
             {
+                //if
+                    //cyclopsHelmHUDManager.canvasGroup.alpha = 0;
+                    //cyclopsHelmHUDManager.canvasGroup.interactable = false;
+                    //AddDebug(" alpha " + cyclopsHelmHUDManager.canvasGroup.alpha);
+                    
+                    //cyclopsHelmHUDManager.StopPiloting();
+                //}
                 if (!Main.config.cyclopsMoveTweaks)
                     return true;
 
@@ -66,8 +109,8 @@ namespace Tweaks_Fixes
                 {
                     __instance.throttle = GameInput.GetMoveDirection();
                     __instance.throttle.Normalize();
-                    //ErrorMessage.AddDebug("throttle " + __instance.throttle);
-                    //ErrorMessage.AddDebug(".magnitude " + __instance.throttle.magnitude);
+                    //AddDebug("throttle " + __instance.throttle);
+                    //AddDebug(".magnitude " + __instance.throttle.magnitude);
                     if (__instance.canAccel && __instance.throttle.magnitude > 0.0001)
                     {
                         float amountConsumed = 0.0f;
@@ -80,7 +123,7 @@ namespace Tweaks_Fixes
                     }
                     if (__instance.appliedThrottle && __instance.canAccel)
                     {
-                        //ErrorMessage.AddDebug("throttleHandlers.Length " + __instance.throttleHandlers.Length);
+                        //AddDebug("throttleHandlers.Length " + __instance.throttleHandlers.Length);
                         float topClamp = 0.33f;
                         if (__instance.useThrottleIndex == 1)
                             topClamp = 0.66f;
@@ -166,12 +209,12 @@ namespace Tweaks_Fixes
                 }
                 if (Mathf.Abs(__instance.throttle.y) > 0.0001f)
                 {
-                    //ErrorMessage.AddDebug("BaseVerticalAccel  " + __instance.BaseVerticalAccel);
-                    //ErrorMessage.AddDebug("accelScale  " + __instance.accelScale);
+                    //AddDebug("BaseVerticalAccel  " + __instance.BaseVerticalAccel);
+                    //AddDebug("accelScale  " + __instance.accelScale);
                     b2 = __instance.throttle.y <= 0f ? -90f : 90f;
                     float num = __instance.BaseVerticalAccel * .5f + __instance.gameObject.GetComponentsInChildren<BallastWeight>().Length * __instance.AccelPerBallast;
                     Vector3 accel = Vector3.up * num * __instance.accelScale * __instance.throttle.y;
-                    //ErrorMessage.AddDebug("accel  " + accel);
+                    //AddDebug("accel  " + accel);
                     if (__instance.canAccel)
                         rb.AddForce(accel, ForceMode.Acceleration);
                 }
@@ -208,7 +251,7 @@ namespace Tweaks_Fixes
                 if (!col.gameObject.Equals(Player.main.gameObject))
                     return;
                 ceh = __instance;
-                //ErrorMessage.AddDebug("OnTriggerEnter " + __instance.hatchOpen);
+                //AddDebug("OnTriggerEnter " + __instance.hatchOpen);
             }
         }
 
@@ -222,7 +265,7 @@ namespace Tweaks_Fixes
                     CinematicModeTrigger cmt = __instance as CinematicModeTrigger;
                     if (cmt && cmt.handText == "ClimbLadder")
                     {
-                        //ErrorMessage.AddDebug("CLOSE !!! " );
+                        //AddDebug("CLOSE !!! " );
                         ceh.hatchOpen = false;
                     }
                 }
@@ -234,9 +277,9 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(VoiceNotificationManager __instance, VoiceNotification vo)
             {
-                //ErrorMessage.AddDebug("PlayVoiceNotification Prefix " + vo.GetCanPlay());
-                //ErrorMessage.AddDebug("PlayVoiceNotification Prefix " + vo.timeNextPlay);
-                ErrorMessage.AddDebug("PlayVoiceNotification Prefix " + vo.minInterval);
+                //AddDebug("PlayVoiceNotification Prefix " + vo.GetCanPlay());
+                //AddDebug("PlayVoiceNotification Prefix " + vo.timeNextPlay);
+                AddDebug("PlayVoiceNotification Prefix " + vo.minInterval);
                 return true;
             }
         }
@@ -247,7 +290,7 @@ namespace Tweaks_Fixes
             public static void Postfix(VoiceNotificationManager __instance, VoiceNotification vo)
             {
 
-                ErrorMessage.AddDebug("PlayVoiceNotification " + vo.GetCanPlay());
+                AddDebug("PlayVoiceNotification " + vo.GetCanPlay());
             }
         }
 

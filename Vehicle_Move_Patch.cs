@@ -2,7 +2,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
     {
         public static void Postfix(Vehicle __instance)
         {
-            //ErrorMessage.AddDebug("onGround " + __instance.onGround);
+            //AddDebug("onGround " + __instance.onGround);
             //EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
             if (__instance.onGround && !Inventory.main.GetHeld() && __instance is SeaMoth && !__instance.docked && !Player.main.IsSwimming())
             {
@@ -104,7 +104,7 @@ namespace Tweaks_Fixes
     {      // fix seamoth move diagonally
         static void ApplyPhysicsMoveSeamoth(Vehicle __instance)
         {
-            //ErrorMessage.AddDebug("ApplyPhysicsMoveSeamoth  " + __instance.controlSheme);
+            //AddDebug("ApplyPhysicsMoveSeamoth  " + __instance.controlSheme);
             if (__instance.worldForces.IsAboveWater() != __instance.wasAboveWater)
             {
                 __instance.PlaySplashSound();
@@ -125,7 +125,7 @@ namespace Tweaks_Fixes
         //disable exosuit strafe
         static void ApplyPhysicsMoveExosuit(Vehicle __instance)
         {
-            //ErrorMessage.AddDebug("ApplyPhysicsMoveExosuit  " + __instance.controlSheme);
+            //AddDebug("ApplyPhysicsMoveExosuit  " + __instance.controlSheme);
             if (__instance.worldForces.IsAboveWater() != __instance.wasAboveWater)
             {
                 __instance.PlaySplashSound();
@@ -157,7 +157,7 @@ namespace Tweaks_Fixes
 
         public static bool Prefix(Vehicle __instance)
         {
-            //ErrorMessage.AddDebug("ControlSheme  " + __instance.controlSheme);
+            //AddDebug("ControlSheme  " + __instance.controlSheme);
             if (!__instance.GetPilotingMode())
                 return false;
 

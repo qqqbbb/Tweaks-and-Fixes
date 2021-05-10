@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -11,20 +12,6 @@ namespace Tweaks_Fixes
             public static void Postfix(CreatureEgg __instance)
             {
                 __instance.explodeOnHatch = false;
-            }
-        }
-
-        [HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.Start))]
-        class CreatureDeath_Start_Patch
-        {
-            //static List<Type> creatureTypes = new List<Type> { { typeof(Stalker) }, { typeof(Shocker) }, { typeof(BoneShark) }, { typeof(CrabSnake) }, { typeof(CrabSquid) }, { typeof(LavaLizard) }, { typeof(Mesmer) }, { typeof(SpineEel) }, { typeof(SandShark) }, };
-            public static void Postfix(CreatureDeath __instance)
-            {
-                //Main.Message("Damage " + originalDamage + " max " + __instance.maxHealth);
-                if (Main.config.creaturesRespawn)
-                {
-                    __instance.respawnOnlyIfKilledByCreature = false;
-                }
             }
         }
 
@@ -43,7 +30,7 @@ namespace Tweaks_Fixes
                 //if (damageInfo.damage == 0 && magnitude < 5)
                 //{
                 //    LiveMixin liveMixin = __instance.creature.liveMixin;
-                //ErrorMessage.AddDebug(name + " maxHealth " + liveMixin.maxHealth + " Health " + liveMixin.health);
+                //AddDebug(name + " maxHealth " + liveMixin.maxHealth + " Health " + liveMixin.health);
                 //}
 
                 //Main.Message(name + " originalTargetPosition " + __instance.swimBehaviour.originalTargetPosition);
@@ -83,7 +70,7 @@ namespace Tweaks_Fixes
                         if (liveMixin.health > halfMaxHealth || rnd < liveMixin.health)
                         {
                             damageInfo.damage = 0f;
-                            //ErrorMessage._Message
+                            //_Message
                             //Main.Message("Dont flee");
                             //Main.Message("health " + liveMixin.health + " rnd100 " + rnd100);
                         }
@@ -101,9 +88,9 @@ namespace Tweaks_Fixes
             {
                 if (Main.config.disableReaperRoar && __instance.gameObject.GetComponent<ReaperLeviathan>())
                 {
-                    //ErrorMessage.AddDebug("FMOD_CustomEmitter Play ");
+                    //AddDebug("FMOD_CustomEmitter Play ");
                     //if (__instance.asset)
-                    //    ErrorMessage.AddDebug("asset " + __instance.asset.id);
+                    //    AddDebug("asset " + __instance.asset.id);
                     return false;
                 }
                 return true;
@@ -117,17 +104,29 @@ namespace Tweaks_Fixes
             {
                 if (__instance is Spadefish)
                 {
-                    //ErrorMessage.AddDebug("Spadefish");
+                    //AddDebug("Spadefish");
                     __instance.GetComponent<Rigidbody>().mass = 4f;
                 }
-               else if (Main.config.disableReaperRoar && __instance is ReaperLeviathan)
+                else if (Main.config.disableReaperRoar && __instance is ReaperLeviathan)
                 {
-                    FMOD_CustomEmitter ce = __instance.GetComponent<FMOD_CustomEmitter>();
-                    if (ce)
+                    FMOD_CustomEmitter[] ces = __instance.GetAllComponentsInChildren<FMOD_CustomEmitter>();
+                    foreach (FMOD_CustomEmitter ce in ces)
                     {
                         ce.enabled = false;
-                        //ErrorMessage.AddDebug("shut up reaper ");
                     }
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
+        class CreatureDeath_OnKill_Prefix_Patch
+        {
+            public static void Prefix(CreatureDeath __instance)
+            {
+                if (Main.config.creaturesRespawn)
+                {
+                    __instance.respawnOnlyIfKilledByCreature = false;
                 }
             }
         }
@@ -137,6 +136,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(CreatureDeath __instance)
             {
+                //AddDebug("respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
                 Stalker stalker = __instance.GetComponent<Stalker>();
                 //ReaperLeviathan reaper = __instance.GetComponent<ReaperLeviathan>();
                 //SandShark sandShark = __instance.GetComponent<SandShark>();
@@ -156,9 +156,8 @@ namespace Tweaks_Fixes
                 if (stalker != null)
                 {
                     //Main.Log("Stalker kill");
-                    //__instance.tempDamage = 1.1111f;
                     Animator animator = __instance.GetComponentInChildren<Animator>();
-                    AnimateByVelocity animByVelocity = __instance.GetComponentInChildren<AnimateByVelocity>();
+                    //AnimateByVelocity animByVelocity = __instance.GetComponentInChildren<AnimateByVelocity>();
                     if (animator != null)
                     {
                         animator.enabled = false;
@@ -171,9 +170,24 @@ namespace Tweaks_Fixes
                     CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
                     collectShiny?.DropShinyTarget();
                 }
-                //GasoPod gasoPod = __instance.GetComponent<GasoPod>();
-                //if (gasoPod != null)
-                //    __instance.tempDamage = 1.1111f;
+            }
+        }
+
+        [HarmonyPatch(typeof(SeaTreaderSounds), nameof(SeaTreaderSounds.OnStep))]
+        class SeaTreaderSounds_OnStep_patch
+        { // seatreader spawns chunks only when stomping
+            public static bool Prefix(SeaTreaderSounds __instance, Transform legTr, AnimationEvent animationEvent)
+            {
+                if (!Main.config.seaTreaderChunks)
+                    return true;
+
+                if (animationEvent.animatorClipInfo.clip == __instance.walkinAnimClip && !__instance.treader.IsWalking())
+                    return false;
+                if (__instance.stepEffect != null)
+                    Utils.SpawnPrefabAt(__instance.stepEffect, null, legTr.position);
+                if (__instance.stepSound != null)
+                    Utils.PlayEnvSound(__instance.stepSound, legTr.position);
+                return false;
             }
         }
 

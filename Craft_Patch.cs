@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -14,7 +15,7 @@ namespace Tweaks_Fixes
         {
             static void Prefix(Crafter __instance, TechType techType, ref float duration)
             {
-                //ErrorMessage.AddDebug("Craft " + techType);
+                //AddDebug("Craft " + techType);
                 duration *= Main.config.craftTimeMult;
                 //return true;
             }
@@ -27,7 +28,7 @@ namespace Tweaks_Fixes
             {
                 if (NoCostConsoleCommand.main.fastBuildCheat)
                     return;
-                //ErrorMessage.AddDebug("GetConstructInterval " );
+                //AddDebug("GetConstructInterval " );
                 __result *= Main.config.buildTimeMult;
             }
         }

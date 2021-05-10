@@ -3,6 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -47,7 +48,7 @@ namespace Tweaks_Fixes
 
             if (asset)
             {
-                //ErrorMessage.AddDebug("col magnitude " + magnitude);
+                //AddDebug("col magnitude " + magnitude);
                 float soundRadiusObsolete = Mathf.Clamp01(magnitude / 8f);
                 Utils.PlayFMODAsset(asset, col.contacts[0].point, soundRadiusObsolete);
             }
@@ -155,7 +156,7 @@ namespace Tweaks_Fixes
                 {
                     __instance.jetsActive = false;
                 }
-                //ErrorMessage.AddDebug("jetsActive" + __instance.jetsActive);
+                //AddDebug("jetsActive" + __instance.jetsActive);
                 __instance.jetDownLastFrame = thrusterOn;
 
                 if (__instance.timeJetsActiveChanged + 0.3f < Time.time)
@@ -251,7 +252,7 @@ namespace Tweaks_Fixes
     { // fix not showing particles when start drilling
         public static bool Prefix(ExosuitDrillArm __instance)
         {
-            //ErrorMessage.AddDebug("OnHit");
+            //AddDebug("OnHit");
             if (!__instance.exosuit.CanPilot() || !__instance.exosuit.GetPilotingMode())
                 return false;
             Vector3 zero = Vector3.zero;
@@ -274,8 +275,8 @@ namespace Tweaks_Fixes
                     ancestor1.OnDrill(__instance.fxSpawnPoint.position, __instance.exosuit, out hitObject);
                     __instance.drillTarget = hitObject;
                     //if (__instance.fxControl.emitters[0].fxPS == null || __instance.fxControl.emitters[0].fxPS.emission.enabled) 
-                    //ErrorMessage.AddDebug("emission.enabled " + __instance.fxControl.emitters[0].fxPS.emission.enabled);
-                    //ErrorMessage.AddDebug("IsAlive " + __instance.fxControl.emitters[0].fxPS.IsAlive());
+                    //AddDebug("emission.enabled " + __instance.fxControl.emitters[0].fxPS.emission.enabled);
+                    //AddDebug("IsAlive " + __instance.fxControl.emitters[0].fxPS.IsAlive());
                     if (__instance.fxControl.emitters[0].fxPS != null && (!__instance.fxControl.emitters[0].fxPS.IsAlive() || !__instance.fxControl.emitters[0].fxPS.emission.enabled))
                     {
                         __instance.fxControl.Play(0);

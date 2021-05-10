@@ -6,20 +6,27 @@ using SMLHelper.V2.Commands;
 using SMLHelper.V2.Handlers;
 using SMLHelper.V2.Interfaces;
 using SMLHelper.V2.Options;
+
 namespace Tweaks_Fixes
 {
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-        public float version = 1.07f;
-        //[Slider("humgerUpdateInterval", 1, 33, DefaultValue = 10, Step = 1, Format = "{0:F0}")]
-        public int hungerUpdateInterval = 10;
+        public float version = 1.08f;
+
         [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
         public float playerDamageMult = 1f;
         [Slider("Vehicle damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage your vehicles take will be multiplied by this.")]
         public float vehicleDamageMult = 1f;
         [Slider("Damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "When anything but the player or vehicles takes damage, it will be multiplied by this.")]
         public float damageMult = 1f;
+        [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
+        public float oxygenPerBreath = 3f;
+        [Slider("First aid kit HP", 10, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored by using first aid kit.")]
+        public int medKitHP = 50;
+        //[Slider("First aid kit HP per second", 1, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored every second after using first aid kit.")]
+        [Toggle("Can't use first aid kit underwater", Tooltip = "You won't be able to use first aid kit when swimming underwater.")]
+        public bool cantUseMedkitUnderwater = false;
         [Slider("Crafting time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Crafting time will be multiplied by this when crafting things with fabricator or modification station.")]
         public float craftTimeMult = 1f;
         [Slider("Building time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Building time will be multiplied by this when using builder tool.")]
@@ -42,6 +49,8 @@ namespace Tweaks_Fixes
         public float crushDamageMult = 0f;
         [Slider("Vehicle crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.")]
         public float vehicleCrushDamageMult = 0f;
+        [Slider("Humger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time interval in game seconds after which your hunger and thirst update. This is not the same as the 'hunger/thirst' setting from the 'Day/Night Speed' mod. That setting changes amount of food you lose, not the update interval.")]
+        public int hungerUpdateInterval = 10;
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool replaceHungerDamage = false;
 
@@ -69,10 +78,11 @@ namespace Tweaks_Fixes
         [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
         public bool noBreakingWithHand = false;
         [Toggle("Disable tutorial messages", Tooltip = "Disable messages that tell you to 'eat something', 'break limestone', etc. Game has to be reloaded after changing this.")]
-        public bool disableGoals = false;
+        public bool disableHints = false;
         [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla oxygen consumption has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
         public bool realOxygenCons = false;
-  
+        //[Slider("brainCoralBubbleInterval", 1, 20, DefaultValue = 3, Step = 1, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
+        //public int brainCoralBubbleInterval = 3;
         [Toggle("Replace poison damage", Tooltip = "Poison damage you take will increase your hunger and thirst. Only when your food or water value is 0 you will start losing health.")]
         public bool replacePoisonDamage = false;
   
@@ -81,7 +91,7 @@ namespace Tweaks_Fixes
 
         [Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
         public bool predatorsDontFlee = false;
-        [Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player. Game has to be reloaded after changing this.")]
+        [Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player.")]
         public bool creaturesRespawn = false;
 
         [Slider("flare light intensity", 0.1f, 1f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "You have to reequip your flare after changing this.")]
@@ -96,10 +106,12 @@ namespace Tweaks_Fixes
         public int escapePodMaxPower = 25;
         [Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are 30% charged. Game has to be reloaded after changing this.")]
         public bool escapePodPowerTweak = false;
-        [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries you craft will be set to this.")]
+        [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries and power cells you craft will be set to this.")]
         public int craftedBatteryCharge = 100;
         [Toggle("Drop every item when you die", Tooltip = "You will drop every item in your inventory when you die.")]
         public bool dropAllitemsOndeath = false;
+        [Toggle("No particles when creature dies", Tooltip = "No particles (yellow cloud) will spawn when a creature dies. Game has to be reloaded after changing this.")]
+        public bool noKillParticles = false;
         [Toggle("No easy shale outcrops from sea treaders", Tooltip = "Sea treaders unearth shale outcrops only when stomping the ground.")]
         public bool seaTreaderChunks = false;
         [Toggle("Disable reaper's roar", Tooltip = "Game has to be reloaded after changing this.")]
@@ -119,6 +131,7 @@ namespace Tweaks_Fixes
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
         public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
+        public float medKitHPtoHeal = 0f;
         public Dictionary<string, int> startingLoot = new Dictionary<string, int> 
         {
              { "FilteredWater", 2 },
@@ -133,6 +146,12 @@ namespace Tweaks_Fixes
         public Dictionary<string, float> itemMass = new Dictionary<string, float>
         {
             { "ScrapMetal", 120 },
+        };
+        public Dictionary<string, float> bloodColor = new Dictionary<string, float>
+        {
+            { "Red", 0.784f },
+            { "Green", 1f },
+            { "Blue", 0.157f },
         };
         public HashSet<string> nonRechargeable = new HashSet<string>{
             { "someBattery" },
@@ -176,6 +195,7 @@ namespace Tweaks_Fixes
             { "ultraglidefins" },
             { "highcapacitytank" },
         };
+        public float medKitHPperSecond = 50f;
 
         static void UpdateBaseLight()
         {
@@ -186,7 +206,7 @@ namespace Tweaks_Fixes
 
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
-        //    ErrorMessage.AddDebug("EatRawFishChangedEvent " + eatRawFish); 
+        //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
         //}
 
     }
