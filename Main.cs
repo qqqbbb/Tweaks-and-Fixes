@@ -16,12 +16,14 @@ namespace Tweaks_Fixes
     [QModCore]
     public class Main
     {
+        public const float version = 1.09f;
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
         public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
+        public static System.Random rndm = new System.Random();
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -113,6 +115,7 @@ namespace Tweaks_Fixes
 
         public static void CleanUp()
         {
+            loadingDone = false;
             canBreathe = false;
             //AddDebug("CleanUp");
             QuickSlots_Patch.invChanged = true;
@@ -123,6 +126,7 @@ namespace Tweaks_Fixes
             Cyclops_Patch.ceh = null;
             Gravsphere_Patch.gasPods = new HashSet<GasPod>();
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
+            config.Load();
         }
 
         public static void Message(string str)
@@ -166,7 +170,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("English");
                     //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
-                    LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
+                    LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
                 }
             }
         }
@@ -248,7 +252,8 @@ namespace Tweaks_Fixes
 
 
         }
-        //public static bool dayNightSpeedLoaded = false;
+
+
         [QModPostPatch]
         public static void PostPatch()
         {

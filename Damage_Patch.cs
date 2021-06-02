@@ -9,8 +9,6 @@ namespace Tweaks_Fixes
 {
     class Damage_Patch
     { 
-        static System.Random rndm = new System.Random();
-
         static void SetBloodColor(GameObject go)
         {   // GenericCreatureHit(Clone)
             // RGBA(0.784, 1.000, 0.157, 0.392)
@@ -74,7 +72,10 @@ namespace Tweaks_Fixes
                     else
                     {
                         gameObject.transform.parent = parent;
-                        SetBloodColor(gameObject);
+                        if (surfaceType == VFXSurfaceTypes.organic)
+                        {
+                            SetBloodColor(gameObject);
+                        }
                         particleSystem = gameObject.GetComponent<ParticleSystem>();
                         particleSystem.Play();
                     }
@@ -100,17 +101,8 @@ namespace Tweaks_Fixes
                 if (__instance.deathEffect != null)
                 {
                     GameObject go = UWE.Utils.InstantiateWrap(__instance.deathEffect, __instance.transform.position, Quaternion.identity);
-                    //go.SetActive(false);
-                    //ParticleSystem ps = go.GetComponent<ParticleSystem>();
-                    //if (ps)
-                    //{
-                    //    ParticleSystem.MainModule psMain = ps.main;
-                    //    ps.Stop();
-                    //    psMain.duration = 111f;
 
-                    //}
-                    //setBloodColor = true;
-                    //SetBloodColor(go);
+
                 }
 
                 if (__instance.passDamageDataOnDeath)
@@ -179,7 +171,8 @@ namespace Tweaks_Fixes
                     }
                     if (__instance.loopingDamageEffect && !__instance.loopingDamageEffectObj && __instance.GetHealthFraction() < __instance.loopEffectBelowPercent)
                     {
-                        __instance.loopingDamageEffectObj = UWE.Utils.InstantiateWrap(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
+                        //__instance.loopingDamageEffectObj = UWE.Utils.InstantiateWrap(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
+                        __instance.loopingDamageEffectObj = UnityEngine.Object.Instantiate<GameObject>(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
                         __instance.loopingDamageEffectObj.transform.parent = __instance.transform;
                     }
                     //ProfilingUtils.BeginSample("LiveMixin.TakeDamage.DamageEffect");
@@ -189,7 +182,8 @@ namespace Tweaks_Fixes
                     {
                         FixedBounds fixedBounds = __instance.gameObject.GetComponent<FixedBounds>();
                         Bounds bounds = fixedBounds == null ? UWE.Utils.GetEncapsulatedAABB(__instance.gameObject) : fixedBounds.bounds;
-                        GameObject electricalDamageEffect = UWE.Utils.InstantiateWrap(__instance.electricalDamageEffect, bounds.center, Quaternion.identity);
+                        //GameObject electricalDamageEffect = UWE.Utils.InstantiateWrap(__instance.electricalDamageEffect, bounds.center, Quaternion.identity);
+                        GameObject electricalDamageEffect = UnityEngine.Object.Instantiate<GameObject>(__instance.electricalDamageEffect, bounds.center, Quaternion.identity);
                         electricalDamageEffect.transform.parent = __instance.transform;
                         electricalDamageEffect.transform.localScale = bounds.size * 0.65f;
                         __instance.timeLastElecDamageEffect = Time.time;
@@ -210,7 +204,10 @@ namespace Tweaks_Fixes
                             //AddDebug("Spawn damageEffect Prefab " + __instance.damageEffect.name);
                             GameObject go = Utils.SpawnPrefabAt(__instance.damageEffect, __instance.transform, __instance.damageInfo.position);
                             //setBloodColor = true;
-                            SetBloodColor(go);
+                            if (__instance.GetComponent<Creature>())
+                            {
+                                SetBloodColor(go);
+                            }
                             __instance.timeLastDamageEffect = Time.time;
                         }
                     }
@@ -332,7 +329,7 @@ namespace Tweaks_Fixes
                         {
                             if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
                             {
-                                int rnd = rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
+                                int rnd = Main.rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
                                 if (rnd < damage)
                                 {
                                     //AddDebug("DropHeldItem");
@@ -344,7 +341,7 @@ namespace Tweaks_Fixes
                         {
                             //AddDebug("Player takes Poison damage " + damage);
                             Survival survival = Player.main.GetComponent<Survival>();
-                            int foodMin = Main.config.replaceHungerDamage ? -99 : 1;
+                            int foodMin = Main.config.newHungerSystem ? -99 : 1;
                             int damageLeft = 0;
                             for (int i = (int)__result; i > 0; i--)
                             {

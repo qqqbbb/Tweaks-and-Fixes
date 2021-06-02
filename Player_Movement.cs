@@ -49,12 +49,31 @@ namespace Tweaks_Fixes
             return mult * .01f;
         }
 
+        [HarmonyPatch(typeof(MainCameraControl), "GetCameraBob")]
+        class MainCameraControl_GetCameraBob_Patch
+        {
+            static bool Prefix(MainCameraControl __instance, ref bool __result)
+            {
+                if (Main.config.playerMoveTweaks)
+                {
+                    __result = false;
+                    return false;
+                }
+                Seaglide seaglide = Inventory.main.GetHeldTool() as Seaglide;
+                bool seagliding = seaglide && seaglide.activeState;
+                __result = Player.main.GetMode() == Player.Mode.Normal && __instance.swimCameraAnimation > 0f && MiscSettings.cameraBobbing && !seagliding;
+                //AddDebug(" seagliding " + seagliding);
+                //AddDebug(" GetCameraBob " + __result);
+                return false;
+            }
+        }
+
         [HarmonyPatch(typeof(Seaglide), "UpdateActiveState")]
         internal class Seaglide_UpdateActiveState_Patch
         { // seaglide works only if moving forward
             public static bool Prefix(Seaglide __instance)
             {
-                if (!Main.config.playerMoveSpeedTweaks)
+                if (!Main.config.playerMoveTweaks)
                     return true;
 
                 int num1 = __instance.activeState ? 1 : 0;
@@ -84,17 +103,8 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
             {
-                if (!Main.config.playerMoveSpeedTweaks)
+                if (!Main.config.playerMoveTweaks)
                     return true;
-
-                //if (Main.pda == null)
-                //    AddDebug("pda = null ");
-                //if (Inventory.main.container == null)
-                //    AddDebug("Inventory.main.container = null ");
-                //if (equipment == null)
-                //    AddDebug("equipment = null ");
-                //if (survival == null)
-                //    AddDebug("survival = null ");
 
                 //AddDebug("AlterMaxSpeed");
                 __result = inMaxSpeed;
@@ -136,7 +146,7 @@ namespace Tweaks_Fixes
 
             public static void Postfix(float inMaxSpeed, ref float __result)
             {
-                if (Main.config.playerMoveSpeedTweaks && Main.config.invMultWater > 0f)
+                if (Main.config.playerMoveTweaks && Main.config.invMultWater > 0f)
                     __result *= GetInvMult();
                 //__instance.movementSpeed = __instance.playerController.velocity.magnitude / 5f;
                 //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;
@@ -150,7 +160,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(PlayerController __instance)
             {
-                if (Main.config.playerMoveSpeedTweaks)
+                if (Main.config.playerMoveTweaks)
                 { // underWaterController ignores these
                     //AddDebug("SetMotorMode");
                     __instance.underWaterController.backwardMaxSpeed = __instance.underWaterController.forwardMaxSpeed * .5f;
@@ -197,7 +207,7 @@ namespace Tweaks_Fixes
 
             static bool Prefix(PlayerController __instance)
             {
-                if (Main.config.playerMoveSpeedTweaks)
+                if (Main.config.playerMoveTweaks)
                 {
                     __instance.HandleUnderWaterState();
                     float num = UWE.Utils.Slerp(__instance.currentControllerHeight, __instance.desiredControllerHeight, Time.deltaTime * 2f);
@@ -226,7 +236,7 @@ namespace Tweaks_Fixes
         { // strafe speed halfed, backward speed halfed, no speed reduction near wrecks 
             public static bool Prefix(UnderwaterMotor __instance, ref Vector3 __result)
             {
-                if (!Main.config.playerMoveSpeedTweaks)
+                if (!Main.config.playerMoveTweaks)
                     return true;
 
                 Rigidbody rb = __instance.rb;
@@ -352,20 +362,17 @@ namespace Tweaks_Fixes
             else if (tank == TechType.PlasteelTank)
                 maxSpeed *= 0.95f;
 
-            if (Main.config.invMultWater > 0f)
-                maxSpeed *= GetInvMult();
-
             //AddDebug("AdjustGroundSpeed " + maxSpeed);
             return maxSpeed;
         }
 
         [HarmonyPatch(typeof(GroundMotor), "ApplyInputVelocityChange")]
         internal class GroundMotor_ApplyInputVelocityChange_Patch
-        {// can sprint only if moving forward 
+        {// can sprint only if moving forward, sideways and backward speed is halved 
             public static bool Prefix(GroundMotor __instance, ref Vector3 __result, Vector3 velocity)
             {
-                if (!Main.config.playerMoveSpeedTweaks)
-                    return true;
+                // if (!Main.config.playerMoveSpeedTweaks)
+                    // return true;
 
                 //AddDebug("movementInputDirection "+ __instance.movementInputDirection);
                 if (__instance.playerController == null || __instance.playerController.forwardReference == null)
@@ -375,11 +382,13 @@ namespace Tweaks_Fixes
                 }
                 Quaternion quaternion = !__instance.underWater || !__instance.canSwim ? Quaternion.Euler(0.0f, __instance.playerController.forwardReference.rotation.eulerAngles.y, 0.0f) : __instance.playerController.forwardReference.rotation;
                 Vector3 input = __instance.movementInputDirection;
-                input.Normalize();
-                input.x *= .5f;
-                if (input.z < 0f)
-                    input.z *= .5f;
-
+				if (Main.config.playerMoveTweaks)
+				{
+					input.Normalize();
+					input.x *= .5f;
+					if (input.z < 0f)
+						input.z *= .5f;
+				}
                 float num1 = Mathf.Min(1f, input.magnitude);
                 float num2 = !__instance.underWater || !__instance.canSwim ? 0.0f : input.y;
                 input.y = 0.0f;
@@ -398,14 +407,23 @@ namespace Tweaks_Fixes
                     float maxSpeed = 1f;
                     //Utils.AdjustSpeedScalarFromWeakness(ref maxSpeed);
                     //AddDebug("maxSpeed " + maxSpeed);
+					if (Main.config.playerMoveTweaks)
+						maxSpeed = AdjustGroundSpeed(maxSpeed);
+					if (Main.config.invMultLand > 0f)
+						maxSpeed *= GetInvMult();
+
                     if (!__instance.underWater && __instance.sprintPressed && __instance.movementInputDirection.z > 0f)
                     {
-                        maxSpeed *= __instance.sprintModifier;
+						if (Main.config.playerMoveTweaks && __instance.movementInputDirection.z > 0f)
+							maxSpeed *= __instance.sprintModifier;
+						else if (!Main.config.playerMoveTweaks)
+							maxSpeed *= __instance.sprintModifier;
+
                         __instance.sprinting = true;
                     }
                     //if (__instance.sprinting)
                     //    survival.UpdateStats(survival.kUpdateHungerInterval * .333f);
-                    maxSpeed = AdjustGroundSpeed(maxSpeed);
+
                     hVelocity = input * __instance.forwardMaxSpeed * maxSpeed * num1;
                 }
                 //if (!__instance.underWater && XRSettings.enabled)

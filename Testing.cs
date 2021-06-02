@@ -33,7 +33,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("health " + (int)Player.main.liveMixin.health);
+                //AddDebug("currentSub " + Player.main.currentSub);
                 //AddDebug("timePassedAsFloat " + DayNightCycle.main.timePassedAsFloat);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 if (Input.GetKey(KeyCode.B))

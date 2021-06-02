@@ -3,7 +3,7 @@ using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{
+{//need check if exosuit has claw
     [HarmonyPatch(typeof(BreakableResource), nameof(BreakableResource.OnHandClick))]
     public static class OnHandClickPatch
     {
@@ -39,7 +39,7 @@ namespace Tweaks_Fixes
             //}
             //if (__instance.GetComponent<LiveMixin>() != null)
             //    AddDebug("BreakableResource LiveMixin");
-            if (!Main.config.noBreakingWithHand)
+             if (!Main.config.noBreakingWithHand || Player.main.inExosuit)
                 return true;
 
             Knife knife = Inventory.main.GetHeldTool() as Knife;

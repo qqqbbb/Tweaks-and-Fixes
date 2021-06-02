@@ -34,7 +34,8 @@ namespace Tweaks_Fixes
             if (bubble)
             {
                 //AddDebug("bubble ");
-                GameObject ent = UWE.Utils.InstantiateWrap(bubble, position, Quaternion.identity);
+                //GameObject ent = UWE.Utils.InstantiateWrap(bubble, position, Quaternion.identity);
+                UnityEngine.Object.Instantiate<GameObject>(bubble, position, Quaternion.identity);
             }
         }
 
@@ -119,11 +120,24 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(OxygenArea), "OnTriggerStay")]
         class OxygenArea_OnTriggerStay_Patch
-        {
+        { // OnTriggerExit does not fire when you pick up pipe
             public static void Postfix(OxygenArea __instance, Collider other)
             {
-                //AddDebug("OnTriggerStay " );
-                Main.canBreathe = true;
+                if (other.gameObject.FindAncestor<Player>() == Player.main)
+                {
+                    Main.canBreathe = true;
+                    //AddDebug("OnTriggerStay ");
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(OxygenPipe), "OnPickedUp")]
+        class OxygenPipe_OnPickedUp_Patch
+        { 
+            public static void Postfix(OxygenPipe __instance)
+            {
+                    Main.canBreathe = false;
+                    //AddDebug("OnPickedUp ");
             }
         }
 
@@ -173,8 +187,9 @@ namespace Tweaks_Fixes
                 if (!Main.config.realOxygenCons)
                     return true;
 
-                if (__instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
+                if (Player.main.currentSub || __instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
                 {
+                    //AddDebug("safe ox consump " );
                     __result = 3f;
                     return false;
                 }
@@ -197,7 +212,8 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("BrainCoral " );
                     IntermittentInstantiate ii = __instance.GetComponent<IntermittentInstantiate>();
-                    GameObject ent = UWE.Utils.InstantiateWrap(ii.prefab, position, Quaternion.identity);
+                    //GameObject ent = UWE.Utils.InstantiateWrap(ii.prefab, position, Quaternion.identity);
+                    UnityEngine.Object.Instantiate<GameObject>(ii.prefab, position, Quaternion.identity);
                     //if (ii.registerToWorldStreamer && LargeWorldStreamer.main)
                     //    LargeWorldStreamer.main.cellManager.RegisterEntity(ent);
                     //if (ii.onCreateSound)

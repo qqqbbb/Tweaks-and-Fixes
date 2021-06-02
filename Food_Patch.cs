@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         static float foodCons = .5f; // vanilla 0.4
         static float waterCons = .5f; // vanilla 0.55
         static float updateHungerInterval { get { return Main.config.hungerUpdateInterval / DayNightCycle.main.dayNightSpeed; } }
-        static float hungerUpdateTime = 0f; 
+        static float hungerUpdateTime = 0f;
 
         public static void UpdateStats(Survival __instance)
         {
@@ -35,8 +35,8 @@ namespace Tweaks_Fixes
                 __instance.water = -100f;
                 Player.main.liveMixin.TakeDamage(1f, Player.main.gameObject.transform.position, DamageType.Starve);
             }
-            float threshold1 = Main.config.replaceHungerDamage ? 0f : 20f;
-            float threshold2 = Main.config.replaceHungerDamage ? -50f : 10f;
+            float threshold1 = Main.config.newHungerSystem ? 0f : 20f;
+            float threshold2 = Main.config.newHungerSystem ? -50f : 10f;
             __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, oldFood, threshold1, threshold2);
             __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, oldWater, threshold1, threshold2);
             hungerUpdateTime = Time.time + updateHungerInterval;
@@ -57,7 +57,7 @@ namespace Tweaks_Fixes
                 if (hungerUpdateTime > Time.time)
                     return;
 
-                if (Main.config.replaceHungerDamage)
+                if (Main.config.newHungerSystem)
                 {
                     UpdateStats(Main.survival);
                     //__instance.Invoke("UpdateHunger", updateHungerInterval);
@@ -89,7 +89,7 @@ namespace Tweaks_Fixes
             internal static bool Prefix(Survival __instance)
             {
                 //AddDebug("UpdateHunger ");
-                if (Main.config.replaceHungerDamage)
+                if (Main.config.newHungerSystem)
                 {
                     //UpdateStats(__instance);
                     return false;
@@ -121,7 +121,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(Survival __instance, ref float __result)
             {
-                if (!Main.config.replaceHungerDamage)
+                if (!Main.config.newHungerSystem)
                     return true;
 
                 float foodMult = 1f;
@@ -147,7 +147,7 @@ namespace Tweaks_Fixes
         {  
             public static bool Prefix(Survival __instance)
             {
-                if (!Main.config.replaceHungerDamage)
+                if (!Main.config.newHungerSystem)
                     return true;
 
                 //UpdateStats(__instance);
@@ -158,109 +158,122 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Survival), "Eat")]
         class Survival_Eat_patch
         {
-            static System.Random rndm = new System.Random();
-
             public static bool Prefix(Survival __instance, GameObject useObj, ref bool __result)
             {
-                if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla && !Main.config.replaceHungerDamage)
+                if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla && !Main.config.newHungerSystem)
                     return true;
 
                 Eatable eatable = useObj.GetComponent<Eatable>();
                 int food = (int)eatable.foodValue;
                 int water = (int)eatable.waterValue;
-                int minFood = 0;
-                int maxFood = 0;
-                int minWater = 0;
-                int maxWater = 0;
-
-                if (food > 0)
+                int playerMinFood = Main.config.newHungerSystem ? -100 : 0;
+                float playerMaxWater = Main.config.newHungerSystem ? 200f : 100f;
+                float playerMaxFood = 200f;
+                int minFood = food;
+                int maxFood = food;
+                int minWater = water;
+                int maxWater = water;
+                TechType techType = CraftData.GetTechType(useObj);
+                if (techType == TechType.None)
                 {
-                    if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla || !Main.IsEatableFish(useObj))
+                    Pickupable p = useObj.GetComponent<Pickupable>();
+                    if (p)
+                        techType = p.GetTechType();
+                }
+                if (Main.IsEatableFish(useObj))
+                {
+                    if (food > 0)
                     {
-                        minFood = food;
-                        maxFood = food;
+                        if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla)
+                        {
+                            minFood = food;
+                            maxFood = food;
+                        }
+                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                        {
+                            minFood = 0;
+                            maxFood = food;
+                        }
+                        else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                        {
+                            minFood = -food;
+                            maxFood = food;
+                        }
+                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                        {
+                            minFood = -food;
+                            maxFood = 0;
+                        }
                     }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                    if (water > 0)
                     {
-                        minFood = 0;
-                        maxFood = food;
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
-                    {
-                        minFood = -food;
-                        maxFood = food;
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
-                    {
-                        minFood = -food;
-                        maxFood = 0;
+                        if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla)
+                        {
+                            minWater = water;
+                            maxWater = water;
+                        }
+                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                        {
+                            minWater = 0;
+                            maxWater = water;
+                        }
+                        else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                        {
+                            minWater = -water;
+                            maxWater = water;
+                        }
+                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                        {
+                            minWater = -water;
+                            maxWater = 0;
+                        }
                     }
                 }
-                if (water > 0)
-                {
-                    if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla || !Main.IsEatableFish(useObj))
-                    {
-                        minWater = water;
-                        maxWater = water;
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
-                    {
-                        minWater = 0;
-                        maxWater = water;
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
-                    {
-                        minWater = -water;
-                        maxWater = water;
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
-                    {
-                        minWater = -water;
-                        maxWater = 0;
-                    }
-                }
-                int rndFood = rndm.Next(minFood, maxFood);
+                int rndFood = Main.rndm.Next(minFood, maxFood);
                 float finalFood = Mathf.Min(food, rndFood);
-                if (__instance.food > 100f && finalFood > 0)
+                if (Main.config.newHungerSystem && __instance.food > 100f && finalFood > 0)
                 {
                     float mult = (200f - __instance.food) * .01f;
                     finalFood *= mult;
                 }
                 //AddDebug("finalFood " + finalFood);
-                int rndWater = rndm.Next(minWater, maxWater);
+                int rndWater = Main.rndm.Next(minWater, maxWater);
                 float finalWater = Mathf.Min(water, rndWater);
-                if (__instance.water > 100f && finalWater > 0)
+                if (Main.config.newHungerSystem && __instance.water > 100f && finalWater > 0)
                 {
                     float mult = (200f - __instance.water) * .01f;
                     finalWater *= mult;
                 }
-                int playerMinFood = Main.config.replaceHungerDamage ? -100 : 0;
                 if (finalWater < 0 && __instance.water + finalWater < playerMinFood)
                 {
-                    int waterDamage = (int)(__instance.water + finalWater - playerMinFood);
+                    int waterDamage = Mathf.Abs((int)(__instance.water + finalWater - playerMinFood));
                     //AddDebug("waterDamage " + waterDamage);
-                    Player.main.liveMixin.TakeDamage(Mathf.Abs(waterDamage), Player.main.gameObject.transform.position, DamageType.Starve);
+                    Player.main.liveMixin.TakeDamage(waterDamage, Player.main.gameObject.transform.position, DamageType.Starve);
                 }
                 if (finalFood < 0 && __instance.food + finalFood < playerMinFood)
                 {
-                    int foodDamage = (int)(__instance.food + finalFood - playerMinFood);
+                    int foodDamage = Mathf.Abs((int)(__instance.food + finalFood - playerMinFood));
                     //AddDebug("foodDamage " + foodDamage);
-                    Player.main.liveMixin.TakeDamage(Mathf.Abs(foodDamage), Player.main.gameObject.transform.position, DamageType.Starve);
+                    Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
                 }
                 __instance.onEat.Trigger((float)finalFood);
                 __instance.food += finalFood;
                 __instance.onDrink.Trigger((float)finalWater);
                 __instance.water += finalWater;
                 //AddDebug("rndWater " + finalWater);
-                Mathf.Clamp(__instance.water, playerMinFood, 200f);
-                Mathf.Clamp(__instance.food, playerMinFood, 200f);
-                int warn = Main.config.replaceHungerDamage ? 0 : 20;
+                if (finalFood > 0f)
+                    GoalManager.main.OnCustomGoalEvent("Eat_Something");
+
+                if (techType == TechType.Bladderfish)
+                    Player.main.GetComponent<OxygenManager>().AddOxygen(15f);
+                Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater); 
+                Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
+                int warn = Main.config.newHungerSystem ? 0 : 20;
                 if (finalWater > 0 && __instance.water > warn && __instance.water - finalWater < warn)
                     __instance.vitalsOkNotification.Play();
                 else if (finalFood > 0 && __instance.food > warn && __instance.food - finalWater < warn)
                     __instance.vitalsOkNotification.Play();
 
-                TechType techType = CraftData.GetTechType(useObj);
                 FMODUWE.PlayOneShot(CraftData.GetUseEatSound(techType), Player.main.transform.position);
 
                 __result = true;
@@ -296,21 +309,11 @@ namespace Tweaks_Fixes
                         //if (foodValueMult != 0)
                             __instance.foodValue *= foodValueMult;
                     }
-                    else if (Main.IsEatableFishAlive(__instance.gameObject))
+                    else if (Main.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
                     {
                         __instance.waterValue = Mathf.Abs(__instance.foodValue) * .5f;
                     }
-                    else if (__instance.decomposes )
-                    {
-                        if (Main.IsEatableFish(__instance.gameObject))
-                        {
-                            //AddDebug("dead Fish " + __instance.gameObject.name);
-                            __instance.waterValue = Mathf.Abs(__instance.foodValue) * .5f;
-                        }
-                     
-                        //Main.Log(tt + " decomposes " + __instance.kDecayRate);
-                        //Main.Log(tt + " decomposes half" + __instance.kDecayRate);
-                    }
+
                 }
             }
         }
@@ -337,7 +340,7 @@ namespace Tweaks_Fixes
                 { // cooking fish
                     //TechType tt = item.item.GetTechType();
 
-                    if (Main.IsEatableFishAlive(item.item.gameObject))
+                    if (Main.IsEatableFish(item.item.gameObject))
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
                         //AddDebug(" NotifyRemoveItem waterValue " + eatable.GetWaterValue() + " " + eatable.GetFoodValue());

@@ -88,6 +88,7 @@
     <Compile Include="Boulder_Fix.cs" />
     <Compile Include="Beacon_Patch.cs" />
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="Coffee_Patch.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
     <Compile Include="Pickupable_Patch.cs" />
     <Compile Include="Oxygen_Patch.cs" />

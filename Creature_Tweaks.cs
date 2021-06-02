@@ -49,7 +49,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(FleeOnDamage), nameof(FleeOnDamage.OnTakeDamage))]
         internal class FleeOnDamage_OnTakeDamage_Prefix_Patch
         {
-            static System.Random rndm = new System.Random();
+            //static System.Random rndm = new System.Random();
 
             private static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
@@ -65,7 +65,7 @@ namespace Tweaks_Fixes
                       //  Main.Message("damage dealer " + damageInfo.dealer.name);
                       //int maxHealth = (int)liveMixin.maxHealth;
                         int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
-                        int rnd = rndm.Next(1, halfMaxHealth);
+                        int rnd = Main.rndm.Next(1, halfMaxHealth);
 
                         if (liveMixin.health > halfMaxHealth || rnd < liveMixin.health)
                         {
