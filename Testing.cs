@@ -33,8 +33,9 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("currentSub " + Player.main.currentSub);
-                //AddDebug("timePassedAsFloat " + DayNightCycle.main.timePassedAsFloat);
+                //AddDebug("precursorOutOfWater " + Player.main.precursorOutOfWater);
+                //AddDebug("inMoonpool " + PrecursorMoonPoolTrigger.inMoonpool);
+
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 if (Input.GetKey(KeyCode.B))
                 {
@@ -79,8 +80,14 @@ namespace Tweaks_Fixes
 
                 if (Input.GetKey(KeyCode.Z))
                 {
-                    AddDebug("Time " + Time.time);
-
+                    //AddDebug("sub EcoTargetType " + BehaviourData.GetEcoTargetType(Player.main.currentSub.gameObject));
+                    //AddDebug("Spadefish " + BehaviourData.GetBehaviourType(TechType.Spadefish));
+                    //AddDebug("Bladderfish " + BehaviourData.GetBehaviourType(TechType.Bladderfish));
+                    //AddDebug("Exosuit " + BehaviourData.GetEcoTargetType(TechType.Exosuit));
+                    //AddDebug("GetDepth " + Player.main.GetDepth());
+                    //Vector3 vel = Player.main.currentMountedVehicle.useRigidbody.velocity;
+                    //bool moving = vel.x > 1f || vel.y > 1f || vel.z > 1f;
+                    //AddDebug("moving " + moving);
                     Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
                     if (target)
                     {
@@ -397,6 +404,19 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(LiveMixin), "Start")]
+        class Vehicle_LiveMixin_patch
+        {
+            public static void Postfix(LiveMixin __instance)
+            {
+                TechTag techTag = __instance.GetComponent<TechTag>();
+                if (techTag)
+                {
+                    AddDebug(" techTag " + techTag.type);
+                    Main.Log(" techTag " + techTag.type);
+                }
+            }
+        }
 
     }
 }

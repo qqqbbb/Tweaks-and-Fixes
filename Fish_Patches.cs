@@ -9,7 +9,7 @@ namespace Tweaks_Fixes
     class Fish_Patches
     {
 
-        [HarmonyPatch(typeof(Pickupable), "Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
+        //[HarmonyPatch(typeof(Pickupable), "Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
         class Pickupable_Drop_Patch
         {
             public static bool Prefix(Pickupable __instance, Vector3 dropPosition)
@@ -18,7 +18,7 @@ namespace Tweaks_Fixes
                     return true;
 
                 Inventory playerInv = Inventory.main;
-                if (Main.config.eatFishOnRelease && playerInv.GetHeldTool() != null)
+                //if (Main.config.eatFishOnRelease && playerInv.GetHeldTool() != null)
                 {
                     Eatable eatable = __instance.GetComponent<Eatable>();
                     //if (__instance.GetTechType() == TechType.Bladderfish)

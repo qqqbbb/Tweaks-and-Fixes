@@ -144,10 +144,10 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Inventory), "LoseItems")]
         internal class Inventory_LoseItems_Patch
         {
-            public static void Postfix(Inventory __instance)
+            public static bool Prefix(Inventory __instance)
             {
                 //AddDebug("LoseItems");
-                if (Main.config.dropAllitemsOndeath)
+                if (Main.config.dropItemsOnDeath == Config.DropItemsOnDeath.Drop_everything)
                 {
                     List<InventoryItem> inventoryItemList = new List<InventoryItem>();
                     foreach (InventoryItem inventoryItem in Inventory.main.container)
@@ -164,7 +164,13 @@ namespace Tweaks_Fixes
                         //AddDebug("DROP " + item.item.GetTechName());
                         __instance.InternalDropItem(item.item, false);
                     }
+                    return false;
                 }
+                else if (Main.config.dropItemsOnDeath == Config.DropItemsOnDeath.Do_not_drop_anything)
+                {
+                    return false;
+                }
+                return true;
             }
         }
 

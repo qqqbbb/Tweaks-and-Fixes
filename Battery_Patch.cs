@@ -9,20 +9,59 @@ namespace Tweaks_Fixes
 {
     class Battery_Patch
     {
-        [HarmonyPatch(typeof(Charger), "Start")]
+        [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
+        class EnergyMixin_OnAfterDeserialize_Patch
+        {
+            static void Prefix(EnergyMixin __instance, ref float amount)
+            {
+                //AddDebug("ConsumeEnergy");
+                amount *= Main.config.toolEnergyConsMult;
+            }
+        }
+
+        [HarmonyPatch(typeof(Vehicle), "ConsumeEngineEnergy")]
+        class Vehicle_ConsumeEngineEnergy_Patch
+        {
+            static void Prefix(Vehicle __instance, ref float energyCost)
+            {
+                //AddDebug("ConsumeEnergy");
+                energyCost *= Main.config.vehicleEnergyConsMult;
+            }
+        }
+
+        [HarmonyPatch(typeof(PowerSystem), nameof(PowerSystem.ConsumeEnergy))]
+        class PowerSystem_ConsumeEnergy_Patch
+        {
+            static void Prefix(ref float amount, IPowerInterface powerInterface)
+            {
+                if (Cyclops_Patch.cyclopsPowerCons)
+                {
+                    //AddDebug("cyclopsPowerCons");
+                    amount *= Main.config.vehicleEnergyConsMult;
+                }
+                else
+                {
+                    //AddDebug("ConsumeEnergy ");
+                    amount *= Main.config.baseEnergyConsMult;
+                }
+                Cyclops_Patch.cyclopsPowerCons = false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(Charger), "Start")]
         class Charger_Start_Patch
         {
             static void Postfix(Charger __instance)
             {
-                foreach (string name in Main.config.nonRechargeable)
-                {
-                    TechTypeExtensions.FromString(name, out TechType tt, true);
-                    if (tt != TechType.None && __instance.allowedTech.Contains(tt))
-                    {
+                //foreach (string name in Main.config.nonRechargeable)
+                //{
+                //    TechTypeExtensions.FromString(name, out TechType tt, true);
+                //    if (tt != TechType.None && __instance.allowedTech.Contains(tt))
+                //    {
                             //AddDebug("nonRechargeable " + name);
-                        __instance.allowedTech.Remove(tt);
-                    }
-                }
+                //        __instance.allowedTech.Remove(tt);
+                //    }
+                //}
             }
         }
         //[HarmonyPatch(typeof(Charger), "IsAllowedToAdd")]
@@ -40,12 +79,12 @@ namespace Tweaks_Fixes
                 TechTypeExtensions.FromString(name, out TechType tt, true);
                 TechType techType = pickupable.GetTechType();
 
-                if (tt != TechType.None && Main.config.nonRechargeable.Contains(name) && tt == t)
-                {
-                    AddDebug("nonRechargeable " + name);
-                    __result = false;
-                    return false;
-                }
+                //if (tt != TechType.None && Main.config.nonRechargeable.Contains(name) && tt == t)
+                //{
+                //    AddDebug("nonRechargeable " + name);
+                //    __result = false;
+                //    return false;
+                //}
                 if (__instance.allowedTech != null && __instance.allowedTech.Contains(techType))
                     __result = true;
 

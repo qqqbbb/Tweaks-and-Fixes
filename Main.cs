@@ -11,12 +11,13 @@ using UnityEngine;
 using System.Text;
 using static ErrorMessage;
 
+// crash home to fix 272.3 -41.9 -199.8
 namespace Tweaks_Fixes
 {
     [QModCore]
     public class Main
     {
-        public const float version = 1.09f;
+        public const float version = 1.1f;
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
@@ -126,6 +127,7 @@ namespace Tweaks_Fixes
             Cyclops_Patch.ceh = null;
             Gravsphere_Patch.gasPods = new HashSet<GasPod>();
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
+            //Coffee_Patch.DeleteCoffee();
             config.Load();
         }
 
@@ -249,7 +251,6 @@ namespace Tweaks_Fixes
             new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
-
 
         }
 

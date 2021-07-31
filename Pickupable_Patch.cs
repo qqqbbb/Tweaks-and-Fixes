@@ -106,13 +106,13 @@ namespace Tweaks_Fixes
                 TechType tt = pickupable.GetTechType();
                 if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
                 {
-                    if (pickupable.gameObject.GetComponent<Eatable>())
+                    if (__result == ItemAction.Eat && pickupable.gameObject.GetComponent<Eatable>())
                     {
                         __result = ItemAction.None;
                         return;
                     }
                 }
-                if (tt == TechType.FirstAidKit)
+                if (tt == TechType.FirstAidKit && __result == ItemAction.Use)
                 {
                     if (Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwater())
                     {

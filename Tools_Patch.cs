@@ -57,7 +57,6 @@ namespace Tweaks_Fixes
                     //AddDebug(" attackDist  " + knife.attackDist);
                     //AddDebug(" damage  " + knife.damage);
                 }
-
             }
         }
 

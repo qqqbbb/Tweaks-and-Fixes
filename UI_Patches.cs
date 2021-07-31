@@ -9,6 +9,7 @@ namespace Tweaks_Fixes
 {
     class UI_Patches
     {
+        static bool fishTooltip = false;
 
         [HarmonyPatch(typeof(StorageContainer), "Open", new Type[] { typeof(Transform) })]
         class StorageContainer_Open_Patch
@@ -35,6 +36,38 @@ namespace Tweaks_Fixes
         { // UI tells you if looking at dead fish 
             public static void Postfix(GUIHand __instance)
             {
+                PlayerTool tool = __instance.GetTool();
+                if (tool && Main.IsEatableFish(tool.gameObject))
+                {
+                    string text = string.Empty;
+                    if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
+                        text = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
+
+                    bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
+                    //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
+                    if (cantEat)
+                    { }
+                    else
+                    {
+                        string text1 = TooltipFactory.stringEat + " (" + uGUI.FormatButton(GameInput.Button.AltTool) + ")";
+                        if (string.IsNullOrEmpty(text))
+                            text = text1;
+                        else
+                            text = text + ",  " + text1;
+
+                        if (GameInput.GetButtonDown(GameInput.Button.AltTool))
+                        {
+                            Eatable eatable = tool.GetComponent<Eatable>();
+                            //if (__instance.GetTechType() == TechType.Bladderfish)
+                            if (eatable)
+                            {
+                                Inventory playerInv = Inventory.main;
+                                playerInv.UseItem(playerInv.quickSlots.heldItem);
+                            }
+                        }
+                    }
+                    HandReticle.main.SetUseTextRaw(text, null);
+                }
                 if (!__instance.activeTarget)
                     return;
                 //Main.Message("activeTarget layer " + __instance.activeTarget.layer);
@@ -66,7 +99,6 @@ namespace Tweaks_Fixes
                             name = Language.main.GetFormat<string>("DeadFormat", name);
                             HandReticle.main.SetInteractTextRaw(name, string.Empty);
                         }
-
                     }
                 }
             }
@@ -144,6 +176,7 @@ namespace Tweaks_Fixes
             }
         }
 
+
         [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
         class TooltipFactory_ItemCommons_Prefix_Patch
         {
@@ -157,6 +190,31 @@ namespace Tweaks_Fixes
                     {
                         TooltipFactory.WriteTitle(sb, "Dead ");
                     }
+                }
+                fishTooltip = Main.IsEatableFish(obj);
+            }
+        }
+
+        [HarmonyPatch(typeof(Language), "FormatString")]
+        class Language_FormatString_Patch
+        {
+            static void Postfix(string text, ref string __result, object[] args)
+            {
+                //AddDebug("FormatString " + text);
+                //AddDebug("FormatString " + __result);
+                if (!fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(float)  )
+                    return;
+                //AddDebug("FormatString GetType" + args[0].GetType());
+                float value = (float)args[0];
+                if (value > 0f && text.Contains("FOOD:") || text.Contains("H₂O:"))
+                {
+                    string[] tokens = __result.Split(':');
+                    if(Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                        __result = tokens[0] + ": min 0, max " + value;
+                    else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                        __result = tokens[0] + ": min -" + value + ", max " + value;
+                    else if(Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                        __result = tokens[0] + ": min -" + value + ", max 0";
                 }
             }
         }

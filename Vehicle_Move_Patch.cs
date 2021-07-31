@@ -6,17 +6,18 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-
-    [HarmonyPatch(typeof(Vehicle))]
-    [HarmonyPatch("OnHandHover")]
+           
+    [HarmonyPatch(typeof(Vehicle), "OnHandHover")]
     class Vehicle_OnHandHover_patch
     {
         public static void Postfix(Vehicle __instance)
         {
-            //AddDebug("onGround " + __instance.onGround);
+            //AddDebug("handLabel " + __instance.handLabel);
             //EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
             if (__instance.onGround && !Inventory.main.GetHeld() && __instance is SeaMoth && !__instance.docked && !Player.main.IsSwimming())
             {
+                //string handLabel = Language.main.Get(__instance.handLabel);
+                //HandReticle.main.SetInteractText("Push");
                 if (GameInput.GetButtonDown(GameInput.Button.RightHand))
                 {
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
@@ -28,8 +29,7 @@ namespace Tweaks_Fixes
         }
     }
 
-    //[HarmonyPatch(typeof(Vehicle))]
-    //[HarmonyPatch("ApplyPhysicsMove")]
+    //[HarmonyPatch(typeof(Vehicle), "ApplyPhysicsMove")]
     class Exosuit_Update_Prefix_patch
     {
         //static float maxSpeed = 0;
@@ -37,7 +37,7 @@ namespace Tweaks_Fixes
         {
             float movementSpeed = __instance.useRigidbody.velocity.magnitude / 5f;
             movementSpeed = (float)Math.Round(movementSpeed * 10f) / 10f;
-            //Main.Message("movementSpeed  " + movementSpeed);
+            Main.Message("onGround  " + __instance.onGround);
             //if (movementSpeed > maxSpeed)
             //{
             //    maxSpeed = movementSpeed;
@@ -101,7 +101,7 @@ namespace Tweaks_Fixes
 
     [HarmonyPatch(typeof(Vehicle), "ApplyPhysicsMove")]
     class Vehicle_ApplyPhysicsMove_Prefix_patch
-    {      // fix seamoth move diagonally
+    { // fix seamoth move diagonally
         static void ApplyPhysicsMoveSeamoth(Vehicle __instance)
         {
             //AddDebug("ApplyPhysicsMoveSeamoth  " + __instance.controlSheme);
@@ -123,9 +123,30 @@ namespace Tweaks_Fixes
             __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
         }
         //disable exosuit strafe
+        //static float nextRaycastTime = 0;
+        //static Vector3 groundPos = Vector3.zero;
         static void ApplyPhysicsMoveExosuit(Vehicle __instance)
         {
             //AddDebug("ApplyPhysicsMoveExosuit  " + __instance.controlSheme);
+            //if (!__instance.onGround && Time.time > nextRaycastTime)
+            //{
+            //    Vector3 rayOrigin = new Vector3(groundPos.x, groundPos.y + 1f, groundPos.z);
+            //    Vector3 rayTarget = new Vector3(__instance.transform.position.x, __instance.transform.position.y + 5f, __instance.transform.position.z);
+            //    float rayDist = 100f;
+            //    nextRaycastTime = Time.time + 1f;
+            //    bool underg = Physics.Linecast(rayOrigin, __instance.transform.position, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore);
+            //    Vector3 dir = __instance.transform.position - groundPos;
+            //    underg = Physics.Raycast(new Ray(groundPos, Vector3.down), out RaycastHit hitInfo, rayDist, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore);
+            //    if (underg)
+            //    {
+                    //Main.Message("Raycast distance " + hitInfo.distance);
+                    //AddDebug("Prawn suit is under the ground! Resetting its position." + groundPos.y + " " + __instance.transform.position.y);
+                    //Main.Log("Prawn suit is under the ground! Resetting its position." + groundPos.y + " " + __instance.transform.position.y);
+                    //if (groundPos == Vector3.zero)
+                    //    groundPos = new Vector3(hitInfo.point.x, hitInfo.point.y + 11f, hitInfo.point.z);
+                    //__instance.transform.position = groundPos;
+            //    }
+            //}
             if (__instance.worldForces.IsAboveWater() != __instance.wasAboveWater)
             {
                 __instance.PlaySplashSound();
@@ -142,6 +163,7 @@ namespace Tweaks_Fixes
             Vector3 vector = Vector3.Normalize(vector3_3);
             if (__instance.onGround)
             {
+                //groundPos = __instance.transform.position;
                 vector = Vector3.ProjectOnPlane(vector, __instance.surfaceNormal);
                 vector.y = Mathf.Clamp(vector.y, -0.5f, 0.5f);
                 num *= __instance.onGroundForceMultiplier;

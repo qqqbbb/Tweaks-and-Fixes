@@ -82,12 +82,19 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.VRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.VRModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base_Light.cs" />
     <Compile Include="Boulder_Fix.cs" />
     <Compile Include="Beacon_Patch.cs" />
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="Predators_Patch.cs" />
+    <Compile Include="Map_Room_Patch.cs" />
+    <Compile Include="Torpedo_Patch.cs" />
     <Compile Include="Coffee_Patch.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
     <Compile Include="Pickupable_Patch.cs" />

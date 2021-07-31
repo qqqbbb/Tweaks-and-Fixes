@@ -13,6 +13,7 @@ namespace Tweaks_Fixes
         static Rigidbody rb;
         public static CyclopsEntryHatch ceh;
         public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
+        public static bool cyclopsPowerCons = false;
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -39,7 +40,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(SubRoot __instance, bool lightingOn)
             {
-                __instance.interiorSky.affectedByDayNightCycle = !lightingOn;
+                __instance.interiorSky.affectedByDayNightCycle = Main.config.cyclopsSunlight && !lightingOn;
                 //AddDebug("affectedByDayNightCycle " + __instance.interiorSky.affectedByDayNightCycle);
             }
         }
@@ -92,65 +93,108 @@ namespace Tweaks_Fixes
             public static bool Prefix(SubControl __instance)
             {
                 //if
-                    //cyclopsHelmHUDManager.canvasGroup.alpha = 0;
-                    //cyclopsHelmHUDManager.canvasGroup.interactable = false;
-                    //AddDebug(" alpha " + cyclopsHelmHUDManager.canvasGroup.alpha);
-                    
-                    //cyclopsHelmHUDManager.StopPiloting();
-                //}
-                if (!Main.config.cyclopsMoveTweaks)
-                    return true;
+                //cyclopsHelmHUDManager.canvasGroup.alpha = 0;
+                //cyclopsHelmHUDManager.canvasGroup.interactable = false;
+                //AddDebug(" alpha " + cyclopsHelmHUDManager.canvasGroup.alpha);
 
+                //cyclopsHelmHUDManager.StopPiloting();
+                //}
                 if (!__instance.LOD.IsFull())
                     return false;
 
-                __instance.appliedThrottle = false;
-                if (__instance.controlMode == SubControl.Mode.DirectInput)
+                if (Main.config.cyclopsMoveTweaks)
                 {
-                    __instance.throttle = GameInput.GetMoveDirection();
-                    __instance.throttle.Normalize();
-                    //AddDebug("throttle " + __instance.throttle);
-                    //AddDebug(".magnitude " + __instance.throttle.magnitude);
-                    if (__instance.canAccel && __instance.throttle.magnitude > 0.0001)
+                    __instance.appliedThrottle = false;
+                    if (__instance.controlMode == SubControl.Mode.DirectInput)
                     {
-                        float amountConsumed = 0.0f;
-                        float amount = __instance.throttle.magnitude * __instance.cyclopsMotorMode.GetPowerConsumption() * Time.deltaTime / __instance.sub.GetPowerRating();
-                        if (!GameModeUtils.RequiresPower() || __instance.powerRelay.ConsumeEnergy(amount, out amountConsumed))
+                        __instance.throttle = GameInput.GetMoveDirection();
+                        __instance.throttle.Normalize();
+                        //AddDebug("throttle " + __instance.throttle);
+                        //AddDebug(".magnitude " + __instance.throttle.magnitude);
+                        if (__instance.canAccel && __instance.throttle.magnitude > 0.0001)
                         {
-                            __instance.lastTimeThrottled = Time.time;
-                            __instance.appliedThrottle = true;
+                            float amountConsumed = 0f;
+                            float amount = __instance.throttle.magnitude * __instance.cyclopsMotorMode.GetPowerConsumption() * Time.deltaTime / __instance.sub.GetPowerRating();
+                            cyclopsPowerCons = true;
+                            if (!GameModeUtils.RequiresPower() || __instance.powerRelay.ConsumeEnergy(amount, out amountConsumed))
+                            {
+                                __instance.lastTimeThrottled = Time.time;
+                                __instance.appliedThrottle = true;
+                            }
+                        }
+                        if (__instance.appliedThrottle && __instance.canAccel)
+                        {
+                            //AddDebug("throttleHandlers.Length " + __instance.throttleHandlers.Length);
+                            float topClamp = 0.33f;
+                            if (__instance.useThrottleIndex == 1)
+                                topClamp = 0.66f;
+                            if (__instance.useThrottleIndex == 2)
+                                topClamp = 1f;
+                            __instance.engineRPMManager.AccelerateInput(topClamp);
+                            for (int index = 0; index < __instance.throttleHandlers.Length; ++index)
+                                __instance.throttleHandlers[index].OnSubAppliedThrottle();
+                            if (__instance.lastTimeThrottled < Time.time - 5f)
+                                Utils.PlayFMODAsset(__instance.engineStartSound, MainCamera.camera.transform);
+                        }
+                        if (AvatarInputHandler.main.IsEnabled())
+                        {
+                            if (GameInput.GetButtonDown(GameInput.Button.RightHand))
+                                __instance.transform.parent.BroadcastMessage("ToggleFloodlights", (object)null, SendMessageOptions.DontRequireReceiver);
+                            if (GameInput.GetButtonDown(GameInput.Button.Exit))
+                                Player.main.TryEject();
                         }
                     }
-                    if (__instance.appliedThrottle && __instance.canAccel)
-                    {
-                        //AddDebug("throttleHandlers.Length " + __instance.throttleHandlers.Length);
-                        float topClamp = 0.33f;
-                        if (__instance.useThrottleIndex == 1)
-                            topClamp = 0.66f;
-                        if (__instance.useThrottleIndex == 2)
-                            topClamp = 1f;
-                        __instance.engineRPMManager.AccelerateInput(topClamp);
-                        for (int index = 0; index < __instance.throttleHandlers.Length; ++index)
-                            __instance.throttleHandlers[index].OnSubAppliedThrottle();
-                        if (__instance.lastTimeThrottled < Time.time - 5f)
-                            Utils.PlayFMODAsset(__instance.engineStartSound, MainCamera.camera.transform);
-                    }
-                    if (AvatarInputHandler.main.IsEnabled())
-                    {
-                        if (GameInput.GetButtonDown(GameInput.Button.RightHand))
-                            __instance.transform.parent.BroadcastMessage("ToggleFloodlights", (object)null, SendMessageOptions.DontRequireReceiver);
-                        if (GameInput.GetButtonDown(GameInput.Button.Exit))
-                            Player.main.TryEject();
-                    }
+                    if (__instance.appliedThrottle)
+                        return false;
+
+                    __instance.throttle = new Vector3(0.0f, 0.0f, 0.0f);
                 }
-                if (__instance.appliedThrottle)
-                    return false;
-
-                __instance.throttle = new Vector3(0.0f, 0.0f, 0.0f);
-
+                else
+                {
+                    __instance.appliedThrottle = false;
+                    if (__instance.controlMode == SubControl.Mode.DirectInput)
+                    {
+                        __instance.throttle = GameInput.GetMoveDirection();
+                        if (__instance.canAccel && __instance.throttle.magnitude > 0.0001f)
+                        {
+                            float amountConsumed = 0f;
+                            float amount = __instance.throttle.magnitude * __instance.cyclopsMotorMode.GetPowerConsumption() * Time.deltaTime / __instance.sub.GetPowerRating();
+                            cyclopsPowerCons = true;
+                            if (!GameModeUtils.RequiresPower() || __instance.powerRelay.ConsumeEnergy(amount, out amountConsumed))
+                            {
+                                __instance.lastTimeThrottled = Time.time;
+                                __instance.appliedThrottle = true;
+                            }
+                        }
+                        if (__instance.appliedThrottle && __instance.canAccel)
+                        {
+                            float topClamp = 0.33f;
+                            if (__instance.useThrottleIndex == 1)
+                                topClamp = 0.66f;
+                            if (__instance.useThrottleIndex == 2)
+                                topClamp = 1f;
+                            __instance.engineRPMManager.AccelerateInput(topClamp);
+                            for (int index = 0; index < __instance.throttleHandlers.Length; ++index)
+                                __instance.throttleHandlers[index].OnSubAppliedThrottle();
+                            if (__instance.lastTimeThrottled < Time.time - 5f)
+                                Utils.PlayFMODAsset(__instance.engineStartSound, MainCamera.camera.transform);
+                        }
+                        if (AvatarInputHandler.main.IsEnabled())
+                        {
+                            if (GameInput.GetButtonDown(GameInput.Button.RightHand))
+                                __instance.transform.parent.BroadcastMessage("ToggleFloodlights", null, SendMessageOptions.DontRequireReceiver);
+                            if (GameInput.GetButtonDown(GameInput.Button.Exit))
+                                Player.main.TryEject();
+                        }
+                    }
+                    if (__instance.appliedThrottle)
+                        return false;
+                    __instance.throttle = new Vector3(0.0f, 0.0f, 0.0f);
+                }
                 return false;
-                }
             }
+
+        }
 
         [HarmonyPatch(typeof(SubControl), "Start")]
         class SubControl_Start_Patch
@@ -160,8 +204,10 @@ namespace Tweaks_Fixes
                 //if (Main.config.vehicleMoveTweaks) 
                 //{ 
                     rb = __instance.GetComponent<Rigidbody>();
-                    //__instance.BaseVerticalAccel = __instance.BaseForwardAccel * .5f;
+                //__instance.BaseVerticalAccel = __instance.BaseForwardAccel * .5f;
                 //}
+                TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
+                techTag.type = TechType.Cyclops;
             }
         }
         
@@ -277,20 +323,32 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(VoiceNotificationManager __instance, VoiceNotification vo)
             {
+                //if (!Main.loadingDone)
+                //{
+                //return false;
+                //}
                 //AddDebug("PlayVoiceNotification Prefix " + vo.GetCanPlay());
                 //AddDebug("PlayVoiceNotification Prefix " + vo.timeNextPlay);
-                AddDebug("PlayVoiceNotification Prefix " + vo.minInterval);
+                //AddDebug("PlayVoiceNotification Prefix " + vo.minInterval);
                 return true;
             }
         }
 
-        //[HarmonyPatch(typeof(VoiceNotificationManager), "PlayVoiceNotification")]
-        class VoiceNotificationManager_PlayVoiceNotification_Patch
+        [HarmonyPatch(typeof(CyclopsSilentRunningAbilityButton), "SilentRunningIteration")]
+        class CyclopsSilentRunningAbilityButton_SilentRunningIteration_Patch
         {
-            public static void Postfix(VoiceNotificationManager __instance, VoiceNotification vo)
+            public static bool Prefix(CyclopsSilentRunningAbilityButton __instance)
             {
+                float amountConsumed = 0f;
+                // dont consume power when engine is off
+                if (Player.main.currentSub && Player.main.currentSub.noiseManager &&  Player.main.currentSub.noiseManager.noiseScalar == 0f)
+                    return false;
 
-                AddDebug("PlayVoiceNotification " + vo.GetCanPlay());
+                if (__instance.subRoot.powerRelay.ConsumeEnergy(__instance.subRoot.silentRunningPowerCost, out amountConsumed))
+                    return false;
+                __instance.TurnOffSilentRunning();
+  
+                return false;
             }
         }
 

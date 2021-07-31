@@ -8,7 +8,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     class Damage_Patch
-    { 
+    {
         static void SetBloodColor(GameObject go)
         {   // GenericCreatureHit(Clone)
             // RGBA(0.784, 1.000, 0.157, 0.392)
@@ -33,6 +33,88 @@ namespace Tweaks_Fixes
                 //Main.Log("startColor " + psMain.startColor.color);
                 Color newColor = new Color(Main.config.bloodColor["Red"], Main.config.bloodColor["Green"], Main.config.bloodColor["Blue"], psMain.startColor.color.a);
                 psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
+            }
+        }
+
+        [HarmonyPatch(typeof(DealDamageOnImpact), "Start")]
+        class Vehicle_Start_patch
+        {
+            public static void Postfix(DealDamageOnImpact __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //AddDebug(" DealDamageOnImpact start " +__instance.gameObject.name);
+                //foreach (GameObject go in __instance.exceptions)
+                //{
+                //AddDebug(tt + " exception " + go.name);
+                //}
+                if (tt == TechType.Gasopod)
+                {
+                    UnityEngine.Object.Destroy(__instance);
+                }
+                else if (tt == TechType.Seamoth || tt == TechType.Exosuit || tt == TechType.Cyclops)
+                {
+                    __instance.exceptions.Add(Player.main.gameObject);
+                    //AddDebug(tt + " exception " );
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(DealDamageOnImpact), "OnCollisionEnter")]
+        class Vehicle_OnCollisionEnter_patch
+        {
+            static Rigidbody prevColTarget;
+
+            public static bool Prefix(DealDamageOnImpact __instance, Collision collision)
+            {
+                if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
+                    return false;
+                float colDamMult = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
+                //AddDebug(" collision " + collision.gameObject.name);
+                float colMag = collision.relativeVelocity.magnitude;
+                if (colMag <= __instance.speedMinimumForDamage)
+                    return false;
+                LiveMixin targetLM = __instance.GetLiveMixin(collision.gameObject);
+                Vector3 position = collision.contacts.Length == 0 ? collision.transform.position : collision.contacts[0].point;
+                Rigidbody rb = Utils.FindAncestorWithComponent<Rigidbody>(collision.gameObject);
+                float targetMass = rb != null ? rb.mass : 5000f;
+                float myMass = __instance.GetComponent<Rigidbody>().mass;
+                float colMult = Mathf.Clamp((1f + (myMass - targetMass) * 0.001f), 0f, colDamMult);
+                float targetDamage = colMag * colMult;
+
+                if (targetLM && Time.time > __instance.timeLastDamage + __instance.minDamageInterval)
+                {
+                    bool skip = false;
+                    if (prevColTarget == rb && Time.time < __instance.timeLastDamage + 3f)
+                        skip = true;
+                    if (!skip)
+                    {
+                        //AddDebug("myMass " + myMass + " targetDamage " + (int)targetDamage);
+                        targetLM.TakeDamage(targetDamage, position, DamageType.Collide, __instance.gameObject);
+                        __instance.timeLastDamage = Time.time;
+                        prevColTarget = rb;
+                    }
+                }
+
+                if (!__instance.mirroredSelfDamage || colMag < __instance.speedMinimumForSelfDamage)
+                    return false;
+
+                LiveMixin myLM = __instance.GetLiveMixin(__instance.gameObject);
+                bool tooSmall = rb && rb.mass <= __instance.minimumMassForDamage;
+
+                if (__instance.mirroredSelfDamageFraction == 0f || !myLM || Time.time <= __instance.timeLastDamagedSelf + 1f || tooSmall)
+                    return false;
+                //AddDebug("minimumMassForDamage " + __instance.minimumMassForDamage + " mass " + rb.mass);
+                //float myDamage = targetDamage * __instance.mirroredSelfDamageFraction;
+
+                float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, colDamMult);
+                //AddDebug("mass " + targetMass + " myDamage " + (int)myDamage);
+                //AddDebug(" maxHealth " + myLM.maxHealth + " health " + myLM.health);
+                if (__instance.capMirrorDamage != -1f) // cyclops is immune to collision damage
+                    myDamage = Mathf.Min(__instance.capMirrorDamage, myDamage);
+                myLM.TakeDamage(myDamage, position, DamageType.Collide, __instance.gameObject);
+                __instance.timeLastDamagedSelf = Time.time;
+
+                return false;
             }
         }
 
@@ -164,19 +246,14 @@ namespace Tweaks_Fixes
                     }
 
                     if (__instance.damageClip && damage > 0f && (damage >= __instance.minDamageForSound && type != DamageType.Radiation))
-                    {
-                        //ProfilingUtils.BeginSample("LiveMixin.TakeDamage.PlaySound");
                         Utils.PlayEnvSound(__instance.damageClip, __instance.damageInfo.position);
-                        //ProfilingUtils.EndSample();
-                    }
+
                     if (__instance.loopingDamageEffect && !__instance.loopingDamageEffectObj && __instance.GetHealthFraction() < __instance.loopEffectBelowPercent)
                     {
                         //__instance.loopingDamageEffectObj = UWE.Utils.InstantiateWrap(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
                         __instance.loopingDamageEffectObj = UnityEngine.Object.Instantiate<GameObject>(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
                         __instance.loopingDamageEffectObj.transform.parent = __instance.transform;
                     }
-                    //ProfilingUtils.BeginSample("LiveMixin.TakeDamage.DamageEffect");
-
                     //GameObject damageEffect = __instance.damageEffect;
                     if (Time.time > __instance.timeLastElecDamageEffect + 2.5f && type == DamageType.Electrical && __instance.electricalDamageEffect != null)
                     {
@@ -277,20 +354,6 @@ namespace Tweaks_Fixes
                     Utils.PlayFMODAsset(__instance.surfaceMissSound, __instance.transform);
 
                 return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Creature), "Start")]
-        class Creature_Start_Patch
-        { 
-            public static void Postfix(Creature __instance)
-            {
-                // reginald and bladderfish dont have VFXSurface
-                VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                vFXSurface.surfaceType = VFXSurfaceTypes.organic;
-                //LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
-                //liveMixin.data.damageEffect = null;
-                //liveMixin.data.deathEffect = null;
             }
         }
 

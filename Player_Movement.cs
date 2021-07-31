@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR;
 using UWE;
 using HarmonyLib;
 using System.Text;
@@ -13,7 +14,7 @@ namespace Tweaks_Fixes
         static float oceanLevel;
         //static int invSize;
         static Equipment equipment;
-        static Survival survival;
+        //static Survival survival;
         static float swimMaxAllowedY = .6f; // .6
 
         [HarmonyPatch(typeof(Player), "Start")]
@@ -24,7 +25,7 @@ namespace Tweaks_Fixes
                 oceanLevel = Ocean.main.GetOceanLevel();
                 //invSize = Inventory.main.container.sizeX * Inventory.main.container.sizeY;
                 equipment = Inventory.main.equipment;
-                survival = Player.main.GetComponent<Survival>();
+                //survival = Player.main.GetComponent<Survival>();
             }
         }
 
@@ -54,14 +55,14 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(MainCameraControl __instance, ref bool __result)
             {
-                if (Main.config.playerMoveTweaks)
+                if (!Main.config.cameraBobbing)
                 {
                     __result = false;
                     return false;
                 }
                 Seaglide seaglide = Inventory.main.GetHeldTool() as Seaglide;
                 bool seagliding = seaglide && seaglide.activeState;
-                __result = Player.main.GetMode() == Player.Mode.Normal && __instance.swimCameraAnimation > 0f && MiscSettings.cameraBobbing && !seagliding;
+                __result = !XRSettings.enabled && Player.main.GetMode() == Player.Mode.Normal && __instance.swimCameraAnimation > 0f && MiscSettings.cameraBobbing && !seagliding;
                 //AddDebug(" seagliding " + seagliding);
                 //AddDebug(" GetCameraBob " + __result);
                 return false;

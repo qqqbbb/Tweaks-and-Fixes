@@ -35,7 +35,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(GenericHandTarget __instance)
             {
-                if (Main.config.disableDataboxLight && __instance.GetComponent<BlueprintHandTarget>())
+                if (__instance.GetComponent<BlueprintHandTarget>())
                 {
                     GameObject closestLight = GetClosestToPlayer();
                     if (closestLight != null)
@@ -54,13 +54,10 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(VFXVolumetricLight __instance)
             {
-                if (Main.config.disableDataboxLight)
+                if (__instance.transform.parent.name == "DataboxLight(Clone)" || __instance.transform.parent.name == "DataboxLight_small(Clone)")
                 {
-                    if (__instance.transform.parent.name == "DataboxLight(Clone)" || __instance.transform.parent.name == "DataboxLight_small(Clone)")
-                    {
-                        //Main.Log("VFXVolumetricLight Awake parent " + __instance.transform.parent.name);
-                        databoxLights.Add(__instance.transform.parent.gameObject);
-                    }
+                    //Main.Log("VFXVolumetricLight Awake parent " + __instance.transform.parent.name);
+                    databoxLights.Add(__instance.transform.parent.gameObject);
                 }
             }
         }

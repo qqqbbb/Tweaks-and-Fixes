@@ -27,19 +27,52 @@ namespace Tweaks_Fixes
         }
     }
 
-    //[HarmonyPatch(typeof(HangingStinger), "OnCollisionEnter")]
+    //[HarmonyPatch(typeof(DealDamageOnImpact), "OnCollisionEnter")]
+    internal class DealDamageOnImpact_OnCollisionEnter_Patch
+    {
+        public static void Postfix(DealDamageOnImpact __instance, Collision collision)
+        {
+            if (__instance.GetComponent<SeaMoth>())
+            {
+                TechType tt = CraftData.GetTechType(collision.gameObject);
+                if (tt == TechType.HangingStinger)
+                {
+                    LiveMixin lm = __instance.GetLiveMixin(collision.gameObject);
+                    //AddDebug("OnCollisionEnter " + collision.gameObject.name + " " + lm.maxHealth);
+                    lm.TakeDamage(111f, collision.transform.position, DamageType.Collide, __instance.gameObject);
+                }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(HangingStinger), "OnCollisionEnter")]
     class HangingStinger_OnCollisionEnter_Patch
     {
-        public static void Postfix(HangingStinger __instance, Collision other)
+        public static bool Prefix(HangingStinger __instance, Collision other)
         {
-            //if (__instance.GetComponent<HangingStinger>())
-            //{
-            AddDebug("OnCollisionEnter " + other.gameObject.name);
-            CapsuleCollider col = __instance.GetComponentInChildren<CapsuleCollider>();
-            col.isTrigger = true;
-            //__instance.data.explodeOnDestroy = false;
-            //AddDebug("invincibleInCreative " + __instance.invincibleInCreative);
-            //}
+            if (other.gameObject.GetComponent<Vehicle>())
+            {
+                //AddDebug("OnCollisionEnter " + other.gameObject.name);
+                //CapsuleCollider col = __instance.GetComponentInChildren<CapsuleCollider>();
+                //col.isTrigger = true;
+                LiveMixin lm = __instance.GetComponent< LiveMixin>();
+                //AddDebug("OnCollisionEnter " + collision.gameObject.name + " " + lm.maxHealth);
+                lm.TakeDamage(1111f, __instance.transform.position, DamageType.Collide, other.gameObject);
+            }
+            else
+            {
+                if (__instance._venomAmount < 1f || other.gameObject.GetComponentInChildren<LiveMixin>() == null)
+                    return false;
+                DamageOverTime damageOverTime = other.gameObject.AddComponent<DamageOverTime>();
+                damageOverTime.doer = __instance.gameObject;
+                damageOverTime.totalDamage = 30f;
+                damageOverTime.duration = 2.5f * (float)__instance.size;
+                damageOverTime.damageType = DamageType.Poison;
+                damageOverTime.ActivateInterval(0.5f);
+                __instance._venomAmount = 0f;
+                __instance.venomRechargeTime = Random.value * 5f + 5f;
+            }
+            return false;
         }
     }
 
