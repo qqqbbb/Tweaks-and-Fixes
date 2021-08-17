@@ -45,7 +45,7 @@ namespace Tweaks_Fixes
             public static void Postfix(OxygenPipe __instance)
             {
                 //AddDebug("UpdatePipe " );
-                if (__instance.oxygenProvider.activeSelf)
+                if (__instance.oxygenProvider.activeInHierarchy)
                 {
                     __instance.oxygenProvider.EnsureComponent<OxygenArea_Mono>();
                 }

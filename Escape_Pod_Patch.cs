@@ -102,9 +102,7 @@ namespace Tweaks_Fixes
                     {
                         //AddDebug("maxPower " + maxPower);
                         if (Main.config.escapePodPowerTweak)
-                        {
                             cell.powerSource.maxPower = maxPower * .5f;
-                        }
                         else
                         {
                             cell.powerSource.maxPower = maxPower;

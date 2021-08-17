@@ -9,8 +9,10 @@ namespace Tweaks_Fixes
 {
     class Pickupable_Patch
     {
-        static float healTime = 0f;
+        public static float healTime = 0f;
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
+        public static HashSet<TechType> shinies = new HashSet<TechType>();
+
 
         [HarmonyPatch(typeof(Pickupable), "Awake")]
         class Pickupable_Awake_Patch
@@ -24,16 +26,33 @@ namespace Tweaks_Fixes
                     if (rb)
                         rb.mass = itemMass[tt];
                 }
+                if (shinies.Contains(tt))
+                {
+                    HardnessMixin hm = __instance.gameObject.EnsureComponent<HardnessMixin>();
+                    hm.hardness = 1f;
+                    EcoTarget et = __instance.gameObject.GetComponent<EcoTarget>();
+                    if (et && et.type == EcoTargetType.Shiny)
+                        return;
+                    et = __instance.gameObject.AddComponent<EcoTarget>();
+                    et.type = EcoTargetType.Shiny;
+                }
+                //if (tt == TechType.CyclopsDecoy)
+                //{
+                //    if (__instance.transform.parent.name == "CellRoot(Clone)")
+                //    {
+                //        PrefabIdentifier pi = __instance.GetComponent<PrefabIdentifier>();
+                //}
+                //}
             }
         }
 
-        [HarmonyPatch(typeof(Player), "Update")]
+        //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
-            { // not checking savegame slot
+            { 
                 if (Main.config.medKitHPtoHeal > 0 && Time.time > healTime)
-                {
+                { // not checking savegame slot
                     healTime = Time.time + 1f;
                     __instance.liveMixin.AddHealth(Main.config.medKitHPperSecond);
                     Main.config.medKitHPtoHeal -= Main.config.medKitHPperSecond;

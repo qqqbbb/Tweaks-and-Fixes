@@ -69,6 +69,56 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Player), "Update")]
+        class Player_Update_Patch
+        {
+            private static float crushTime = 0f;
+
+            static void Postfix(Player __instance)
+            {
+                if (__instance.currentMountedVehicle)
+                    Vehicle_patch.UpdateLights();
+                else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
+                    Vehicle_patch.UpdateLights();
+                //Main.Message("Depth Class " + __instance.GetDepthClass());
+                if (Main.config.crushDamageMult > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
+                {
+                    crushTime = Time.time;
+                    Crush_Damage.CrushDamage();
+                }
+
+                if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.loadingDone)
+                    return;
+
+                if (Food_Patch.hungerUpdateTime > Time.time)
+                    return;
+
+                if (Main.config.newHungerSystem)
+                {
+                    Food_Patch.UpdateStats(Main.survival);
+                    //__instance.Invoke("UpdateHunger", updateHungerInterval);
+                    //AddDebug("updateHungerInterval " + updateHungerInterval);
+                }
+                else
+                    Main.survival.UpdateHunger();
+
+                if (Main.config.medKitHPtoHeal > 0 && Time.time > Pickupable_Patch.healTime)
+                { // not checking savegame slot
+                    Pickupable_Patch.healTime = Time.time + 1f;
+                    __instance.liveMixin.AddHealth(Main.config.medKitHPperSecond);
+                    Main.config.medKitHPtoHeal -= Main.config.medKitHPperSecond;
+                    if (Main.config.medKitHPtoHeal < 0)
+                        Main.config.medKitHPtoHeal = 0;
+
+                    //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
+                    //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
+                    //Main.config.Save();
+                }
+            }
+
+
+        }
+
         //[HarmonyPatch(typeof(CrushDamage), "GetDepth")]
         internal class CrushDamage_GetDepth_Patch
         {

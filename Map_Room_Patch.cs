@@ -41,6 +41,8 @@ namespace Tweaks_Fixes
                     //AddDebug(" constructed " + __instance.techType);
                     if (Main.config.mapRoomFreeCameras == false && __instance.techType == TechType.BaseMapRoom)
                         camerasToRemove = 2;
+                    else
+                        camerasToRemove = 0;
                 }
             }
         }

@@ -8,6 +8,42 @@ namespace Tweaks_Fixes
 {
     class Tools_Patch
     {
+        public static Dictionary<TechType, float> lightIntensityStep = new Dictionary<TechType, float>();
+        public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
+
+        [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
+        public class FlashLight_Start_Patch
+        {
+            public static void Prefix(FlashLight __instance)
+            {
+                Light[] lights = __instance.GetComponentsInChildren<Light>(true);
+                for (int i = lights.Length - 1; i >= 0; i--)
+                {
+                    if (lights[i].type == LightType.Point)
+                        UnityEngine.Object.Destroy(lights[i].gameObject);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerTool), nameof(PlayerTool.Awake))]
+        public class PlayerTool_Awake_Patch
+        {
+            public static void Prefix(PlayerTool __instance)
+            {
+                Light[] lights = __instance.GetComponentsInChildren<Light>(true);
+                if (lights.Length > 0)
+                { // seaglide uses 2 lights
+                    TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
+                        return;
+                    //AddDebug(tt + " PlayerTool.Awake lights " + lights.Length);
+                    lightOrigIntensity[tt] = lights[0].intensity;
+                    lightIntensityStep[tt] = lights[0].intensity * .1f;
+                    //Main.Log(tt + " lightOrigIntensity " + lights[0].intensity);
+                }
+            }
+        }
+           
         [HarmonyPatch(typeof(Knife), nameof(Knife.OnToolUseAnim))]
         class Knife_OnToolUseAnim_Postfix_Patch
         {
@@ -44,6 +80,17 @@ namespace Tweaks_Fixes
 
             public static void Postfix(PlayerTool __instance)
             {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (Main.config.lightIntensity.ContainsKey(tt))
+                {
+                    Light[] lights = __instance.GetComponentsInChildren<Light>(true);
+                    //AddDebug(tt + " Lights " + lights.Length);
+                    foreach (Light l in lights)
+                    {
+                        l.intensity = Main.config.lightIntensity[tt];
+                        //AddDebug("Light Intensity Down " + l.intensity);
+                    }
+                }
                 Knife knife = __instance as Knife;
                 if (knife)
                 {
@@ -60,6 +107,17 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Constructor), "OnEnable")]
+        class Constructor_OnEnable_Patch
+        {
+            static void Postfix(Constructor __instance)
+            {
+                //AddDebug("OnEnable Constructor ");
+                ImmuneToPropulsioncannon itpc = __instance.GetComponent<ImmuneToPropulsioncannon>();
+                //itpc.enabled = false;
+                UnityEngine.Object.Destroy(itpc);
+            }
+        }
 
         [HarmonyPatch(typeof(ScannerTool), "Update")]
         class ScannerTool_Update_Patch
@@ -84,60 +142,65 @@ namespace Tweaks_Fixes
             }
         }
 
-        static float originalIntensity = -1f;
-        [HarmonyPatch(nameof(Flare.OnDraw))]
-        [HarmonyPostfix]
-        internal static void OnDraw(Flare __instance)
+        [HarmonyPatch(typeof(MapRoomCamera))]
+        class MapRoomCamera_Update_Patch
         {
-            if (originalIntensity == -1f)
-                originalIntensity = __instance.originalIntensity;
-
-            //AddDebug("throwDuration " + __instance.throwDuration);
-            __instance.originalIntensity = originalIntensity * Main.config.flareIntensity;
+            [HarmonyPatch(nameof(MapRoomCamera.ControlCamera))]
+            [HarmonyPrefix]
+            private static void ControlCameraPrefix(MapRoomCamera __instance)
+            {
+                Vehicle_patch.currentVehicleTT = TechType.MapRoomCamera;
+                Vehicle_patch.currentLights = __instance.GetComponentsInChildren<Light>(true);
+                if (Main.config.lightIntensity.ContainsKey(TechType.MapRoomCamera))
+                {
+                    foreach (Light l in Vehicle_patch.currentLights)
+                        l.intensity = Main.config.lightIntensity[TechType.MapRoomCamera];
+                }
+            }
+            //[HarmonyPatch(nameof(MapRoomCamera.Update))]
+            //[HarmonyPostfix]
+            private static void UpdatePostfix(MapRoomCamera __instance)
+            {
+                if (__instance.controllingPlayer)
+                    Vehicle_patch.UpdateLights();
+            }
         }
 
-        [HarmonyPatch(typeof(Flare), "OnDrop")]
-        class Flare_OnDrop_Patch
+        [HarmonyPatch(typeof(MapRoomScreen), "CycleCamera")]
+        class MapRoomScreen_CycleCamera_Patch
         {
-            public static bool Prefix(Flare __instance)
+            static bool Prefix(MapRoomScreen __instance, int direction)
             {
-                if (__instance.isThrowing)
+                if (!Input.GetKey(Main.config.lightKey))
+                    return true;
+
+                if (Vehicle_patch.currentLights.Length == 0)
                 {
-                    __instance.GetComponent<Rigidbody>().AddForce(MainCamera.camera.transform.forward * __instance.dropForceAmount);
-                    __instance.GetComponent<Rigidbody>().AddTorque(__instance.transform.right * __instance.dropTorqueAmount);
-                    __instance.isThrowing = false;
+                    //AddDebug("lights.Length == 0 ");
+                    return true;
                 }
-                //AddDebug("energyLeft " + __instance.energyLeft);
-                if (__instance.energyLeft < 1800f)
+                if (!lightIntensityStep.ContainsKey(TechType.MapRoomCamera))
                 {
-                    if (__instance.fxControl && !__instance.fxIsPlaying)
-                        __instance.fxControl.Play(1);
-                    __instance.fxIsPlaying = true;
+                    AddDebug("lightIntensityStep missing " + TechType.MapRoomCamera);
+                    return false;
+                }
+                if (!lightOrigIntensity.ContainsKey(TechType.MapRoomCamera))
+                {
+                    AddDebug("lightOrigIntensity missing " + TechType.MapRoomCamera);
+                    return false;
+                }
+                float step = lightIntensityStep[TechType.MapRoomCamera];
+                if (direction < 0)
+                    step = -step;
+                foreach (Light l in Vehicle_patch.currentLights)
+                {
+                    if (step > 0 && l.intensity > lightOrigIntensity[TechType.MapRoomCamera])
+                        return false;
+                    l.intensity += step; 
+                    //AddDebug("Light Intensity " + l.intensity);
+                    Main.config.lightIntensity[TechType.MapRoomCamera] = l.intensity;
                 }
                 return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Constructor), "OnEnable")]
-        class Constructor_OnEnable_Patch
-        {
-            static void Postfix(Constructor __instance)
-            {
-                //AddDebug("OnEnable Constructor ");
-                ImmuneToPropulsioncannon itpc = __instance.GetComponent<ImmuneToPropulsioncannon>();
-                //itpc.enabled = false;
-                UnityEngine.Object.Destroy(itpc);
-            }
-        }
-
-        //[HarmonyPatch(typeof(RepulsionCannon), "ShootObject")]
-        class RepulsionCannon_ShootObject_Patch
-        {
-            static void Prefix(RepulsionCannon __instance, Rigidbody rb, Vector3 velocity)
-            {
-                rb.constraints = RigidbodyConstraints.None;
-                AddDebug("ShootObject " + rb.gameObject.name + " " + velocity);
-                //AddDebug("constraints " + rb.constraints);
             }
         }
 
@@ -159,9 +222,9 @@ namespace Tweaks_Fixes
                     RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
                     Vector3 point = raycastHit.point;
                     float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) / 15f);
-                    AddDebug("point " + point);
-                    AddDebug("position " + position);
-                    AddDebug("magnitude " + (position - point).magnitude);
+                    //AddDebug("point " + point);
+                    //AddDebug("position " + position);
+                    //AddDebug("magnitude " + (position - point).magnitude);
                     GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
                     if (go == null)
                         go = raycastHit.collider.gameObject;

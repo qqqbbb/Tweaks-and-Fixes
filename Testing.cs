@@ -33,9 +33,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("precursorOutOfWater " + Player.main.precursorOutOfWater);
-                //AddDebug("inMoonpool " + PrecursorMoonPoolTrigger.inMoonpool);
-
+                //AddDebug("activeSelf " + IngameMenu.main.gameObject.activeSelf);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 if (Input.GetKey(KeyCode.B))
                 {
@@ -80,9 +78,9 @@ namespace Tweaks_Fixes
 
                 if (Input.GetKey(KeyCode.Z))
                 {
+                    //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
+                    //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
                     //AddDebug("sub EcoTargetType " + BehaviourData.GetEcoTargetType(Player.main.currentSub.gameObject));
-                    //AddDebug("Spadefish " + BehaviourData.GetBehaviourType(TechType.Spadefish));
-                    //AddDebug("Bladderfish " + BehaviourData.GetBehaviourType(TechType.Bladderfish));
                     //AddDebug("Exosuit " + BehaviourData.GetEcoTargetType(TechType.Exosuit));
                     //AddDebug("GetDepth " + Player.main.GetDepth());
                     //Vector3 vel = Player.main.currentMountedVehicle.useRigidbody.velocity;
@@ -91,18 +89,18 @@ namespace Tweaks_Fixes
                     Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
                     if (target)
                     {
-  
-
                     }
                     if (Main.guiHand.activeTarget)
                     {
-                        VFXSurface[] vFXSurfaces = __instance.GetAllComponentsInChildren<VFXSurface>();
-                        if (vFXSurfaces.Length == 0)
-                            AddDebug(" " + Main.guiHand.activeTarget.name + " no VFXSurface");
-                        else
-                            AddDebug(" " + Main.guiHand.activeTarget.name);
-
-                        AddDebug("TechType " + CraftData.GetTechType(Main.guiHand.activeTarget));
+                        //VFXSurface[] vFXSurfaces = __instance.GetAllComponentsInChildren<VFXSurface>();
+                        //if (vFXSurfaces.Length == 0)
+                        //    AddDebug(" " + Main.guiHand.activeTarget.name + " no VFXSurface");
+                        //else
+                        UniqueIdentifier ui = Main.guiHand.activeTarget.GetComponentInParent<UniqueIdentifier>();
+                        if (ui)
+                            AddDebug(" " + ui.gameObject.name);
+                        AddDebug(" " + Main.guiHand.activeTarget.name);
+                        //AddDebug("TechType " + CraftData.GetTechType(Main.guiHand.activeTarget));
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
@@ -236,6 +234,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(GUIHand __instance)
             {
+
                 __instance.usedToolThisFrame = false;
                 __instance.usedAltAttackThisFrame = false;
                 __instance.suppressTooltip = false;
@@ -417,6 +416,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
+
 
     }
 }

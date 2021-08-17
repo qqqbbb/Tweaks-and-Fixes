@@ -33,40 +33,89 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(GUIHand), "OnUpdate")]
         class GUIHand_OnUpdate_Patch
-        { // UI tells you if looking at dead fish 
-            public static void Postfix(GUIHand __instance)
+        { 
+            static string AltToolButton = string.Empty;
+
+            //[HarmonyPatch(nameof(GUIHand.OnUpdate))]
+            //[HarmonyPrefix]
+            public static bool OnUpdatePrefix(GUIHand __instance)
+            {
+                if (!__instance.activeTarget)
+                    return true;
+
+                UniqueIdentifier ui = __instance.activeTarget.GetComponentInParent<UniqueIdentifier>();
+                if (ui && Kelp_Patch.enteredColliders.ContainsKey(ui.gameObject) && Kelp_Patch.enteredColliders[ui.gameObject] > 0)
+                {
+                    HandReticle.main.SetInteractTextRaw(string.Empty, string.Empty);
+                    return false;
+                }
+                return true;
+            }
+            [HarmonyPatch(nameof(GUIHand.OnUpdate))]
+            [HarmonyPostfix]
+            public static void OnUpdatePostfix(GUIHand __instance)
             {
                 PlayerTool tool = __instance.GetTool();
-                if (tool && Main.IsEatableFish(tool.gameObject))
+                if (tool)
                 {
-                    string text = string.Empty;
-                    if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
-                        text = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
-
-                    bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
-                    //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
-                    if (cantEat)
-                    { }
-                    else
+                    Flare flare = tool as Flare;
+                    if (flare && !Main.flareRepairLoaded)
                     {
-                        string text1 = TooltipFactory.stringEat + " (" + uGUI.FormatButton(GameInput.Button.AltTool) + ")";
-                        if (string.IsNullOrEmpty(text))
-                            text = text1;
-                        else
-                            text = text + ",  " + text1;
+                        bool lit = flare.flareActivateTime > 0;
+                        string text = string.Empty;
+                        string throwFlare = lit ? Main.config.throwFlare : Main.config.lightAndThrowFlare;
+                        if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
+                            text = throwFlare + " (" + TooltipFactory.stringRightHand + ")";
+                        if (string.IsNullOrEmpty(AltToolButton))
+                            AltToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
 
-                        if (GameInput.GetButtonDown(GameInput.Button.AltTool))
+                        if (!lit)
                         {
-                            Eatable eatable = tool.GetComponent<Eatable>();
-                            //if (__instance.GetTechType() == TechType.Bladderfish)
-                            if (eatable)
+                            string text1 = Main.config.lightFlare + " (" + AltToolButton + ")";
+                            if (string.IsNullOrEmpty(text))
+                                text = text1;
+                            else
+                                text = text + ",  " + text1;
+
+                            if (GameInput.GetButtonDown(GameInput.Button.AltTool))
+                                Flare_Patch.LightFlare(flare);
+                        }
+                        HandReticle.main.SetUseTextRaw(text, null);
+                    }
+                    if (Main.IsEatableFish(tool.gameObject))
+                    {
+                        string text = string.Empty;
+                        if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
+                            text = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
+
+                        bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
+                        //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
+                        if (cantEat)
+                        { }
+                        else
+                        {
+                            if (string.IsNullOrEmpty(AltToolButton))
+                                AltToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
+
+                            string text1 = TooltipFactory.stringEat + " (" + AltToolButton + ")";
+                            if (string.IsNullOrEmpty(text))
+                                text = text1;
+                            else
+                                text = text + ",  " + text1;
+
+                            if (GameInput.GetButtonDown(GameInput.Button.AltTool))
                             {
-                                Inventory playerInv = Inventory.main;
-                                playerInv.UseItem(playerInv.quickSlots.heldItem);
+                                Eatable eatable = tool.GetComponent<Eatable>();
+                                //if (__instance.GetTechType() == TechType.Bladderfish)
+                                if (eatable)
+                                {
+                                    Inventory playerInv = Inventory.main;
+                                    playerInv.UseItem(playerInv.quickSlots.heldItem);
+                                }
                             }
                         }
+                        HandReticle.main.SetUseTextRaw(text, null);
                     }
-                    HandReticle.main.SetUseTextRaw(text, null);
                 }
                 if (!__instance.activeTarget)
                     return;
@@ -74,33 +123,34 @@ namespace Tweaks_Fixes
                 //if (__instance.activeTarget.layer == LayerID.NotUseable)
                 //    Main.Message("activeTarget Not Useable layer ");
                 TechType techType = CraftData.GetTechType(__instance.activeTarget);
-                if (techType != TechType.None)
+                if (techType == TechType.None)
+                    return;
+                // UI tells you if looking at dead fish 
+                LiveMixin liveMixin = __instance.activeTarget.GetComponent<LiveMixin>();
+                if (liveMixin && !liveMixin.IsAlive())
                 {
-                    LiveMixin liveMixin = __instance.activeTarget.GetComponent<LiveMixin>();
-                    if (liveMixin && !liveMixin.IsAlive())
+                    //AddDebug("health " + liveMixin.health);
+                    Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
+                    //CreatureEgg ce = liveMixin.GetComponent<CreatureEgg>();
+                    //if (ce)
+                    //    name = Language.main.Get(ce.overrideEggType);
+                    string name = Language.main.Get(techType);
+                    //AddDebug("name " + name);
+                    if (pickupable)
                     {
-                        //AddDebug("health " + liveMixin.health);
-                        Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
-                        //CreatureEgg ce = liveMixin.GetComponent<CreatureEgg>();
-                        //if (ce)
-                        //    name = Language.main.Get(ce.overrideEggType);
-                        string name = Language.main.Get(techType);
-                        //AddDebug("name " + name);
-                        if (pickupable)
-                        {
-                            if (pickupable.overrideTechType != TechType.None)
-                                name = Language.main.Get(pickupable.overrideTechType);
+                        if (pickupable.overrideTechType != TechType.None)
+                            name = Language.main.Get(pickupable.overrideTechType);
 
-                            name = Language.main.GetFormat<string>("DeadFormat", name);
-                            HandReticle.main.SetInteractText(name);
-                        }
-                        else
-                        {
-                            name = Language.main.GetFormat<string>("DeadFormat", name);
-                            HandReticle.main.SetInteractTextRaw(name, string.Empty);
-                        }
+                        name = Language.main.GetFormat<string>("DeadFormat", name);
+                        HandReticle.main.SetInteractText(name);
+                    }
+                    else
+                    {
+                        name = Language.main.GetFormat<string>("DeadFormat", name);
+                        HandReticle.main.SetInteractTextRaw(name, string.Empty);
                     }
                 }
+
             }
         }
 
@@ -176,12 +226,14 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
-        class TooltipFactory_ItemCommons_Prefix_Patch
+        class TooltipFactory_ItemCommons_Patch
         {
             static void Prefix(StringBuilder sb, TechType techType, GameObject obj)
             {
+                if (!Main.english)
+                    return;
+
                 CreatureEgg creatureEgg = obj.GetComponent<CreatureEgg>();
                 if (creatureEgg)
                 {
@@ -191,7 +243,33 @@ namespace Tweaks_Fixes
                         TooltipFactory.WriteTitle(sb, "Dead ");
                     }
                 }
+                Flare flare = obj.GetComponent<Flare>();
+                if (flare)
+                {
+                    //AddDebug("flare.energyLeft " + flare.energyLeft);
+                    if (flare.energyLeft <= 0f)
+                        TooltipFactory.WriteTitle(sb, "Used ");
+                    else if (flare.flareActivateTime > 0f)
+                        TooltipFactory.WriteTitle(sb, "Lit ");
+                }
                 fishTooltip = Main.IsEatableFish(obj);
+            }
+            static void Postfix(StringBuilder sb, TechType techType, GameObject obj)
+            {
+                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                {
+                    TooltipFactory.WriteDescription(sb, "Increases your safe diving depth by " + Crush_Damage.crushDepthEquipment[techType] + " meters.");
+                }
+                if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
+                {
+                    Rigidbody rb = obj.GetComponent<Rigidbody>();
+                    if (rb)
+                        TooltipFactory.WriteDescription(sb, "mass " + rb.mass);
+                }
+                if (techType == TechType.FirstAidKit)
+                {
+                    TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
+                }
             }
         }
 
@@ -219,25 +297,39 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
-        class TooltipFactory_ItemCommons_Patch
+        [HarmonyPatch(typeof(Inventory), "ExecuteItemAction")]
+        class Inventory_ExecuteItemAction_Patch
         {
-            static void Postfix(StringBuilder sb, TechType techType, GameObject obj)
+            public static bool Prefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
-                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                //AddDebug("AltUseItem " + item.item.GetTechType());
+                //ItemAction itemAction = __instance.GetAltUseItemAction(item);
+                IItemsContainer oppositeContainer = __instance.GetOppositeContainer(item);
+                if (Main.advancedInventoryLoaded || action != ItemAction.Switch || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
+                    return true;
+
+                ItemsContainer container = (ItemsContainer)item.container;
+                List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
+                if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    TooltipFactory.WriteDescription(sb, "Increases your safe diving depth by " + Crush_Damage.crushDepthEquipment[techType] + " meters.");
+                    //AddDebug("LeftShift ");
+                    foreach (TechType itemType in container.GetItemTypes())
+                        container.GetItems(itemType, itemsToTransfer);
                 }
-                if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
+                else if (Input.GetKey(KeyCode.LeftControl))
                 {
-                    Rigidbody rb = obj.GetComponent<Rigidbody>();
-                    if (rb)
-                        TooltipFactory.WriteDescription(sb, "mass " + rb.mass);
+                    //AddDebug("LeftControl ");
+                    container.GetItems(item.item.GetTechType(), itemsToTransfer);
                 }
-                if (techType == TechType.FirstAidKit)
+                foreach (InventoryItem ii in itemsToTransfer)
                 {
-                    TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
+                    //AddDebug("itemsToTransfer " + ii.item.name);
+                    Inventory.AddOrSwap(ii, oppositeContainer);
                 }
+                if (itemsToTransfer.Count > 0)
+                    return false;
+                else
+                    return true;
             }
         }
 

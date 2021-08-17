@@ -12,8 +12,8 @@ namespace Tweaks_Fixes
     {
         static Rigidbody rb;
         public static CyclopsEntryHatch ceh;
-        public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
-        public static bool cyclopsPowerCons = false;
+        //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
+        public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -26,12 +26,21 @@ namespace Tweaks_Fixes
                 instance.image.sprite = instance.inactiveSprite;
         }
 
-        //[HarmonyPatch(typeof(SubRoot), "Start")]
-        class SubRoot_Start_Patch
+        static void AddCyclopsCollisionExclusion(GameObject go)
         {
-            public static void Postfix(SubRoot __instance)
+            //AddDebug(__instance.name + " in cyclops");
+            Collider[] myCols = go.GetAllComponentsInChildren<Collider>();
+            foreach (Collider c in collidersInSub)
             {
-                //__instance.interiorSky.affectedByDayNightCycle = !__instance.subLightsOn;
+                foreach (Collider myCol in myCols)
+                {
+                    Physics.IgnoreCollision(myCol, c);
+                }
+            }
+            foreach (Collider c in myCols)
+            {
+                collidersInSub.Add(c);
+                //AddDebug("add collider to collidersInSub");
             }
         }
 
@@ -45,15 +54,34 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CyclopsHelmHUDManager), "Start")]
-        class CyclopsHelmHUDManager_Start_Patch
+        [HarmonyPatch(typeof(CyclopsHelmHUDManager))]
+        class CyclopsHelmHUDManager_Patch
         {
-            public static void Postfix(CyclopsHelmHUDManager __instance)
+            [HarmonyPatch(nameof(CyclopsHelmHUDManager.Update))]
+            [HarmonyPostfix]
+            public static void UpdatePostfix(CyclopsHelmHUDManager __instance)
             {
-                //if (__instance.LOD.IsFull() && Player.main.currentSub != __instance.subRoot && !__instance.subRoot.subDestroyed)
-                { 
-                    cyclopsHelmHUDManager = __instance;
-                    //AddDebug("CyclopsHelmHUDManager Update ");
+                //if (Player.main.currentSub && Player.main.currentSub == __instance.subRoot)
+                {
+                    __instance.hudActive = Player.main.currentSub && Player.main.currentSub == __instance.subRoot;
+                    if (__instance.motorMode.engineOn) // hide speed selector when engine off
+                        __instance.engineToggleAnimator.SetTrigger("EngineOn");
+                    else
+                        __instance.engineToggleAnimator.SetTrigger("EngineOff");
+                    //cyclopsHelmHUDManager = __instance;
+                    //AddDebug("hudActive " + __instance.hudActive);
+                    //__instance.canvasGroup.alpha = 0f;
+                }
+            }
+            [HarmonyPatch(nameof(CyclopsHelmHUDManager.StartPiloting))]
+            [HarmonyPrefix]
+            public static void StartPilotingPrefix(CyclopsHelmHUDManager __instance)
+            {
+                {
+                    Vehicle_patch.currentVehicleTT = TechType.Cyclops;
+                    Vehicle_patch.currentLights = __instance.transform.parent.Find("Floodlights").GetComponentsInChildren<Light>(true);
+                    //AddDebug("StartPiloting  " + Vehicle_patch.currentLights.Length);
+                    //AddDebug(" " + __instance.transform.parent.name);
                     //__instance.canvasGroup.alpha = 0f;
                 }
             }
@@ -87,119 +115,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SubControl), "Update")]
-        class SubControl_Update_Patch
-        { // fix max diagonal speed
-            public static bool Prefix(SubControl __instance)
-            {
-                //if
-                //cyclopsHelmHUDManager.canvasGroup.alpha = 0;
-                //cyclopsHelmHUDManager.canvasGroup.interactable = false;
-                //AddDebug(" alpha " + cyclopsHelmHUDManager.canvasGroup.alpha);
-
-                //cyclopsHelmHUDManager.StopPiloting();
-                //}
-                if (!__instance.LOD.IsFull())
-                    return false;
-
-                if (Main.config.cyclopsMoveTweaks)
-                {
-                    __instance.appliedThrottle = false;
-                    if (__instance.controlMode == SubControl.Mode.DirectInput)
-                    {
-                        __instance.throttle = GameInput.GetMoveDirection();
-                        __instance.throttle.Normalize();
-                        //AddDebug("throttle " + __instance.throttle);
-                        //AddDebug(".magnitude " + __instance.throttle.magnitude);
-                        if (__instance.canAccel && __instance.throttle.magnitude > 0.0001)
-                        {
-                            float amountConsumed = 0f;
-                            float amount = __instance.throttle.magnitude * __instance.cyclopsMotorMode.GetPowerConsumption() * Time.deltaTime / __instance.sub.GetPowerRating();
-                            cyclopsPowerCons = true;
-                            if (!GameModeUtils.RequiresPower() || __instance.powerRelay.ConsumeEnergy(amount, out amountConsumed))
-                            {
-                                __instance.lastTimeThrottled = Time.time;
-                                __instance.appliedThrottle = true;
-                            }
-                        }
-                        if (__instance.appliedThrottle && __instance.canAccel)
-                        {
-                            //AddDebug("throttleHandlers.Length " + __instance.throttleHandlers.Length);
-                            float topClamp = 0.33f;
-                            if (__instance.useThrottleIndex == 1)
-                                topClamp = 0.66f;
-                            if (__instance.useThrottleIndex == 2)
-                                topClamp = 1f;
-                            __instance.engineRPMManager.AccelerateInput(topClamp);
-                            for (int index = 0; index < __instance.throttleHandlers.Length; ++index)
-                                __instance.throttleHandlers[index].OnSubAppliedThrottle();
-                            if (__instance.lastTimeThrottled < Time.time - 5f)
-                                Utils.PlayFMODAsset(__instance.engineStartSound, MainCamera.camera.transform);
-                        }
-                        if (AvatarInputHandler.main.IsEnabled())
-                        {
-                            if (GameInput.GetButtonDown(GameInput.Button.RightHand))
-                                __instance.transform.parent.BroadcastMessage("ToggleFloodlights", (object)null, SendMessageOptions.DontRequireReceiver);
-                            if (GameInput.GetButtonDown(GameInput.Button.Exit))
-                                Player.main.TryEject();
-                        }
-                    }
-                    if (__instance.appliedThrottle)
-                        return false;
-
-                    __instance.throttle = new Vector3(0.0f, 0.0f, 0.0f);
-                }
-                else
-                {
-                    __instance.appliedThrottle = false;
-                    if (__instance.controlMode == SubControl.Mode.DirectInput)
-                    {
-                        __instance.throttle = GameInput.GetMoveDirection();
-                        if (__instance.canAccel && __instance.throttle.magnitude > 0.0001f)
-                        {
-                            float amountConsumed = 0f;
-                            float amount = __instance.throttle.magnitude * __instance.cyclopsMotorMode.GetPowerConsumption() * Time.deltaTime / __instance.sub.GetPowerRating();
-                            cyclopsPowerCons = true;
-                            if (!GameModeUtils.RequiresPower() || __instance.powerRelay.ConsumeEnergy(amount, out amountConsumed))
-                            {
-                                __instance.lastTimeThrottled = Time.time;
-                                __instance.appliedThrottle = true;
-                            }
-                        }
-                        if (__instance.appliedThrottle && __instance.canAccel)
-                        {
-                            float topClamp = 0.33f;
-                            if (__instance.useThrottleIndex == 1)
-                                topClamp = 0.66f;
-                            if (__instance.useThrottleIndex == 2)
-                                topClamp = 1f;
-                            __instance.engineRPMManager.AccelerateInput(topClamp);
-                            for (int index = 0; index < __instance.throttleHandlers.Length; ++index)
-                                __instance.throttleHandlers[index].OnSubAppliedThrottle();
-                            if (__instance.lastTimeThrottled < Time.time - 5f)
-                                Utils.PlayFMODAsset(__instance.engineStartSound, MainCamera.camera.transform);
-                        }
-                        if (AvatarInputHandler.main.IsEnabled())
-                        {
-                            if (GameInput.GetButtonDown(GameInput.Button.RightHand))
-                                __instance.transform.parent.BroadcastMessage("ToggleFloodlights", null, SendMessageOptions.DontRequireReceiver);
-                            if (GameInput.GetButtonDown(GameInput.Button.Exit))
-                                Player.main.TryEject();
-                        }
-                    }
-                    if (__instance.appliedThrottle)
-                        return false;
-                    __instance.throttle = new Vector3(0.0f, 0.0f, 0.0f);
-                }
-                return false;
-            }
-
-        }
-
-        [HarmonyPatch(typeof(SubControl), "Start")]
-        class SubControl_Start_Patch
+        [HarmonyPatch(typeof(SubControl))]
+        class SubControl_Patch
         {
-            public static void Postfix(SubControl __instance)
+            [HarmonyPatch(nameof(SubControl.Start))]
+            [HarmonyPostfix]
+            public static void StartPostfix(SubControl __instance)
             {
                 //if (Main.config.vehicleMoveTweaks) 
                 //{ 
@@ -208,22 +129,90 @@ namespace Tweaks_Fixes
                 //}
                 TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
                 techTag.type = TechType.Cyclops;
+
+                Transform tr = __instance.transform.Find("Headlights");
+                if (tr)
+                    UnityEngine.Object.Destroy(tr.gameObject);
+
+                Tools_Patch.lightOrigIntensity[TechType.Cyclops] = 2f;
+                Tools_Patch.lightIntensityStep[TechType.Cyclops] = .2f;
+                Light[] lights = __instance.transform.Find("Floodlights").GetComponentsInChildren<Light>(true);
+                //AddDebug("SubControl.Start lights intensity " + lights[0].intensity);
+                if (Main.config.lightIntensity.ContainsKey(TechType.Cyclops))
+                {
+                    foreach (Light l in lights)
+                        l.intensity = Main.config.lightIntensity[TechType.Cyclops];
+                }
+
             }
-        }
-        
-        [HarmonyPatch(typeof(SubControl), "FixedUpdate")]
-        class SubControl_FixedUpdate_Patch
-        {// halve vertical and backward speed
-            public static bool Prefix(SubControl __instance)
-            {
-            if (!Main.config.cyclopsMoveTweaks)
-                return true;
+            [HarmonyPatch(nameof(SubControl.Update))]
+            [HarmonyPrefix]
+            public static bool UpdatePrefix(SubControl __instance)
+            { // fix max diagonal speed 
+                if (!__instance.LOD.IsFull())
+                    return false;
+
+                if (!Main.config.cyclopsMoveTweaks || Main.cyclopsDockingLoaded)
+                    return true;
+
+                __instance.appliedThrottle = false;
+                if (__instance.controlMode == SubControl.Mode.DirectInput)
+                {
+                    __instance.throttle = GameInput.GetMoveDirection();
+                    __instance.throttle.Normalize();
+                    //AddDebug("throttle " + __instance.throttle);
+                    //AddDebug(".magnitude " + __instance.throttle.magnitude);
+                    if (__instance.canAccel && __instance.throttle.magnitude > 0.0001)
+                    {
+                        float amountConsumed = 0f;
+                        float amount = __instance.throttle.magnitude * __instance.cyclopsMotorMode.GetPowerConsumption() * Time.deltaTime / __instance.sub.GetPowerRating();
+                        //cyclopsPowerCons = true;
+                        if (!GameModeUtils.RequiresPower() || __instance.powerRelay.ConsumeEnergy(amount, out amountConsumed))
+                        {
+                            __instance.lastTimeThrottled = Time.time;
+                            __instance.appliedThrottle = true;
+                        }
+                    }
+                    if (__instance.appliedThrottle && __instance.canAccel)
+                    {
+                        //AddDebug("throttleHandlers.Length " + __instance.throttleHandlers.Length);
+                        float topClamp = 0.33f;
+                        if (__instance.useThrottleIndex == 1)
+                            topClamp = 0.66f;
+                        if (__instance.useThrottleIndex == 2)
+                            topClamp = 1f;
+                        __instance.engineRPMManager.AccelerateInput(topClamp);
+                        for (int index = 0; index < __instance.throttleHandlers.Length; ++index)
+                            __instance.throttleHandlers[index].OnSubAppliedThrottle();
+                        if (__instance.lastTimeThrottled < Time.time - 5f)
+                            Utils.PlayFMODAsset(__instance.engineStartSound, MainCamera.camera.transform);
+                    }
+                    if (AvatarInputHandler.main.IsEnabled())
+                    {
+                        if (GameInput.GetButtonDown(GameInput.Button.RightHand))
+                            __instance.transform.parent.BroadcastMessage("ToggleFloodlights", (object)null, SendMessageOptions.DontRequireReceiver);
+                        if (GameInput.GetButtonDown(GameInput.Button.Exit))
+                            Player.main.TryEject();
+                    }
+                }
+                if (__instance.appliedThrottle)
+                    return false;
+                __instance.throttle = new Vector3(0.0f, 0.0f, 0.0f);
+                return false;
+            }
+
+            [HarmonyPatch(nameof(SubControl.FixedUpdate))]
+            [HarmonyPrefix]
+            public static bool FixedUpdatePrefix(SubControl __instance)
+            {  // halve vertical and backward speed
+                if (!Main.config.cyclopsMoveTweaks)
+                    return true;
 
                 if (!__instance.LOD.IsFull() || __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
                     return false;
 
                 for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
-                __instance.accelerationModifiers[index].ModifyAcceleration(ref __instance.throttle);
+                    __instance.accelerationModifiers[index].ModifyAcceleration(ref __instance.throttle);
                 if (Ocean.main.GetDepthOf(__instance.gameObject) < 0f)
                     return false;
 
@@ -250,7 +239,7 @@ namespace Tweaks_Fixes
                     if (__instance.throttle.x < -0.1f || __instance.throttle.x > 0.1f)
                     {
                         for (int index = 0; index < __instance.turnHandlers.Length; ++index)
-                        __instance.turnHandlers[index].OnSubTurn(useShipSide);
+                            __instance.turnHandlers[index].OnSubTurn(useShipSide);
                     }
                 }
                 if (Mathf.Abs(__instance.throttle.y) > 0.0001f)
@@ -265,7 +254,7 @@ namespace Tweaks_Fixes
                         rb.AddForce(accel, ForceMode.Acceleration);
                 }
                 if (__instance.canAccel)
-                { 
+                {
                     if (__instance.throttle.z > 0.0001f)
                     {
                         rb.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
@@ -276,16 +265,16 @@ namespace Tweaks_Fixes
                     }
                 }
                 __instance.steeringWheelYaw = Mathf.Lerp(__instance.steeringWheelYaw, b1, Time.deltaTime * __instance.steeringReponsiveness);
-            __instance.steeringWheelPitch = Mathf.Lerp(__instance.steeringWheelPitch, b2, Time.deltaTime * __instance.steeringReponsiveness);
+                __instance.steeringWheelPitch = Mathf.Lerp(__instance.steeringWheelPitch, b2, Time.deltaTime * __instance.steeringReponsiveness);
                 if (!__instance.mainAnimator)
                     return false;
 
-            __instance.mainAnimator.SetFloat("view_yaw", __instance.steeringWheelYaw);
-            __instance.mainAnimator.SetFloat("view_pitch", __instance.steeringWheelPitch);
+                __instance.mainAnimator.SetFloat("view_yaw", __instance.steeringWheelYaw);
+                __instance.mainAnimator.SetFloat("view_pitch", __instance.steeringWheelPitch);
                 Player.main.playerAnimator.SetFloat("cyclops_yaw", __instance.steeringWheelYaw);
                 Player.main.playerAnimator.SetFloat("cyclops_pitch", __instance.steeringWheelPitch);
 
-            return false;
+                return false;
             }
         }
 
@@ -298,6 +287,7 @@ namespace Tweaks_Fixes
                     return;
                 ceh = __instance;
                 //AddDebug("OnTriggerEnter " + __instance.hatchOpen);
+                //cyclopsHelmHUDManager.hudActive = true;
             }
         }
 
@@ -318,22 +308,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(VoiceNotificationManager), "PlayVoiceNotification")]
-        class VoiceNotificationManager_PlayVoiceNotification_Prefix_Patch
-        {
-            public static bool Prefix(VoiceNotificationManager __instance, VoiceNotification vo)
-            {
-                //if (!Main.loadingDone)
-                //{
-                //return false;
-                //}
-                //AddDebug("PlayVoiceNotification Prefix " + vo.GetCanPlay());
-                //AddDebug("PlayVoiceNotification Prefix " + vo.timeNextPlay);
-                //AddDebug("PlayVoiceNotification Prefix " + vo.minInterval);
-                return true;
-            }
-        }
-
         [HarmonyPatch(typeof(CyclopsSilentRunningAbilityButton), "SilentRunningIteration")]
         class CyclopsSilentRunningAbilityButton_SilentRunningIteration_Patch
         {
@@ -351,6 +325,83 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
+
+        [HarmonyPatch(typeof(Constructable), "Start")]
+        class Constructable_Start_Patch
+        {
+            public static void Postfix(Constructable __instance)
+            {
+                if (__instance.GetComponentInParent<SubControl>())
+                    AddCyclopsCollisionExclusion(__instance.gameObject);
+            }
+        }
+
+        [HarmonyPatch(typeof(Plantable), "Spawn")]
+        internal class Plantable_Spawn_Patch
+        {
+            public static void Postfix(Plantable __instance, Transform parent, bool isIndoor, GameObject __result)
+            {
+                if (__result && __instance.GetComponentInParent<SubControl>())
+                    AddCyclopsCollisionExclusion(__result);
+            }
+        }
+
+        [HarmonyPatch(typeof(GrownPlant), "Awake")]
+        internal class GrownPlant_Awake_Patch
+        {
+            public static void Postfix(GrownPlant __instance)
+            {
+                if ( __instance.GetComponentInParent<SubControl>())
+                    AddCyclopsCollisionExclusion(__instance.gameObject);
+            }
+        }
+
+        [HarmonyPatch(typeof(VehicleDockingBay))]
+        internal class VehicleDockingBay_LaunchbayAreaEnter_Patch
+        { // dont play sfx if another vehicle docked
+            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaEnter))]
+            [HarmonyPrefix]
+            public static bool LaunchbayAreaEnterPrefix(VehicleDockingBay __instance)
+            {
+                return !__instance._dockedVehicle;
+            }
+            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaExit))]
+            [HarmonyPrefix]
+            public static bool LaunchbayAreaExitPrefix(VehicleDockingBay __instance)
+            {
+                return !__instance._dockedVehicle;
+            }
+            //[HarmonyPatch(nameof(VehicleDockingBay.UpdateDockedPosition))]
+            //[HarmonyPrefix]
+            public static void UpdateDockedPositionPrefix(VehicleDockingBay __instance, Vehicle vehicle, ref float interpfraction)
+            {
+                AddDebug("UpdateDockedPosition " + vehicle.transform.position);
+                //if (!properlyDocked)
+                //interpfraction = 0;
+                //AddDebug("interpfraction " + interpfraction);
+            }
+            //96.7 -19.1 20.4 
+            //96.6 -17.1 21.2
+            //[HarmonyPatch(nameof(VehicleDockingBay.SetVehicleDocked))]
+            //[HarmonyPostfix]
+            public static void SetVehicleDockedPrefix(VehicleDockingBay __instance, Vehicle vehicle)
+            {
+                //properlyDocked = false;
+                //__instance.exosuitDockPlayerCinematic.StartCinematicMode(Player.main);
+                //__instance.DockVehicle(vehicle);
+                //__instance.GetSubRoot().BroadcastMessage("UnlockDoors", SendMessageOptions.DontRequireReceiver);
+                //SafeAnimator.SetBool(__instance.animator, "exosuit_docked", true);
+                AddDebug("SetVehicleDocked");
+            }
+            //[HarmonyPatch(nameof(VehicleDockingBay.DockVehicle))]
+            //[HarmonyPrefix]
+            public static void DockVehiclePrefix(VehicleDockingBay __instance, Vehicle vehicle)
+            {
+                AddDebug("DockVehicle");
+            }
+        }
+
+
 
     }
 }

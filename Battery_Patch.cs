@@ -34,17 +34,14 @@ namespace Tweaks_Fixes
         {
             static void Prefix(ref float amount, IPowerInterface powerInterface)
             {
-                if (Cyclops_Patch.cyclopsPowerCons)
-                {
-                    //AddDebug("cyclopsPowerCons");
+                PowerRelay pr = powerInterface as PowerRelay;
+                if (pr && pr.GetComponent<SubControl>())
                     amount *= Main.config.vehicleEnergyConsMult;
-                }
                 else
                 {
                     //AddDebug("ConsumeEnergy ");
                     amount *= Main.config.baseEnergyConsMult;
                 }
-                Cyclops_Patch.cyclopsPowerCons = false;
             }
         }
 

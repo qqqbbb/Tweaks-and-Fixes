@@ -17,14 +17,18 @@ namespace Tweaks_Fixes
     [QModCore]
     public class Main
     {
-        public const float version = 1.1f;
+        public const float version = 1.11f;
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
         public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
+        public static bool english = false;
         public static System.Random rndm = new System.Random();
+        public static bool advancedInventoryLoaded = false;
+        public static bool flareRepairLoaded = false;
+        public static bool cyclopsDockingLoaded = false;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -128,6 +132,7 @@ namespace Tweaks_Fixes
             Gravsphere_Patch.gasPods = new HashSet<GasPod>();
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
             //Coffee_Patch.DeleteCoffee();
+            Decoy_Patch.decoysToDestroy = new List<GameObject>();
             config.Load();
         }
 
@@ -170,6 +175,7 @@ namespace Tweaks_Fixes
             {
                 if (Language.main.currentLanguage == "English")
                 {
+                    english = true;
                     //AddDebug("English");
                     //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
                     LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
@@ -177,7 +183,7 @@ namespace Tweaks_Fixes
             }
         }
 
-         [HarmonyPatch(typeof(Player), "Start")]
+        [HarmonyPatch(typeof(Player), "Start")]
         class Player_Start_Patch
         {
             static void Postfix(Player __instance)
@@ -197,20 +203,25 @@ namespace Tweaks_Fixes
         { // fires after game loads
             public static void Postfix(uGUI_SceneLoading __instance)
             {
+                //if (uGUI.main.loading.isLoading)
+                //{
+                //    AddDebug(" is Loading");
+                //    return;
+                //}
                 if (!uGUI.main.hud.active)
                 {
-                    //AddDebug(" is Loading");
+                    //AddDebug(" hud not active");
                     return;
                 }
                 //AddDebug(" uGUI_SceneLoading end");
                 loadingDone = true;
-                if (Cyclops_Patch.cyclopsHelmHUDManager)
-                {
-                    if (Cyclops_Patch.cyclopsHelmHUDManager.LOD.IsFull() && Player.main.currentSub != Cyclops_Patch.cyclopsHelmHUDManager.subRoot && !Cyclops_Patch.cyclopsHelmHUDManager.subRoot.subDestroyed)
-                    {
-                        Cyclops_Patch.cyclopsHelmHUDManager.canvasGroup.alpha = 0f;
-                    }
-                }
+                //if (Cyclops_Patch.cyclopsHelmHUDManager)
+                //{
+                //    if (Cyclops_Patch.cyclopsHelmHUDManager.LOD.IsFull() && Player.main.currentSub != Cyclops_Patch.cyclopsHelmHUDManager.subRoot && !Cyclops_Patch.cyclopsHelmHUDManager.subRoot.subDestroyed)
+                //    {
+                //        Cyclops_Patch.cyclopsHelmHUDManager.canvasGroup.alpha = 0f;
+                //    }
+                //}
                 if (EscapePod.main)
                     Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
             }
@@ -228,8 +239,20 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(IngameMenu), "SaveGame")]
+        internal class IngameMenu_SaveGame_Patch
+        {
+            public static void Prefix(IngameMenu __instance)
+            {
+                for (int i = Decoy_Patch.decoysToDestroy.Count - 1; i >= 0; i--)
+                    UnityEngine.Object.Destroy(Decoy_Patch.decoysToDestroy[i]);
+                //AddDebug("decoysToDestroy.Count " + Decoy_Patch.decoysToDestroy.Count);
+            }
+        }
+
         static void SaveData()
         {
+            //AddDebug("SaveData ");
             //Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
             if (Player.main.mode == Player.Mode.Normal)
                 config.playerCamRot = MainCameraControl.main.viewModel.localRotation.eulerAngles.y;
@@ -260,6 +283,9 @@ namespace Tweaks_Fixes
         {
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
             //dayNightSpeedLoaded = iqMod != null;
+            advancedInventoryLoaded = QModServices.Main.ModPresent("AdvancedInventory");
+            flareRepairLoaded = QModServices.Main.ModPresent("Rm_FlareRepair");
+            cyclopsDockingLoaded = QModServices.Main.ModPresent("CyclopsDockingMod");
 
             foreach (var item in config.crushDepthEquipment)
             {
@@ -280,9 +306,20 @@ namespace Tweaks_Fixes
             foreach (string name in config.gravTrappable)
             {
                 TechTypeExtensions.FromString(name, out TechType tt, true);
-
                 if (tt != TechType.None)
                     Gravsphere_Patch.gravTrappable.Add(tt);
+            }
+            foreach (string name in config.silentCreatures)
+            {
+                TechTypeExtensions.FromString(name, out TechType tt, true);
+                if (tt != TechType.None)
+                    Creature_Tweaks.silentCreatures.Add(tt);
+            }
+            foreach (string name in config.stalkerPlayThings)
+            {
+                TechTypeExtensions.FromString(name, out TechType tt, true);
+                if (tt != TechType.None)
+                    Pickupable_Patch.shinies.Add(tt);
             }
         }
     }

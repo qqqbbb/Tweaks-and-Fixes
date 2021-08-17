@@ -1,11 +1,14 @@
 ﻿using HarmonyLib;
 using UnityEngine;
+using System.Collections.Generic;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class Creature_Tweaks
     {
+        public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
+
         [HarmonyPatch(typeof(CreatureEgg), "Awake")]
         class CreatureEgg_Awake_Patch
         {
@@ -80,6 +83,19 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Stalker), nameof(Stalker.CheckLoseTooth))]
+        public static class Stalker_CheckLoseTooth_Patch
+        {
+            public static bool Prefix(Stalker __instance, GameObject target)
+            { // In vanilla only scrap metal has HardnessMixin.  0.5
+                float rndm = Random.value;
+                if (Main.config.stalkerLoseTooth >= rndm && HardnessMixin.GetHardness(target) > rndm)
+                    __instance.LoseTooth();
+
+                return false;
+            }
+        }
+                
         [HarmonyPatch(typeof(Creature), nameof(Creature.Start))]
         public static class Creature_Start_Patch
         {
@@ -93,7 +109,7 @@ namespace Tweaks_Fixes
                     __instance.GetComponent<Rigidbody>().mass = 4f;
                 }
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (Main.config.silentCreatures.Contains(tt))
+                if (silentCreatures.Contains(tt))
                 {
                     //AddDebug("silent " + tt);
                     foreach (FMOD_StudioEventEmitter componentsInChild in __instance.GetComponentsInChildren<FMOD_StudioEventEmitter>())
@@ -184,16 +200,117 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(FleeOnDamage), "Evaluate")]
-        class FleeOnDamage_Evaluate_Prefix_Patch
+        [HarmonyPatch(typeof(ReefbackLife), "OnEnable")]
+        class ReefbackLife_OnEnable_patch
         {
-            public static bool Prefix(FleeOnDamage __instance, Creature creature)
+            public static void Postfix(ReefbackLife __instance)
             {
-                //__instance.GetEvaluatePriority();
-                __instance.StartPerform(creature);
-                //Main.Message(" FleeOnDamage_Evaluate_Prefix_Patch ");
-                return false;
+                //AddDebug(" ReefbackLife OnEnable " + (int)__instance.transform.position.y);
+                AvoidObstacles ao = __instance.gameObject.GetComponent<AvoidObstacles>();
+                if (!ao)
+                    return;
+                AvoidEscapePod aep = __instance.gameObject.EnsureComponent<AvoidEscapePod>();
+                aep.swimVelocity = ao.swimVelocity;
+                aep.swimInterval = ao.swimInterval;
+                aep.maxDistanceToPod = 100f;
+                //if (__instance.transform.position.y > -15f)
+                //    __instance.transform.position = new Vector3(__instance.transform.position.x, -15f, __instance.transform.position.z);
+            }
+        }
 
+        [HarmonyPatch(typeof(Pickupable), "AllowedToPickUp")]
+        class Pickupable_AllowedToPickUp_Patch
+        {
+            public static void Postfix(Pickupable __instance, ref bool __result)
+            {
+                //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
+                if (Main.config.noFishCatching && Main.IsEatableFishAlive(__instance.gameObject))
+                {
+                    __result = false;
+                    if (Player.main._currentWaterPark)
+                    {
+                        __result = true;
+                        //AddDebug("WaterPark ");
+                        return;
+                    }
+
+                    PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
+                    if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
+                    {
+                        //AddDebug("PropulsionCannonWeapon ");
+                        __result = true;
+                        return;
+                    }
+                    foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
+                    {
+                        if (p == __instance)
+                        {
+                            //AddDebug("Gravsphere ");
+                            __result = true;
+                            return;
+                        }
+                    }
+                }
+
+            }
+        }
+
+        [HarmonyPatch(typeof(SwimBehaviour))]
+        class SwimBehaviour_SwimToInternal_patch
+        {
+            [HarmonyPatch(nameof(SwimBehaviour.SwimToInternal))]
+            public static void Prefix(SwimBehaviour __instance, ref float velocity, ref Vector3 targetPosition)
+            {
+                if (Main.IsEatableFish(__instance.gameObject))
+                {
+                    velocity *= Main.config.fishSpeedMult;
+                }
+                else
+                {
+                    velocity *= Main.config.creatureSpeedMult;
+                    TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    if (tt == TechType.Reefback && targetPosition.y > -15f)
+                    { // dont allow them to surface
+                        //AddDebug("Fix reefback y pos");
+                        targetPosition.y = -15f;
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(CollectShiny), "TryPickupShinyTarget")]
+        class CollectShiny_TryPickupShinyTarget_Patch
+        {
+            public static bool Prefix(CollectShiny __instance)
+            {
+                if (__instance.shinyTarget == null || !__instance.shinyTarget.activeInHierarchy)
+                    return false;
+                if (__instance.shinyTarget.GetComponentInParent<Player>() != null)
+                {
+                    //AddDebug("player holds shiny");
+                    if (Main.config.stalkersGrabShinyTool)
+                        Inventory.main.DropHeldItem(false);
+                    else
+                    {
+                        __instance.shinyTarget = null;
+                        __instance.targetPickedUp = false;
+                        __instance.timeNextFindShiny = Time.time + 6f;
+                        return false;
+                    }
+                }
+                __instance.SendMessage("OnShinyPickUp", __instance.shinyTarget, SendMessageOptions.DontRequireReceiver);
+                __instance.shinyTarget.gameObject.SendMessage("OnShinyPickUp", __instance.gameObject, SendMessageOptions.DontRequireReceiver);
+                UWE.Utils.SetCollidersEnabled(__instance.shinyTarget, false);
+                __instance.shinyTarget.transform.parent = __instance.shinyTargetAttach;
+                __instance.shinyTarget.transform.localPosition = Vector3.zero;
+                __instance.targetPickedUp = true;
+                UWE.Utils.SetIsKinematic(__instance.shinyTarget.GetComponent<Rigidbody>(), true);
+                UWE.Utils.SetEnabled(__instance.shinyTarget.GetComponent<LargeWorldEntity>(), false);
+                __instance.SendMessage("OnShinyPickedUp", __instance.shinyTarget, SendMessageOptions.DontRequireReceiver);
+                __instance.swimBehaviour.SwimTo(__instance.transform.position + Vector3.up * 5f + Random.onUnitSphere, Vector3.up, __instance.swimVelocity);
+                __instance.timeNextSwim = Time.time + 1f;
+                BehaviourUpdateUtils.Register(__instance);
+                return false;
             }
         }
 

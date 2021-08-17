@@ -73,8 +73,16 @@ namespace Tweaks_Fixes
 
                 if (__instance.transform.parent.GetComponent<CoffeeVendingMachine>() && CraftData.GetTechType(__instance.gameObject) == TechType.Coffee)
                 {
+
                     //AddDebug("Coffee awake");
                     UnityEngine.Object.Destroy(__instance.gameObject);
+                    //Collider myCol = __instance.GetComponent<CapsuleCollider>();
+                    //Collider parentCol = __instance.transform.parent.GetComponentInChildren<BoxCollider>();
+                    //if (myCol)
+                    //    AddDebug("myCol");
+                    //if (parentCol)
+                    //    AddDebug("parentCol");
+                    //Physics.IgnoreCollision(myCol, parentCol);
                 }
             }
         }

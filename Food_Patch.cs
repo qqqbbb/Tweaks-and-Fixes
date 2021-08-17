@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         static float foodCons = .5f; // vanilla 0.4
         static float waterCons = .5f; // vanilla 0.55
         static float updateHungerInterval { get { return Main.config.hungerUpdateInterval / DayNightCycle.main.dayNightSpeed; } }
-        static float hungerUpdateTime = 0f;
+        public static float hungerUpdateTime = 0f;
 
         public static void UpdateStats(Survival __instance)
         {
@@ -46,7 +46,7 @@ namespace Tweaks_Fixes
             //__instance.Invoke("UpdateHunger", updateHungerInterval);
         }
 
-        [HarmonyPatch(typeof(Player), "Update")]
+        //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_patch
         {
             public static void Postfix(Player __instance)

@@ -63,20 +63,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Player), "Update")]
-        class Player_Update_Patch
-        {
-            private static float crushTime = 0f;
-            static void Postfix(Player __instance)
-            {
-                //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (Main.config.crushDamageMult > 0f && crushInterval + crushTime < Time.time)
-                {
-                    crushTime = Time.time;
-                    CrushDamage();
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(CrushDamage), "CrushDamageUpdate")]
         class DamageSystem_CalculateDamage_Patch

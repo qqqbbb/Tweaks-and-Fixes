@@ -23,11 +23,11 @@ namespace Tweaks_Fixes
         public float aggrMult = 1f;
         [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
         public float oxygenPerBreath = 3f;
-        [Slider("Tool power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of energy consumed by your tools will be multiplied by this.")]
+        [Slider("Tool power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of power consumed by your tools will be multiplied by this.")]
         public float toolEnergyConsMult = 1f;
-        [Slider("Vehicle power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of energy consumed by your vehicles will be multiplied by this.")]
+        [Slider("Vehicle power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of power consumed by your vehicles will be multiplied by this.")]
         public float vehicleEnergyConsMult = 1f;
-        [Slider("Base power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of energy consumed by things in your base will be multiplied by this.")]
+        [Slider("Base power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of power consumed by things in your base will be multiplied by this.")]
         public float baseEnergyConsMult = 1f;
         [Slider("First aid kit HP", 10, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored by using first aid kit.")]
         public int medKitHP = 50;
@@ -55,7 +55,7 @@ namespace Tweaks_Fixes
         public float crushDamageMult = 0f;
         [Slider("Vehicle crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.")]
         public float vehicleCrushDamageMult = 0f;
-        [Choice("Unmanned vehicles can be attacked", Tooltip = "By default unmanned seamoth or prawn suit can be attacked.")]
+        [Choice("Unmanned seamoth or prawn suit can be attacked", Tooltip = "By default unmanned seamoth or prawn suit can be attacked.")]
         public EmptySeamothCanBeAttacked emptySeamothCanBeAttacked;
         [Choice("Unmanned cyclops can be attacked", Tooltip = "By default unmanned cyclops can not be attacked.")]
         public EmptyCyclopsCanBeAttacked emptyCyclopsCanBeAttacked;
@@ -68,9 +68,9 @@ namespace Tweaks_Fixes
         public EatingRawFish eatRawFish;
         [Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Game has to be reloaded after changing this.")]
         public bool foodTweaks = false;
-        [Toggle("Can't eat underwater", Tooltip = "You can't eat or drink when swimming underwater.")]
+        [Toggle("Can't eat underwater", Tooltip = "If enabled you will not be able to eat or drink when swimming underwater.")]
         public bool cantEatUnderwater = false;
-        [Toggle("Can't use first aid kit underwater", Tooltip = "You won't be able to use first aid kit when swimming underwater.")]
+        [Toggle("Can't use first aid kit underwater", Tooltip = "If enabled you will not be able to use first aid kit when swimming underwater.")]
         public bool cantUseMedkitUnderwater = false;
         //[Toggle("Eat fish on release", Tooltip = "Eat the fish you are holding in your hand when you press the 'right hand' button.")]
         //public bool eatFishOnRelease = false;
@@ -89,6 +89,12 @@ namespace Tweaks_Fixes
         public bool noFishCatching = false;
         [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
         public bool noBreakingWithHand = false;
+        [Toggle("Drop held tool when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
+        public bool dropHeldTool = false;
+        [Toggle("Stalkers grab tools out of player's hands when playing", Tooltip = "Stalkers can grab only thing that are in the mod config's 'stalkerPlayThings' list.")]
+        public bool stalkersGrabShinyTool = false;
+        [Slider("Stalker losing tooth probability", 0f, 1f, DefaultValue = .5f, Step = .1f, Format = "{0:R0}", Tooltip = "Probability of a stalker losing its tooth when it bites something hard.")]
+        public float stalkerLoseTooth = .5f;
         [Toggle("Disable tutorial messages", Tooltip = "Disable messages that tell you to 'eat something', 'break limestone', etc. Game has to be reloaded after changing this.")]
         public bool disableHints = false;
         [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla oxygen consumption has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
@@ -98,25 +104,30 @@ namespace Tweaks_Fixes
         [Toggle("Poison increases hunger", Tooltip = "Poison damage you take will increase your hunger and thirst instead of reducing your HP. Only when your food or water value is 0 you will start losing health.")]
         public bool replacePoisonDamage = false;
   
-        [Toggle("Drop held tool when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
-        public bool dropHeldTool = false;
 
         //[Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
         //public bool predatorsDontFlee = false;
         [Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player.")]
         public bool creaturesRespawn = false;
-
+        [Toggle("Do not spawn fragments for unlocked blueprints", Tooltip = "")]
+        public bool dontSpawnKnownFragments = false;
         [Toggle("Camera bobbing", Tooltip = "Camera bobbing when swimming.")]
         public bool cameraBobbing = true;
-        [Toggle("Free camera drones for scanner room", Tooltip = "If disabled, scanner room will be built without camera drones.")]
+        [Toggle("Free camera drones for scanner room", Tooltip = "If disabled scanner room will be built without camera drones.")]
         public bool mapRoomFreeCameras = true;
-        [Slider("flare light intensity", 0.1f, 1f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "You have to reequip your flare after changing this.")]
-        public float flareIntensity = 1f;
+        //[Slider("flare light intensity", 0.1f, 1f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "You have to reequip your flare after changing this.")]
+        public float flareIntensity = .5f;
         [Toggle("Unlock prawn suit only by scanning prawn suit", Tooltip = "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arms. Game has to be reloaded after changing this.")]
         public bool cantScanExosuitClawArm = false;
 
         [Slider("Free torpedos", 0, 6, DefaultValue = 2, Step = 1, Format = "{0:F0}", Tooltip = "Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.")]
         public int freeTorpedos = 2;
+        [Slider("Creature decoy battery life time", 10, 500, DefaultValue = 90, Step = 10, Format = "{0:F0}", Tooltip = "Creature decoy stops working after this number of seconds.")]
+        public int decoyLifeTime = 90;
+        [Slider("Creature decoy HP", 0, 500, DefaultValue = 0, Step = 10, Format = "{0:F0}", Tooltip = "When it's not 0 creature decoy will be destroyed after taking this amount of damage. By default its HP is infinite.")]
+        public int decoyHP = 0;
+        [Toggle("Creature decoy works only when launched form cyclops", Tooltip = "")]
+        public bool decoyRequiresSub = false;
         //[Toggle("Remove light from open databox", Tooltip = "Disable databox light when you open it so it does not draw your attention next time you see it. Game has to be reloaded after changing this.")]
         //public bool disableDataboxLight = false;
         [Slider("Life pod power cell max charge", 10, 100, DefaultValue = 25, Step = 1, Format = "{0:F0}", Tooltip = "Max charge for each of its 3 power cells. Game has to be reloaded after changing this.")]
@@ -143,6 +154,8 @@ namespace Tweaks_Fixes
         public bool cyclopsSunlight = false;
         [Keybind("Quickslot cycle key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to cycle tools in your current quickslot.")]
         public KeyCode quickslotKey = KeyCode.LeftAlt;
+        [Keybind("Light intensity key", Tooltip = "When holding a tool in your hand or driving a vehicle press 'Cycle next' or 'Cycle previous' key while holding down this key to change the tool's or vehicle's light intensity.")]
+        public KeyCode lightKey = KeyCode.LeftShift;
 
         public int subThrottleIndex = -1;
         public float knifeRangeDefault = 0f;
@@ -228,14 +241,21 @@ namespace Tweaks_Fixes
         public enum EmptySeamothCanBeAttacked { Yes, No, Only_if_its_lights_on }
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum SeaTreaderOutcrop { Vanilla, Only_when_stomping_ground, Never }
-        public HashSet<TechType> silentCreatures = new HashSet<TechType> { };
-        public HashSet<TechType> canAttackPlayer = new HashSet<TechType> { TechType.Shocker, TechType.Biter, TechType.Blighter, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.Crash, TechType.Mesmer, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.Bleeder, TechType.Shuttlebug, TechType.CaveCrawler, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
-        public HashSet<TechType> canAttackVehicle = new HashSet<TechType> { TechType.Shocker, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
+        public HashSet<string> silentCreatures = new HashSet<string> { };
+        public HashSet<string> stalkerPlayThings = new HashSet<string> { "ScrapMetal", "MapRoomCamera", "Beacon", "Seaglide", "CyclopsDecoy", "Gravsphere", "SmallStorage", "FireExtinguisher", "DoubleTank", "PlasteelTank", "PrecursorKey_Blue", "PrecursorKey_Orange", "PrecursorKey_Purple", "PrecursorKey_Red", "PrecursorKey_White", "Rebreather", "Tank", "HighCapacityTank", "Flare", "Flashlight", "Builder", "LaserCutter", "LEDLight", "DiveReel", "PropulsionCannon", "Knife", "HeatBlade", "Scanner", "Welder", "RepulsionCannon", "StasisRifle" };
+        public string throwFlare = "Throw";
+        public string lightAndThrowFlare = "Light and throw";
+        public string lightFlare = "Light";
+        //public List<string> expiredDecoys = new List<string>();
+        public Dictionary<TechType, float> lightIntensity = new Dictionary<TechType, float>();
+        //public Dictionary<string, Decoy_Patch.decoyData> decoys = new Dictionary<string, Decoy_Patch.decoyData>();
+        //public HashSet<TechType> canAttackPlayer = new HashSet<TechType> { "Shocker, TechType.Biter, TechType.Blighter, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.Crash, TechType.Mesmer, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.Bleeder, TechType.Shuttlebug, TechType.CaveCrawler, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
+        //public HashSet<TechType> canAttackVehicle = new HashSet<TechType> { TechType.Shocker, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
         //public HashSet<TechType> canAttackSub = new HashSet<TechType> { TechType.Shocker, TechType.CrabSquid, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
         //}
-
+        //public HashSet<TechType> ttt = new HashSet<TechType> {TechType.Coffee };
     }
 }

@@ -68,7 +68,7 @@ namespace Tweaks_Fixes
             {
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
                     return false;
-                float colDamMult = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
+                float damageMult = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
                 //AddDebug(" collision " + collision.gameObject.name);
                 float colMag = collision.relativeVelocity.magnitude;
                 if (colMag <= __instance.speedMinimumForDamage)
@@ -78,7 +78,7 @@ namespace Tweaks_Fixes
                 Rigidbody rb = Utils.FindAncestorWithComponent<Rigidbody>(collision.gameObject);
                 float targetMass = rb != null ? rb.mass : 5000f;
                 float myMass = __instance.GetComponent<Rigidbody>().mass;
-                float colMult = Mathf.Clamp((1f + (myMass - targetMass) * 0.001f), 0f, colDamMult);
+                float colMult = Mathf.Clamp((1f + (myMass - targetMass) * 0.001f), 0f, damageMult);
                 float targetDamage = colMag * colMult;
 
                 if (targetLM && Time.time > __instance.timeLastDamage + __instance.minDamageInterval)
@@ -106,7 +106,7 @@ namespace Tweaks_Fixes
                 //AddDebug("minimumMassForDamage " + __instance.minimumMassForDamage + " mass " + rb.mass);
                 //float myDamage = targetDamage * __instance.mirroredSelfDamageFraction;
 
-                float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, colDamMult);
+                float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, damageMult);
                 //AddDebug("mass " + targetMass + " myDamage " + (int)myDamage);
                 //AddDebug(" maxHealth " + myLM.maxHealth + " health " + myLM.health);
                 if (__instance.capMirrorDamage != -1f) // cyclops is immune to collision damage
@@ -381,6 +381,7 @@ namespace Tweaks_Fixes
             {
                 if (__result > 0f)
                 {
+                    Vehicle vehicle = target.GetComponent<Vehicle>();
                     if (target == Player.mainObject)
                     {
                         //AddDebug("Player takes damage");
@@ -424,9 +425,33 @@ namespace Tweaks_Fixes
                             __result = 0f;
                         }
                     }
-                    else if (target.GetComponent<Vehicle>() || target.GetComponent<SubControl>())
+                    else if (vehicle)
                     {
                         //AddDebug("Vehicle takes damage");
+                        if (type == DamageType.Normal || type == DamageType.Pressure || type == DamageType.Collide || type ==  DamageType.Explosive || type ==  DamageType.Puncture)
+                        {
+                            int armorUpgrades = 0;
+                            for (int i = 0; i < vehicle.slotIDs.Length; ++i)
+                            {
+                                TechType tt = vehicle.modules.GetTechTypeInSlot(vehicle.slotIDs[i]);
+                                if (tt == TechType.VehicleArmorPlating)
+                                    armorUpgrades++;
+                            }
+                            float armorMult = 0f;
+                            if (armorUpgrades == 1)
+                                armorMult = 70f;
+                            else if (armorUpgrades == 2)
+                                armorMult = 50f;
+                            else if (armorUpgrades == 3)
+                                armorMult = 40f; 
+                            
+                            __result *= armorMult ;
+                        }
+                        __result *= Main.config.vehicleDamageMult;
+                    }
+                    else if (target.GetComponent<SubControl>())
+                    {
+                        //AddDebug("sub takes damage");
                         __result *= Main.config.vehicleDamageMult;
                     }
                     else

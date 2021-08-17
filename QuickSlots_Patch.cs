@@ -13,6 +13,8 @@ namespace Tweaks_Fixes
         static HashSet<TechType> eqiupped ;
         static Queue<InventoryItem> toEqiup;
         static HashSet<TechType> toEqiupTT;
+
+
         public static bool invChanged = true; 
 
         public static void GetTools()
@@ -122,12 +124,63 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(QuickSlots __instance)
             {
+                //AddDebug("SlotNext");
                 if (Input.GetKey(Main.config.quickslotKey))
                 {
                     Pickupable pickupable = Inventory.main.GetHeld();
                     if (pickupable != null)
                     {
                         EquipNextTool();
+                        return false;
+                    }
+                }
+                else if (Input.GetKey(Main.config.lightKey))
+                {
+                    Pickupable p = Inventory.main.GetHeld();
+                    if (!p)
+                        return true;
+                    //if (p && Tools_Patch.playerToolLights.ContainsKey(p))
+                    else
+                    {
+                        Light[] lights = p.GetComponentsInChildren<Light>();
+                        //AddDebug("lights.Length  " + lights.Length);
+                        if (lights.Length == 0 || !lights[0].gameObject.activeInHierarchy)
+                            return true;
+
+                        TechType tt = CraftData.GetTechType(p.gameObject);
+                        if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
+                            return true;
+                        if (!Tools_Patch.lightIntensityStep.ContainsKey(tt))
+                        {
+                            AddDebug("lightIntensityStep missing " + tt);
+                            return false;
+                        }
+                        if (!Tools_Patch.lightOrigIntensity.ContainsKey(tt))
+                        {
+                            AddDebug("lightOrigIntensity missing " + tt);
+                            return false;
+                        }
+                        float origIntensity = Tools_Patch.lightOrigIntensity[tt];
+                        //float step = origIntensity / 15f;
+                        Flare flare = p.GetComponent<Flare>();
+                        if (flare && flare.flareActivateTime == 0)
+                            return true;
+
+                        foreach (Light l in lights)
+                        {
+                            if (l.intensity < origIntensity)   
+                            {
+                                l.intensity += Tools_Patch.lightIntensityStep[tt];
+                                //AddDebug("Light Intensity Up " + l.intensity);
+                                Main.config.lightIntensity[CraftData.GetTechType(p.gameObject)] = l.intensity;
+                            }
+                            if (flare)
+                            {
+                                Flare_Patch.intensityChanged = true;
+                                Flare_Patch.originalIntensity = l.intensity;
+                                Flare_Patch.halfOrigIntensity = Flare_Patch.originalIntensity * .5f;
+                            }
+                        }
                         return false;
                     }
                 }
@@ -146,6 +199,54 @@ namespace Tweaks_Fixes
                     if (pickupable != null)
                     {
                         EquipNextTool();
+                        return false;
+                    }
+                }
+                else if (Input.GetKey(Main.config.lightKey))
+                {
+                    Pickupable p = Inventory.main.GetHeld();
+                    if (!p)
+                        return true;
+                    //if (p && Tools_Patch.playerToolLights.ContainsKey(p))
+                    else
+                    { 
+                        Light[] lights = p.GetComponentsInChildren<Light>();
+                        //AddDebug("lights.Length  " + lights.Length);
+                        if (lights.Length == 0)
+                        {
+                            //AddDebug("lights.Length == 0 ");
+                            return true;
+                        }
+                        TechType tt = CraftData.GetTechType(p.gameObject);
+                        if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
+                            return true;
+                        if (!Tools_Patch.lightIntensityStep.ContainsKey(tt))
+                        {
+                            AddDebug("lightIntensityStep missing " + tt);
+                            return false;
+                        }
+                        if (!Tools_Patch.lightOrigIntensity.ContainsKey(tt))
+                        {
+                            AddDebug("lightOrigIntensity missing " + tt);
+                            return false;
+                        }
+                        //float origIntensity = Tools_Patch.lightOrigIntensity[CraftData.GetTechType(p.gameObject)];
+                        //float step = origIntensity / 15f;
+                        Flare flare = p.GetComponent<Flare>();
+                        if (flare && flare.flareActivateTime == 0)
+                            return true;
+                        foreach (Light l in lights)
+                        {
+                            l.intensity -= Tools_Patch.lightIntensityStep[tt];;
+                            //AddDebug("Light Intensity Down " + l.intensity);
+                            Main.config.lightIntensity[CraftData.GetTechType(p.gameObject)] = l.intensity;
+                            if (flare)
+                            {
+                                Flare_Patch.intensityChanged = true;
+                                Flare_Patch.originalIntensity = l.intensity;
+                                Flare_Patch.halfOrigIntensity = Flare_Patch.originalIntensity * .5f;
+                            }
+                        }
                         return false;
                     }
                 }

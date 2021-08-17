@@ -136,9 +136,9 @@ namespace Tweaks_Fixes
         //[HarmonyPatch(typeof(AggressiveToPilotingVehicle), "Start")]
         internal class AggressiveToPilotingVehicle_UpdateAggression_Patch
         {
-            public static bool Prefix(AggressiveToPilotingVehicle __instance)
+            public static void Prefix(AggressiveToPilotingVehicle __instance)
             {
-                return false;
+                //return false;
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //if (!aggrToVehicle.Contains(tt))
                 //{
@@ -174,14 +174,17 @@ namespace Tweaks_Fixes
                 if (__instance.targetType != EcoTargetType.Shark || Main.config.aggrMult <= 1 || Main.config.predatorExclusion.Contains(__instance.myTechType))
                     return true;
 
-                //int searchRings = __instance.maxSearchRings + Main.config.predatorAgrMult - 1;
                 int searchRings = Mathf.RoundToInt(__instance.maxSearchRings * Main.config.aggrMult);
-                IEcoTarget ecoTarget = EcoRegionManager.main.FindNearestTarget(__instance.targetType, __instance.transform.position, __instance.isTargetValidFilter, searchRings);
+                IEcoTarget ecoTarget = null;
+                if (__instance.targetType == EcoTargetType.Shark)
+                {
+                    ecoTarget = EcoRegionManager.main.FindNearestTarget( EcoTargetType.SubDecoy, __instance.transform.position, __instance.isTargetValidFilter, searchRings);
+                }
                 if (ecoTarget == null)
-                    __result = null;
-                else
-                    __result = ecoTarget.GetGameObject();
-
+                {
+                    ecoTarget = EcoRegionManager.main.FindNearestTarget(__instance.targetType, __instance.transform.position, __instance.isTargetValidFilter, searchRings);
+                }
+                __result = ecoTarget == null ? null : ecoTarget.GetGameObject();
                 //if (__result == Player.main.gameObject)
                 //AddDebug(__instance.myTechType + " AggressionTarget PLAYER ");
                 return false;
@@ -200,7 +203,7 @@ namespace Tweaks_Fixes
                 if (target == Player.main.gameObject)
                 {
                     //AddDebug(__instance.myTechType + " Player");
-                    if (!Player.main.CanBeAttacked() || !Main.config.canAttackVehicle.Contains(__instance.myTechType) || Player.main.precursorOutOfWater || PrecursorMoonPoolTrigger.inMoonpool)
+                    if (!Player.main.CanBeAttacked() || Player.main.precursorOutOfWater || PrecursorMoonPoolTrigger.inMoonpool)
                     {
                         __result = false;
                         return false;
@@ -218,7 +221,7 @@ namespace Tweaks_Fixes
                 Vehicle vehicle = target.GetComponent<Vehicle>();
                 if (vehicle)
                 {
-                    if (Main.config.aggrMult == 0 || Main.config.emptySeamothCanBeAttacked == Config.EmptySeamothCanBeAttacked.No || !Main.config.canAttackVehicle.Contains(__instance.myTechType) || vehicle.precursorOutOfWater)
+                    if (Main.config.aggrMult == 0 || Main.config.emptySeamothCanBeAttacked == Config.EmptySeamothCanBeAttacked.No  || vehicle.precursorOutOfWater)
                     {
                         __result = false;
                         return false;
@@ -242,7 +245,13 @@ namespace Tweaks_Fixes
                     __result = false;
                     return false;
                 }
-                if (__instance.ignoreSameKind && CraftData.GetTechType(target) == __instance.myTechType)
+                TechType targetTT = CraftData.GetTechType(target);
+                if (targetTT == TechType.CyclopsDecoy)
+                {
+                    __result = true;
+                    return false;
+                }
+                if (__instance.ignoreSameKind && targetTT == __instance.myTechType)
                 {
                     __result = false;
                     return false;
@@ -352,7 +361,7 @@ namespace Tweaks_Fixes
                     __instance.creature.Aggression.Add(__instance.aggressionPerSecond);
                     __instance.lastScarePosition.lastScarePosition = Player.main.gameObject.transform.position;
                     __instance.lastTarget.target = Player.main.gameObject;
-                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Main.config.silentCreatures.Contains(__instance.myTechType))
+                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
                         __instance.sightedSound.StartEvent();
 
                     //AddDebug(__instance.myTechType + " attack player " + );
@@ -379,7 +388,7 @@ namespace Tweaks_Fixes
 
                     __instance.lastScarePosition.lastScarePosition = aggressionTarget.transform.position;
                     __instance.lastTarget.target = aggressionTarget;
-                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Main.config.silentCreatures.Contains(__instance.myTechType))
+                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
                         __instance.sightedSound.StartEvent();
                 }
                 return false;
@@ -393,7 +402,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(MoveTowardsTarget __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (__instance.targetType == EcoTargetType.Shark && Main.config.canAttackPlayer.Contains(tt))
+                if (__instance.targetType == EcoTargetType.Shark )
                 {
                     AddDebug(tt + " aggr " + __instance.creature.Aggression.Value + " req aggr " + __instance.requiredAggression);
                     float aggr = Main.config.aggrMult > 1f ? Main.config.aggrMult : 1f;
@@ -573,11 +582,42 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(AttackCyclops __instance, IEcoTarget target, ref bool __result)
             {
-                if (Main.config.aggrMult == 1f)
-                    return true;
-
-                __result = Vector3.Distance(target.GetPosition(), __instance.transform.position) < 150f * Main.config.aggrMult;
+                TechType myTT = CraftData.GetTechType(__instance.gameObject);
+                if (Main.config.predatorExclusion.Contains(myTT))
+                    __result = false;
+                else
+                    __result = Vector3.Distance(target.GetPosition(), __instance.transform.position) < 150f * Main.config.aggrMult;
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(AttachToVehicle), "Evaluate")]
+        internal class AttachToVehicle_Evaluate_Patch
+        {
+            public static bool Prefix(AttachToVehicle __instance, Creature creature, ref float __result)
+            {
+                if (GameModeUtils.IsInvisible())
+                {
+                    __result = 0f;
+                    return false;
+                }
+                if (Time.time > __instance.timeNextScan)
+                {
+                    __instance.UpdateCurrentTarget();
+                    __instance.timeNextScan = Time.time + __instance.scanInterval;
+                }
+                __result = __instance.timeDetached + 4f < Time.time && __instance.currTarget != null && (__instance.currTarget.transform.position - __instance.transform.position).sqrMagnitude <= __instance.currTarget.distanceToStartAction * __instance.currTarget.distanceToStartAction * Main.config.aggrMult ? __instance.GetEvaluatePriority() : 0f;
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(AttachToVehicle), "IsValidTarget")]
+        internal class AttachToVehicle_IsValidTarget_Patch
+        {
+            public static void Postfix(AttachToVehicle __instance, IEcoTarget target, ref bool __result)
+            {
+                if (Main.config.aggrMult == 0f || Main.config.predatorExclusion.Contains(CraftData.GetTechType(__instance.gameObject)))
+                    __result = false;
             }
         }
 
