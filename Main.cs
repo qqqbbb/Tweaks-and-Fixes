@@ -17,7 +17,6 @@ namespace Tweaks_Fixes
     [QModCore]
     public class Main
     {
-        public const float version = 1.11f;
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;

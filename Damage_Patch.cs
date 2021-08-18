@@ -437,14 +437,14 @@ namespace Tweaks_Fixes
                                 if (tt == TechType.VehicleArmorPlating)
                                     armorUpgrades++;
                             }
-                            float armorMult = 0f;
+                            float armorMult = 1f;
                             if (armorUpgrades == 1)
-                                armorMult = 70f;
+                                armorMult = .7f;
                             else if (armorUpgrades == 2)
-                                armorMult = 50f;
+                                armorMult = .5f;
                             else if (armorUpgrades == 3)
-                                armorMult = 40f; 
-                            
+                                armorMult = .4f;
+
                             __result *= armorMult ;
                         }
                         __result *= Main.config.vehicleDamageMult;
