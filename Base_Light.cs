@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -22,13 +23,15 @@ namespace Tweaks_Fixes
 
             static void Postfix(SubRoot __instance)
             {
+                Light[] lights = __instance.GetAllComponentsInChildren<Light>();
                 if (__instance.isBase)
                 {
                     __instance.subLightsOn = !Main.config.baseLightOff;
                     bases.Add(__instance);
-                    //AddDebug(" SubRoot awake isBase " + __instance.isBase);
+                    //AddDebug(" SubRoot awake base lights " + lights.Length);
                 }
-
+                //else
+                //    AddDebug(" SubRoot awake sub lights " + lights.Length);
             }
         }
 

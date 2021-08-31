@@ -111,15 +111,6 @@ namespace Tweaks_Fixes
             //AddDebug("EnterVehicle " + currentLights.Length);
         }
 
-        //[HarmonyPatch(nameof(Vehicle.OnDockedChanged))]
-        //[HarmonyPrefix]
-        public static void OnDockedChangedPrefix(Vehicle __instance, bool docked, Vehicle.DockType dockType)
-        {
-            //currentVehicleTT = CraftData.GetTechType(__instance.gameObject);
-            //currentLights = __instance.transform.Find("lights_parent").GetComponentsInChildren<Light>(true);
-            AddDebug("OnDockedChanged " + docked + " " + dockType);
-        }
-
         [HarmonyPatch(nameof(Vehicle.OnHandHover))]
         [HarmonyPostfix]
         public static void OnHandHoverPostfix(Vehicle __instance)
@@ -236,7 +227,42 @@ namespace Tweaks_Fixes
             return true;
         }
 
-  
+        [HarmonyPatch(nameof(Vehicle.OnUpgradeModuleChange))]
+        [HarmonyPostfix]
+        public static void OnUpgradeModuleChangePostfix(Vehicle __instance, TechType techType)
+        {
+            if (techType != TechType.VehicleArmorPlating)
+                return;
+
+            int armorUpgrades = 0;
+            for (int i = 0; i < __instance.slotIDs.Length; ++i)
+            {
+                TechType tt = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[i]);
+                if (tt == TechType.VehicleArmorPlating)
+                    armorUpgrades++;
+            }
+            if (armorUpgrades == 1)
+                AddDebug("Incoming physical damage will be reduced to 70%");
+            else if (armorUpgrades == 2)
+                AddDebug("Incoming physical damage will be reduced to 50%");
+            else if (armorUpgrades > 2)
+                AddDebug("Incoming physical damage will be reduced to 40%");
+        }
+
+        [HarmonyPatch(nameof(Vehicle.OnKill))]
+        [HarmonyPrefix]
+        public static void OnKillPrefix(Vehicle __instance)
+        {
+            StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
+            if (sc != null && sc.container != null)
+                Main.DropItems(sc.container);
+            else
+            {
+                SeamothStorageContainer ssc = __instance.GetComponentInChildren<SeamothStorageContainer>(true);
+                if (ssc != null && ssc.container != null)
+                    Main.DropItems(ssc.container);
+            }
+        }
     }
 
     [HarmonyPatch(typeof(SeaMoth))]

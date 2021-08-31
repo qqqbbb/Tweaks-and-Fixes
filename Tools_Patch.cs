@@ -204,10 +204,83 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
+        //[HarmonyPatch(typeof(PropulsionCannon))]
+        class PropulsionCannon_Patch
+        {
+            //[HarmonyPatch(nameof(PropulsionCannon.TraceForGrabTarget))]
+            //[HarmonyPrefix]
+            static bool TraceForGrabTargetPrefix(PropulsionCannon __instance, ref GameObject __result)
+            {
+                __result = null;
+                Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
+                if (target == null)
+                {
+                    AddDebug(" no target");
+                    return false;
+                }
+                UniqueIdentifier ui = target.GetComponentInParent<UniqueIdentifier>();
+                if (ui)
+                    AddDebug("target " + ui.gameObject.name);
+                else
+                {
+                    AddDebug(target.name + "has no identifier");
+                    return false;
+                }
+                if (ui.gameObject.GetComponent<FruitPlant>())
+                {
+                    AddDebug("FruitPlant");
+                    return false;
+                }
+                if (!__instance.ValidateObject(ui.gameObject))
+                {
+                    AddDebug("could not Validate Object");
+                    return false;
+                }
+                if (ui.gameObject.GetComponent<Pickupable>())
+                {
+                    AddDebug("Pickupable");
+                    __result = target;
+                    return false;
+                }
+                Bounds aabb = __instance.GetAABB(ui.gameObject);
+                if (aabb.size.x * aabb.size.y * aabb.size.z <= __instance.maxAABBVolume)
+                {
+                    __result = target;
+                    AddDebug("small object");
+                }
+                if (__result == null)
+                    AddDebug("ValidateNewObject null");
+                return false;
+            }
+
+            //[HarmonyPatch(nameof(PropulsionCannon.ValidateNewObject))]
+            //[HarmonyPrefix]
+            static bool ValidateNewObjectPrefix(PropulsionCannon __instance, GameObject go, Vector3 hitPos, bool checkLineOfSight, ref bool __result)
+            {
+                if (go.GetComponent<FruitPlant>())
+                {
+                    AddDebug("ValidateNewObject FruitPlant " + go.name );
+                    __result = false;
+                    return true;
+                }
+                return true;
+            }
+
+            [HarmonyPatch(nameof(PropulsionCannon.ValidateObject))]
+            [HarmonyPostfix]
+            static void ValidateObjectPostfix(PropulsionCannon __instance, GameObject go, ref bool __result)
+            {
+
+                AddDebug("ValidateObject " + go.name + " " + __result);
+            }
+
+        }
+        //[HarmonyPatch(typeof(RepulsionCannon))]
         class RepulsionCannon_OnToolUseAnim_Patch
         {
-            static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)
+            [HarmonyPatch(nameof(RepulsionCannon.OnToolUseAnim))]
+            [HarmonyPrefix]
+            static bool OnToolUseAnimPrefix(RepulsionCannon __instance, GUIHand guiHand)
             {
                 if (__instance.energyMixin.charge <= 0f)
                     return false;
@@ -263,8 +336,9 @@ namespace Tweaks_Fixes
 
                 return false;
             }
-        }
 
+
+        }
 
     }
 }

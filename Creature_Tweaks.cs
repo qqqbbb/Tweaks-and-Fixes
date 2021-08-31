@@ -15,6 +15,12 @@ namespace Tweaks_Fixes
             public static void Postfix(CreatureEgg __instance)
             {
                 __instance.explodeOnHatch = false;
+                LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
+                if (liveMixin && liveMixin.data)
+                {
+                    liveMixin.data.destroyOnDeath = true;
+                    liveMixin.data.explodeOnDestroy = false;
+                }
             }
         }
 

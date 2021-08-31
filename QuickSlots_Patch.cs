@@ -138,8 +138,17 @@ namespace Tweaks_Fixes
                 {
                     Pickupable p = Inventory.main.GetHeld();
                     if (!p)
+                        //if (!p && Player.main.currentSub)
+                    {
+                        //AddDebug("currentSub " + Player.main.currentSub.lightControl.skies.Length);
+                        //foreach (LightingController.MultiStatesSky mss in Player.main.currentSub.lightControl.skies)
+                        //{
+                        //AddDebug("MultiStatesSky " + Main.GetGameObjectPath(mss.sky.gameObject) + " " + mss.masterIntensities[0] + " " + mss.masterIntensities[1] + " " + mss.masterIntensities[2]);
+                        //    mss.sky.SpecIntensity -= .1f;
+                        //    AddDebug("SpecIntensity " + mss.sky.SpecIntensity);
+                        //}
                         return true;
-                    //if (p && Tools_Patch.playerToolLights.ContainsKey(p))
+                    }
                     else
                     {
                         Light[] lights = p.GetComponentsInChildren<Light>();
@@ -207,7 +216,6 @@ namespace Tweaks_Fixes
                     Pickupable p = Inventory.main.GetHeld();
                     if (!p)
                         return true;
-                    //if (p && Tools_Patch.playerToolLights.ContainsKey(p))
                     else
                     { 
                         Light[] lights = p.GetComponentsInChildren<Light>();

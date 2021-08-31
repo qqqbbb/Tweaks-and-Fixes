@@ -9,7 +9,7 @@ namespace Tweaks_Fixes
 {
     class Pickupable_Patch
     {
-        public static float healTime = 0f;
+
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> shinies = new HashSet<TechType>();
 
@@ -46,26 +46,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Player), "Update")]
-        class Player_Update_Patch
-        {
-            static void Postfix(Player __instance)
-            { 
-                if (Main.config.medKitHPtoHeal > 0 && Time.time > healTime)
-                { // not checking savegame slot
-                    healTime = Time.time + 1f;
-                    __instance.liveMixin.AddHealth(Main.config.medKitHPperSecond);
-                    Main.config.medKitHPtoHeal -= Main.config.medKitHPperSecond;
-                    if (Main.config.medKitHPtoHeal < 0)
-                        Main.config.medKitHPtoHeal = 0;
-
-                    //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
-                    //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
-                    //Main.config.Save();
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(Survival), "Use")]
         class Survival_Awake_Patch
         {
@@ -91,8 +71,9 @@ namespace Tweaks_Fixes
                         }
                         else
                         {
-                            Main.config.medKitHPtoHeal += Main.config.medKitHP;
-                            healTime = Time.time;
+                            Main.config.medKitHPtoHeal = Main.config.medKitHP;
+                            //healTime = Time.time;
+                            Player_Patches.healTime = DayNightCycle.main.timePassedAsFloat;
                         }
                     }
                     if (techType == TechType.EnzymeCureBall)

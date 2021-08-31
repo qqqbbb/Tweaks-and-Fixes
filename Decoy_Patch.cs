@@ -28,13 +28,13 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(CyclopsDecoy))]
-        class CyclopsDecoy_Start_Patch
+        class CyclopsDecoy_Patch
         {
             [HarmonyPatch(nameof(CyclopsDecoy.Start))]
             [HarmonyPrefix]
             static bool StartPrefix(CyclopsDecoy __instance)
             {
-                AddDebug("CyclopsDecoy launch " + __instance.launch);
+                //AddDebug("CyclopsDecoy launch " + __instance.launch);
                 Stabilizer s = __instance.GetComponent<Stabilizer>();
                 if (s)
                     UnityEngine.Object.Destroy(s);
@@ -42,12 +42,12 @@ namespace Tweaks_Fixes
                 GenericHandTarget ght = __instance.gameObject.GetComponentInChildren<GenericHandTarget>();
                 if (ght) // GenericHandTarget blocks Pickupable.OnHandHover 
                     UnityEngine.Object.Destroy(ght);
-                Pickupable p = __instance.GetComponent<Pickupable>();
 
                 WorldForces wf = __instance.GetComponent<WorldForces>();
+                wf.underwaterGravity = 0f;
                 //UniqueIdentifier ui = __instance.gameObject.GetComponent<UniqueIdentifier>();
                 LiveMixin lm = null;
-                wf.underwaterGravity = 0f;
+
                 if (Main.config.decoyHP > 0)
                 { // HP not saved 
                     lm = __instance.gameObject.AddComponent<LiveMixin>();
@@ -57,17 +57,20 @@ namespace Tweaks_Fixes
                     lm.data.explodeOnDestroy = false;
                     lm.data.knifeable = false;
                 }
-                //if (__instance.launch || !Main.config.decoyRequiresSub)
+                if (!__instance.launch && Main.config.decoyRequiresSub)
+                    __instance.Invoke("Despawn", 0f);
+                else
                 {
                     __instance.Invoke("Despawn", Main.config.decoyLifeTime);
                     CyclopsDecoyManager.AddDecoyToGlobalHashSet(__instance.gameObject);
                     //p.isPickupable = false;
                 }
+
                 //else if (Main.config.decoyRequiresSub)
                 //{
                 //    p.isPickupable = true;
                 //    __instance.Invoke("Despawn", 0);
-                    //decoys[__instance] = new decoyData(Main.config.subDecoyHP, DayNightCycle.main.timePassedAsFloat);
+                //decoys[__instance] = new decoyData(Main.config.subDecoyHP, DayNightCycle.main.timePassedAsFloat);
                 //}
                 //if (Main.config.expiredDecoys.Contains(ui.id))
                 //    __instance.Invoke("Despawn", 0f);
@@ -81,6 +84,8 @@ namespace Tweaks_Fixes
                 //AddDebug("Despawn Decoy");
                 //Pickupable p = __instance.GetComponent<Pickupable>();
                 //p.isPickupable = false;
+                Pickupable p = __instance.GetComponent<Pickupable>();
+                p.isPickupable = false;
                 __instance.gameObject.AddComponent<DestroyOnDisable>();
                 CyclopsDecoyManager.RemoveDecoyFromGlobalHashSet(__instance.gameObject);
                 FMOD_CustomLoopingEmitter cle = __instance.GetComponent<FMOD_CustomLoopingEmitter>();
@@ -109,7 +114,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), "CanDropItemHere")]
+        //[HarmonyPatch(typeof(Inventory), "CanDropItemHere")]
         class Inventory_CanDropItemHere_Patch
         {
             static void Postfix(Inventory __instance, Pickupable item, ref bool __result)

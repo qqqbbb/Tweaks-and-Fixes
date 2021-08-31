@@ -24,8 +24,7 @@ namespace Tweaks_Fixes
 					//}
 					return false;
 				}
-				else
-					return true;
+				return true;
 			}
 		}
 

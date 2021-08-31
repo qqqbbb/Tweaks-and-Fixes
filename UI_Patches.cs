@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
                     return true;
 
                 UniqueIdentifier ui = __instance.activeTarget.GetComponentInParent<UniqueIdentifier>();
-                if (ui && Kelp_Patch.enteredColliders.ContainsKey(ui.gameObject) && Kelp_Patch.enteredColliders[ui.gameObject] > 0)
+                if (ui && Plant_Patch.enteredColliders.ContainsKey(ui.gameObject) && Plant_Patch.enteredColliders[ui.gameObject] > 0)
                 {
                     HandReticle.main.SetInteractTextRaw(string.Empty, string.Empty);
                     return false;
@@ -131,9 +131,6 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("health " + liveMixin.health);
                     Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
-                    //CreatureEgg ce = liveMixin.GetComponent<CreatureEgg>();
-                    //if (ce)
-                    //    name = Language.main.Get(ce.overrideEggType);
                     string name = Language.main.Get(techType);
                     //AddDebug("name " + name);
                     if (pickupable)
@@ -197,10 +194,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(uGUI_FeedbackCollector __instance)
             {
-                if (Main.config.disableHints)
-                    return false;
-
-                return true;
+                return !Main.config.disableHints;
             }
         }
 
@@ -209,10 +203,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(uGUI_SceneIntro __instance)
             {
-                if (Main.config.disableHints)
-                    return false;
-
-                return true;
+                return !Main.config.disableHints;
             }
         }
 
@@ -234,15 +225,6 @@ namespace Tweaks_Fixes
                 if (!Main.english)
                     return;
 
-                CreatureEgg creatureEgg = obj.GetComponent<CreatureEgg>();
-                if (creatureEgg)
-                {
-                    LiveMixin liveMixin = obj.GetComponent<LiveMixin>();
-                    if (!liveMixin.IsAlive())
-                    {
-                        TooltipFactory.WriteTitle(sb, "Dead ");
-                    }
-                }
                 Flare flare = obj.GetComponent<Flare>();
                 if (flare)
                 {

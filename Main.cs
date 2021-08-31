@@ -31,6 +31,17 @@ namespace Tweaks_Fixes
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
+        public static string GetGameObjectPath(GameObject obj)
+        {
+            string path = "/" + obj.name;
+            while (obj.transform.parent != null)
+            {
+                obj = obj.transform.parent.gameObject;
+                path = "/" + obj.name + path;
+            }
+            return path;
+        }
+
         public static float NormalizeTo01range(int value, int min, int max)
         {
             float fl;
@@ -87,15 +98,6 @@ namespace Tweaks_Fixes
             return newValue;
         }
 
-        public static void DisableExosuitClawArmScan()
-        {
-            if (PDAScanner.mapping.ContainsKey(TechType.ExosuitClawArmFragment))
-            {
-                //Main.Message("DisableExosuitClawArmScan");
-                PDAScanner.mapping.Remove(TechType.ExosuitClawArmFragment);
-            }
-        }
-
         public static bool IsEatableFishAlive(GameObject go)
         {
             Creature creature = go.GetComponent<Creature>();
@@ -115,6 +117,23 @@ namespace Tweaks_Fixes
             //    return true;
 
             return creature && eatable;
+        }
+
+        public static void DropItems(ItemsContainer container)
+        {
+            List<Pickupable> pickList = new List<Pickupable>();
+            Dictionary<TechType, ItemsContainer.ItemGroup>.Enumerator enumerator = container._items.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                List<InventoryItem> items = enumerator.Current.Value.items;
+                for (int index = 0; index < items.Count; ++index)
+                    pickList.Add(items[index].item);
+            }
+            foreach (Pickupable p in pickList)
+            {
+                //AddDebug("Drop  " + p.GetTechName());
+                p.Drop();
+            }
         }
 
         public static void CleanUp()
@@ -179,21 +198,6 @@ namespace Tweaks_Fixes
                     //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
                     LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
                 }
-            }
-        }
-
-        [HarmonyPatch(typeof(Player), "Start")]
-        class Player_Start_Patch
-        {
-            static void Postfix(Player __instance)
-            {
-                survival = __instance.GetComponent<Survival>();
-                //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
-                guiHand = __instance.GetComponent<GUIHand>();
-                pda = __instance.GetPDA();
-                if (config.cantScanExosuitClawArm)
-                    DisableExosuitClawArmScan();
-
             }
         }
 
@@ -319,6 +323,19 @@ namespace Tweaks_Fixes
                 TechTypeExtensions.FromString(name, out TechType tt, true);
                 if (tt != TechType.None)
                     Pickupable_Patch.shinies.Add(tt);
+            }
+            foreach (string name in config.removeLight)
+            {
+                TechTypeExtensions.FromString(name, out TechType tt, true);
+                //Log("config.removeLight " + tt);
+                if (tt != TechType.None)
+                    Plant_Patch.removeLight.Add(tt);
+            }
+            foreach (var kv in config.damageMult_)
+            {
+                TechTypeExtensions.FromString(kv.Key, out TechType tt, true);
+                if (tt != TechType.None)
+                   Damage_Patch.damageMult.Add(tt, kv.Value);
             }
         }
     }

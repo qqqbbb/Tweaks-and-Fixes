@@ -15,11 +15,9 @@ namespace Tweaks_Fixes
 {
     class Player_Patches
     {
-        //static Survival survival;
-        //static LiveMixin liveMixin;
-        public static GUIHand gUIHand;
         public static float exitWaterOffset = 0.8f; // 0.8f
         public static float crushPeriod = 3f;
+        public static float healTime = 0f;
 
         public static void DisableExosuitClawArmScan()
         {
@@ -60,12 +58,12 @@ namespace Tweaks_Fixes
 
             static void Postfix(Player __instance)
             {
-                gUIHand = Player.main.GetComponent<GUIHand>();
+                Main.survival = __instance.GetComponent<Survival>();
+                //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
+                Main.guiHand = __instance.GetComponent<GUIHand>();
+                Main.pda = __instance.GetPDA();
                 if (Main.config.cantScanExosuitClawArm)
                     DisableExosuitClawArmScan();
-
-                //__instance.StartCoroutine(Test());
-
             }
         }
 
@@ -90,6 +88,21 @@ namespace Tweaks_Fixes
                 if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.loadingDone)
                     return;
 
+                //if (Main.config.medKitHPtoHeal > 0 && Time.time > Pickupable_Patch.healTime)
+                if (Main.config.medKitHPtoHeal > 0 && DayNightCycle.main.timePassedAsFloat > healTime)
+                { // not checking savegame slot
+                    //Pickupable_Patch.healTime = Time.time + 1.0f;
+                    healTime = DayNightCycle.main.timePassedAsFloat + 1f;
+                    __instance.liveMixin.AddHealth(Main.config.medKitHPperSecond);
+                    Main.config.medKitHPtoHeal -= Main.config.medKitHPperSecond;
+                    if (Main.config.medKitHPtoHeal < 0)
+                        Main.config.medKitHPtoHeal = 0;
+
+                    //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
+                    //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
+                    //Main.config.Save();
+                }
+
                 if (Food_Patch.hungerUpdateTime > Time.time)
                     return;
 
@@ -101,22 +114,7 @@ namespace Tweaks_Fixes
                 }
                 else
                     Main.survival.UpdateHunger();
-
-                if (Main.config.medKitHPtoHeal > 0 && Time.time > Pickupable_Patch.healTime)
-                { // not checking savegame slot
-                    Pickupable_Patch.healTime = Time.time + 1f;
-                    __instance.liveMixin.AddHealth(Main.config.medKitHPperSecond);
-                    Main.config.medKitHPtoHeal -= Main.config.medKitHPperSecond;
-                    if (Main.config.medKitHPtoHeal < 0)
-                        Main.config.medKitHPtoHeal = 0;
-
-                    //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
-                    //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
-                    //Main.config.Save();
-                }
             }
-
-
         }
 
         //[HarmonyPatch(typeof(CrushDamage), "GetDepth")]

@@ -10,7 +10,7 @@ namespace Tweaks_Fixes
         public static void Postfix(HangingStinger __instance)
         {
             LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
-            if (liveMixin)
+            if (liveMixin && liveMixin.data)
             {
                 //AddDebug("HangingStinger");
                 liveMixin.data.destroyOnDeath = true;
