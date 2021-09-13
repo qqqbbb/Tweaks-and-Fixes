@@ -88,19 +88,15 @@ namespace Tweaks_Fixes
                 if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.loadingDone)
                     return;
 
-                //if (Main.config.medKitHPtoHeal > 0 && Time.time > Pickupable_Patch.healTime)
-                if (Main.config.medKitHPtoHeal > 0 && DayNightCycle.main.timePassedAsFloat > healTime)
+                if (Main.config.medKitHPtoHeal > 0 && Time.time > healTime)
+                //if (Main.config.medKitHPtoHeal > 0 && DayNightCycle.main.timePassedAsFloat > healTime)
                 { // not checking savegame slot
-                    //Pickupable_Patch.healTime = Time.time + 1.0f;
-                    healTime = DayNightCycle.main.timePassedAsFloat + 1f;
+                    healTime = Time.time + 1.0f;
+                    //healTime = DayNightCycle.main.timePassedAsFloat + 1f;
                     __instance.liveMixin.AddHealth(Main.config.medKitHPperSecond);
                     Main.config.medKitHPtoHeal -= Main.config.medKitHPperSecond;
                     if (Main.config.medKitHPtoHeal < 0)
                         Main.config.medKitHPtoHeal = 0;
-
-                    //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
-                    //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
-                    //Main.config.Save();
                 }
 
                 if (Food_Patch.hungerUpdateTime > Time.time)

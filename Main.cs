@@ -147,6 +147,7 @@ namespace Tweaks_Fixes
             Crush_Damage.extraCrushDepth = 0;
             crafterOpen = false;
             Cyclops_Patch.ceh = null;
+            Cyclops_Patch.collidersInSub = new HashSet<Collider>();
             Gravsphere_Patch.gasPods = new HashSet<GasPod>();
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
             //Coffee_Patch.DeleteCoffee();

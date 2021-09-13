@@ -33,7 +33,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                
+                //Main.Message("Time.time " + Time.time);
                 //AddDebug("activeSelf " + IngameMenu.main.gameObject.activeSelf);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
 

@@ -32,6 +32,8 @@ namespace Tweaks_Fixes
             Collider[] myCols = go.GetAllComponentsInChildren<Collider>();
             foreach (Collider c in collidersInSub)
             {
+                if (c == null)
+                    continue;
                 foreach (Collider myCol in myCols)
                 {
                     Physics.IgnoreCollision(myCol, c);

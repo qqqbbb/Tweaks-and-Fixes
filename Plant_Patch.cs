@@ -59,7 +59,7 @@ namespace Tweaks_Fixes
                 if (tt == TechType.BigCoralTubes)
                 {
                     if ((int)__instance.transform.position.x == 47 && (int)__instance.transform.position.y == -34 && (int)__instance.transform.position.z == -6)
-                    {
+                    { // terrain is clipping thru this one
                         __instance.transform.position = new Vector3(__instance.transform.position.x, __instance.transform.position.y, -6.815f);
                     }
                 }

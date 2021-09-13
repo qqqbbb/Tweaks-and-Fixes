@@ -90,9 +90,7 @@ namespace Tweaks_Fixes
 
                         bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
                         //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
-                        if (cantEat)
-                        { }
-                        else
+                        if (!cantEat)
                         {
                             if (string.IsNullOrEmpty(AltToolButton))
                                 AltToolButton = uGUI.FormatButton(GameInput.Button.AltTool);

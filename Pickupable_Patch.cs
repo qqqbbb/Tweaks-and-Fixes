@@ -71,9 +71,10 @@ namespace Tweaks_Fixes
                         }
                         else
                         {
+                            //AddDebug("Time.timeScale " + Time.timeScale);
                             Main.config.medKitHPtoHeal = Main.config.medKitHP;
-                            //healTime = Time.time;
-                            Player_Patches.healTime = DayNightCycle.main.timePassedAsFloat;
+                            Player_Patches.healTime = Time.time;
+                            //Player_Patches.healTime = DayNightCycle.main.timePassedAsFloat;
                         }
                     }
                     if (techType == TechType.EnzymeCureBall)

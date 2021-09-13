@@ -131,12 +131,24 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
         class CreatureDeath_OnKill_Prefix_Patch
         {
-            public static void Prefix(CreatureDeath __instance)
+            static void Prefix(CreatureDeath __instance)
             {
                 if (Main.config.creaturesRespawn)
                 {
                     __instance.respawnOnlyIfKilledByCreature = false;
                 }
+            }
+            static void Postfix(CreatureDeath __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt != TechType.Peeper)
+                    return;
+                LODGroup lod = __instance.GetComponentInChildren<LODGroup>(true);
+                lod.enabled = false;
+                SkinnedMeshRenderer[] renderers = __instance.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                //AddDebug("Peeper OnKill " + renderers.Length);
+                //for (int i = 1; i < renderers.Length; i++)
+                renderers[0].enabled = false;
             }
         }
 
@@ -317,6 +329,23 @@ namespace Tweaks_Fixes
                 __instance.timeNextSwim = Time.time + 1f;
                 BehaviourUpdateUtils.Register(__instance);
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(FPModel), "OnEquip")]
+        class FPModel_OnEquip_Patch
+        {
+            static void Postfix(FPModel __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt != TechType.Oculus)
+                    return;
+                LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                if (lm && lm.IsAlive())
+                {
+                    //AddDebug("Oculus FPModel OnEquip");
+                    __instance.transform.localPosition = new Vector3(0, -.05f, .04f);
+                }
             }
         }
 
