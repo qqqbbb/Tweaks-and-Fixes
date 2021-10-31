@@ -23,11 +23,11 @@ namespace Tweaks_Fixes
         public float aggrMult = 1f;
         [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
         public float oxygenPerBreath = 3f;
-        [Slider("Tool power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of power consumed by your tools will be multiplied by this.")]
+        [Slider("Tool power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by your tools will be multiplied by this.")]
         public float toolEnergyConsMult = 1f;
-        [Slider("Vehicle power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of power consumed by your vehicles will be multiplied by this.")]
+        [Slider("Vehicle power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by your vehicles will be multiplied by this.")]
         public float vehicleEnergyConsMult = 1f;
-        [Slider("Base power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of power consumed by things in your base will be multiplied by this.")]
+        [Slider("Base power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by things in your base will be multiplied by this. Leave this at 1 if using EasyCraft mod.")]
         public float baseEnergyConsMult = 1f;
         [Slider("First aid kit HP", 10, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored by using first aid kit.")]
         public int medKitHP = 50;
@@ -54,11 +54,13 @@ namespace Tweaks_Fixes
         public float crushDamageMult = 0f;
         [Slider("Vehicle crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.")]
         public float vehicleCrushDamageMult = 0f;
-        [Choice("Unmanned seamoth or prawn suit can be attacked", Tooltip = "By default unmanned seamoth or prawn suit can be attacked.")]
-        public EmptySeamothCanBeAttacked emptySeamothCanBeAttacked;
-        [Choice("Unmanned cyclops can be attacked", Tooltip = "By default unmanned cyclops can not be attacked.")]
-        public EmptyCyclopsCanBeAttacked emptyCyclopsCanBeAttacked;
-        [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time interval in game seconds after which your hunger and thirst update. This is not the same as the 'hunger/thirst' setting from the 'Day/Night Speed' mod. That setting changes amount of food you lose, not the update interval.")]
+        [Choice("Unmanned vehicles can be attacked", Tooltip = "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.")]
+        public EmptyVehiclesCanBeAttacked emptyVehiclesCanBeAttacked;
+        //[Choice("Unmanned seamoth or prawn suit can be attacked", Tooltip = "By default unmanned seamoth or prawn suit can be attacked.")]
+        //public EmptySeamothCanBeAttacked emptySeamothCanBeAttacked;
+        //[Choice("Unmanned cyclops can be attacked", Tooltip = "By default unmanned cyclops can not be attacked.")]
+        //public EmptyCyclopsCanBeAttacked emptyCyclopsCanBeAttacked;
+        [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time interval in game seconds after which your hunger and thirst update. This setting is affected by day/night cycle speed. This is not the same as the 'hunger/thirst' setting from the 'Day/Night Speed' mod. That setting changes amount of food you lose, not the update interval.")]
         public int hungerUpdateInterval = 10;
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool newHungerSystem = false;
@@ -92,7 +94,7 @@ namespace Tweaks_Fixes
         public bool noBreakingWithHand = false;
         [Toggle("Drop held tool when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
         public bool dropHeldTool = false;
-        [Toggle("Stalkers grab tools out of player's hands when playing", Tooltip = "Stalkers can grab only thing that are in the mod config's 'stalkerPlayThings' list.")]
+        [Toggle("Stalkers grab tools out of player's hands when playing", Tooltip = "Stalkers can grab only things that are in the mod config's 'stalkerPlayThings' list.")]
         public bool stalkersGrabShinyTool = false;
         [Slider("Stalker losing tooth probability", 0f, 1f, DefaultValue = .5f, Step = .1f, Format = "{0:R0}", Tooltip = "Probability of a stalker losing its tooth when it bites something hard.")]
         public float stalkerLoseTooth = .5f;
@@ -234,12 +236,12 @@ namespace Tweaks_Fixes
             Base_Light.SubRoot_Awake_Patch.UpdateBaseLight();
         }
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
-        public enum EmptyCyclopsCanBeAttacked { No, Yes, Only_if_its_lights_on }
-        public enum EmptySeamothCanBeAttacked { Yes, No, Only_if_its_lights_on }
+        public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum SeaTreaderOutcrop { Vanilla, Only_when_stomping_ground, Never }
         public List<string> silentCreatures = new List<string> { };
         public List<string> removeLight = new List<string> { };
+        public List<string> biomesRemoveLight = new List<string> { };
         public List<string> stalkerPlayThings = new List<string> { "ScrapMetal", "MapRoomCamera", "Beacon", "Seaglide", "CyclopsDecoy", "Gravsphere", "SmallStorage", "FireExtinguisher", "DoubleTank", "PlasteelTank", "PrecursorKey_Blue", "PrecursorKey_Orange", "PrecursorKey_Purple", "PrecursorKey_Red", "PrecursorKey_White", "Rebreather", "Tank", "HighCapacityTank", "Flare", "Flashlight", "Builder", "LaserCutter", "LEDLight", "DiveReel", "PropulsionCannon", "Knife", "HeatBlade", "Scanner", "Welder", "RepulsionCannon", "StasisRifle" };
         public string throwFlare = "Throw";
         public string lightAndThrowFlare = "Light and throw";
@@ -247,6 +249,7 @@ namespace Tweaks_Fixes
         //public List<string> expiredDecoys = new List<string>();
         public Dictionary<TechType, float> lightIntensity = new Dictionary<TechType, float>();
         public Dictionary<string, float> damageMult_ = new Dictionary<string, float> { { "Creepvine", 1f } };
+        public bool pickedUpFireExt = false;
         //public Dictionary<string, Decoy_Patch.decoyData> decoys = new Dictionary<string, Decoy_Patch.decoyData>();
         //public HashSet<TechType> canAttackPlayer = new HashSet<TechType> { "Shocker, TechType.Biter, TechType.Blighter, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.Crash, TechType.Mesmer, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.Bleeder, TechType.Shuttlebug, TechType.CaveCrawler, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
         //public HashSet<TechType> canAttackVehicle = new HashSet<TechType> { TechType.Shocker, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
@@ -257,4 +260,5 @@ namespace Tweaks_Fixes
         //}
         //public HashSet<TechType> ttt = new HashSet<TechType> {TechType.Coffee };
     }
+
 }

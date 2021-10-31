@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
-//using static ErrorMessage;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(Flare))]
     class Flare_Patch
     {
-        //public static Dictionary<Pickupable, Light[]> playerToolLights = new Dictionary<Pickupable, Light[]>();
-        //public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
-        //public static Dictionary<TechType, float> lightIntensity = new Dictionary<TechType, float>();
         public static float originalIntensity = -1f;
         static float originalEnergy = -1f;
         public static float halfOrigIntensity;
@@ -97,13 +94,13 @@ namespace Tweaks_Fixes
         {
             if (Main.flareRepairLoaded)
                 return true;
-
             if (__instance.energyLeft <= 0f && !__instance.GetComponentInParent<Player>())
             { // destroy only when not in inventpry
                 //AddDebug("Destroy flare ");
                 UnityEngine.Object.Destroy(__instance.gameObject);
                 return false;
             }
+            //__instance.energyLeft = 5;
             if (originalIntensity == -1f && __instance.flareActivateTime == 0f)
             {
                 originalIntensity = __instance.light.intensity;
@@ -117,7 +114,8 @@ namespace Tweaks_Fixes
                 Tools_Patch.lightIntensityStep[TechType.Flare] = originalIntensity * .05f;
                 //Main.Log( "Flare lightOrigIntensity " + originalIntensity);
                 //Main.Log("Flare lightIntensityStep " + originalIntensity * .05f);
-                //AddDebug("Awake energyLeft " + __instance.energyLeft);
+                //AddDebug("Awake originalRange " + originalRange);
+                //AddDebug("Awake originalIntensity " + originalIntensity);
             }
             if (Main.config.lightIntensity.ContainsKey(TechType.Flare))
             {
@@ -178,7 +176,8 @@ namespace Tweaks_Fixes
         [HarmonyPrefix]
         internal static bool OnDrawPrefix(Flare __instance, Player p)
         {
-            //AddDebug("originalEnergy " + originalEnergy);
+            //AddDebug("OnDraw originalRange " + originalRange);
+            //AddDebug("OnDraw originalIntensity " + originalIntensity);
             if (Main.flareRepairLoaded)
                 return true;
 
@@ -286,7 +285,7 @@ namespace Tweaks_Fixes
                 float burnTime = DayNightCycle.main.timePassedAsFloat - __instance.flareActivateTime;
                 if (burnTime < 0.1f)
                     return false;
-                __instance.light.intensity = halfOrigIntensity + halfOrigIntensity * Mathf.PerlinNoise(burnTime * 6f, 0f);
+                __instance.light.intensity = halfOrigIntensity + halfOrigIntensity * Mathf.PerlinNoise(Time.time * 6f, 0f);
                 //AddDebug("energyLeft " + (int)__instance.energyLeft);
                 if (__instance.energyLeft < lowEnergy)
                 {
@@ -343,31 +342,31 @@ namespace Tweaks_Fixes
         [HarmonyPatch(nameof(Flare.OnDrop))]
         [HarmonyPrefix]
         public static bool OnDropPrefix(Flare __instance)
-            {
-                if (Main.flareRepairLoaded)
-                    return true;
+		{
+			if (Main.flareRepairLoaded)
+				return true;
 
-                if (__instance.isThrowing)
-                {
-                    __instance.GetComponent<Rigidbody>().AddForce(MainCamera.camera.transform.forward * __instance.dropForceAmount * .5f);
-                    __instance.GetComponent<Rigidbody>().AddTorque(MainCamera.camera.transform.forward * __instance.dropTorqueAmount * .5f);
-                    __instance.isThrowing = false;
-                }
-                //AddDebug("energyLeft " + __instance.energyLeft);
-                if (__instance.flareActivateTime > 0f && __instance.energyLeft > 0f)
-                {
-                    if (__instance.fxControl && !__instance.fxIsPlaying)
-                    {
-                        __instance.fxControl.Play(1);
-                        __instance.fxIsPlaying = true;
-                        __instance.loopingSound.Play();
-                        __instance.light.enabled = true;
-                        __instance.hasBeenThrown = true;
-                        __instance.flareActiveState = true;
-                    }
-                }
-                return false;
-            }
+			if (__instance.isThrowing)
+			{
+				__instance.GetComponent<Rigidbody>().AddForce(MainCamera.camera.transform.forward * __instance.dropForceAmount * .5f);
+				__instance.GetComponent<Rigidbody>().AddTorque(MainCamera.camera.transform.forward * __instance.dropTorqueAmount * .5f);
+				__instance.isThrowing = false;
+			}
+			//AddDebug("energyLeft " + __instance.energyLeft);
+			if (__instance.flareActivateTime > 0f && __instance.energyLeft > 0f)
+			{
+				if (__instance.fxControl && !__instance.fxIsPlaying)
+				{
+					__instance.fxControl.Play(1);
+					__instance.fxIsPlaying = true;
+					__instance.loopingSound.Play();
+					__instance.light.enabled = true;
+					__instance.hasBeenThrown = true;
+					__instance.flareActiveState = true;
+				}
+			}
+			return false;
+		}
 
 
     }

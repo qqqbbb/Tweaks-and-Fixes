@@ -41,6 +41,13 @@ namespace Tweaks_Fixes
                 foreach (RegeneratePowerSource cell in cells)
                 {
                     //AddDebug("maxPower " + maxPower);
+                    AddDebug("RegeneratePowerSource " + cell.name);
+                    AddDebug("RegeneratePowerSource parent " + cell.transform.parent.name);
+                    if (cell.transform.parent.parent)
+                        AddDebug("RegeneratePowerSource parent parent " + cell.transform.parent.parent.name);
+                    if (cell.transform.parent.parent.parent)
+                        AddDebug("RegeneratePowerSource parent parent parent " + cell.transform.parent.parent.parent.name);
+
                     cell.powerSource.maxPower = maxPower;
                 }
             }
@@ -197,6 +204,28 @@ namespace Tweaks_Fixes
                 {
                     LetSmokeOut(EscapePod.main);
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(IntroFireExtinguisherHandTarget))]
+        class IntroFireExtinguisherHandTarget_Patch
+        { // not checking save slot
+            [HarmonyPrefix]
+            [HarmonyPatch("Start")]
+            static bool StartPrefix(IntroFireExtinguisherHandTarget __instance)
+            {
+                if (Main.config.pickedUpFireExt)
+                {
+                    __instance.extinguisherModel.SetActive(false);
+                    Object.Destroy(__instance.gameObject);
+                }
+                return false;
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("UseVolume")]
+            static void StartPostfix(IntroFireExtinguisherHandTarget __instance)
+            {
+                Main.config.pickedUpFireExt = true;
             }
         }
 

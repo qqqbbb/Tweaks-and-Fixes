@@ -34,7 +34,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GUIHand), "OnUpdate")]
         class GUIHand_OnUpdate_Patch
         { 
-            static string AltToolButton = string.Empty;
+            static string altToolButton = string.Empty;
 
             //[HarmonyPatch(nameof(GUIHand.OnUpdate))]
             //[HarmonyPrefix]
@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
                     return true;
 
                 UniqueIdentifier ui = __instance.activeTarget.GetComponentInParent<UniqueIdentifier>();
-                if (ui && Plant_Patch.enteredColliders.ContainsKey(ui.gameObject) && Plant_Patch.enteredColliders[ui.gameObject] > 0)
+                if (ui && Plants_Patch.enteredColliders.ContainsKey(ui.gameObject) && Plants_Patch.enteredColliders[ui.gameObject] > 0)
                 {
                     HandReticle.main.SetInteractTextRaw(string.Empty, string.Empty);
                     return false;
@@ -66,12 +66,12 @@ namespace Tweaks_Fixes
                         string throwFlare = lit ? Main.config.throwFlare : Main.config.lightAndThrowFlare;
                         if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
                             text = throwFlare + " (" + TooltipFactory.stringRightHand + ")";
-                        if (string.IsNullOrEmpty(AltToolButton))
-                            AltToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
+                        if (string.IsNullOrEmpty(altToolButton))
+                            altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
 
                         if (!lit)
                         {
-                            string text1 = Main.config.lightFlare + " (" + AltToolButton + ")";
+                            string text1 = Main.config.lightFlare + " (" + altToolButton + ")";
                             if (string.IsNullOrEmpty(text))
                                 text = text1;
                             else
@@ -92,10 +92,10 @@ namespace Tweaks_Fixes
                         //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
                         if (!cantEat)
                         {
-                            if (string.IsNullOrEmpty(AltToolButton))
-                                AltToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
+                            if (string.IsNullOrEmpty(altToolButton))
+                                altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
 
-                            string text1 = TooltipFactory.stringEat + " (" + AltToolButton + ")";
+                            string text1 = TooltipFactory.stringEat + " (" + altToolButton + ")";
                             if (string.IsNullOrEmpty(text))
                                 text = text1;
                             else
@@ -120,16 +120,23 @@ namespace Tweaks_Fixes
                 //Main.Message("activeTarget layer " + __instance.activeTarget.layer);
                 //if (__instance.activeTarget.layer == LayerID.NotUseable)
                 //    Main.Message("activeTarget Not Useable layer ");
-                TechType techType = CraftData.GetTechType(__instance.activeTarget);
-                if (techType == TechType.None)
+                TechType targetTT = CraftData.GetTechType(__instance.activeTarget);
+                if (targetTT == TechType.None)
                     return;
+                if (targetTT == TechType.Flare && Main.english)
+                {
+                    //AddDebug("activeTarget Flare");
+                    string name = Language.main.Get(targetTT);
+                    name = "Burnt out " + name;
+					HandReticle.main.SetInteractText(name);
+                }
                 // UI tells you if looking at dead fish 
                 LiveMixin liveMixin = __instance.activeTarget.GetComponent<LiveMixin>();
                 if (liveMixin && !liveMixin.IsAlive())
                 {
                     //AddDebug("health " + liveMixin.health);
                     Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
-                    string name = Language.main.Get(techType);
+                    string name = Language.main.Get(targetTT);
                     //AddDebug("name " + name);
                     if (pickupable)
                     {
@@ -228,7 +235,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("flare.energyLeft " + flare.energyLeft);
                     if (flare.energyLeft <= 0f)
-                        TooltipFactory.WriteTitle(sb, "Used ");
+                        TooltipFactory.WriteTitle(sb, "Burnt out ");
                     else if (flare.flareActivateTime > 0f)
                         TooltipFactory.WriteTitle(sb, "Lit ");
                 }

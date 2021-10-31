@@ -5,13 +5,14 @@ using QModManager.API;
 using System.Reflection;
 using System;
 using SMLHelper.V2.Handlers;
+using SMLHelper.V2.Assets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
+// brine -1219 -625 -258
 
-// crash home to fix 272.3 -41.9 -199.8
 namespace Tweaks_Fixes
 {
     [QModCore]
@@ -28,6 +29,7 @@ namespace Tweaks_Fixes
         public static bool advancedInventoryLoaded = false;
         public static bool flareRepairLoaded = false;
         public static bool cyclopsDockingLoaded = false;
+        public static bool vehicleLightsImprovedLoaded = false;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -136,6 +138,11 @@ namespace Tweaks_Fixes
             }
         }
 
+        public static T[] FindObjectsOfType<T>() where T : Component
+        {
+            return GameObject.FindObjectOfType(typeof(T)) as T[];
+        }
+
         public static void CleanUp()
         {
             loadingDone = false;
@@ -152,6 +159,7 @@ namespace Tweaks_Fixes
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
             //Coffee_Patch.DeleteCoffee();
             Decoy_Patch.decoysToDestroy = new List<GameObject>();
+            Vehicle_patch.currentLights = new Light[2];
             config.Load();
         }
 
@@ -231,15 +239,30 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SaveLoadManager), "ClearSlotAsync")]
-        internal class SaveLoadManager_ClearSlotAsync_Patch
+        [HarmonyPatch(typeof(SaveLoadManager))]
+        internal class SaveLoadManager_Patch
         {
-            public static void Postfix(SaveLoadManager __instance, string slotName)
+            [HarmonyPostfix]
+            [HarmonyPatch( "ClearSlotAsync")]
+            public static void ClearSlotAsyncPostfix(SaveLoadManager __instance, string slotName)
             {
                 //AddDebug("ClearSlotAsync " + slotName);
                 config.escapePodSmokeOut.Remove(slotName);
                 config.openedWreckDoors.Remove(slotName);
                 config.Save();
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("CreateSlotAsync", new Type[0])]
+            public static void CreateSlotAsyncPostfix(SaveLoadManager __instance)
+            {
+                //AddDebug("SaveLoadManager CreateSlotAsync ");
+                config.pickedUpFireExt = false;
+            }
+            //[HarmonyPostfix]
+            //[HarmonyPatch("LoadSlotsAsync", new Type[0])]
+            public static void LoadSlotsAsyncPostfix(SaveLoadManager __instance)
+            {
+
             }
         }
 
@@ -272,15 +295,14 @@ namespace Tweaks_Fixes
         [QModPatch]
         public static void Load()
         {
-
             config.Load();
             Assembly assembly = Assembly.GetExecutingAssembly();
             new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
-
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(274f, -40f, -194f), new Vector3(4f, 114.77f, 0f)));
+            new Spawnables.Stone().Patch();
         }
-
 
         [QModPostPatch]
         public static void PostPatch()
@@ -290,7 +312,8 @@ namespace Tweaks_Fixes
             advancedInventoryLoaded = QModServices.Main.ModPresent("AdvancedInventory");
             flareRepairLoaded = QModServices.Main.ModPresent("Rm_FlareRepair");
             cyclopsDockingLoaded = QModServices.Main.ModPresent("CyclopsDockingMod");
-
+            vehicleLightsImprovedLoaded = QModServices.Main.ModPresent("Rm_VehicleLightsImproved");
+            //Main.Log("vehicleLightsImprovedLoaded " + vehicleLightsImprovedLoaded);
             foreach (var item in config.crushDepthEquipment)
             {
                 TechTypeExtensions.FromString(item.Key, out TechType tt, true);
@@ -330,7 +353,7 @@ namespace Tweaks_Fixes
                 TechTypeExtensions.FromString(name, out TechType tt, true);
                 //Log("config.removeLight " + tt);
                 if (tt != TechType.None)
-                    Plant_Patch.removeLight.Add(tt);
+                    LargeWorldEntity_Patch.removeLight.Add(tt);
             }
             foreach (var kv in config.damageMult_)
             {

@@ -159,19 +159,18 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
                 Animator animator = __instance.GetAnimator();
-                if (animator)
-                    SafeAnimator.SetBool(animator, "attacking", false);
+                if (animator == null)
+					return;
+
+				SafeAnimator.SetBool(animator, "attacking", false);
 
                 if (__instance is Stalker)
                 {
                     //AnimateByVelocity animByVelocity = __instance.GetComponentInChildren<AnimateByVelocity>();
-                    if (animator)
-                    {
-                        animator.enabled = false;
-                        //animator.SetFloat(AnimateByVelocity.animSpeed, 0.0f);
-                        //animator.SetFloat(AnimateByVelocity.animPitch, 0.0f);
-                        //animator.SetFloat(AnimateByVelocity.animTilt, 0.0f);
-                    } 
+					animator.enabled = false;
+					//animator.SetFloat(AnimateByVelocity.animSpeed, 0.0f);
+					//animator.SetFloat(AnimateByVelocity.animPitch, 0.0f);
+					//animator.SetFloat(AnimateByVelocity.animTilt, 0.0f);
                     //CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
                     //collectShiny?.DropShinyTarget();
                 }
@@ -306,7 +305,7 @@ namespace Tweaks_Fixes
                 if (__instance.shinyTarget.GetComponentInParent<Player>() != null)
                 {
                     //AddDebug("player holds shiny");
-                    if (Main.config.stalkersGrabShinyTool)
+                    if (Main.config.stalkersGrabShinyTool && Player.main.currentSub == null)
                         Inventory.main.DropHeldItem(false);
                     else
                     {

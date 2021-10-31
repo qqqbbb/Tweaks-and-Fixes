@@ -89,9 +89,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base_Light.cs" />
-    <Compile Include="Boulder_Fix.cs" />
     <Compile Include="Beacon_Patch.cs" />
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="LargeWorldEntity_Patch.cs" />
+    <Compile Include="Spawnables.cs" />
     <Compile Include="Plant_Patch.cs" />
     <Compile Include="Flare_Patch.cs" />
     <Compile Include="Decoy_Patch.cs" />

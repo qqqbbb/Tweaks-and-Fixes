@@ -28,6 +28,24 @@ namespace Tweaks_Fixes
             return origin;
         }
 
+        void  GetGO()
+        {
+            int numHits = UWE.Utils.SpherecastIntoSharedBuffer(Player.main.transform.position, 2f, Vector3.forward);
+            AddDebug("num Hits " + numHits);
+            AddDebug("sharedHitBuffer.Length " + UWE.Utils.sharedHitBuffer.Length);
+            for (int index1 = 0; index1<numHits; ++index1)
+            {
+                RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
+                Vector3 point = raycastHit.point;
+                AddDebug("raycastHit " + raycastHit.collider.gameObject.name);
+                GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
+                if (go == null)
+                    AddDebug("go == null " + raycastHit.collider.gameObject.name);
+                else
+                    AddDebug(go.name);
+            }
+        }
+
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -58,10 +76,12 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKey(KeyCode.C))
                 {
-                    if (Input.GetKey(KeyCode.LeftShift))
-                        Main.survival.water++;
-                    else
-                        Main.survival.food++;
+                    AddDebug("  " + Player.main.GetBiomeString());
+                    Main.Log(" GetBiomeString " + Player.main.GetBiomeString());
+                    //if (Input.GetKey(KeyCode.LeftShift))
+                    //    Main.survival.water++; 
+                    //else
+                    //    Main.survival.food++;
                 }
                 else if (Input.GetKey(KeyCode.X))
                 {
@@ -82,34 +102,36 @@ namespace Tweaks_Fixes
                     //Vector3 vel = Player.main.currentMountedVehicle.useRigidbody.velocity;
                     //bool moving = vel.x > 1f || vel.y > 1f || vel.z > 1f;
                     //AddDebug("moving " + moving);
-                    Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
+                    GameObject target = Main.guiHand.activeTarget;
+                    if (!target)
+                        Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
+                    //if (!target)
+                    //{
+                    //    int numHits = Physics.RaycastNonAlloc(new Ray(MainCamera.camera.transform.position, MainCamera.camera.transform.forward), hits, 2.5f);
+                    //    for (int index = 0; index < numHits; ++index)
+                    //    {
+                    //        AddDebug(hits[index].collider.name + " " + hits[index].collider.transform.position);
+                    //        Main.Log("player target " + hits[index].collider.name + " " + hits[index].collider.transform.position);
+                    //    }
+                    //}
                     if (target)
                     {
-                        UniqueIdentifier ui = target.GetComponentInParent<UniqueIdentifier>();
-                        if (ui)
-                        {
-                            AddDebug("target " + ui.gameObject.name);
-                            AddDebug("target TechType " + CraftData.GetTechType( ui.gameObject));
-                        }
-                    }
-                    if (Main.guiHand.activeTarget)
-                    {
-                        //VFXSurface[] vFXSurfaces = __instance.GetAllComponentsInChildren<VFXSurface>();
-                        //if (vFXSurfaces.Length == 0)
-                        //    AddDebug(" " + Main.guiHand.activeTarget.name + " no VFXSurface");
-                        //else
-                        ChildObjectIdentifier coi = Main.guiHand.activeTarget.GetComponentInParent<ChildObjectIdentifier>();
-                        PrefabIdentifier pi = Main.guiHand.activeTarget.GetComponentInParent<PrefabIdentifier>();
-                        if (coi)
-                            AddDebug("activeTarget child " + coi.gameObject.name);
+                        PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
                         if (pi)
-                            AddDebug("activeTarget  " + pi.gameObject.name);
-                        LiveMixin lm = pi.GetComponent<LiveMixin>();
-                        if (lm)
-                        {
-                            AddDebug("max HP " + lm.data.maxHealth);
-                            AddDebug(" HP " + lm.health);
-                        }
+                            target = pi.gameObject;
+                        //LiveMixin lm = pi.GetComponent<LiveMixin>();
+                        //if (lm)
+                        //{
+                        //    AddDebug("max HP " + lm.data.maxHealth);
+                        //    AddDebug(" HP " + lm.health);
+                        //}
+                        AddDebug(" " + target.gameObject.name);
+                        AddDebug(" " + CraftData.GetTechType(target.gameObject));
+                        int x = (int)target.transform.position.x;
+                        int y = (int)target.transform.position.y;
+                        int z = (int)target.transform.position.z;
+                        AddDebug(x + " " + y + " " + z);
+
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {

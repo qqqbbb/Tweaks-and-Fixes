@@ -20,15 +20,17 @@ namespace Tweaks_Fixes
                 for (int i = lights.Length - 1; i >= 0; i--)
                 {
                     if (lights[i].type == LightType.Point)
-                        UnityEngine.Object.Destroy(lights[i].gameObject);
+						lights[i].enabled = false;
                 }
             }
         }
 
-        [HarmonyPatch(typeof(PlayerTool), nameof(PlayerTool.Awake))]
-        public class PlayerTool_Awake_Patch
+        [HarmonyPatch(typeof(PlayerTool))]
+        public class PlayerTool_Patch
         {
-            public static void Prefix(PlayerTool __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch(nameof(PlayerTool.Awake))]
+            public static void AwakePrefix(PlayerTool __instance)
             {
                 Light[] lights = __instance.GetComponentsInChildren<Light>(true);
                 if (lights.Length > 0)
@@ -42,8 +44,53 @@ namespace Tweaks_Fixes
                     //Main.Log(tt + " lightOrigIntensity " + lights[0].intensity);
                 }
             }
+            static float knifeRangeDefault = 0f;
+            static float knifeDamageDefault = 0f;
+            [HarmonyPostfix]
+            [HarmonyPatch(nameof(PlayerTool.OnDraw))]
+            public static void OnDrawPostfix(PlayerTool __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (Main.config.lightIntensity.ContainsKey(tt))
+                {
+                    Light[] lights = __instance.GetComponentsInChildren<Light>(true);
+                    //AddDebug(tt + " Lights " + lights.Length);
+                    foreach (Light l in lights)
+                    {
+                        l.intensity = Main.config.lightIntensity[tt];
+                        //AddDebug("Light Intensity Down " + l.intensity);
+                    }
+                }
+                Knife knife = __instance as Knife;
+                if (knife)
+                {
+                    if (knifeRangeDefault == 0f)
+                        knifeRangeDefault = knife.attackDist;
+                    if (knifeDamageDefault == 0f)
+                        knifeDamageDefault = knife.damage;
+
+                    knife.attackDist = knifeRangeDefault * Main.config.knifeRangeMult;
+                    knife.damage = knifeDamageDefault * Main.config.knifeDamageMult;
+                    //AddDebug(" attackDist  " + knife.attackDist);
+                    //AddDebug(" damage  " + knife.damage);
+                }
+                else if (__instance is LEDLight)
+                {
+                    __instance.transform.localPosition = new Vector3(0.075f, -0.08f, -0.09f);
+                    __instance.transform.localEulerAngles = new Vector3(33f, 77f, 45f);
+                    __instance.transform.localScale = new Vector3(.9f, .9f, .9f);
+                    //AddDebug(" LEDLight OnDraw " + __instance.transform.localPosition);
+                }
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch(nameof(PlayerTool.OnHolster))]
+            public static void OnHolsterPostfix(PlayerTool __instance)
+            {
+                if (__instance is LEDLight)
+                    __instance.transform.localScale = Vector3.one;
+            }
         }
-           
+         
         [HarmonyPatch(typeof(Knife), nameof(Knife.OnToolUseAnim))]
         class Knife_OnToolUseAnim_Postfix_Patch
         {
@@ -71,41 +118,6 @@ namespace Tweaks_Fixes
                 }
             }
         } 
-
-        [HarmonyPatch(typeof(PlayerTool), nameof(PlayerTool.OnDraw))]
-        class Knife_Awake_Patch
-        {
-            static float knifeRangeDefault = 0f;
-            static float knifeDamageDefault = 0f;
-
-            public static void Postfix(PlayerTool __instance)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (Main.config.lightIntensity.ContainsKey(tt))
-                {
-                    Light[] lights = __instance.GetComponentsInChildren<Light>(true);
-                    //AddDebug(tt + " Lights " + lights.Length);
-                    foreach (Light l in lights)
-                    {
-                        l.intensity = Main.config.lightIntensity[tt];
-                        //AddDebug("Light Intensity Down " + l.intensity);
-                    }
-                }
-                Knife knife = __instance as Knife;
-                if (knife)
-                {
-                    if (knifeRangeDefault == 0f)
-                        knifeRangeDefault = knife.attackDist;
-                    if (knifeDamageDefault == 0f)
-                        knifeDamageDefault = knife.damage;
-
-                    knife.attackDist = knifeRangeDefault * Main.config.knifeRangeMult;
-                    knife.damage = knifeDamageDefault * Main.config.knifeDamageMult;
-                    //AddDebug(" attackDist  " + knife.attackDist);
-                    //AddDebug(" damage  " + knife.damage);
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(Constructor), "OnEnable")]
         class Constructor_OnEnable_Patch
@@ -204,6 +216,70 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
+        class RepulsionCannon_OnToolUseAnim_Patch
+        {
+            static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)
+            { // check RigidbodyConstraints 
+                if (__instance.energyMixin.charge <= 0f)
+                    return false;
+
+                bool shot = false;
+                float num1 = Mathf.Clamp01(__instance.energyMixin.charge / 4f);
+                Vector3 forward = MainCamera.camera.transform.forward;
+                Vector3 position = MainCamera.camera.transform.position;
+                int num2 = UWE.Utils.SpherecastIntoSharedBuffer(position, 1f, forward, 35f, ~(1 << LayerMask.NameToLayer("Player")));
+                float mass = 0f;
+                for (int index1 = 0; index1 < num2; ++index1)
+                {
+                    RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
+                    Vector3 point = raycastHit.point;
+                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) / 35f);
+                    GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
+                    if (go == null)
+                        go = raycastHit.collider.gameObject;
+                    //if (go.GetComponent<ImmuneToPropulsioncannon>())
+                    //    continue;
+
+                    Rigidbody rb = go.GetComponent<Rigidbody>();
+                    if (rb != null)
+                    {
+                        mass += rb.mass;
+                        bool flag = true;
+                        if (rb.constraints == RigidbodyConstraints.FreezeAll)
+                            continue;
+                        go.GetComponents<IPropulsionCannonAmmo>(__instance.iammo);
+                        for (int index2 = 0; index2 < __instance.iammo.Count; ++index2)
+                        {
+                            if (!__instance.iammo[index2].GetAllowedToShoot())
+                            {
+                                flag = false;
+                                break;
+                            }
+                        }
+                        __instance.iammo.Clear();
+                        if (flag && !(raycastHit.collider is MeshCollider) && (go.GetComponent<Pickupable>() != null || go.GetComponent<Living>() != null || rb.mass <= 1300f && UWE.Utils.GetAABBVolume(go) <= 400f))
+                        {
+                            float num5 = (1f + rb.mass * 0.005f);
+                            Vector3 velocity = forward * num4 * num1 * 70f / num5;
+                            __instance.ShootObject(rb, velocity);
+                            shot = true;
+                        }
+                    }
+                }
+                if (shot)
+                {
+                    __instance.energyMixin.ConsumeEnergy(4f);
+                    __instance.fxControl.Play();
+                    __instance.callBubblesFX = true;
+                    Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
+                    float num6 = Mathf.Clamp(mass / 100f, 0f, 15f);
+                    Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
+                }
+                return false;
+            }
+        }
+
         //[HarmonyPatch(typeof(PropulsionCannon))]
         class PropulsionCannon_Patch
         {
@@ -273,70 +349,6 @@ namespace Tweaks_Fixes
 
                 AddDebug("ValidateObject " + go.name + " " + __result);
             }
-
-        }
-        //[HarmonyPatch(typeof(RepulsionCannon))]
-        class RepulsionCannon_OnToolUseAnim_Patch
-        {
-            [HarmonyPatch(nameof(RepulsionCannon.OnToolUseAnim))]
-            [HarmonyPrefix]
-            static bool OnToolUseAnimPrefix(RepulsionCannon __instance, GUIHand guiHand)
-            {
-                if (__instance.energyMixin.charge <= 0f)
-                    return false;
-
-                float num1 = Mathf.Clamp01(__instance.energyMixin.charge / 4f);
-                Vector3 forward = MainCamera.camera.transform.forward;
-                Vector3 position = MainCamera.camera.transform.position;
-                int num2 = UWE.Utils.SpherecastIntoSharedBuffer(position, 1f, forward, 35f, ~(1 << LayerMask.NameToLayer("Player")));
-                float num3 = 0.0f;
-                for (int index1 = 0; index1 < num2; ++index1)
-                {
-                    RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
-                    Vector3 point = raycastHit.point;
-                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) / 15f);
-                    //AddDebug("point " + point);
-                    //AddDebug("position " + position);
-                    //AddDebug("magnitude " + (position - point).magnitude);
-                    GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
-                    if (go == null)
-                        go = raycastHit.collider.gameObject;
-                    Rigidbody component = go.GetComponent<Rigidbody>();
-                    if (component != null)
-                    {
-                        num3 += component.mass;
-                        bool flag = true;
-                        go.GetComponents<IPropulsionCannonAmmo>(__instance.iammo);
-                        for (int index2 = 0; index2 < __instance.iammo.Count; ++index2)
-                        {
-                            if (!__instance.iammo[index2].GetAllowedToShoot())
-                            {
-                                flag = false;
-                                break;
-                            }
-                        }
-                        __instance.iammo.Clear();
-                        if (flag && !(raycastHit.collider is MeshCollider) && (go.GetComponent<Pickupable>() != null || go.GetComponent<Living>() != null || go.GetComponent<EscapePod>() != null || component.mass <= 1300.0 && UWE.Utils.GetAABBVolume(go) <= 400.0))
-                        {
-                            float num5 = (1.0f + component.mass * 0.00499999988824129f);
-                            Vector3 velocity = forward * num4 * num1 * 70f / num5;
-                            //AddDebug("num4 " + num4);
-                            //AddDebug("num1 " + num1);
-                            //AddDebug("num5 " + num5);
-                            __instance.ShootObject(component, velocity);
-                        }
-                    }
-                }
-                __instance.energyMixin.ConsumeEnergy(4f);
-                __instance.fxControl.Play();
-                __instance.callBubblesFX = true;
-                Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
-                float num6 = Mathf.Clamp(num3 / 100f, 0.0f, 15f);
-                Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
-
-                return false;
-            }
-
 
         }
 

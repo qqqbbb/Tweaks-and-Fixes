@@ -8,10 +8,9 @@ using static ErrorMessage;
 // need to test spawning seeds while they are disabled
 namespace Tweaks_Fixes
 {
-    class Plant_Patch
+    class Plants_Patch
     {
-        public static HashSet<TechType> removeLight = new HashSet<TechType> { };
-        static float creepVineSeedLightInt = 2f;
+        public static float creepVineSeedLightInt = 2f;
         public static Dictionary<GameObject, int> enteredColliders = new Dictionary<GameObject, int> ();
         static Dictionary<GameObject, HashSet<GameObject>> disabledChildren = new Dictionary<GameObject, HashSet<GameObject>>();
 
@@ -50,69 +49,26 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(LargeWorldEntity), "Awake")]
-        class LargeWorldEntity_Awake_Patch
+        [HarmonyPatch(typeof(GrowingPlant), "OnEnable")]
+        class GrowingPlant_OnEnable_Patch
         {
-            public static void Postfix(LargeWorldEntity __instance)
+            public static void Postfix(GrowingPlant __instance)
             {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (tt == TechType.BigCoralTubes)
+                if(__instance.name == "GrowingBulboTreePiece(Clone)")
                 {
-                    if ((int)__instance.transform.position.x == 47 && (int)__instance.transform.position.y == -34 && (int)__instance.transform.position.z == -6)
-                    { // terrain is clipping thru this one
-                        __instance.transform.position = new Vector3(__instance.transform.position.x, __instance.transform.position.y, -6.815f);
-                    }
-                }
-                else if(tt == TechType.MembrainTree)
-                {
-                    if (__instance.transform.parent == null)
-                       return; // has just grown in planter  
-                    else if (__instance.GetComponent<GrownPlant>())
-                        return; // spawned in planter
-                    //AddDebug(" fix  MembrainTree " + __instance.name);
-                    SkinnedMeshRenderer[] renderers = __instance.GetComponentsInChildren<SkinnedMeshRenderer>();
-                    renderers[0].transform.Rotate(90f, 0f, 0f);
-                }
-                else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
-                { // coral_reef_purple_tentacle_plant_01_02_LOD1
-                    LODGroup lod = __instance.GetComponent<LODGroup>();
-                    lod.enabled = false;
-                    MeshRenderer[] renderers = __instance.GetComponentsInChildren<MeshRenderer>();
-                    //AddDebug(" fix PurpleTentacle " + renderers.Length);
-                    for (int i = 1; i < renderers.Length; i++)
-                        renderers[i].enabled = false;
-                }
-                else if (tt == TechType.BloodRoot || tt == TechType.BloodVine || tt == TechType.Creepvine)
-                {
-                    //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
-                    PickPrefab[] pickPrefabs = __instance.gameObject.GetComponentsInChildren<PickPrefab>(true);
-                    if (pickPrefabs.Length == 0)
-                        return;
-                    FruitPlant fp = __instance.gameObject.EnsureComponent<FruitPlant>();
-                    fp.fruitSpawnEnabled = true;
-                    //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
-                    // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-                    fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
-                    if (Main.config.fruitGrowTime == 0f)
-                        fp.fruitSpawnInterval = 1;
-                    //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);
-                    fp.fruits = pickPrefabs;
-                    if (tt == TechType.Creepvine)
+                    MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
+                    foreach (MeshRenderer mr in mrs)
                     {
-                        TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
-                        techTag.type = TechType.Creepvine;
+                        foreach (Material m in mr.materials)
+                        {
+                            //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
+                            m.DisableKeyword("UWE_WAVING");
+                        }
                     }
-                }
-                if (removeLight.Contains(tt))
-                { 
-                    //AddDebug(__instance.name + " removeLight ");
-                    Light[] lights = __instance.GetComponentsInChildren<Light>();
-                    foreach (Light l in lights)
-                        l.enabled = false;
                 }
             }
         }
-
+               
         [HarmonyPatch(typeof(FruitPlant))]
         class FruitPlant_Patch
         {
@@ -163,6 +119,33 @@ namespace Tweaks_Fixes
                     }
                 }
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(VFXScaleWaving))]
+        class VFXScaleWaving_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("Start")]
+            public static bool GetGrowthDurationPrefix(VFXScaleWaving __instance)
+            {
+                if (__instance.transform.parent)
+                {
+                    GrowingPlant gp = __instance.transform.parent.GetComponent<GrowingPlant>();
+                    if (gp)
+                    {
+                        //AddDebug("GrowingPlant VFXScaleWaving");
+                        __instance.enabled = false;
+                        MeshRenderer[] mrs = gp.GetComponentsInChildren<MeshRenderer>();
+                        foreach (MeshRenderer mr in mrs)
+                        {
+                            foreach (Material m in mr.materials)
+                                m.DisableKeyword("UWE_WAVING");
+                        }
+                        return false;
+                    }
+                }
+                return true;
             }
         }
 

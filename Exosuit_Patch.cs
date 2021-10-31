@@ -57,11 +57,15 @@ namespace Tweaks_Fixes
         }
     }
 
-    [HarmonyPatch(typeof(Exosuit), "Start")]
-    class Exosuit_Start_Patch
+    [HarmonyPatch(typeof(Exosuit))]
+    class Exosuit_Patch
     {
-        static void Postfix(Exosuit __instance)
+        [HarmonyPostfix]
+        [HarmonyPatch("Start")]
+        static void StartPostfix(Exosuit __instance)
         {
+            //Main.Log("Exosuit start pos " + __instance.transform.position);
+            //Main.Log("Exosuit start locpos " + __instance.transform.localPosition);
             CollisionSound collisionSound = __instance.gameObject.EnsureComponent<CollisionSound>();
 
             FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
@@ -81,14 +85,6 @@ namespace Tweaks_Fixes
             so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
             collisionSound.hitSoundSlow = so;
         }
-    }
-
-    // thrusters consumes 2x energy
-    // no limit on thrusters
-    //  strafing disabled in SeamothHandlingFix
-    [HarmonyPatch(typeof(Exosuit), "Update")]
-    class Exosuit_Update_Patch
-    {
         static void VehicleUpdate(Vehicle vehicle)
         {
             if (vehicle.GetPilotingMode() && vehicle.CanPilot() && (vehicle.moveOnLand || vehicle.transform.position.y < Ocean.main.GetOceanLevel()))
@@ -118,11 +114,12 @@ namespace Tweaks_Fixes
             }
             vehicle.ReplenishOxygen();
         }
-
-        public static bool Prefix(Exosuit __instance)
-        {
-            //Vehicle vehicle = __instance as Vehicle;
-            //vehicle.Update();
+        [HarmonyPrefix]
+        [HarmonyPatch("Update")]
+        public static bool UpdatePrefix(Exosuit __instance)
+        {    // thrusters consumes 2x energy
+             // no limit on thrusters
+             //  strafing disabled in SeamothHandlingFix
             if (!Main.config.exosuitMoveTweaks)
                 return true;
 
@@ -242,6 +239,47 @@ namespace Tweaks_Fixes
                 else
                     __instance.transform.localRotation = Quaternion.Lerp(__instance.transform.localRotation, b, Time.deltaTime * 3f);
             }
+            return false;
+        }
+        [HarmonyPatch("Update")]
+        [HarmonyPostfix]
+        public static void UpdatePostfix(Exosuit __instance)
+        {
+            if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+            {
+                if (Main.vehicleLightsImprovedLoaded)
+                    return;
+
+                Transform lightsT = __instance.transform.Find("lights_parent");
+                if (lightsT)
+                {
+                    if (!lightsT.gameObject.activeSelf && __instance.energyInterface.hasCharge)
+                        lightsT.gameObject.SetActive(true);
+                    else if (lightsT.gameObject.activeSelf)
+                        lightsT.gameObject.SetActive(false);
+                    //AddDebug("lights " + lightsT.gameObject.activeSelf);
+                }
+            }
+        }
+        [HarmonyPatch("UpdateUIText")]
+        [HarmonyPrefix]
+        public static bool UpdateUITextPrefix(Exosuit __instance, bool hasPropCannon)
+        {
+            if (Main.vehicleLightsImprovedLoaded || !Main.english)
+                return true;
+
+            if (!__instance.hasInitStrings || __instance.lastHasPropCannon != hasPropCannon)
+            {
+                __instance.sb.Length = 0;
+                __instance.sb.AppendLine(LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit));
+                __instance.sb.AppendLine("Toggle lights (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")");
+                if (hasPropCannon)
+                    __instance.sb.AppendLine(LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool));
+                __instance.lastHasPropCannon = hasPropCannon;
+                __instance.uiStringPrimary = __instance.sb.ToString();
+            }
+            HandReticle.main.SetUseTextRaw(__instance.uiStringPrimary, string.Empty);
+            __instance.hasInitStrings = true;
             return false;
         }
     }

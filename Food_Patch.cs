@@ -111,7 +111,7 @@ namespace Tweaks_Fixes
         {
             internal static void Postfix(Survival __instance)
             {
-                //AddDebug("UpdateHunger ");
+                //AddDebug("UpdateHunger " + updateHungerInterval);
                 hungerUpdateTime = Time.time + updateHungerInterval; 
             }
         }

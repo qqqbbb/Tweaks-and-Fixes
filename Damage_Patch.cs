@@ -38,7 +38,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(DealDamageOnImpact), "Start")]
-        class Vehicle_Start_patch
+        class DealDamageOnImpact_Start_patch
         {
             public static void Postfix(DealDamageOnImpact __instance)
             {
@@ -82,7 +82,7 @@ namespace Tweaks_Fixes
                 float colMult = Mathf.Clamp((1f + (myMass - targetMass) * 0.001f), 0f, damageMult);
                 float targetDamage = colMag * colMult;
 
-                if (targetLM && Time.time > __instance.timeLastDamage + __instance.minDamageInterval)
+                if (targetLM && targetLM.IsAlive() && Time.time > __instance.timeLastDamage + __instance.minDamageInterval)
                 {
                     bool skip = false;
                     if (prevColTarget == rb && Time.time < __instance.timeLastDamage + 3f)
