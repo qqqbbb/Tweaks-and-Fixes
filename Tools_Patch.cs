@@ -10,6 +10,7 @@ namespace Tweaks_Fixes
     {
         public static Dictionary<TechType, float> lightIntensityStep = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
+        public static bool releasingGrabbedObject = false;
 
         [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
         public class FlashLight_Start_Patch
@@ -280,7 +281,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(PropulsionCannon))]
+        [HarmonyPatch(typeof(PropulsionCannon))]
         class PropulsionCannon_Patch
         {
             //[HarmonyPatch(nameof(PropulsionCannon.TraceForGrabTarget))]
@@ -329,25 +330,24 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            //[HarmonyPatch(nameof(PropulsionCannon.ValidateNewObject))]
-            //[HarmonyPrefix]
-            static bool ValidateNewObjectPrefix(PropulsionCannon __instance, GameObject go, Vector3 hitPos, bool checkLineOfSight, ref bool __result)
+            [HarmonyPatch("OnShoot")]
+            [HarmonyPrefix]
+            static void OnShootPrefix(PropulsionCannon __instance)
             {
-                if (go.GetComponent<FruitPlant>())
-                {
-                    AddDebug("ValidateNewObject FruitPlant " + go.name );
-                    __result = false;
-                    return true;
-                }
-                return true;
+                if (__instance.grabbedObject == null)
+                    return;
+                //AddDebug("OnShoot " + __instance.grabbedObject.name);
+                releasingGrabbedObject = true;
             }
 
-            [HarmonyPatch(nameof(PropulsionCannon.ValidateObject))]
-            [HarmonyPostfix]
-            static void ValidateObjectPostfix(PropulsionCannon __instance, GameObject go, ref bool __result)
+            [HarmonyPatch("ReleaseGrabbedObject")]
+            [HarmonyPrefix]
+            static void ReleaseGrabbedObjectPrefix(PropulsionCannon __instance)
             {
-
-                AddDebug("ValidateObject " + go.name + " " + __result);
+                if (__instance.grabbedObject == null)
+                    return;
+                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
+                releasingGrabbedObject = true;
             }
 
         }

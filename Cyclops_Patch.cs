@@ -10,7 +10,7 @@ namespace Tweaks_Fixes
 {
     public class Cyclops_Patch
     {
-        static Rigidbody rb;
+        static Rigidbody rb; // assuming there is only 1 cyclops
         public static CyclopsEntryHatch ceh;
         //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();

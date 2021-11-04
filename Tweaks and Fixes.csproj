@@ -92,6 +92,7 @@
     <Compile Include="Beacon_Patch.cs" />
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
+    <Compile Include="Base_Patch.cs" />
     <Compile Include="Spawnables.cs" />
     <Compile Include="Plant_Patch.cs" />
     <Compile Include="Flare_Patch.cs" />
@@ -113,7 +114,6 @@
     <Compile Include="Creature_Tweaks.cs" />
     <Compile Include="Drooping Stinger.cs" />
     <Compile Include="Escape_Pod_Patch.cs" />
-    <Compile Include="Exosuit_Patch.cs" />
     <Compile Include="Food_Patch.cs" />
     <Compile Include="Tools_Patch.cs" />
     <Compile Include="Main.cs" />

@@ -36,12 +36,19 @@ namespace Tweaks_Fixes
                 //    Main.Log("ImmuneToPropulsioncannon " + __instance.name + " " + tt);
                 //}
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 5f)
-                //Main.Log("LargeWorldEntity test " + __instance.name + " " + tt);
+                //Main.Log("Closest LargeWorldEntity " + __instance.name + " " + tt);
                 if (tt == TechType.BigCoralTubes)
-                {
-                    if ((int)__instance.transform.position.x == 47 && (int)__instance.transform.position.y == -34 && (int)__instance.transform.position.z == -6)
-                    { // terrain is clipping thru this one
+                {// fix  clipping with terrain 
+                    int x = (int)__instance.transform.position.x;
+                    int y = (int)__instance.transform.position.y;
+                    int z = (int)__instance.transform.position.z;
+                    if (x == 47 && y == -34 && z == -6)
+                    { 
                         __instance.transform.position = new Vector3(__instance.transform.position.x, __instance.transform.position.y, -6.815f);
+                    }
+                    else if (x == -20 && y == -28 && z == -381)
+                    { 
+                        __instance.transform.position = new Vector3(__instance.transform.position.x, -28.62f, __instance.transform.position.z);
                     }
                 }
                 else if (tt == TechType.MembrainTree)
@@ -66,41 +73,8 @@ namespace Tweaks_Fixes
                         //rb.constraints = RigidbodyConstraints.FreezeAll;
                         UnityEngine.Object.Destroy(rb);
                 }
-                else if (tt == TechType.None)
-                {
-                    if ( __instance.GetComponent<StoreInformationIdentifier>() && Main.config.biomesRemoveLight.Contains(Player.main.GetBiomeString()))
-                    {
-                        Light light = __instance.GetComponent<Light>();
-                        if (light && light.enabled && __instance.transform.childCount == 0)
-                            light.enabled = false;
-                    }
-                    else if (__instance.name == "coral_reef_small_deco_12(Clone)")
-                        AlwaysUseHiPolyMesh(__instance.gameObject);
-                    //else if (__instance.name == "Coral_reef_ball_clusters_01_Light(Clone)")
-                    //    AlwaysUseHiPolyMesh(__instance.gameObject);
-                    else if (__instance.name == "Land_tree_01(Clone)")
-                    {
-                        MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
-                        foreach (MeshRenderer mr in mrs)
-                        {
-                            foreach (Material m in mr.materials)
-                                m.DisableKeyword("MARMO_EMISSION");
-                        }
-                    }
-                    else if (__instance.name.StartsWith("FloatingStone"))
-                    { // make boulders that block cave entrances not fall down when world chunk unloads
-                        Floater[] floaters = __instance.GetAllComponentsInChildren<Floater>();
-                        if (floaters.Length == 0)
-                        {
-                            //AddDebug(__instance.name + " CellLevel " + __instance.cellLevel);
-                            //Main.Log(__instance.name + " classId " + __instance.GetComponent<PrefabIdentifier>().classId);
-                            __instance.cellLevel = LargeWorldEntity.CellLevel.Near;
-                        }
-                    }
-                }
                 else if (tt == TechType.BloodRoot || tt == TechType.BloodVine || tt == TechType.Creepvine)
                 {
-                    //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
                     PickPrefab[] pickPrefabs = __instance.gameObject.GetComponentsInChildren<PickPrefab>(true);
                     if (pickPrefabs.Length > 0)
                     {
@@ -109,7 +83,8 @@ namespace Tweaks_Fixes
                         //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
                         // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
                         fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
-                        if (Main.config.fruitGrowTime == 0f)
+                        //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
+                        if (fp.fruitSpawnInterval == 0f)
                             fp.fruitSpawnInterval = 1;
                         //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);
                         fp.fruits = pickPrefabs;
@@ -140,6 +115,40 @@ namespace Tweaks_Fixes
                     if ((x == 280 && y == -40 && z == -195) || (x == 272 && y == -41 && z == -199))
                         __instance.transform.Rotate(90, 0, 0);
                 }
+                else if (tt == TechType.None)
+                {
+                    if (__instance.GetComponent<StoreInformationIdentifier>() && Main.config.biomesRemoveLight.Contains(Player.main.GetBiomeString()))
+                    {
+                        Light light = __instance.GetComponent<Light>();
+                        if (light && light.enabled && __instance.transform.childCount == 0)
+                            light.enabled = false;
+                    }
+                    else if (__instance.name == "coral_reef_small_deco_12(Clone)")
+                        AlwaysUseHiPolyMesh(__instance.gameObject);
+                    //else if (__instance.name == "Coral_reef_ball_clusters_01_Light(Clone)")
+                    //    AlwaysUseHiPolyMesh(__instance.gameObject);
+                    else if (__instance.name == "Land_tree_01(Clone)")
+                    {
+                        MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
+                        foreach (MeshRenderer mr in mrs)
+                        {
+                            foreach (Material m in mr.materials)
+                                m.DisableKeyword("MARMO_EMISSION");
+                        }
+                    }
+                    else if (__instance.transform.position.y < 1f && __instance.name.StartsWith("FloatingStone") && !__instance.name.EndsWith("Floaters(Clone)"))
+                    { // make boulders that block cave entrances not fall down when world chunk unloads
+                        //Floater[] floaters = __instance.GetAllComponentsInChildren<Floater>();
+                        //if (floaters.Length == 0)
+                        //if (__instance.transform.position.y < 1f && __instance.GetComponent<FloatersTarget>() == null)
+                        {
+                            //AddDebug(__instance.name + " CellLevel " + __instance.cellLevel);
+                            //Main.Log(__instance.name + "  " + __instance.transform.position);
+                            //Main.Log(__instance.name + " classId " + __instance.GetComponent<PrefabIdentifier>().classId);
+                            __instance.cellLevel = LargeWorldEntity.CellLevel.Near;
+                        }
+                    }
+                }
                 else if (tt.ToString() == "TF_Stone")
                 {
                     int x = (int)__instance.transform.position.x;
@@ -148,7 +157,6 @@ namespace Tweaks_Fixes
                     if (x == -63 && y == -16 && z == -223)
                         __instance.gameObject.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
                 }
-              
                 if (removeLight.Contains(tt))
                 {
                     MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
@@ -169,15 +177,17 @@ namespace Tweaks_Fixes
                 }
 
             }
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnDisable")]
-            public static void OnEnablePostfix(LargeWorldEntity __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("StartFading")]
+            public static bool StartFadingPrefix(LargeWorldEntity __instance)
             {
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //if (removeLight.Contains(tt))
-                //{
-                //    DisableNearestLight(__instance.transform.position);
-                //}
+                if (Tools_Patch.releasingGrabbedObject)
+                {
+                    Tools_Patch.releasingGrabbedObject = false;
+                    //AddDebug("StartFading releasingGrabbedObject " + __instance.name);
+                    return false;
+                }
+                return true;
             }
         }
 

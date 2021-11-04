@@ -94,7 +94,7 @@ namespace Tweaks_Fixes
         public bool noBreakingWithHand = false;
         [Toggle("Drop held tool when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
         public bool dropHeldTool = false;
-        [Toggle("Stalkers grab tools out of player's hands when playing", Tooltip = "Stalkers can grab only things that are in the mod config's 'stalkerPlayThings' list.")]
+        [Toggle("Stalkers grab tools from player's hands when playing", Tooltip = "Stalkers can grab only things that are in the mod config's 'stalkerPlayThings' list.")]
         public bool stalkersGrabShinyTool = false;
         [Slider("Stalker losing tooth probability", 0f, 1f, DefaultValue = .5f, Step = .1f, Format = "{0:R0}", Tooltip = "Probability of a stalker losing its tooth when it bites something hard.")]
         public float stalkerLoseTooth = .5f;

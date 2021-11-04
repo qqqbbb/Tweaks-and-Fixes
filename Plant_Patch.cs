@@ -77,6 +77,8 @@ namespace Tweaks_Fixes
             public static void StartPrefix(FruitPlant __instance)
             { // lantern tree respawns fruits only in creative mode
                 __instance.fruitSpawnEnabled = true;
+                // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
+                __instance.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
             }
             [HarmonyPostfix]
             [HarmonyPatch(nameof(FruitPlant.Initialize))]
@@ -108,52 +110,25 @@ namespace Tweaks_Fixes
                     random.SetPickedState(false);
                     __instance.inactiveFruits.Remove(random);
                     __instance.timeNextFruit += __instance.fruitSpawnInterval;
-                    if (CraftData.GetTechType(__instance.gameObject) != TechType.Creepvine)
-                        return false;
-                    Light light = __instance.GetComponentInChildren<Light>();
-                    if (light)
-                    {
-                        float f = creepVineSeedLightInt - (float)__instance.inactiveFruits.Count / (float)__instance.fruits.Length * creepVineSeedLightInt;
-                        light.intensity = f;
+                    //if (CraftData.GetTechType(__instance.gameObject) != TechType.Creepvine)
+                    //    return false;
+                    //Light light = __instance.GetComponentInChildren<Light>();
+                    //if (light)
+                    //{
+                    //    float f = creepVineSeedLightInt - (float)__instance.inactiveFruits.Count / (float)__instance.fruits.Length * creepVineSeedLightInt;
+                    //    light.intensity = f;
                         //AddDebug("intensity " + f);
-                    }
+                    //}
                 }
                 return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(VFXScaleWaving))]
-        class VFXScaleWaving_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("Start")]
-            public static bool GetGrowthDurationPrefix(VFXScaleWaving __instance)
-            {
-                if (__instance.transform.parent)
-                {
-                    GrowingPlant gp = __instance.transform.parent.GetComponent<GrowingPlant>();
-                    if (gp)
-                    {
-                        //AddDebug("GrowingPlant VFXScaleWaving");
-                        __instance.enabled = false;
-                        MeshRenderer[] mrs = gp.GetComponentsInChildren<MeshRenderer>();
-                        foreach (MeshRenderer mr in mrs)
-                        {
-                            foreach (Material m in mr.materials)
-                                m.DisableKeyword("UWE_WAVING");
-                        }
-                        return false;
-                    }
-                }
-                return true;
             }
         }
 
         [HarmonyPatch(typeof(PickPrefab))]
         class PickPrefab_Patch
         {
-            [HarmonyPatch(nameof(PickPrefab.SetPickedUp))]
-            [HarmonyPostfix]
+            //[HarmonyPatch(nameof(PickPrefab.SetPickedUp))]
+            //[HarmonyPostfix]
             static void SetPickedUpPostfix(PickPrefab __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -172,6 +147,55 @@ namespace Tweaks_Fixes
                     return;
                 //AddDebug(" inactiveFruits " + fp.inactiveFruits.Count);
                 light.intensity = creepVineSeedLightInt - (float)fp.inactiveFruits.Count / (float)fp.fruits.Length * creepVineSeedLightInt;
+            }
+            [HarmonyPatch("SetPickedState")]
+            [HarmonyPostfix]
+            public static void SetPickedStatePostfix(PickPrefab __instance, bool newPickedState)
+            {
+                //AddDebug(__instance.pickTech + " SetPickedState " + newPickedState);
+                //if (newPickedState)
+                //    return;
+                if (__instance.pickTech == TechType.CreepvineSeedCluster)
+                {
+                    FruitPlant fp = __instance.GetComponentInParent<FruitPlant>();
+                    if (!fp)
+                        return;
+                    Light light = fp.GetComponentInChildren<Light>();
+                    if (light)
+                    {
+                        float inactiveFruits = fp.inactiveFruits.Count;
+                        if (!newPickedState)
+                            inactiveFruits -= 1;
+                        //AddDebug("inactiveFruits " + inactiveFruits);
+                        light.intensity = creepVineSeedLightInt - inactiveFruits / (float)fp.fruits.Length * creepVineSeedLightInt;
+                        //AddDebug("SetPickedState CreepvineSeed " + newPickedState + " " + light.intensity);
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(VFXScaleWaving), "Start")]
+        class VFXScaleWaving_Patch
+        {
+            public static bool Prefix(VFXScaleWaving __instance)
+            {
+                if (__instance.transform.parent)
+                {
+                    GrowingPlant gp = __instance.transform.parent.GetComponent<GrowingPlant>();
+                    if (gp)
+                    {
+                        //AddDebug("GrowingPlant VFXScaleWaving");
+                        __instance.enabled = false;
+                        MeshRenderer[] mrs = gp.GetComponentsInChildren<MeshRenderer>();
+                        foreach (MeshRenderer mr in mrs)
+                        {
+                            foreach (Material m in mr.materials)
+                                m.DisableKeyword("UWE_WAVING");
+                        }
+                        return false;
+                    }
+                }
+                return true;
             }
         }
 

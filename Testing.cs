@@ -14,7 +14,7 @@ using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{
+{ // 6 -24 -376
     class Testing
     {
         private Vector3 ClipWithTerrain(GameObject go)
@@ -46,6 +46,33 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(Vehicle), "OnDockedChanged")]
+        class SeaMoth_OnDockedChanged_Patch
+        {        //exo_dock exo_docked
+            static void Postfix(Vehicle __instance, bool docked, Vehicle.DockType dockType)
+            {
+                //Animator animator = __instance.animator;
+                AddDebug("OnDockedChanged " + docked);
+                Main.Log("OnDockedChanged " + docked);
+                if (docked)
+                { // seamoth_moonpool_docked seamoth_idle seamoth_moonpool_docked
+                    SeaMoth seaMoth = __instance as SeaMoth;
+                    if (seaMoth)
+                    {
+                        //seaMoth.animator.Play("seamoth_cyclops_launchbay_dock");
+                        //AddDebug("Play seamoth_cyclops_launchbay_dock ");
+                    }
+                    Exosuit exosuit = __instance as Exosuit;
+                    if (exosuit)
+                    {
+                        //__instance.mainAnimator.Play("exo_docked");
+                        //AddDebug("Play exo_docked ");
+                    }
+                }
+                //animator.runtimeAnimatorController.animationClips[0]
+            }
+        }
+
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -55,7 +82,7 @@ namespace Tweaks_Fixes
                 //AddDebug("activeSelf " + IngameMenu.main.gameObject.activeSelf);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
 
-                if (Input.GetKey(KeyCode.B))
+                if (Input.GetKeyDown(KeyCode.B))
                 {
                     //AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
                     //if (Player.main.IsInBase())
@@ -74,16 +101,17 @@ namespace Tweaks_Fixes
                     //Inventory.main.container.Resize(8,8);   GetPlayerBiome()
                     //HandReticle.main.SetInteractText(nameof(startingFood) + " " + dict[i]);
                 }
-                else if (Input.GetKey(KeyCode.C))
+                else if (Input.GetKeyDown(KeyCode.C))
                 {
+
                     AddDebug("  " + Player.main.GetBiomeString());
                     Main.Log(" GetBiomeString " + Player.main.GetBiomeString());
-                    //if (Input.GetKey(KeyCode.LeftShift))
+                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    Main.survival.water++; 
                     //else
                     //    Main.survival.food++;
                 }
-                else if (Input.GetKey(KeyCode.X))
+                else if (Input.GetKeyDown(KeyCode.X))
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                         //survival.water--;
@@ -92,7 +120,7 @@ namespace Tweaks_Fixes
                         //survival.food--;
                         __instance.liveMixin.health++;
                 }
-                else if(Input.GetKey(KeyCode.Z))
+                else if(Input.GetKeyDown(KeyCode.Z))
                 {
                     //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
                     //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
@@ -131,7 +159,9 @@ namespace Tweaks_Fixes
                         int y = (int)target.transform.position.y;
                         int z = (int)target.transform.position.z;
                         AddDebug(x + " " + y + " " + z);
-
+                        FruitPlant fp = target.GetComponent<FruitPlant>();
+                        if (fp)
+                            AddDebug("FruitPlant fruitSpawnInterval " + fp.fruitSpawnInterval );
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {

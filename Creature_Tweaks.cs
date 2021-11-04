@@ -33,12 +33,9 @@ namespace Tweaks_Fixes
                 //Main.Message("creaturesDontFlee " + Main.config.creaturesDontFlee);
                 //if (Main.config.predatorsDontFlee)
                 {
-                    if (Main.config.aggrMult == 0f)
-                        damageInfo.damage = 0f;
-
                     LiveMixin liveMixin = __instance.creature.liveMixin;
-                    AggressiveWhenSeeTarget agr = __instance.GetComponent<AggressiveWhenSeeTarget>();
-                    if (liveMixin && agr && liveMixin.IsAlive())
+                    AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
+                    if (liveMixin && awst && liveMixin.IsAlive())
                     { //  && damageInfo.dealer == Player.main
                         //if (damageInfo.dealer)
                         //  Main.Message("damage dealer " + damageInfo.dealer.name);
@@ -63,6 +60,7 @@ namespace Tweaks_Fixes
             }
             public static void Postfix(FleeOnDamage __instance, DamageInfo damageInfo)
             { // game code makes them always flee to 0 0 0 
+                //AddDebug(__instance.name + " FleeOnDamage OnTakeDamage " + damageInfo.damage);
                 __instance.moveTo = __instance.swimBehaviour.originalTargetPosition * damageInfo.damage;
                 //__instance.timeToFlee = Time.time;
                 //if (damageInfo.type == DamageType.Heat)
@@ -295,10 +293,51 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CollectShiny), "TryPickupShinyTarget")]
-        class CollectShiny_TryPickupShinyTarget_Patch
+        [HarmonyPatch(typeof(CollectShiny))]
+        class CollectShiny_Patch
         {
-            public static bool Prefix(CollectShiny __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("UpdateShinyTarget")]
+            public static bool UpdateShinyTargetPrefix(CollectShiny __instance)
+            {// dont approach player holding shiny if cant grab it
+                GameObject gameObject = null;
+                if (EcoRegionManager.main != null)
+                {
+                    IEcoTarget nearestTarget = EcoRegionManager.main.FindNearestTarget(EcoTargetType.Shiny, __instance.transform.position, __instance.isTargetValidFilter);
+                    if (nearestTarget != null)
+                        gameObject = nearestTarget.GetGameObject();
+                    else
+                        gameObject = null;
+                }
+                if (gameObject)
+                {
+                    if (!Main.config.stalkersGrabShinyTool && gameObject.GetComponentInParent<Player>())
+                    {
+                        //AddDebug("player holding shiny " + gameObject.name);
+                        return false;
+                    }
+
+                    Vector3 direction = gameObject.transform.position - __instance.transform.position;
+                    float maxDistance = direction.magnitude - 0.5f;
+                    if (maxDistance > 0f && Physics.Raycast(__instance.transform.position, direction, maxDistance, Voxeland.GetTerrainLayerMask()))
+                        gameObject = null;
+                }
+                if (__instance.shinyTarget == gameObject || gameObject == null ||gameObject.GetComponent<Rigidbody>() == null || gameObject.GetComponent<Pickupable>() == null )
+                    return false;
+                if (__instance.shinyTarget != null)
+                {
+                    if ((gameObject.transform.position - __instance.transform.position).magnitude <= (__instance.shinyTarget.transform.position - __instance.transform.position).magnitude)
+                        return false;
+                    __instance.DropShinyTarget();
+                    __instance.shinyTarget = gameObject;
+                }
+                else
+                    __instance.shinyTarget = gameObject;
+                return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("TryPickupShinyTarget")]
+            public static bool TryPickupShinyTargetPrefix(CollectShiny __instance)
             {
                 if (__instance.shinyTarget == null || !__instance.shinyTarget.activeInHierarchy)
                     return false;

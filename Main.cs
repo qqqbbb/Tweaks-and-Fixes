@@ -100,6 +100,14 @@ namespace Tweaks_Fixes
             return newValue;
         }
 
+        static IEnumerator PlayClip(Animator animator, string name, float delay = 0f)
+        {
+            AddDebug("PlayClip start " + delay);
+            yield return new WaitForSeconds(delay);
+            AddDebug("PlayClip " + name);
+            animator.Play(name);
+        }
+
         public static bool IsEatableFishAlive(GameObject go)
         {
             Creature creature = go.GetComponent<Creature>();
@@ -160,6 +168,7 @@ namespace Tweaks_Fixes
             //Coffee_Patch.DeleteCoffee();
             Decoy_Patch.decoysToDestroy = new List<GameObject>();
             Vehicle_patch.currentLights = new Light[2];
+            Vehicle_patch.dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
             config.Load();
         }
 
@@ -206,6 +215,7 @@ namespace Tweaks_Fixes
                     //AddDebug("English");
                     //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
                     LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
+                    LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot.");
                 }
             }
         }
@@ -218,14 +228,14 @@ namespace Tweaks_Fixes
                 //if (uGUI.main.loading.isLoading)
                 //{
                 //    AddDebug(" is Loading");
-                //    return;
+                    //    return;
                 //}
                 if (!uGUI.main.hud.active)
                 {
                     //AddDebug(" hud not active");
                     return;
                 }
-                //AddDebug(" uGUI_SceneLoading end");
+                //AddDebug(" uGUI_SceneLoading done");
                 loadingDone = true;
                 //if (Cyclops_Patch.cyclopsHelmHUDManager)
                 //{
@@ -291,6 +301,7 @@ namespace Tweaks_Fixes
             config.Save();
             //config.crushDepth += Crush_Damage.extraCrushDepth;
         }
+
 
         [QModPatch]
         public static void Load()
