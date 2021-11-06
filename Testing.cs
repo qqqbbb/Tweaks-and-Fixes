@@ -46,31 +46,26 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Vehicle), "OnDockedChanged")]
-        class SeaMoth_OnDockedChanged_Patch
-        {        //exo_dock exo_docked
-            static void Postfix(Vehicle __instance, bool docked, Vehicle.DockType dockType)
+        //[HarmonyPatch(typeof(ExosuitDrillArm))]
+        class ExosuitDrillArm_Patch
+        { // __instance.drillSound is placeholder
+            //[HarmonyPatch("IExosuitArm.OnUseDown")]
+            //[HarmonyPrefix]
+            static bool OnUseDownPrefix(ExosuitDrillArm __instance, out float cooldownDuration, ref bool __result)
             {
-                //Animator animator = __instance.animator;
-                AddDebug("OnDockedChanged " + docked);
-                Main.Log("OnDockedChanged " + docked);
-                if (docked)
-                { // seamoth_moonpool_docked seamoth_idle seamoth_moonpool_docked
-                    SeaMoth seaMoth = __instance as SeaMoth;
-                    if (seaMoth)
-                    {
-                        //seaMoth.animator.Play("seamoth_cyclops_launchbay_dock");
-                        //AddDebug("Play seamoth_cyclops_launchbay_dock ");
-                    }
-                    Exosuit exosuit = __instance as Exosuit;
-                    if (exosuit)
-                    {
-                        //__instance.mainAnimator.Play("exo_docked");
-                        //AddDebug("Play exo_docked ");
-                    }
-                }
-                //animator.runtimeAnimatorController.animationClips[0]
+                //AddDebug("IExosuitArm.OnUseDown stopSoundInterval " + __instance.loop.stopSoundInterval);
+                Utils.PlayFMODAsset(__instance.loop.asset, __instance.transform);
+                __instance.animator.SetBool("use_tool", true);
+                __instance.drilling = true;
+                //__instance.loop.Play();
+                cooldownDuration = 0;
+                         //FMODUWE.PlayOneShot(asset, position); f;
+                __instance.drillTarget = null;
+                __result = true;
+                return false;
             }
+
+
         }
 
         //[HarmonyPatch(typeof(Player), "Update")]
@@ -159,9 +154,9 @@ namespace Tweaks_Fixes
                         int y = (int)target.transform.position.y;
                         int z = (int)target.transform.position.z;
                         AddDebug(x + " " + y + " " + z);
-                        FruitPlant fp = target.GetComponent<FruitPlant>();
-                        if (fp)
-                            AddDebug("FruitPlant fruitSpawnInterval " + fp.fruitSpawnInterval );
+                        Rigidbody rb = target.GetComponent<Rigidbody>();
+                        if (rb)
+                            AddDebug("Rigidbody " + rb.mass);
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {

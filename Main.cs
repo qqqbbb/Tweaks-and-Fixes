@@ -169,6 +169,7 @@ namespace Tweaks_Fixes
             Decoy_Patch.decoysToDestroy = new List<GameObject>();
             Vehicle_patch.currentLights = new Light[2];
             Vehicle_patch.dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
+            Exosuit_Patch.exosuitStarted = false;
             config.Load();
         }
 

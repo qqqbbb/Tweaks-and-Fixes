@@ -324,31 +324,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(MoveTowardsTarget), "UpdateCurrentTarget")]
-        internal class MoveTowardsTarget_UpdateCurrentTarget_Patch
-        { // this does not target player
-            public static bool Prefix(MoveTowardsTarget __instance)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (__instance.targetType == EcoTargetType.Shark )
-                {
-                    //AddDebug(tt + " aggr " + __instance.creature.Aggression.Value + " req aggr " + __instance.requiredAggression);
-                    float aggr = Main.config.aggrMult > 1f ? Main.config.aggrMult : 1f;
-                    if (EcoRegionManager.main != null && (Mathf.Approximately(__instance.requiredAggression, 0f) || __instance.creature.Aggression.Value * aggr >= __instance.requiredAggression))
-                    {
-                        AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
-                        if (awst)
-                            aggr *= awst.maxSearchRings;
-                        IEcoTarget nearestTarget = EcoRegionManager.main.FindNearestTarget(__instance.targetType, __instance.transform.position, __instance.isTargetValidFilter, (int)aggr);
-                        __instance.currentTarget = nearestTarget;
-                    }
-                    return false;
-                }
-                else
-                    return true;
-            }
-        }
-
         public static bool CanAttackSub(AttackCyclops attackCyclops)
         {
             if (Main.config.aggrMult == 0)
@@ -601,8 +576,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("CanBite")]
             public static bool CanBitePrefix(MeleeAttack __instance, GameObject target, ref bool __result)
             {
-                if (__instance.frozen || (__instance.creature.Aggression.Value < __instance.biteAggressionThreshold || Time.time < __instance.timeLastBite + __instance.biteInterval))
-                {
+                //TechType targetTT = CraftData.GetTechType(target);
+                if (__instance.frozen || __instance.creature.Aggression.Value < __instance.biteAggressionThreshold || Time.time < __instance.timeLastBite + __instance.biteInterval)
+                {  
                     __result = false;
                     return false;
                 }
@@ -649,6 +625,7 @@ namespace Tweaks_Fixes
                 Vehicle vehicle = target.GetComponent<Vehicle>();
                 if (vehicle)
                 {
+                    //AddDebug("player.CanBeAttacked() " + Player.main.CanBeAttacked());
                     //bool attackSharks = false;
                     //AggressiveWhenSeeTarget[] awsts = __instance.GetComponents<AggressiveWhenSeeTarget>();
                     //foreach (AggressiveWhenSeeTarget awst in awsts)
@@ -661,10 +638,10 @@ namespace Tweaks_Fixes
                         __result = false;
                         return false;
                     }
-                    bool playerInside = player.currentMountedVehicle == vehicle;
+                    bool playerInside = Player.main.currentMountedVehicle == vehicle;
                     if (playerInside)
                     {
-                        __result = player.CanBeAttacked();
+                        __result = Player.main.CanBeAttacked();
                         return false;
                     }
                     else if (Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.No)
@@ -690,8 +667,8 @@ namespace Tweaks_Fixes
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 TechType tt1 = CraftData.GetTechType(target);
-                //if (tt1 != TechType.None)
-                    //AddDebug(tt + " MeleeAttack CanBite " + tt1 + " " + __result);
+                if (tt1 == TechType.Seamoth)
+                    AddDebug(tt + " MeleeAttack CanBite " + tt1 + " " + __result);
             }
         }
 
@@ -719,6 +696,8 @@ namespace Tweaks_Fixes
             }
         }
       
+
+
         //[HarmonyPatch(typeof(AttackCyclops), "SetCurrentTarget")]
         internal class AttackCyclops_SetCurrentTarget_Patch
         {
@@ -754,6 +733,31 @@ namespace Tweaks_Fixes
                     //    attackCyclops.attackPause = 3f;
                     //}
                 }
+            }
+        }
+
+        //[HarmonyPatch(typeof(MoveTowardsTarget), "UpdateCurrentTarget")]
+        internal class MoveTowardsTarget_UpdateCurrentTarget_Patch
+        { // this does not target player
+            public static bool Prefix(MoveTowardsTarget __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (__instance.targetType == EcoTargetType.Shark)
+                {
+                    //AddDebug(tt + " aggr " + __instance.creature.Aggression.Value + " req aggr " + __instance.requiredAggression);
+                    float aggr = Main.config.aggrMult > 1f ? Main.config.aggrMult : 1f;
+                    if (EcoRegionManager.main != null && (Mathf.Approximately(__instance.requiredAggression, 0f) || __instance.creature.Aggression.Value * aggr >= __instance.requiredAggression))
+                    {
+                        AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
+                        if (awst)
+                            aggr *= awst.maxSearchRings;
+                        IEcoTarget nearestTarget = EcoRegionManager.main.FindNearestTarget(__instance.targetType, __instance.transform.position, __instance.isTargetValidFilter, (int)aggr);
+                        __instance.currentTarget = nearestTarget;
+                    }
+                    return false;
+                }
+                else
+                    return true;
             }
         }
 

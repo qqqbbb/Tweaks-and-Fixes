@@ -63,16 +63,14 @@ namespace Tweaks_Fixes
                 }
                 else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
                     AlwaysUseHiPolyMesh(__instance.gameObject);
-                else if (tt == TechType.WhiteMushroom)
-                    AlwaysUseHiPolyMesh(__instance.gameObject);
-                else if (tt == TechType.PurpleBrainCoral)
-                {
-                    //__instance.gameObject.EnsureComponent<ImmuneToPropulsioncannon>();
+                else if (tt == TechType.FarmingTray || tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree)
+                { // make them immune to prop cannon
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
                     if (rb)
-                        //rb.constraints = RigidbodyConstraints.FreezeAll;
                         UnityEngine.Object.Destroy(rb);
                 }
+                else if (tt == TechType.WhiteMushroom)
+                    AlwaysUseHiPolyMesh(__instance.gameObject);
                 else if (tt == TechType.BloodRoot || tt == TechType.BloodVine || tt == TechType.Creepvine)
                 {
                     PickPrefab[] pickPrefabs = __instance.gameObject.GetComponentsInChildren<PickPrefab>(true);
