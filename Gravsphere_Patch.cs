@@ -21,6 +21,7 @@ namespace Tweaks_Fixes
             }
         }
     }
+ 
     [HarmonyPatch(typeof(Gravsphere))]
     public class Gravsphere_Patch
     {
@@ -105,5 +106,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
+
     }
 }

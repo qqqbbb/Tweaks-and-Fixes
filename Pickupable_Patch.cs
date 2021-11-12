@@ -64,6 +64,11 @@ namespace Tweaks_Fixes
                     }
                     if (techType == TechType.FirstAidKit)
                     {
+                        if (Main.config.newPoisonSystem)
+                        {
+                            LiveMixin lm = Player.main.liveMixin;
+                            lm.tempDamage = 0;
+                        }
                         __result = true;
                         if (Main.config.medKitHPperSecond >= Main.config.medKitHP)
                         {

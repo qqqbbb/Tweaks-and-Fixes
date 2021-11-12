@@ -69,6 +69,8 @@ namespace Tweaks_Fixes
         public EatingRawFish eatRawFish;
         [Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Game has to be reloaded after changing this.")]
         public bool foodTweaks = false;
+        [Toggle("New poison damage system", Tooltip = "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.")]
+        public bool newPoisonSystem = false;
         [Slider("Fruit growth time", 0, 100, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit to grow. Also applies to creepvine seeds and blood oil. 'Plants growth' setting from 'Day night speed' mod will affect this. You have to reload your game after changing this.")]
         public int fruitGrowTime = 1;
         [Toggle("Can't eat underwater", Tooltip = "If enabled you will not be able to eat or drink when swimming underwater.")]
@@ -104,8 +106,7 @@ namespace Tweaks_Fixes
         public bool realOxygenCons = false;
         //[Slider("brainCoralBubbleInterval", 1, 20, DefaultValue = 3, Step = 1, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
         //public int brainCoralBubbleInterval = 3;
-        [Toggle("Poison increases hunger", Tooltip = "Poison damage you take will increase your hunger and thirst instead of reducing your HP. Only when your food or water value is 0 you will start losing health.")]
-        public bool replacePoisonDamage = false;
+
   
 
         //[Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
@@ -147,10 +148,12 @@ namespace Tweaks_Fixes
         public SeaTreaderOutcrop seaTreaderOutcrop;
         [Toggle("No metal clicking sound when walking", Tooltip = "Removes metal clicking sound when walking on metal surface.")]
         public bool fixFootstepSound = false;
-        [Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
-        public bool baseLightOff = false;
+        //[Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
+        //public bool baseLightOff = false;
         [Toggle("Sunlight affects lighting in cyclops", Tooltip = "")]
         public bool cyclopsSunlight = false;
+        [Toggle("Always show health and food values in UI", Tooltip = "Health and food values will be always shown not only when PDA is open.")]
+        public bool alwaysShowHealthNunbers = false;
         [Keybind("Quickslot cycle key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to cycle tools in your current quickslot.")]
         public KeyCode quickslotKey = KeyCode.LeftAlt;
         [Keybind("Light intensity key", Tooltip = "When holding a tool in your hand or driving a vehicle press 'Cycle next' or 'Cycle previous' key while holding down this key to change the tool's or vehicle's light intensity.")]
@@ -160,6 +163,7 @@ namespace Tweaks_Fixes
         public float knifeRangeDefault = 0f;
         public float playerCamRot = -1f;
         public int activeSlot = -1;
+        //public float poison = 0f;
         public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
@@ -233,7 +237,7 @@ namespace Tweaks_Fixes
 
         static void UpdateBaseLight()
         {
-            Base_Light.SubRoot_Awake_Patch.UpdateBaseLight();
+            //Base_Light.UpdateBaseLight();
         }
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
         public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
@@ -250,6 +254,7 @@ namespace Tweaks_Fixes
         public Dictionary<TechType, float> lightIntensity = new Dictionary<TechType, float>();
         public Dictionary<string, float> damageMult_ = new Dictionary<string, float> { { "Creepvine", 1f } };
         public bool pickedUpFireExt = false;
+        public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
         //public Dictionary<string, Decoy_Patch.decoyData> decoys = new Dictionary<string, Decoy_Patch.decoyData>();
         //public HashSet<TechType> canAttackPlayer = new HashSet<TechType> { "Shocker, TechType.Biter, TechType.Blighter, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.Crash, TechType.Mesmer, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.Bleeder, TechType.Shuttlebug, TechType.CaveCrawler, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
         //public HashSet<TechType> canAttackVehicle = new HashSet<TechType> { TechType.Shocker, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };

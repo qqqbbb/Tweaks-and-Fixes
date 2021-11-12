@@ -158,7 +158,6 @@ namespace Tweaks_Fixes
             //AddDebug("CleanUp");
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights = new List<GameObject>();
-            Base_Light.SubRoot_Awake_Patch.bases = new HashSet<SubRoot>();
             Crush_Damage.extraCrushDepth = 0;
             crafterOpen = false;
             Cyclops_Patch.ceh = null;
@@ -170,6 +169,8 @@ namespace Tweaks_Fixes
             Vehicle_patch.currentLights = new Light[2];
             Vehicle_patch.dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
             Exosuit_Patch.exosuitStarted = false;
+            Damage_Patch.healTempDamageTime = 0;
+            Damage_Patch.tempDamageLMs = new List<LiveMixin>();
             config.Load();
         }
 
@@ -238,6 +239,14 @@ namespace Tweaks_Fixes
                 }
                 //AddDebug(" uGUI_SceneLoading done");
                 loadingDone = true;
+                foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
+                {
+                    if (lm.tempDamage > 0)
+                    {
+                        //AddDebug("uGUI_SceneLoading End " + lm.tempDamage);
+                        lm.SyncUpdatingState();
+                    }
+                }
                 //if (Cyclops_Patch.cyclopsHelmHUDManager)
                 //{
                 //    if (Cyclops_Patch.cyclopsHelmHUDManager.LOD.IsFull() && Player.main.currentSub != Cyclops_Patch.cyclopsHelmHUDManager.subRoot && !Cyclops_Patch.cyclopsHelmHUDManager.subRoot.subDestroyed)
@@ -260,6 +269,7 @@ namespace Tweaks_Fixes
                 //AddDebug("ClearSlotAsync " + slotName);
                 config.escapePodSmokeOut.Remove(slotName);
                 config.openedWreckDoors.Remove(slotName);
+                config.baseLights.Remove(slotName);
                 config.Save();
             }
             [HarmonyPostfix]
@@ -303,6 +313,17 @@ namespace Tweaks_Fixes
             //config.crushDepth += Crush_Damage.extraCrushDepth;
         }
 
+        [HarmonyPatch(typeof(WorldForcesManager), "FixedUpdate")]
+        class WorldForcesManager_Patch
+        {
+            static bool Prefix(WorldForcesManager __instance)
+            { // without this WorldForcesManager.FixedUpdate gives NRE when game loads
+                if (!loadingDone)
+                    return false;
+
+                return true;
+            }
+        }
 
         [QModPatch]
         public static void Load()

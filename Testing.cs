@@ -14,7 +14,7 @@ using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{ // 6 -24 -376
+{ // 
     class Testing
     {
         private Vector3 ClipWithTerrain(GameObject go)
@@ -46,26 +46,21 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(ExosuitDrillArm))]
-        class ExosuitDrillArm_Patch
-        { // __instance.drillSound is placeholder
-            //[HarmonyPatch("IExosuitArm.OnUseDown")]
-            //[HarmonyPrefix]
-            static bool OnUseDownPrefix(ExosuitDrillArm __instance, out float cooldownDuration, ref bool __result)
+        //[HarmonyPatch(typeof(ReaperLeviathan))]
+        class ReaperLeviathan_Patch
+        {
+            //[HarmonyPatch("OnTakeDamage")]
+            //[HarmonyPostfix]
+            static void OnTakeDamagePostfix(ReaperLeviathan __instance, DamageInfo damageInfo)
             {
-                //AddDebug("IExosuitArm.OnUseDown stopSoundInterval " + __instance.loop.stopSoundInterval);
-                Utils.PlayFMODAsset(__instance.loop.asset, __instance.transform);
-                __instance.animator.SetBool("use_tool", true);
-                __instance.drilling = true;
-                //__instance.loop.Play();
-                cooldownDuration = 0;
-                         //FMODUWE.PlayOneShot(asset, position); f;
-                __instance.drillTarget = null;
-                __result = true;
-                return false;
+                AddDebug("ReaperLeviathan OnTakeDamage " + damageInfo.type + " " + damageInfo.damage);
             }
-
-
+            //[HarmonyPatch("ReleaseVehicle")]
+            //[HarmonyPostfix]
+            static void ReleaseVehiclePostfix(ReaperLeviathan __instance)
+            {
+                AddDebug("ReleaseVehicle ");
+            }
         }
 
         //[HarmonyPatch(typeof(Player), "Update")]
@@ -98,7 +93,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-
+                    AddDebug(" loadingDone " + Main.loadingDone);
                     AddDebug("  " + Player.main.GetBiomeString());
                     Main.Log(" GetBiomeString " + Player.main.GetBiomeString());
                      //if (Input.GetKey(KeyCode.LeftShift))
@@ -149,7 +144,9 @@ namespace Tweaks_Fixes
                         //    AddDebug(" HP " + lm.health);
                         //}
                         AddDebug(" " + target.gameObject.name);
-                        AddDebug(" " + CraftData.GetTechType(target.gameObject));
+                        if (target.transform.parent)
+                            AddDebug("parent  " + target.transform.parent.name);
+                        AddDebug("TechType  " + CraftData.GetTechType(target.gameObject));
                         int x = (int)target.transform.position.x;
                         int y = (int)target.transform.position.y;
                         int z = (int)target.transform.position.z;
@@ -257,18 +254,38 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-   
-             //[HarmonyPatch(typeof(LiveMixin), "Start")]
-            class Vehicle_LiveMixin_patch
+
+        //[HarmonyPatch(typeof(LargeWorldEntity), "Awake")]
+        class LargeWorldEntity_Awake_patch
         {
-            public static void Postfix(LiveMixin __instance)
+            public static void Postfix(LargeWorldEntity __instance)
             {
-                TechTag techTag = __instance.GetComponent<TechTag>();
-                if (techTag)
+                if (__instance.name == "AbandonedBaseJellyShroom1(Clone)")
                 {
-                    AddDebug(" techTag " + techTag.type);
-                    Main.Log(" techTag " + techTag.type);
+                    Material dirtyGlassMat = null;
+                    //Transform dirtyGlassTr = __instance.transform.Find("Culling/BaseCell/BaseAbandonedObservatory/BaseAbandonedRoomObservatory/BaseRoomObservatory_glass");
+                    Transform dirtyGlassTr = __instance.transform.Find("Culling/BaseCell/BaseAbandonedRoomWindowSide/BaseRoomGenericInteriorWindowSide01Broken01/BaseExteriorRoomGenericWindowSide01Glass");
+                    if (dirtyGlassTr)
+                    {
+                        MeshRenderer mr = dirtyGlassTr.GetComponent<MeshRenderer>();
+                        if (mr)
+                            dirtyGlassMat = mr.material;
+                    }
+                    if (dirtyGlassMat == null)
+                        return;
+
+                    Transform glassTr = __instance.transform.Find("Culling/BaseCell/BaseAbandonedCorridorIShapeGlass/models/BaseCorridorhIShapeGlass01Exterior/BaseCorridorhIShapeGlass01ExteriorGlass");
+                    if (glassTr)
+                    {
+                        MeshRenderer mr = glassTr.GetComponent<MeshRenderer>();
+                        mr.material = dirtyGlassMat;
+                        //mr.sharedMaterial = dirtyGlassMat;
+                        //mr.material.mainTextureOffset = new Vector2(.5f, 1.5f);
+                        //AddDebug("color " + mr.material.color);
+                    }
+                   
                 }
+
             }
         }
 

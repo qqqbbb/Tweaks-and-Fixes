@@ -35,8 +35,8 @@ namespace Tweaks_Fixes
                 //    immuneToPropC.Add(__instance.name);
                 //    Main.Log("ImmuneToPropulsioncannon " + __instance.name + " " + tt);
                 //}
-                //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 5f)
-                //Main.Log("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
+                    Main.Log("Closest LargeWorldEntity " + __instance.name + " " + tt);
                 if (tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
                     int x = (int)__instance.transform.position.x;
@@ -63,11 +63,14 @@ namespace Tweaks_Fixes
                 }
                 else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
                     AlwaysUseHiPolyMesh(__instance.gameObject);
-                else if (tt == TechType.FarmingTray || tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree)
-                { // make them immune to prop cannon
+                else if (tt == TechType.FarmingTray || tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree || tt == TechType.BulboTree)
+                { // make them immune to prop and rep cannon
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
                     if (rb)
                         UnityEngine.Object.Destroy(rb);
+                    WorldForces wf = __instance.GetComponent<WorldForces>();
+                    if (wf)
+                        UnityEngine.Object.Destroy(wf);
                 }
                 else if (tt == TechType.WhiteMushroom)
                     AlwaysUseHiPolyMesh(__instance.gameObject);
@@ -155,6 +158,7 @@ namespace Tweaks_Fixes
                     if (x == -63 && y == -16 && z == -223)
                         __instance.gameObject.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
                 }
+
                 if (removeLight.Contains(tt))
                 {
                     MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
@@ -179,10 +183,18 @@ namespace Tweaks_Fixes
             [HarmonyPatch("StartFading")]
             public static bool StartFadingPrefix(LargeWorldEntity __instance)
             {
-                if (Tools_Patch.releasingGrabbedObject)
+                if (!Main.loadingDone)
+                    return false;
+                else if (Tools_Patch.releasingGrabbedObject)
                 {
                     Tools_Patch.releasingGrabbedObject = false;
                     //AddDebug("StartFading releasingGrabbedObject " + __instance.name);
+                    return false;
+                }
+                else if (Tools_Patch.repCannonGOs.Contains(__instance.gameObject))
+                {
+                    //AddDebug("StartFading rep Cannon go " + __instance.name);
+                    Tools_Patch.repCannonGOs.Remove(__instance.gameObject);
                     return false;
                 }
                 return true;

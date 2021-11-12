@@ -550,13 +550,7 @@ namespace Tweaks_Fixes
             }
             vehicle.ReplenishOxygen();
         }
-
-        //[HarmonyPrefix]
-        //[HarmonyPatch("FixedUpdate")]
-        public static bool FixedUpdatePrefix(Exosuit __instance)
-        {
-            return false;
-        }
+     
         [HarmonyPrefix]
         [HarmonyPatch("Update")]
         public static bool UpdatePrefix(Exosuit __instance)
@@ -567,7 +561,6 @@ namespace Tweaks_Fixes
                 return true;
 
             VehicleUpdate(__instance);
-
             __instance.UpdateThermalReactorCharge();
             __instance.openedFraction = !__instance.storageContainer.GetOpen() ? Mathf.Clamp01(__instance.openedFraction - Time.deltaTime * 2f) : Mathf.Clamp01(__instance.openedFraction + Time.deltaTime * 2f);
             __instance.storageFlap.localEulerAngles = new Vector3(__instance.startFlapPitch + __instance.openedFraction * 80f, 0.0f, 0.0f);
@@ -684,6 +677,7 @@ namespace Tweaks_Fixes
             }
             return false;
         }
+      
         [HarmonyPatch("Update")]
         [HarmonyPostfix]
         public static void UpdatePostfix(Exosuit __instance)
@@ -704,6 +698,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
+      
         [HarmonyPatch("UpdateUIText")]
         [HarmonyPrefix]
         public static bool UpdateUITextPrefix(Exosuit __instance, bool hasPropCannon)
@@ -772,7 +767,63 @@ namespace Tweaks_Fixes
             armNamesChanged = true;
             //AddDebug("OnUpgradeModuleChange currentLeftArmType " + __instance.currentLeftArmType);
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch("ApplyJumpForce")]
+        public static bool ApplyJumpForcePrefix(Exosuit __instance)
+        {
+            if (__instance.timeLastJumped + 1f > Time.time)
+                return false;
+
+            if (__instance.onGround)
+            {
+                Utils.PlayFMODAsset(__instance.jumpSound, __instance.transform);
+                if (__instance.IsUnderwater())
+                {
+                    if (Physics.Raycast(new Ray(__instance.transform.position, Vector3.down), out RaycastHit hitInfo, 10f))
+                    {
+                        WorldStreaming.ClipmapChunk cmc = hitInfo.collider.transform.parent.GetComponent<WorldStreaming.ClipmapChunk>();
+                        if (cmc)
+                        {
+                            __instance.fxcontrol.Play(1);
+                            //AddDebug("jump from terrain ");
+                        }
+                    }
+                }
+            }
+            __instance.ConsumeEngineEnergy(1.2f);
+            __instance.useRigidbody.AddForce(Vector3.up * (__instance.jumpJetsUpgraded ? 7f : 5f), ForceMode.VelocityChange);
+            __instance.timeLastJumped = Time.time;
+            __instance.timeOnGround = 0f;
+            __instance.onGround = false;
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch("OnLand")]
+        public static bool OnLandPrefix(Exosuit __instance)
+        {
+            if (__instance.timeLastJumped + 1f > Time.time)
+                return false;
+
+            Utils.PlayFMODAsset(__instance.landSound, __instance.bottomTransform);
+            if (__instance.IsUnderwater())
+            {
+                if (Physics.Raycast(new Ray(__instance.transform.position, Vector3.down), out RaycastHit hitInfo, 10f))
+                {
+                    WorldStreaming.ClipmapChunk cmc = hitInfo.collider.transform.parent.GetComponent<WorldStreaming.ClipmapChunk>();
+                    if (cmc)
+                    {
+                        __instance.fxcontrol.Play(2);
+                        //AddDebug("land on terrain ");
+                    }
+                }
+            }
+            return false;
+        }
+
     }
+
 
     [HarmonyPatch(typeof(ExosuitTorpedoArm), "Shoot")]
     class ExosuitTorpedoArm_Shoot_Patch

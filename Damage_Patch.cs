@@ -9,6 +9,11 @@ namespace Tweaks_Fixes
 {
     class Damage_Patch
     {
+        public static float healTempDamageTime = 0;
+        static float poisonDamageInterval = 1f;
+        static float poisonDamage = .5f;
+        public static List<LiveMixin> tempDamageLMs = new List<LiveMixin>();
+
         static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
         static void SetBloodColor(GameObject go)
         {   // GenericCreatureHit(Clone)
@@ -221,10 +226,11 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(LiveMixin))]
         class LiveMixin_Patch
         {
-            [HarmonyPatch(nameof(LiveMixin.Start))]
             [HarmonyPostfix]
+            [HarmonyPatch(nameof(LiveMixin.Start))]
             static void StartPostfix(LiveMixin __instance)
             {
+                //__instance.onHealTempDamage = LiveMixin.floatEventPool.Get();
                 //if (__instance.data.deathEffect)
                 //    Main.Log("deathEffect " + __instance.data.deathEffect);
                 if (Main.config.noKillParticles)
@@ -232,14 +238,19 @@ namespace Tweaks_Fixes
                     //__instance.data.damageEffect = null;
                     __instance.data.deathEffect = null;
                 }
+                if (!Main.loadingDone)
+                { // __instance.tempDamage is -1
+                    tempDamageLMs.Add(__instance);
+                    //AddDebug("tempDamage " + __instance.tempDamage);
+                }
             }
-            [HarmonyPatch(nameof(LiveMixin.TakeDamage))]
+
             [HarmonyPrefix]
+            [HarmonyPatch(nameof(LiveMixin.TakeDamage))]
             static bool TakeDamagePrefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position = default(Vector3), DamageType type = DamageType.Normal, GameObject dealer = null)
             {
                 //if (dealer)
                 //    AddDebug("dealer " + dealer.name);
-                //ProfilingUtils.BeginSample("LiveMixin.TakeDamage");
                 bool killed = false;
                 bool creativeMode = GameModeUtils.IsInvisible() && __instance.invincibleInCreative;
                 if (__instance.health > 0f && !__instance.invincible && !creativeMode)
@@ -248,12 +259,28 @@ namespace Tweaks_Fixes
                     if (!__instance.shielded)
                         damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
 
-                    __instance.health = Mathf.Max(0f, __instance.health - damage);
-                    if (type == DamageType.Cold || type == DamageType.Poison)
+                    if (type == DamageType.Poison || type == DamageType.Cold)
                     {
-                        __instance.tempDamage += damage;
-                        __instance.SyncUpdatingState();
+                        if (Main.config.newPoisonSystem)
+                        {
+                            if (dealer != __instance.gameObject)
+                            {
+                                __instance.tempDamage += damage;
+                                __instance.SyncUpdatingState();
+                                //if (__instance.gameObject == Player.mainObject)
+                                //    AddDebug("TakeDamage tempDamage " + __instance.tempDamage);
+                            }
+                            else
+                                __instance.health = Mathf.Max(0f, __instance.health - damage);
+                        }
+                        else
+                        {
+                            __instance.tempDamage += damage;
+                            __instance.SyncUpdatingState();
+                        }
                     }
+                    if (__instance.GetComponent<Player>())
+                        //AddDebug("health " + __instance.health);
                     __instance.damageInfo.Clear();
                     __instance.damageInfo.originalDamage = originalDamage;
                     __instance.damageInfo.damage = damage;
@@ -266,7 +293,6 @@ namespace Tweaks_Fixes
                         __result = killed;
                         return false;
                     }
-
                     if (__instance.damageClip && damage > 0f && (damage >= __instance.minDamageForSound && type != DamageType.Radiation))
                         Utils.PlayEnvSound(__instance.damageClip, __instance.damageInfo.position);
 
@@ -310,14 +336,11 @@ namespace Tweaks_Fixes
                             __instance.timeLastDamageEffect = Time.time;
                         }
                     }
-                    //ProfilingUtils.EndSample();
-                    if (__instance.health <= 0f || __instance.health - __instance.tempDamage <= 0f)
+                    if (__instance.health <= 0f || !Main.config.newPoisonSystem && __instance.health - __instance.tempDamage <= 0f)
                     {
                         killed = true;
                         if (!__instance.IsCinematicActive())
-                        {
                             __instance.Kill(type);
-                        }
                         else
                         {
                             __instance.cinematicModeActive = true;
@@ -325,9 +348,73 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                //ProfilingUtils.EndSample();
                 __result = killed;
                 return false;
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch(nameof(LiveMixin.SyncUpdatingState))]
+            static void ManagedUpdatePostfix(LiveMixin __instance)
+            {
+                if (__instance.gameObject == Player.mainObject)
+                {
+                    AddDebug("SyncUpdatingState ");
+                }
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch(nameof(LiveMixin.TakeDamage))]
+            static void TakeDamagePostfix(LiveMixin __instance, bool __result, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
+            {
+                if (__instance.gameObject == Player.mainObject)
+                {
+                    AddDebug("player TakeDamage " + originalDamage + " " + type);
+                }
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch(nameof(LiveMixin.HealTempDamage))]
+            static bool HealTempDamagePrefix(LiveMixin __instance, float timePassed)
+            {
+                //AddDebug("HealTempDamage healTempDamageTime " + healTempDamageTime);
+                if (Main.config.newPoisonSystem)
+                {
+                    if (__instance.tempDamage > 0 && healTempDamageTime < Time.time)
+                    {
+                        if (__instance.gameObject == Player.mainObject)
+                        {
+                            int foodMin = Main.config.newHungerSystem ? -99 : 1;
+                            float damage = 0f;
+                            Survival survival = Main.survival;
+                            if (survival.food > foodMin)
+                                survival.food -= poisonDamage;
+                            else
+                                damage += poisonDamage;
+
+                            if (survival.water > foodMin)
+                                survival.water -= poisonDamage;
+                            else
+                                damage += poisonDamage;
+
+                            if (damage > 0)
+                                __instance.TakeDamage(damage, __instance.transform.position, DamageType.Poison);
+                        }    
+                        //if (__instance.gameObject == Player.mainObject)
+                        //    AddDebug("HealTempDamage tempDamage " + __instance.tempDamage);
+                            __instance.TakeDamage(poisonDamage, __instance.transform.position, DamageType.Poison, __instance.gameObject);
+
+                        __instance.tempDamage -= poisonDamage;
+                        if (__instance.tempDamage > 0)
+                            healTempDamageTime = Time.time + poisonDamageInterval;
+                        else if (__instance.tempDamage < 0)
+                            __instance.tempDamage = 0;
+
+                        if (__instance.tempDamage == 0)
+                            __instance.SyncUpdatingState();
+                    }
+                    return false;
+                }
+                return true;
             }
         }
 
@@ -358,28 +445,27 @@ namespace Tweaks_Fixes
                                 }
                             }
                         }
-                        if (Main.config.replacePoisonDamage && type == DamageType.Poison)
+                        if (Main.config.newPoisonSystem && type == DamageType.Poison)
                         {
-                            //AddDebug("Player takes Poison damage " + damage);
-                            Survival survival = Player.main.GetComponent<Survival>();
-                            int foodMin = Main.config.newHungerSystem ? -99 : 1;
-                            int damageLeft = 0;
-                            for (int i = (int)__result; i > 0; i--)
-                            {
-                                if (survival.food > foodMin)
-                                    survival.food -= 1f;
-                                else
-                                    damageLeft++;
+                            //AddDebug("CalculateDamage " + damage);
+                            //Survival survival = Main.survival;
+                            //int foodMin = Main.config.newHungerSystem ? -99 : 1;
+                            //int damageLeft = 0;
+                            //for (int i = (int)__result; i > 0; i--)
+                            //{
+                            //    if (survival.food > foodMin)
+                            //        survival.food -= 1f;
+                            //    else
+                            //        damageLeft++;
 
-                                if (survival.water > foodMin)
-                                    survival.water -= 1f;
-                                else
-                                    damageLeft++;
-                            }
-                            //DamageType.
+                            //    if (survival.water > foodMin)
+                            //        survival.water -= 1f;
+                            //    else
+                            //        damageLeft++;
+                            //}
                             //AddDebug("damageLeft " + damageLeft);
-                            Player.main.liveMixin.TakeDamage(damageLeft, target.transform.position, DamageType.Starve, dealer);
-                            __result = 0f;
+                            //Player.main.liveMixin.TakeDamage(damageLeft, target.transform.position, DamageType.Starve, dealer);
+                            //__result = 0f;
                         }
                     }
                     else if (vehicle)
@@ -421,5 +507,5 @@ namespace Tweaks_Fixes
 
             }
         }
-    }
+ }
 }

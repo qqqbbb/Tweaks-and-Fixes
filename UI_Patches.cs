@@ -51,6 +51,7 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
+          
             [HarmonyPatch(nameof(GUIHand.OnUpdate))]
             [HarmonyPostfix]
             public static void OnUpdatePostfix(GUIHand __instance)
@@ -113,6 +114,19 @@ namespace Tweaks_Fixes
                             }
                         }
                         HandReticle.main.SetUseTextRaw(text, null);
+                    }
+                }
+                else
+                {
+                    SubRoot subRoot = Player.main.currentSub;
+                    if (subRoot && subRoot.isBase)
+                    {
+                        string text = "Toggle lights (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+                        HandReticle.main.SetUseTextRaw(null, text);
+                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                        {
+                            Base_Patch.ToggleBaseLight(subRoot);
+                        }
                     }
                 }
                 if (!__instance.activeTarget)
@@ -338,12 +352,236 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(uGUI_MainMenu), "OnButtonOptions")]
-        class uGUI_MainMenu_OnButtonOptions_Patch
+        [HarmonyPatch(typeof(uGUI_HealthBar), "LateUpdate")]
+        class uGUI_HealthBar_LateUpdate_Patch
         {
-            public static void Postfix(GUIHand __instance)
+            public static bool Prefix(uGUI_HealthBar __instance)
             {
-                AddDebug("uGUI_MainMenu OnButtonOptions");
+                int showNumbers = __instance.showNumbers ? 1 : 0;
+                __instance.showNumbers = false;
+                Player main = Player.main;
+                if (main != null)
+                {
+                    LiveMixin lm = main.GetComponent<LiveMixin>();
+                    if (lm != null)
+                    {
+                        if (!__instance.subscribed)
+                        {
+                            __instance.subscribed = true;
+                            lm.onHealDamage.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnHealDamage));
+                        }
+                        float health = lm.health - lm.tempDamage;
+                        if (Main.config.newPoisonSystem)
+                            health = lm.health;
+                        float maxHealth = lm.maxHealth;
+                        __instance.SetValue(health, maxHealth);
+                        float time = 1f - Mathf.Clamp01(health / __instance.pulseReferenceCapacity);
+                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
+                        if (__instance.pulseDelay < 0f)
+                            __instance.pulseDelay = 0f;
+                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
+                        if (__instance.pulseTime < 0f)
+                            __instance.pulseTime = 0f;
+                        float num2 = __instance.pulseDelay + __instance.pulseTime;
+                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
+                            __instance.pulseAnimationState.normalizedTime = 0f;
+                        __instance.pulseTween.duration = num2;
+                    }
+                    PDA pda = main.GetPDA();
+                    if (Main.config.alwaysShowHealthNunbers || pda && pda.isInUse)
+                        __instance.showNumbers = true;
+                }
+                if ((TrackedReference)__instance.pulseAnimationState != (TrackedReference)null && __instance.pulseAnimationState.enabled)
+                {
+                    RectTransform icon = __instance.icon;
+                    icon.localScale = icon.localScale + __instance.punchScale;
+                }
+                else
+                    __instance.icon.localScale = __instance.punchScale;
+                int num3 = __instance.showNumbers ? 1 : 0;
+                if (showNumbers != num3)
+                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
+                double time1 = Time.time;
+                float dT = 0.02f;
+                double lastFixedUpdateTime = __instance.lastFixedUpdateTime;
+                float f = (float)(time1 - lastFixedUpdateTime);
+                int num4 = Mathf.FloorToInt(f);
+                if (num4 > 20)
+                {
+                    num4 = 1;
+                    dT = f;
+                }
+                __instance.lastFixedUpdateTime += num4 * dT;
+                for (int index = 0; index < num4; ++index)
+                {
+                    double rotationCurrent1 = __instance.rotationCurrent;
+                    float target = __instance.showNumbers ? 180f : 0f;
+                    MathExtensions.Spring(ref __instance.rotationVelocity, ref __instance.rotationCurrent, target, __instance.rotationSpringCoef, dT, __instance.rotationVelocityDamp, __instance.rotationVelocityMax);
+                    if (Mathf.Abs(target - __instance.rotationCurrent) < 1f && Mathf.Abs(__instance.rotationVelocity) < 1f)
+                    {
+                        __instance.rotationVelocity = 0f;
+                        __instance.rotationCurrent = target;
+                    }
+                    double rotationCurrent2 = __instance.rotationCurrent;
+                    if (rotationCurrent1 != rotationCurrent2)
+                        __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
+                }
+
+                return false;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(uGUI_FoodBar), "LateUpdate")]
+        class uGUI_FoodBar_LateUpdate_Patch
+        {
+            public static bool Prefix(uGUI_FoodBar __instance)
+            {
+                int showNumbers = __instance.showNumbers ? 1 : 0;
+                __instance.showNumbers = false;
+                Player main = Player.main;
+                if (main != null)
+                {
+                    Survival survival = main.GetComponent<Survival>();
+                    if (survival != null)
+                    {
+                        if (!__instance.subscribed)
+                        {
+                            __instance.subscribed = true;
+                            survival.onEat.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnEat));
+                        }
+                        float food = survival.food;
+                        float capacity = 100f;
+                        __instance.SetValue(food, capacity);
+                        float time = 1f - Mathf.Clamp01(food / __instance.pulseReferenceCapacity);
+                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
+                        if (__instance.pulseDelay < 0f)
+                            __instance.pulseDelay = 0f;
+                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
+                        if (__instance.pulseTime < 0f)
+                            __instance.pulseTime = 0f;
+                        float num2 = __instance.pulseDelay + __instance.pulseTime;
+                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
+                            __instance.pulseAnimationState.normalizedTime = 0f;
+                        __instance.pulseTween.duration = num2;
+                    }
+                    PDA pda = main.GetPDA();
+                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
+                        __instance.showNumbers = true;
+                }
+                if ((TrackedReference)__instance.pulseAnimationState != (TrackedReference)null && __instance.pulseAnimation.enabled)
+                {
+                    RectTransform icon = __instance.icon;
+                    icon.localScale = icon.localScale + __instance.punchScale;
+                }
+                else
+                    __instance.icon.localScale = __instance.punchScale;
+                int num3 = __instance.showNumbers ? 1 : 0;
+                if (showNumbers != num3)
+                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
+                double time1 = Time.time;
+                float dT = 0.02f;
+                double lastFixedUpdateTime = __instance.lastFixedUpdateTime;
+                float f = (float)(time1 - lastFixedUpdateTime);
+                int num4 = Mathf.FloorToInt(f);
+                if (num4 > 20)
+                {
+                    num4 = 1;
+                    dT = f;
+                }
+                __instance.lastFixedUpdateTime += num4 * dT;
+                for (int index = 0; index < num4; ++index)
+                {
+                    double rotationCurrent1 = __instance.rotationCurrent;
+                    float target = __instance.showNumbers ? 180f : 0.0f;
+                    MathExtensions.Spring(ref __instance.rotationVelocity, ref __instance.rotationCurrent, target, __instance.rotationSpringCoef, dT, __instance.rotationVelocityDamp, __instance.rotationVelocityMax);
+                    if (Mathf.Abs(target - __instance.rotationCurrent) < 1f && Mathf.Abs(__instance.rotationVelocity) < 1f)
+                    {
+                        __instance.rotationVelocity = 0f;
+                        __instance.rotationCurrent = target;
+                    }
+                    double rotationCurrent2 = __instance.rotationCurrent;
+                    if (rotationCurrent1 != rotationCurrent2)
+                        __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
+                }
+                return false;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(uGUI_WaterBar), "LateUpdate")]
+        class uGUI_WaterBar_LateUpdate_Patch
+        {
+            public static bool Prefix(uGUI_WaterBar __instance)
+            {
+                int num1 = __instance.showNumbers ? 1 : 0;
+                __instance.showNumbers = false;
+                Player main = Player.main;
+                if (main != null)
+                {
+                    Survival survival = main.GetComponent<Survival>();
+                    if (survival != null)
+                    {
+                        if (!__instance.subscribed)
+                        {
+                            __instance.subscribed = true;
+                            survival.onDrink.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnDrink));
+                        }
+                        float water = survival.water;
+                        float capacity = 100f;
+                        __instance.SetValue(water, capacity);
+                        float time = 1f - Mathf.Clamp01(water / __instance.pulseReferenceCapacity);
+                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
+                        if (__instance.pulseDelay < 0f)
+                            __instance.pulseDelay = 0f;
+                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
+                        if (__instance.pulseTime < 0f)
+                            __instance.pulseTime = 0f;
+                        float num2 = __instance.pulseDelay + __instance.pulseTime;
+                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
+                            __instance.pulseAnimationState.normalizedTime = 0f;
+                        __instance.pulseTween.duration = num2;
+                    }
+                    PDA pda = main.GetPDA();
+                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
+                        __instance.showNumbers = true;
+                }
+                if ((TrackedReference)__instance.pulseAnimationState != (TrackedReference)null && __instance.pulseAnimationState.enabled)
+                {
+                    RectTransform icon = __instance.icon;
+                    icon.localScale = icon.localScale + __instance.punchScale;
+                }
+                else
+                    __instance.icon.localScale = __instance.punchScale;
+                int num3 = __instance.showNumbers ? 1 : 0;
+                if (num1 != num3)
+                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
+                double time1 = Time.time;
+                float dT = 0.02f;
+                double lastFixedUpdateTime = __instance.lastFixedUpdateTime;
+                float f = (float)(time1 - lastFixedUpdateTime);
+                int num4 = Mathf.FloorToInt(f);
+                if (num4 > 20)
+                {
+                    num4 = 1;
+                    dT = f;
+                }
+                __instance.lastFixedUpdateTime += num4 * dT;
+                for (int index = 0; index < num4; ++index)
+                {
+                    double rotationCurrent1 = __instance.rotationCurrent;
+                    float target = __instance.showNumbers ? 180f : 0f;
+                    MathExtensions.Spring(ref __instance.rotationVelocity, ref __instance.rotationCurrent, target, __instance.rotationSpringCoef, dT, __instance.rotationVelocityDamp, __instance.rotationVelocityMax);
+                    if (Mathf.Abs(target - __instance.rotationCurrent) < 1f && Mathf.Abs(__instance.rotationVelocity) < 1f)
+                    {
+                        __instance.rotationVelocity = 0f;
+                        __instance.rotationCurrent = target;
+                    }
+                    double rotationCurrent2 = __instance.rotationCurrent;
+                    if (rotationCurrent1 != rotationCurrent2)
+                        __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
+                }
+                return false;
             }
         }
 

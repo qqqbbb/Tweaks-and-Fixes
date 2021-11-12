@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{
+{  
     public class Cyclops_Patch
     {
         static Rigidbody rb; // assuming there is only 1 cyclops

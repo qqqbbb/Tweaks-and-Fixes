@@ -11,6 +11,7 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, float> lightIntensityStep = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
         public static bool releasingGrabbedObject = false;
+        public static bool shootingObject = false;
 
         [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
         public class FlashLight_Start_Patch
@@ -217,38 +218,34 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
+        public static List<GameObject> repCannonGOs = new List<GameObject>();
+
+        [HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
         class RepulsionCannon_OnToolUseAnim_Patch
         {
             static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)
-            { // check RigidbodyConstraints 
+            {
+                //AddDebug("ShootObject " + rb.name);
                 if (__instance.energyMixin.charge <= 0f)
                     return false;
-
-                bool shot = false;
-                float num1 = Mathf.Clamp01(__instance.energyMixin.charge / 4f);
+                float num1 = Mathf.Clamp01(__instance.energyMixin.charge * .25f);
                 Vector3 forward = MainCamera.camera.transform.forward;
                 Vector3 position = MainCamera.camera.transform.position;
                 int num2 = UWE.Utils.SpherecastIntoSharedBuffer(position, 1f, forward, 35f, ~(1 << LayerMask.NameToLayer("Player")));
-                float mass = 0f;
+                float num3 = 0f;
                 for (int index1 = 0; index1 < num2; ++index1)
                 {
                     RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
                     Vector3 point = raycastHit.point;
-                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) / 35f);
+                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) * .02857f);
                     GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
                     if (go == null)
                         go = raycastHit.collider.gameObject;
-                    //if (go.GetComponent<ImmuneToPropulsioncannon>())
-                    //    continue;
-
                     Rigidbody rb = go.GetComponent<Rigidbody>();
                     if (rb != null)
                     {
-                        mass += rb.mass;
+                        num3 += rb.mass;
                         bool flag = true;
-                        if (rb.constraints == RigidbodyConstraints.FreezeAll)
-                            continue;
                         go.GetComponents<IPropulsionCannonAmmo>(__instance.iammo);
                         for (int index2 = 0; index2 < __instance.iammo.Count; ++index2)
                         {
@@ -263,20 +260,17 @@ namespace Tweaks_Fixes
                         {
                             float num5 = (1f + rb.mass * 0.005f);
                             Vector3 velocity = forward * num4 * num1 * 70f / num5;
+                            repCannonGOs.Add(go);
                             __instance.ShootObject(rb, velocity);
-                            shot = true;
                         }
                     }
                 }
-                if (shot)
-                {
-                    __instance.energyMixin.ConsumeEnergy(4f);
-                    __instance.fxControl.Play();
-                    __instance.callBubblesFX = true;
-                    Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
-                    float num6 = Mathf.Clamp(mass / 100f, 0f, 15f);
-                    Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
-                }
+                __instance.energyMixin.ConsumeEnergy(4f);
+                __instance.fxControl.Play();
+                __instance.callBubblesFX = true;
+                Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
+                float num6 = Mathf.Clamp(num3 / 100f, 0f, 15f);
+                Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
                 return false;
             }
         }
@@ -350,6 +344,39 @@ namespace Tweaks_Fixes
                 releasingGrabbedObject = true;
             }
 
+            //[HarmonyPatch("GrabObject")]
+            //[HarmonyPostfix]
+            static void GrabObjectPostfix(PropulsionCannon __instance, GameObject target)
+            {
+                //if (__instance.grabbedObject == null)
+                //    return;
+                Rigidbody rb = __instance.grabbedObject.GetComponent<Rigidbody>();
+                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
+                if (rb)
+                    AddDebug("Rigidbody useGravity " + rb.useGravity);
+                WorldForces wf = __instance.grabbedObject.GetComponent<WorldForces>();
+                if (wf)
+                {
+                    AddDebug("WorldForces handleGravity " + wf.handleGravity);
+                    AddDebug("WorldForces aboveWaterGravity " + wf.aboveWaterGravity);
+                    AddDebug("WorldForces underwaterGravity " + wf.underwaterGravity);
+                }
+
+                //    rb.useGravity = true;
+                //releasingGrabbedObject = true;
+            }
+
+        }
+
+        [HarmonyPatch(typeof(Beacon), "Throw")]
+        class Beacon_Patch
+        {
+            static void Postfix(Beacon __instance)
+            {
+                // x and z does not matter, it will stabilize itself
+                __instance.gameObject.transform.rotation = Camera.main.transform.rotation;
+                __instance.transform.Rotate(0f, 180f, 0f);
+            }
         }
 
     }

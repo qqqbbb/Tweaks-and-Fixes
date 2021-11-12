@@ -88,8 +88,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Base_Light.cs" />
-    <Compile Include="Beacon_Patch.cs" />
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Base_Patch.cs" />
@@ -99,7 +97,6 @@
     <Compile Include="Decoy_Patch.cs" />
     <Compile Include="Fragment_Patch.cs" />
     <Compile Include="Predators_Patch.cs" />
-    <Compile Include="Map_Room_Patch.cs" />
     <Compile Include="Torpedo_Patch.cs" />
     <Compile Include="Coffee_Patch.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
@@ -108,7 +105,6 @@
     <Compile Include="Starting_Loot_Patch.cs" />
     <Compile Include="Craft_Patch.cs" />
     <Compile Include="Damage_Patch.cs" />
-    <Compile Include="Footsteps_Patch.cs" />
     <Compile Include="Databox_Light_Patch.cs" />
     <Compile Include="Crush_Damage.cs" />
     <Compile Include="Creature_Tweaks.cs" />

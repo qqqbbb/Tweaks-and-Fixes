@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
             //Main.Log("GetClosetToPlayer " + databoxLights.Count);
             foreach (GameObject go in databoxLights)
             {
-                if (go.activeSelf)
+                if (go && go.activeSelf)
                 {
                     float distance = (go.transform.position - Player.main.transform.position).magnitude;
                     //Main.Log("distance " + distance);
