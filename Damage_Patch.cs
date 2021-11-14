@@ -259,28 +259,32 @@ namespace Tweaks_Fixes
                     if (!__instance.shielded)
                         damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
 
-                    if (type == DamageType.Poison || type == DamageType.Cold)
+                    if (type != DamageType.Poison && type != DamageType.Cold)
+                        __instance.health = Mathf.Max(0f, __instance.health - damage);
+                    else 
                     {
                         if (Main.config.newPoisonSystem)
                         {
+                            //AddDebug(" new Poison System " );
                             if (dealer != __instance.gameObject)
                             {
                                 __instance.tempDamage += damage;
                                 __instance.SyncUpdatingState();
                                 //if (__instance.gameObject == Player.mainObject)
-                                //    AddDebug("TakeDamage tempDamage " + __instance.tempDamage);
+                                //    AddDebug("TakeDamage tempDamage +" + __instance.tempDamage);
                             }
                             else
                                 __instance.health = Mathf.Max(0f, __instance.health - damage);
                         }
                         else
                         {
+                            //AddDebug("old Poison System ");
+                            __instance.health = Mathf.Max(0f, __instance.health - damage);
                             __instance.tempDamage += damage;
+                            //AddDebug(__instance.name + " tempDamage " + __instance.tempDamage);
                             __instance.SyncUpdatingState();
                         }
                     }
-                    if (__instance.GetComponent<Player>())
-                        //AddDebug("health " + __instance.health);
                     __instance.damageInfo.Clear();
                     __instance.damageInfo.originalDamage = originalDamage;
                     __instance.damageInfo.damage = damage;
@@ -366,23 +370,23 @@ namespace Tweaks_Fixes
             //[HarmonyPatch(nameof(LiveMixin.TakeDamage))]
             static void TakeDamagePostfix(LiveMixin __instance, bool __result, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
             {
-                if (__instance.gameObject == Player.mainObject)
+                //if (__instance.gameObject == Player.mainObject)
                 {
-                    AddDebug("player TakeDamage " + originalDamage + " " + type);
+                    AddDebug(__instance.name + " TakeDamage Postfix " + originalDamage + " " + type);
                 }
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch(nameof(LiveMixin.HealTempDamage))]
+            [HarmonyPatch("HealTempDamage")]
             static bool HealTempDamagePrefix(LiveMixin __instance, float timePassed)
             {
-                //AddDebug("HealTempDamage healTempDamageTime " + healTempDamageTime);
                 if (Main.config.newPoisonSystem)
                 {
                     if (__instance.tempDamage > 0 && healTempDamageTime < Time.time)
                     {
                         if (__instance.gameObject == Player.mainObject)
                         {
+                            //AddDebug("HealTempDamage tempDamage " + __instance.tempDamage);
                             int foodMin = Main.config.newHungerSystem ? -99 : 1;
                             float damage = 0f;
                             Survival survival = Main.survival;
@@ -397,7 +401,7 @@ namespace Tweaks_Fixes
                                 damage += poisonDamage;
 
                             if (damage > 0)
-                                __instance.TakeDamage(damage, __instance.transform.position, DamageType.Poison);
+                                __instance.TakeDamage(damage, __instance.transform.position, DamageType.Poison, __instance.gameObject);
                         }    
                         //if (__instance.gameObject == Player.mainObject)
                         //    AddDebug("HealTempDamage tempDamage " + __instance.tempDamage);

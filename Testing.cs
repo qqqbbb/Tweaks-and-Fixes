@@ -46,20 +46,20 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(ReaperLeviathan))]
+        //[HarmonyPatch(typeof(DamageOnPickup))]
         class ReaperLeviathan_Patch
         {
-            //[HarmonyPatch("OnTakeDamage")]
+            //[HarmonyPatch("OnPickedUp")]
             //[HarmonyPostfix]
-            static void OnTakeDamagePostfix(ReaperLeviathan __instance, DamageInfo damageInfo)
+            static void OnPickedUpPostfix(DamageOnPickup __instance, Pickupable pickupable)
             {
-                AddDebug("ReaperLeviathan OnTakeDamage " + damageInfo.type + " " + damageInfo.damage);
+                AddDebug("DamageOnPickup OnPickedUp " + __instance.damageChance + " damageOnPickup " + __instance.damageOnPickup);
             }
-            //[HarmonyPatch("ReleaseVehicle")]
+            //[HarmonyPatch("OnKill")]
             //[HarmonyPostfix]
-            static void ReleaseVehiclePostfix(ReaperLeviathan __instance)
+            static void OnKillPostfix(DamageOnPickup __instance)
             {
-                AddDebug("ReleaseVehicle ");
+                AddDebug("DamageOnPickup OnKill damageAmount " + __instance.damageAmount);
             }
         }
 
