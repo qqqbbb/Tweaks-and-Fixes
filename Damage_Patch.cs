@@ -246,7 +246,7 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch(nameof(LiveMixin.TakeDamage))]
+            [HarmonyPatch("TakeDamage")]
             static bool TakeDamagePrefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position = default(Vector3), DamageType type = DamageType.Normal, GameObject dealer = null)
             {
                 //if (dealer)
@@ -257,8 +257,13 @@ namespace Tweaks_Fixes
                 {
                     float damage = 0f;
                     if (!__instance.shielded)
+                    {
+                        if (type == DamageType.Heat && dealer == Player.mainObject &&  __instance.GetComponent<LavaLizard>())
+                            type = DamageType.Normal;
                         damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
-
+                        //if (dealer == Player.mainObject)
+                        //    AddDebug("TakeDamage originalDamage " + originalDamage + " damage " + damage);
+                    }
                     if (type != DamageType.Poison && type != DamageType.Cold)
                         __instance.health = Mathf.Max(0f, __instance.health - damage);
                     else 
@@ -384,6 +389,7 @@ namespace Tweaks_Fixes
                 {
                     if (__instance.tempDamage > 0 && healTempDamageTime < Time.time)
                     {
+                        bool damaged = false;
                         if (__instance.gameObject == Player.mainObject)
                         {
                             //AddDebug("HealTempDamage tempDamage " + __instance.tempDamage);
@@ -400,11 +406,13 @@ namespace Tweaks_Fixes
                             else
                                 damage += poisonDamage;
 
-                            if (damage > 0)
-                                __instance.TakeDamage(damage, __instance.transform.position, DamageType.Poison, __instance.gameObject);
-                        }    
+                            //if (damage > 0)
+                                __instance.TakeDamage(damage + poisonDamage, __instance.transform.position, DamageType.Poison, __instance.gameObject);
+                            damaged = true;
+                        }
                         //if (__instance.gameObject == Player.mainObject)
                         //    AddDebug("HealTempDamage tempDamage " + __instance.tempDamage);
+                        if (!damaged)
                             __instance.TakeDamage(poisonDamage, __instance.transform.position, DamageType.Poison, __instance.gameObject);
 
                         __instance.tempDamage -= poisonDamage;
@@ -449,28 +457,9 @@ namespace Tweaks_Fixes
                                 }
                             }
                         }
-                        if (Main.config.newPoisonSystem && type == DamageType.Poison)
-                        {
-                            //AddDebug("CalculateDamage " + damage);
-                            //Survival survival = Main.survival;
-                            //int foodMin = Main.config.newHungerSystem ? -99 : 1;
-                            //int damageLeft = 0;
-                            //for (int i = (int)__result; i > 0; i--)
-                            //{
-                            //    if (survival.food > foodMin)
-                            //        survival.food -= 1f;
-                            //    else
-                            //        damageLeft++;
-
-                            //    if (survival.water > foodMin)
-                            //        survival.water -= 1f;
-                            //    else
-                            //        damageLeft++;
-                            //}
-                            //AddDebug("damageLeft " + damageLeft);
-                            //Player.main.liveMixin.TakeDamage(damageLeft, target.transform.position, DamageType.Starve, dealer);
-                            //__result = 0f;
-                        }
+                        //if (Main.config.newPoisonSystem && type == DamageType.Poison)
+                        //{
+                        //}
                     }
                     else if (vehicle)
                     {
@@ -503,13 +492,97 @@ namespace Tweaks_Fixes
                     }
                     else
                     {
-                        TechType tt = CraftData.GetTechType(target);
-                        if (damageMult.ContainsKey(tt))
-                            __result *= damageMult[tt];
+                        //if (damageMult.Count > 0)
+                        {
+                            TechType tt = CraftData.GetTechType(target);
+                            TechTag techTag = target.EnsureComponent<TechTag>();
+                            techTag.type = tt;
+                            if (damageMult.ContainsKey(tt))
+                                __result *= damageMult[tt];
+
+                            if (tt == TechType.AcidMushroom || tt == TechType.WhiteMushroom)
+                            {
+                                if (type == DamageType.Acid)
+                                    __result = 0f;
+                            }
+                        }
                     }
                 }
+                //else
+                //{
+                //    if (target != Player.mainObject && dealer == Player.mainObject)
+                //    {
 
+                //    }
+                //}
             }
         }
- }
+
+        [HarmonyPatch(typeof(DamageOnPickup))]
+        class DamageOnPickup_Patch
+        {
+            [HarmonyPatch("OnEnable")]
+            [HarmonyPostfix]
+            static void OnEnablePostfix(DamageOnPickup __instance)
+            {
+                Plantable plantable = __instance.GetComponent<Plantable>();
+                if (plantable)
+                {
+                    if (plantable.plantTechType == TechType.WhiteMushroom)
+                        __instance.damageAmount += __instance.damageAmount * .5f;
+                }
+            }
+            [HarmonyPatch("OnPickedUp")]
+            [HarmonyPrefix]
+            static bool OnPickedUpPrefix(DamageOnPickup __instance, Pickupable pickupable)
+            {
+                Plantable plantable = __instance.GetComponent<Plantable>();
+                if (plantable)
+                {
+                    if (plantable.plantTechType == TechType.AcidMushroom || plantable.plantTechType == TechType.WhiteMushroom)
+                    {
+                        if (Main.config.shroomDamageChance == 0f)
+                            return false;
+                        int rnd = Main.rndm.Next(0, 100);
+                        if (Main.config.shroomDamageChance > rnd)
+                        {
+                            int damageMin = (int)(__instance.damageAmount * .5f);
+                            int damageMax = (int)(__instance.damageAmount * 1.5f);
+                            float damageAmount = Main.rndm.Next(damageMin, damageMax + 1);
+                            Player.main.gameObject.GetComponent<LiveMixin>().TakeDamage(damageAmount, pickupable.gameObject.transform.position, DamageType.Acid);
+                        }
+                        //AddDebug("DamageOnPickup OnPickedUp " + __instance.damageChance + " damageAmount " + __instance.damageAmount);
+                        return false;
+                    }
+                }
+                return true;
+            }
+            [HarmonyPatch("OnKill")]
+            [HarmonyPrefix]
+            static bool OnKillPrefix(DamageOnPickup __instance)
+            {
+                Plantable plantable = __instance.GetComponent<Plantable>();
+                if (plantable)
+                {
+                    if (plantable.plantTechType == TechType.AcidMushroom || plantable.plantTechType == TechType.WhiteMushroom)
+                    {
+                        if (Main.config.shroomDamageChance == 0f)
+                            return false;
+                        //AddDebug("DamageOnPickup OnKill damageAmount " + __instance.damageAmount);
+                        int rnd = Main.rndm.Next(0, 100);
+                        if (Main.config.shroomDamageChance > rnd)
+                        {
+                            int damageMin = (int)(__instance.damageAmount * .5f);
+                            int damageMax = (int)(__instance.damageAmount * 1.5f);
+                            float damageAmount = Main.rndm.Next(damageMin, damageMax + 1);
+                            DamageSystem.RadiusDamage(damageAmount, __instance.transform.position, 3f, __instance.damageType);
+                        }
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+    }
 }

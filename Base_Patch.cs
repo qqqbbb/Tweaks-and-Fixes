@@ -26,13 +26,15 @@ namespace Tweaks_Fixes
             if (Main.config.baseLights.ContainsKey(currentSlot))
             {
                 Main.config.baseLights[currentSlot][key] = subRoot.subLightsOn;
+                //AddDebug(" ToggleBaseLight " + key + " " + subRoot.subLightsOn);
             }
             else
             {
                 Main.config.baseLights[currentSlot] = new Dictionary<string, bool>();
                 Main.config.baseLights[currentSlot][key] = subRoot.subLightsOn;
+                //AddDebug(" ToggleBaseLight " + key + " " + subRoot.subLightsOn);
             }
-            //AddDebug(" ToggleBaseLight " + key + " " + subRoot.subLightsOn);
+
         }
 
         [HarmonyPatch(typeof(SubRoot), "Awake")]
@@ -43,19 +45,21 @@ namespace Tweaks_Fixes
                 //Light[] lights = __instance.GetComponentsInChildren<Light>();
                 if (__instance.isBase)
                 {
-                    bool canToggle = __instance.powerRelay && __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Normal;
-                    if (!canToggle)
-                        return;
+                    //bool canToggle = __instance.powerRelay && __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Normal;
+                    //AddDebug(__instance.name + " canToggle " + canToggle);
+                    //if (!canToggle)
+                    //    return;
 
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
                     int z = (int)__instance.transform.position.z;
                     string key = x + "_" + y + "_" + z;
                     string currentSlot = SaveLoadManager.main.currentSlot;
+                    //AddDebug("find BaseLight " + currentSlot + " key " + key);
                     if (Main.config.baseLights.ContainsKey(currentSlot) && Main.config.baseLights[currentSlot].ContainsKey(key))
                     {
                         __instance.subLightsOn = Main.config.baseLights[currentSlot][key];
-                        //AddDebug(" BaseLight " + key + " " + __instance.subLightsOn);
+                        //AddDebug("saved BaseLight " + key + " " + __instance.subLightsOn);
                     }
                 }
             }
@@ -120,6 +124,34 @@ namespace Tweaks_Fixes
                     else
                         camerasToRemove = 0;
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(SolarPanel), "OnHandHover")]
+        public static class SolarPanel_OnHandHover_Patch
+        {
+            static bool Prefix(SolarPanel __instance, GUIHand hand)
+            {
+                Constructable c = __instance.gameObject.GetComponent<Constructable>();
+                if (!c || !c.constructed)
+                    return false;
+                HandReticle.main.SetInteractText(Language.main.GetFormat<int, int, int>("SolarPanelStatus", Mathf.RoundToInt(__instance.GetRechargeScalar() * 100f), Mathf.RoundToInt(__instance.powerSource.GetPower()), Mathf.RoundToInt(__instance.powerSource.GetMaxPower())), false);
+                //HandReticle.main.SetIcon(HandReticle.IconType.Hand);
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(BaseUpgradeConsoleGeometry), "GetVehicleInfo")]
+        public class BaseUpgradeConsoleGeometry_GetVehicleInfo_Patch
+        {
+            static bool Prefix(BaseUpgradeConsoleGeometry __instance, Vehicle vehicle, ref string __result)
+            {
+                if (vehicle == null)
+                {
+                    __result = "";
+                    return false;
+                }
+                return true;
             }
         }
 

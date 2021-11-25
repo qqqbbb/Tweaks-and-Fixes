@@ -14,7 +14,7 @@ using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{ // 
+{ // debris 80 -35 100
     class Testing
     {
         private Vector3 ClipWithTerrain(GameObject go)
@@ -46,22 +46,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(DamageOnPickup))]
-        class ReaperLeviathan_Patch
-        {
-            //[HarmonyPatch("OnPickedUp")]
-            //[HarmonyPostfix]
-            static void OnPickedUpPostfix(DamageOnPickup __instance, Pickupable pickupable)
-            {
-                AddDebug("DamageOnPickup OnPickedUp " + __instance.damageChance + " damageOnPickup " + __instance.damageOnPickup);
-            }
-            //[HarmonyPatch("OnKill")]
-            //[HarmonyPostfix]
-            static void OnKillPostfix(DamageOnPickup __instance)
-            {
-                AddDebug("DamageOnPickup OnKill damageAmount " + __instance.damageAmount);
-            }
-        }
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
@@ -122,7 +106,7 @@ namespace Tweaks_Fixes
                     //AddDebug("moving " + moving);
                     GameObject target = Main.guiHand.activeTarget;
                     if (!target)
-                        Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
+                        Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
                     //if (!target)
                     //{
                     //    int numHits = Physics.RaycastNonAlloc(new Ray(MainCamera.camera.transform.position, MainCamera.camera.transform.forward), hits, 2.5f);

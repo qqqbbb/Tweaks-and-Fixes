@@ -116,17 +116,15 @@ namespace Tweaks_Fixes
         [HarmonyPostfix]
         public static void OnHandHoverPostfix(Vehicle __instance)
         {
-            //AddDebug("handLabel " + __instance.handLabel);
+            //AddDebug("SeaMoth_patch.seamothName " + SeaMoth_patch.seamothName);
             //EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
             if (__instance.onGround && !Inventory.main.GetHeld() && __instance is SeaMoth && !__instance.docked && !Player.main.IsSwimming())
             {
-                //string handLabel = Language.main.Get(__instance.handLabel);
-                //HandReticle.main.SetInteractText("Push");
+                HandReticle.main.SetInteractText("Push " + SeaMoth_patch.seamothName, false, HandReticle.Hand.Right);
                 if (GameInput.GetButtonDown(GameInput.Button.RightHand))
                 {
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
                     Vector3 direction = new Vector3(MainCameraControl.main.transform.forward.x, .2f, MainCameraControl.main.transform.forward.z);
-    
                     rb.AddForce(direction * 3333f, ForceMode.Impulse);
                 }
             }
@@ -283,6 +281,7 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(SeaMoth))]
     class SeaMoth_patch
     {
+        public static string seamothName;
         static string exitButton;
         static TechType currentModule;
         static string useButton;
@@ -291,6 +290,7 @@ namespace Tweaks_Fixes
         [HarmonyPostfix]
         public static void StartPostfix(SeaMoth __instance)
         {
+            seamothName = Language.main.Get(TechType.Seamoth);
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance) && Vehicle_patch.dockedVehicles[__instance] == Vehicle.DockType.Cyclops)
                 __instance.animator.Play("seamoth_cyclops_launchbay_dock");
 
@@ -307,6 +307,7 @@ namespace Tweaks_Fixes
         public static void OnPilotModeBeginPostfix(SeaMoth __instance)
         {
             exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " Toggle lights " + TooltipFactory.stringRightHand;
+            seamothName = Language.main.Get(TechType.Seamoth);
         }
 
         [HarmonyPatch("UpdateSounds")]
@@ -351,10 +352,14 @@ namespace Tweaks_Fixes
         public static void OnUpgradeModuleTogglePostfix(SeaMoth __instance, int slotID, bool active)
         {
             currentModule = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[slotID]);
+            string currentModuleName = Language.main.Get(currentModule);
+            currentModuleName = currentModuleName.Replace(seamothName, "");
+            currentModuleName = currentModuleName.TrimStart();
+            currentModuleName = currentModuleName[0].ToString().ToUpper() + currentModuleName.Substring(1); // Uppercase first character
             if (currentModule == TechType.SeamothElectricalDefense)
-                useButton = Language.main.Get(currentModule) + ". Press and hold " + TooltipFactory.stringLeftHand + " to charge the shot.";
+                useButton = currentModuleName + ". Press and hold " + TooltipFactory.stringLeftHand + " to charge the shot.";
             else
-                useButton = Language.main.Get(currentModule) + " " + TooltipFactory.stringLeftHand;
+                useButton = currentModuleName + " " + TooltipFactory.stringLeftHand;
             ItemsContainer storageInSlot = __instance.GetStorageInSlot(slotID, TechType.SeamothTorpedoModule);
             //AddDebug("OnUpgradeModuleToggle " + currentModule + " " + active);
             if (currentModule == TechType.SeamothTorpedoModule)
@@ -403,7 +408,6 @@ namespace Tweaks_Fixes
             __instance.UpdateSounds();
             if (__instance.GetPilotingMode())
             {
-
                 HandReticle.main.SetUseTextRaw(useButton, exitButton);
                 Vector3 vector3 = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
                 float magnitude = Mathf.Clamp(vector3.magnitude, 0f, 1f);
@@ -421,12 +425,11 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(Exosuit))]
     class Exosuit_Patch
     {
+        //public static Exosuit exosuit;
         public static string exosuitName;
         public static string exitButton;
         public static string leftArm ;
         public static string rightArm;
-        public static string leftButton;
-        public static string rightButton;
         public static bool armNamesChanged = false;
         public static bool exosuitStarted = false;
 
@@ -446,6 +449,8 @@ namespace Tweaks_Fixes
             }
             string name = Language.main.Get(TechType.ExosuitTorpedoArmModule);
             name = name.Replace(exosuitName, "");
+            name = name.TrimStart();
+            name = name[0].ToString().ToUpper() + name.Substring(1);
             return name;
         }
 
@@ -459,6 +464,8 @@ namespace Tweaks_Fixes
                 //AddDebug("GetNames TooltipFactory.stringLeftHand " + uGUI.FormatButton(GameInput.Button.LeftHand));
                 leftArm = Language.main.Get(exosuit.currentLeftArmType);
                 leftArm = leftArm.Replace(exosuitName, "");
+                leftArm = leftArm.TrimStart();
+                leftArm = leftArm[0].ToString().ToUpper() + leftArm.Substring(1);
             }
             if (exosuit.currentRightArmType == TechType.ExosuitTorpedoArmModule)
                 rightArm = GetTorpedoName(exosuit, 1);
@@ -466,6 +473,8 @@ namespace Tweaks_Fixes
             {
                 rightArm = Language.main.Get(exosuit.currentRightArmType);
                 rightArm = rightArm.Replace(exosuitName, "");
+                rightArm = rightArm.TrimStart();
+                rightArm = rightArm[0].ToString().ToUpper() + rightArm.Substring(1);
             }
         }
           
@@ -473,11 +482,12 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Start")]
         static void StartPostfix(Exosuit __instance)
         {
+
             //__instance.StartCoroutine(PlayClip(__instance.mainAnimator, "exo_docked"));
             //AddDebug("Start currentLeftArmType " + __instance.currentLeftArmType);
             exosuitName = Language.main.Get("Exosuit");
-            rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
-            leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
+            //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
+            //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
             exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " Toggle lights (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
             GetNames(__instance);
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
@@ -706,10 +716,9 @@ namespace Tweaks_Fixes
             if (Main.vehicleLightsImprovedLoaded)
                 return true;
 
-            //AddDebug("UpdateUIText " + __instance.currentLeftArmType);
             if (armNamesChanged || !__instance.hasInitStrings || __instance.lastHasPropCannon != hasPropCannon)
             {
-                __instance.uiStringPrimary = leftArm + " " + leftButton + "  " + rightArm + " " + rightButton + "  ";
+                __instance.uiStringPrimary = leftArm + " " + TooltipFactory.stringLeftHand + "  " + rightArm + " " + TooltipFactory.stringRightHand + "  ";
                 if (hasPropCannon)
                     __instance.uiStringPrimary += "\n" + LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool);
               __instance.lastHasPropCannon = hasPropCannon;

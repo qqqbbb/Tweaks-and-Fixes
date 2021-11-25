@@ -19,22 +19,37 @@ namespace Tweaks_Fixes
         public static void UpdateStats(Survival __instance)
         {
             //AddDebug("dayNightSpeed  " + DayNightCycle.main.dayNightSpeed);
-            //AddDebug("UpdateStats  " + updateHungerInterval);
+            //AddDebug("UpdateStats timeSprinted " + Player_Movement.timeSprinted);
+            //AddDebug("UpdateStats updateHungerInterval " + (int)updateHungerInterval);
             float oldFood = __instance.food;
             float oldWater = __instance.water;
 
+            if (Player_Movement.timeSprinted > 0f)
+            {
+                float sprintFoodCons = foodCons * Player_Movement.timeSprinted * updateHungerInterval * .01f;
+                //AddDebug("UpdateStats sprintFoodCons " + sprintFoodCons);
+                __instance.food -= sprintFoodCons;
+                __instance.water -= sprintFoodCons;
+                Player_Movement.timeSprintStart = 0f;
+                Player_Movement.timeSprinted = 0f;
+            }
             __instance.food -= foodCons;
             __instance.water -= waterCons;
+            float foodDamage = 0f;
+
             if (__instance.food < -100f)
             {
+                foodDamage = Mathf.Abs(__instance.food + 100f);
                 __instance.food = -100f;
-                Player.main.liveMixin.TakeDamage(1f, Player.main.gameObject.transform.position, DamageType.Starve);
             }
             if (__instance.water < -100f)
             {
+                foodDamage += Mathf.Abs(__instance.water + 100f);
                 __instance.water = -100f;
-                Player.main.liveMixin.TakeDamage(1f, Player.main.gameObject.transform.position, DamageType.Starve);
             }
+            if (foodDamage > 0)
+                Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
+
             float threshold1 = Main.config.newHungerSystem ? 0f : 20f;
             float threshold2 = Main.config.newHungerSystem ? -50f : 10f;
             __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, oldFood, threshold1, threshold2);
@@ -46,80 +61,27 @@ namespace Tweaks_Fixes
             //__instance.Invoke("UpdateHunger", updateHungerInterval);
         }
 
-        //[HarmonyPatch(typeof(Player), "Update")]
-        class Player_Update_patch
-        {
-            public static void Postfix(Player __instance)
-            {
-                if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.loadingDone)
-                    return;
-
-                if (hungerUpdateTime > Time.time)
-                    return;
-
-                if (Main.config.newHungerSystem)
-                {
-                    UpdateStats(Main.survival);
-                    //__instance.Invoke("UpdateHunger", updateHungerInterval);
-                    //AddDebug("updateHungerInterval " + updateHungerInterval);
-                }
-                else
-                    Main.survival.UpdateHunger();
-            }
-        }
-
-        [HarmonyPatch(typeof(Survival), "Start")]
+        [HarmonyPatch(typeof(Survival))]
         class Survival_Start_patch
         {
-            public static void Postfix(Survival __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(Survival __instance)
             {
                 __instance.CancelInvoke();
-                //if (Main.config.replaceHungerDamage)
-                //{
-                    //AddDebug("Survival Start");
-                    //__instance.Invoke("UpdateHunger", updateHungerInterval);
-                    //AddDebug("updateHungerInterval " + updateHungerInterval);
-                //}
             }
-        }
 
-        //[HarmonyPatch(typeof(Survival), "UpdateHunger")]
-        internal class Survival_UpdateHunger_Patch
-        {
-            internal static bool Prefix(Survival __instance)
-            {
-                //AddDebug("UpdateHunger ");
-                if (Main.config.newHungerSystem)
-                {
-                    //UpdateStats(__instance);
-                    return false;
-                }
-                //if (Main.config.hungerUpdateInterval != 10)
-                //    return false;
-                //if (!GameModeUtils.RequiresSurvival())
-                //    return false;
-
-                //AddDebug("kUpdateHungerInterval " + __instance.kUpdateHungerInterval);
-                //__instance.UpdateStats(Main.config.hungerUpdateInterval);
-                //UpdateStats(__instance);
-                return true;
-            }
-        }
-
-        [HarmonyPatch(typeof(Survival), "UpdateHunger")]
-        internal class Survival_UpdateHunger_Postfix_Patch
-        {
-            internal static void Postfix(Survival __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("UpdateHunger")]
+            internal static void UpdateHungerPostfix(Survival __instance)
             {
                 //AddDebug("UpdateHunger " + updateHungerInterval);
-                hungerUpdateTime = Time.time + updateHungerInterval; 
+                hungerUpdateTime = Time.time + updateHungerInterval;
             }
-        }
 
-        [HarmonyPatch(typeof(Survival), "GetWeaknessSpeedScalar")]
-        internal class Survival_GetWeaknessSpeedScalar_Patch
-        {
-            public static bool Prefix(Survival __instance, ref float __result)
+            [HarmonyPrefix]
+            [HarmonyPatch("GetWeaknessSpeedScalar")]
+            public static bool GetWeaknessSpeedScalarPrefix(Survival __instance, ref float __result)
             {
                 if (!Main.config.newHungerSystem)
                     return true;
@@ -140,25 +102,10 @@ namespace Tweaks_Fixes
                 //AddDebug("WeaknessSpeedScalar " + __result);
                 return false;
             }
-        }
 
-        //[HarmonyPatch(typeof(Survival), "UpdateStats")]
-        class Survival_UpdateStats_patch
-        {  
-            public static bool Prefix(Survival __instance)
-            {
-                if (!Main.config.newHungerSystem)
-                    return true;
-
-                //UpdateStats(__instance);
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Survival), "Eat")]
-        class Survival_Eat_patch
-        {
-            public static bool Prefix(Survival __instance, GameObject useObj, ref bool __result)
+            [HarmonyPrefix]
+            [HarmonyPatch("Eat")]
+            public static bool EatPrefix(Survival __instance, GameObject useObj, ref bool __result)
             {
                 if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla && !Main.config.newHungerSystem)
                     return true;
@@ -266,7 +213,7 @@ namespace Tweaks_Fixes
 
                 if (techType == TechType.Bladderfish)
                     Player.main.GetComponent<OxygenManager>().AddOxygen(15f);
-                Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater); 
+                Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
                 Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
                 int warn = Main.config.newHungerSystem ? 0 : 20;
                 if (finalWater > 0 && __instance.water > warn && __instance.water - finalWater < warn)
@@ -279,6 +226,8 @@ namespace Tweaks_Fixes
                 __result = true;
                 return false;
             }
+
+
         }
 
         [HarmonyPatch(typeof(Eatable), "Awake")]

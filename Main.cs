@@ -230,7 +230,7 @@ namespace Tweaks_Fixes
                 //if (uGUI.main.loading.isLoading)
                 //{
                 //    AddDebug(" is Loading");
-                    //    return;
+                //    return;
                 //}
                 if (!uGUI.main.hud.active)
                 {

@@ -187,7 +187,7 @@ namespace Tweaks_Fixes
                 if (!Main.config.realOxygenCons)
                     return true;
 
-                if (Player.main.currentSub || __instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
+                if (__instance.currentSub || __instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
                 {
                     //AddDebug("safe ox consump " );
                     __result = 3f;

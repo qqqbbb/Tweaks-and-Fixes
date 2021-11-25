@@ -10,7 +10,7 @@ namespace Tweaks_Fixes
 {  
     public class Cyclops_Patch
     {
-        static Rigidbody rb; // assuming there is only 1 cyclops
+        static Rigidbody cyclopsRB;
         public static CyclopsEntryHatch ceh;
         //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
@@ -80,9 +80,10 @@ namespace Tweaks_Fixes
             public static void StartPilotingPrefix(CyclopsHelmHUDManager __instance)
             {
                 {
+                    cyclopsRB = __instance.transform.parent.GetComponent<Rigidbody>();
                     Vehicle_patch.currentVehicleTT = TechType.Cyclops;
                     Vehicle_patch.currentLights = __instance.transform.parent.Find("Floodlights").GetComponentsInChildren<Light>(true);
-                    //AddDebug("StartPiloting  " + Vehicle_patch.currentLights.Length);
+                    //AddDebug("StartPiloting  " + rb.mass);
                     //AddDebug(" " + __instance.transform.parent.name);
                     //__instance.canvasGroup.alpha = 0f;
                 }
@@ -126,7 +127,6 @@ namespace Tweaks_Fixes
             {
                 //if (Main.config.vehicleMoveTweaks) 
                 //{ 
-                    rb = __instance.GetComponent<Rigidbody>();
                 //__instance.BaseVerticalAccel = __instance.BaseForwardAccel * .5f;
                 //}
                 TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
@@ -225,7 +225,7 @@ namespace Tweaks_Fixes
                 {
                     float baseTurningTorque = __instance.BaseTurningTorque;
                     if (__instance.canAccel)
-                        rb.AddTorque(__instance.sub.subAxis.up * baseTurningTorque * __instance.turnScale * __instance.throttle.x, ForceMode.Acceleration);
+                        cyclopsRB.AddTorque(__instance.sub.subAxis.up * baseTurningTorque * __instance.turnScale * __instance.throttle.x, ForceMode.Acceleration);
 
                     ShipSide useShipSide;
                     if (__instance.throttle.x > 0.0)
@@ -253,17 +253,17 @@ namespace Tweaks_Fixes
                     Vector3 accel = Vector3.up * num * __instance.accelScale * __instance.throttle.y;
                     //AddDebug("accel  " + accel);
                     if (__instance.canAccel)
-                        rb.AddForce(accel, ForceMode.Acceleration);
+                        cyclopsRB.AddForce(accel, ForceMode.Acceleration);
                 }
                 if (__instance.canAccel)
                 {
                     if (__instance.throttle.z > 0.0001f)
                     {
-                        rb.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
+                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
                     }
                     else if (__instance.throttle.z < -0.0001f)
                     {
-                        rb.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * .5f * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
+                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * .5f * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
                     }
                 }
                 __instance.steeringWheelYaw = Mathf.Lerp(__instance.steeringWheelYaw, b1, Time.deltaTime * __instance.steeringReponsiveness);

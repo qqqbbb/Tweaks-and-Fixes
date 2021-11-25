@@ -22,6 +22,16 @@ namespace Tweaks_Fixes
                 renderers[i].enabled = false;
         }
 
+        static void MakeImmuneToCannon(GameObject go)
+        {
+            Rigidbody rb = go.GetComponent<Rigidbody>();
+            if (rb)
+                UnityEngine.Object.Destroy(rb);
+            WorldForces wf = go.GetComponent<WorldForces>();
+            if (wf)
+                UnityEngine.Object.Destroy(wf);
+        }
+
         [HarmonyPatch(typeof(LargeWorldEntity))]
         class LargeWorldEntity_Awake_Patch
         {
@@ -35,8 +45,10 @@ namespace Tweaks_Fixes
                 //    immuneToPropC.Add(__instance.name);
                 //    Main.Log("ImmuneToPropulsioncannon " + __instance.name + " " + tt);
                 //}
-                if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
-                    Main.Log("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
+                //    Main.Log("Closest LargeWorldEntity " + __instance.name + " " + tt);
+
+
                 if (tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
                     int x = (int)__instance.transform.position.x;
@@ -63,14 +75,23 @@ namespace Tweaks_Fixes
                 }
                 else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
                     AlwaysUseHiPolyMesh(__instance.gameObject);
-                else if (tt == TechType.FarmingTray || tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree || tt == TechType.BulboTree)
-                { // make them immune to prop and rep cannon
-                    Rigidbody rb = __instance.GetComponent<Rigidbody>();
-                    if (rb)
-                        UnityEngine.Object.Destroy(rb);
-                    WorldForces wf = __instance.GetComponent<WorldForces>();
-                    if (wf)
-                        UnityEngine.Object.Destroy(wf);
+                else if (tt == TechType.BulboTree || tt == TechType.PurpleVasePlant || tt == TechType.OrangePetalsPlant || tt == TechType.PinkMushroom || tt == TechType.PurpleRattle)
+                {
+                    MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
+                    foreach (MeshRenderer mr in mrs)
+                    {
+                        foreach (Material m in mr.materials)
+                        {
+                            //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
+                            m.DisableKeyword("UWE_WAVING");
+                        }
+                    }
+                    if (tt == TechType.BulboTree)
+                        MakeImmuneToCannon(__instance.gameObject);
+                }
+                else if (tt == TechType.FarmingTray || tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree)
+                {
+                    MakeImmuneToCannon(__instance.gameObject);
                 }
                 else if (tt == TechType.WhiteMushroom)
                     AlwaysUseHiPolyMesh(__instance.gameObject);
@@ -96,18 +117,7 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                else if (tt == TechType.BulboTree || tt == TechType.PurpleVasePlant || tt == TechType.OrangePetalsPlant || tt == TechType.PinkMushroom || tt == TechType.PurpleRattle)
-                {
-                    MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
-                    foreach (MeshRenderer mr in mrs)
-                    {
-                        foreach (Material m in mr.materials)
-                        {
-                            //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
-                            m.DisableKeyword("UWE_WAVING");
-                        }
-                    }
-                }
+
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
                     int x = (int)__instance.transform.position.x;

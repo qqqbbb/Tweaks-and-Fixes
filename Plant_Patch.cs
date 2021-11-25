@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
-// need to test spawning seeds while they are disabled
+
 namespace Tweaks_Fixes
 {
     class Plants_Patch
@@ -49,12 +49,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(GrowingPlant), "OnEnable")]
-        class GrowingPlant_OnEnable_Patch
+        [HarmonyPatch(typeof(GrowingPlant))]
+        class GrowingPlant_Patch
         {
-            public static void Postfix(GrowingPlant __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnEnable")]
+            public static void OnEnablePostfix(GrowingPlant __instance)
             {
-                if(__instance.name == "GrowingBulboTreePiece(Clone)")
+                if (__instance.name == "GrowingBulboTreePiece(Clone)")
                 {
                     MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
                     foreach (MeshRenderer mr in mrs)
@@ -66,6 +68,38 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
+            }
+            //[HarmonyPrefix]
+            //[HarmonyPatch("GetGrowthDuration")]
+            public static bool GetGrowthDurationPrefix(GrowingPlant __instance, ref float __result)
+            {
+                //__result = __instance.growthDuration * Main.config.plantGrowthTimeMult * (NoCostConsoleCommand.main.fastGrowCheat ? 0.01f : 1f);
+                return false;
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("SetScale")]
+            static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
+            {
+                TechType tt = __instance.seed.plantTechType;
+                if (tt == TechType.MelonPlant)
+                {
+                    float mult = 1.2f;
+                    float num = __instance.isIndoor ? __instance.growthWidthIndoor.Evaluate(progress) : __instance.growthWidth.Evaluate(progress);
+                    float y = __instance.isIndoor ? __instance.growthHeightIndoor.Evaluate(progress) : __instance.growthHeight.Evaluate(progress);
+                    num *= mult;
+                    tr.localScale = new Vector3(num, y * mult, num);
+                    if (__instance.passYbounds != null)
+                        __instance.passYbounds.UpdateWavingScale(tr.localScale);
+                    else
+                    {
+                        if (__instance.wavingScaler != null)
+                            __instance.wavingScaler.UpdateWavingScale(tr.localScale);
+                    }
+                    //AddDebug("SnowStalkerPlant maxProgress " + __instance.maxProgress);
+                    return false;
+                }
+                return true;
             }
         }
                
@@ -239,7 +273,33 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-       
+
+        [HarmonyPatch(typeof(Planter), "AddItem", new Type[1] { typeof(InventoryItem) })]
+        class Planter_AddItem_Patch
+        {
+            static void Prefix(Planter __instance, InventoryItem item)
+            {
+                Plantable p = item.item.GetComponent<Plantable>();
+                if (p.plantTechType == TechType.MelonPlant)
+                {
+                    //AddDebug("Planter AddItem fix " + p.plantTechType);
+                    p.size = Plantable.PlantSize.Large;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Plantable), "Spawn")]
+        internal class Plantable_Spawn_Patch
+        {
+            public static void Postfix(ref GameObject __result)
+            {
+                //AddDebug("Plantable Spawn " + __result.name);
+                Vector3 rot = __result.transform.eulerAngles;
+                float y = UnityEngine.Random.Range(0, 360);
+                __result.transform.eulerAngles = new Vector3(rot.x, y, rot.z);
+            }
+        }
+
         //[HarmonyPatch(typeof(InteractionVolumeCollider))]
         class InteractionVolumeUser_Patch
         {

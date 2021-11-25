@@ -28,10 +28,12 @@ namespace Tweaks_Fixes
             Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
-        [HarmonyPatch(typeof(Inventory), "OnEquip")]
-        class Inventory_OnEquip_Patch
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_Patch
         {
-            static void Postfix(Inventory __instance, InventoryItem item)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnEquip")]
+            static void OnEquipPostfix(Inventory __instance, InventoryItem item)
             {
                 //AddDebug("crushDepthEquipment.Count " + crushDepthEquipment.Count);
                 TechType tt = item.item.GetTechType();
@@ -43,12 +45,9 @@ namespace Tweaks_Fixes
                     //AddDebug("crushDepth " + Main.config.crushDepth);
                 }
             }
-        }
-
-        [HarmonyPatch(typeof(Inventory), "OnUnequip")]
-        class Inventory_OnUnequip_Patch
-        {
-            static void Postfix(Inventory __instance, InventoryItem item)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnUnequip")]
+            static void OnUnequipPostfix(Inventory __instance, InventoryItem item)
             {
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
                 //TechTypeExtensions.FromString(loot.Key, out TechType tt, false);
@@ -63,11 +62,12 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        [HarmonyPatch(typeof(CrushDamage), "CrushDamageUpdate")]
-        class DamageSystem_CalculateDamage_Patch
+        [HarmonyPatch(typeof(CrushDamage))]
+        class DamageSystem_Patch
         { // player does not have this
-            public static bool Prefix(CrushDamage __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("CrushDamageUpdate")]
+            public static bool CrushDamageUpdatePrefix(CrushDamage __instance)
             {
                 if (Main.config.vehicleCrushDamageMult == 0f)
                     return true;
@@ -84,6 +84,22 @@ namespace Tweaks_Fixes
                 __instance.liveMixin.TakeDamage(damage, __instance.transform.position, DamageType.Pressure);
                 if (__instance.soundOnDamage)
                     __instance.soundOnDamage.Play();
+
+                return false;
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("UpdateDepthClassification")]
+            public static bool UpdateDepthClassificationPrefix(CrushDamage __instance)
+            {
+                if (!__instance.gameObject.activeInHierarchy)
+                    return false;
+                float crushDepth1 = __instance.crushDepth;
+                __instance.crushDepth = __instance.kBaseCrushDepth + __instance.extraCrushDepth;
+                float crushDepth2 = __instance.crushDepth;
+                if (!Main.loadingDone || Mathf.Approximately(crushDepth1, crushDepth2))
+                    return false;
+                ErrorMessage.AddMessage(Language.main.GetFormat<float>("CrushDepthNow", __instance.crushDepth));
 
                 return false;
             }

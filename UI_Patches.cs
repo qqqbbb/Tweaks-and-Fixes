@@ -431,7 +431,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(uGUI_FoodBar), "LateUpdate")]
         class uGUI_FoodBar_LateUpdate_Patch
         {
@@ -507,7 +506,6 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
 
         [HarmonyPatch(typeof(uGUI_WaterBar), "LateUpdate")]
         class uGUI_WaterBar_LateUpdate_Patch

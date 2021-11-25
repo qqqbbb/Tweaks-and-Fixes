@@ -266,6 +266,31 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(VoiceNotification), "Play", new Type[1] { typeof(object[]) })]
+        class VoiceNotification_Play_Patch
+        {
+            public static bool Prefix(VoiceNotification __instance)
+            {
+                //AddDebug("VoiceNotification Play");
+                if (!Main.loadingDone)
+                    return false;
+
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(SoundQueue), "PlayQueued", new Type[2] { typeof(string), typeof(string) })]
+        class SoundQueue_PlayQueued_Patch
+        {
+            public static bool Prefix(SoundQueue __instance, string sound)
+            {
+                //AddDebug(" PlayQueued  " + sound);
+                if (!Main.loadingDone)
+                    return false;
+
+                return true;
+            }
+        }
 
     }
 }
