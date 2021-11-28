@@ -358,52 +358,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(VehicleDockingBay))]
-        internal class VehicleDockingBay_LaunchbayAreaEnter_Patch
-        { // dont play sfx if another vehicle docked
-            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaEnter))]
-            [HarmonyPrefix]
-            public static bool LaunchbayAreaEnterPrefix(VehicleDockingBay __instance)
-            {
-                return !__instance._dockedVehicle;
-            }
-            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaExit))]
-            [HarmonyPrefix]
-            public static bool LaunchbayAreaExitPrefix(VehicleDockingBay __instance)
-            {
-                return !__instance._dockedVehicle;
-            }
-            //[HarmonyPatch(nameof(VehicleDockingBay.UpdateDockedPosition))]
-            //[HarmonyPrefix]
-            public static void UpdateDockedPositionPrefix(VehicleDockingBay __instance, Vehicle vehicle, ref float interpfraction)
-            {
-                AddDebug("UpdateDockedPosition " + vehicle.transform.position);
-                //if (!properlyDocked)
-                //interpfraction = 0;
-                //AddDebug("interpfraction " + interpfraction);
-            }
-            //96.7 -19.1 20.4 
-            //96.6 -17.1 21.2
-            //[HarmonyPatch(nameof(VehicleDockingBay.SetVehicleDocked))]
-            //[HarmonyPostfix]
-            public static void SetVehicleDockedPrefix(VehicleDockingBay __instance, Vehicle vehicle)
-            {
-                //properlyDocked = false;
-                //__instance.exosuitDockPlayerCinematic.StartCinematicMode(Player.main);
-                //__instance.DockVehicle(vehicle);
-                //__instance.GetSubRoot().BroadcastMessage("UnlockDoors", SendMessageOptions.DontRequireReceiver);
-                //SafeAnimator.SetBool(__instance.animator, "exosuit_docked", true);
-                AddDebug("SetVehicleDocked");
-            }
-            //[HarmonyPatch(nameof(VehicleDockingBay.DockVehicle))]
-            //[HarmonyPrefix]
-            public static void DockVehiclePrefix(VehicleDockingBay __instance, Vehicle vehicle)
-            {
-                AddDebug("DockVehicle");
-            }
-        }
-
-
 
     }
 }

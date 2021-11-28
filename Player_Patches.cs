@@ -44,9 +44,11 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Player), "Start")]
-        class Player_Start_Patch
+        [HarmonyPatch(typeof(Player))]
+        class Player_Patch
         {
+            private static float crushTime = 0f;
+
             static IEnumerator Test()
             {
                 //AddDebug("Test start ");
@@ -56,7 +58,9 @@ namespace Tweaks_Fixes
                 AddDebug("Test end ");
             }
 
-            static void Postfix(Player __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPostfix(Player __instance)
             {
                 Main.survival = __instance.GetComponent<Survival>();
                 //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
@@ -65,16 +69,11 @@ namespace Tweaks_Fixes
                 if (Main.config.cantScanExosuitClawArm)
                     DisableExosuitClawArmScan();
             }
-        }
 
-        [HarmonyPatch(typeof(Player), "Update")]
-        class Player_Update_Patch
-        {
-            private static float crushTime = 0f;
-
-            static void Postfix(Player __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Update")]
+            static void UpdatePostfix(Player __instance)
             {
-
                 if (__instance.currentMountedVehicle)
                     Vehicle_patch.UpdateLights();
                 else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
@@ -112,26 +111,10 @@ namespace Tweaks_Fixes
                 else
                     Main.survival.UpdateHunger();
             }
-        }
 
-        //[HarmonyPatch(typeof(CrushDamage), "GetDepth")]
-        internal class CrushDamage_GetDepth_Patch
-        {
-            public static void Prefix(CrushDamage __instance)
-            {
-                if (__instance.depthCache == null)
-                {
-                    AddDebug("__instance.depthCache == null");
-                }
-                else
-                    AddDebug("depthCache" + __instance.depthCache.Get());
-            }
-        }
-
-        [HarmonyPatch(typeof(Player), "GetDepthClass")]
-        internal class Player_GetDepthClass_Patch
-        {
-            public static bool Prefix(Player __instance, ref Ocean.DepthClass __result)
+            [HarmonyPrefix]
+            [HarmonyPatch("GetDepthClass")]
+            public static bool GetDepthClassPrefix(Player __instance, ref Ocean.DepthClass __result)
             {
                 //AddDebug("GetDepthClass");
                 Ocean.DepthClass depthClass = Ocean.DepthClass.Surface;
@@ -161,6 +144,30 @@ namespace Tweaks_Fixes
                 }
                 __result = depthClass;
                 return false;
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("CanBeAttacked")]
+            public static bool Prefix(Player __instance, ref bool __result)
+            {
+                //AddDebug("AggressiveWhenSeeTarget start " + __instance.myTechType + " " + __instance.maxSearchRings);
+                //__result = !__instance.IsInsideWalkable() && !__instance.justSpawned && !GameModeUtils.IsInvisible() && !Player.main.precursorOutOfWater && !PrecursorMoonPoolTrigger.inMoonpool;
+                __result = !__instance.IsInsideWalkable() && !__instance.justSpawned && !GameModeUtils.IsInvisible() && Main.config.aggrMult > 0f;
+                return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(CrushDamage), "GetDepth")]
+        internal class CrushDamage_GetDepth_Patch
+        {
+            public static void Prefix(CrushDamage __instance)
+            {
+                if (__instance.depthCache == null)
+                {
+                    AddDebug("__instance.depthCache == null");
+                }
+                else
+                    AddDebug("depthCache" + __instance.depthCache.Get());
             }
         }
 

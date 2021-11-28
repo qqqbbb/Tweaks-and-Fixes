@@ -90,18 +90,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Player), "CanBeAttacked")]
-        internal class Player_CanBeAttacked_Patch
-        {
-            public static bool Prefix(Player __instance, ref bool __result)
-            {
-                //AddDebug("AggressiveWhenSeeTarget start " + __instance.myTechType + " " + __instance.maxSearchRings);
-                //__result = !__instance.IsInsideWalkable() && !__instance.justSpawned && !GameModeUtils.IsInvisible() && !Player.main.precursorOutOfWater && !PrecursorMoonPoolTrigger.inMoonpool;
-                __result = !__instance.IsInsideWalkable() && !__instance.justSpawned && !GameModeUtils.IsInvisible() && Main.config.aggrMult > 0f;
-                return false;
-            }
-        }
-
         [HarmonyPatch(typeof(AggressiveWhenSeeTarget))]
         internal class AggressiveWhenSeeTarget_Patch
         {
@@ -541,15 +529,15 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(AggressiveToPilotingVehicle __instance)
             {
-                Player main = Player.main;
-                if (main == null || main.GetMode() != Player.Mode.LockedPiloting)
+                Player player = Player.main;
+                if (player == null || player.GetMode() != Player.Mode.LockedPiloting)
                     return false;
                 if (Main.config.aggrMult == 0)
                     return false;
                 TechType myTT = CraftData.GetTechType(__instance.gameObject);
                 if (Main.config.predatorExclusion.Contains(myTT))
                     return false;
-                Vehicle vehicle = main.GetVehicle();
+                Vehicle vehicle = player.GetVehicle();
                 if (vehicle == null || vehicle.prevVelocity == Vector3.zero || Vector3.Distance(vehicle.transform.position, __instance.transform.position) > __instance.range * Main.config.aggrMult)
                     return false;
                 //__instance.creature.GetCanSeeObject(Player.main.gameObject))
@@ -572,6 +560,7 @@ namespace Tweaks_Fixes
                 //AddDebug(tt + " canBitePlayer " + __instance.canBitePlayer + " canBiteVehicle " + __instance.canBiteVehicle + " canBiteCyclops " + __instance.canBiteCyclops);
                 //testMeleeAttack.Add(tt + " canBitePlayer " + __instance.canBitePlayer + " canBiteVehicle " + __instance.canBiteVehicle + " canBiteCyclops " + __instance.canBiteCyclops);
             }
+           
             [HarmonyPrefix]
             [HarmonyPatch("CanBite")]
             public static bool CanBitePrefix(MeleeAttack __instance, GameObject target, ref bool __result)
@@ -594,32 +583,45 @@ namespace Tweaks_Fixes
                 SubRoot subRoot = target.GetComponent<SubRoot>();
                 if (subRoot && subRoot.isCyclops)
                 {
+                    //AddDebug("MeleeAttack CanBite SubRoot");
                     if (Main.config.aggrMult == 0f && !__instance.canBiteCyclops)
                     {
                         __result = false;
                         return false;
                     }
+   
                     IEcoTarget ecoTarget = EcoRegionManager.main.FindNearestTarget(EcoTargetType.SubDecoy, __instance.transform.position);
                     if (ecoTarget != null)
                     {
                         __result = false;
                         return false;
                     }
-                    bool inSub = player.currentSub && player.currentSub == subRoot;
+
+                    bool inSub = Player.main.currentSub && Player.main.currentSub == subRoot;
+                    //AddDebug("inSub " + inSub);
                     if (inSub)
                     {
-                        __result = player.CanBeAttacked();
+                        //AddDebug("inSub __result " + __result);
+                        __result = __instance.canBiteCyclops;
                         return false;
                     }
                     else
                     {
                         if (Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Yes)
-                            return true;
-                        else if (Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Vanilla || Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.No)
+                        {
+                            __result = true;
                             return false;
-
+                        }
+                        else if (Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Vanilla || Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.No)
+                        {
+                            __result = false;
+                            return false;
+                        }
                         bool lightOn = subRoot.noiseManager.lightingPanel.lightingOn || subRoot.noiseManager.lightingPanel.floodlightsOn;
-                        return Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Only_if_lights_on && lightOn;
+                        {
+                            __result = Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Only_if_lights_on && lightOn;
+                            return false;
+                        }
                     }
                 }
                 Vehicle vehicle = target.GetComponent<Vehicle>();

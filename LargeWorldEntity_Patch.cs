@@ -47,8 +47,6 @@ namespace Tweaks_Fixes
                 //}
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
                 //    Main.Log("Closest LargeWorldEntity " + __instance.name + " " + tt);
-
-
                 if (tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
                     int x = (int)__instance.transform.position.x;

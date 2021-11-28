@@ -42,10 +42,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(DealDamageOnImpact), "Start")]
-        class DealDamageOnImpact_Start_patch
+        [HarmonyPatch(typeof(DealDamageOnImpact))]
+        class DealDamageOnImpact_patch
         {
-            public static void Postfix(DealDamageOnImpact __instance)
+            static Rigidbody prevColTarget;
+
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(DealDamageOnImpact __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //AddDebug(" DealDamageOnImpact start " +__instance.gameObject.name);
@@ -63,14 +67,10 @@ namespace Tweaks_Fixes
                     //AddDebug(tt + " exception " );
                 }
             }
-        }
 
-        [HarmonyPatch(typeof(DealDamageOnImpact), "OnCollisionEnter")]
-        class Vehicle_OnCollisionEnter_patch
-        {
-            static Rigidbody prevColTarget;
-
-            public static bool Prefix(DealDamageOnImpact __instance, Collision collision)
+            [HarmonyPrefix]
+            [HarmonyPatch("OnCollisionEnter")]
+            public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
                     return false;
@@ -372,10 +372,10 @@ namespace Tweaks_Fixes
             }
 
             //[HarmonyPostfix]
-            //[HarmonyPatch(nameof(LiveMixin.TakeDamage))]
+            //[HarmonyPatch("TakeDamage")]
             static void TakeDamagePostfix(LiveMixin __instance, bool __result, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
             {
-                //if (__instance.gameObject == Player.mainObject)
+                if (__instance.gameObject.GetComponent<SubControl>())
                 {
                     AddDebug(__instance.name + " TakeDamage Postfix " + originalDamage + " " + type);
                 }
