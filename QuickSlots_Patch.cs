@@ -14,7 +14,6 @@ namespace Tweaks_Fixes
         static Queue<InventoryItem> toEqiup;
         static HashSet<TechType> toEqiupTT;
 
-
         public static bool invChanged = true; 
 
         public static void GetTools()

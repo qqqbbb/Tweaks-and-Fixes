@@ -40,11 +40,6 @@ namespace Tweaks_Fixes
             public static void AwakePostfix(LargeWorldEntity __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //if (__instance.GetComponent<ImmuneToPropulsioncannon>() && !immuneToPropC.Contains(__instance.name))
-                //{
-                //    immuneToPropC.Add(__instance.name);
-                //    Main.Log("ImmuneToPropulsioncannon " + __instance.name + " " + tt);
-                //}
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
                 //    Main.Log("Closest LargeWorldEntity " + __instance.name + " " + tt);
                 if (tt == TechType.BigCoralTubes)

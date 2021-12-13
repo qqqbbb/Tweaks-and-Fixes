@@ -583,20 +583,17 @@ namespace Tweaks_Fixes
                 SubRoot subRoot = target.GetComponent<SubRoot>();
                 if (subRoot && subRoot.isCyclops)
                 {
-                    //AddDebug("MeleeAttack CanBite SubRoot");
                     if (Main.config.aggrMult == 0f && !__instance.canBiteCyclops)
                     {
                         __result = false;
                         return false;
                     }
-   
                     IEcoTarget ecoTarget = EcoRegionManager.main.FindNearestTarget(EcoTargetType.SubDecoy, __instance.transform.position);
                     if (ecoTarget != null)
                     {
                         __result = false;
                         return false;
                     }
-
                     bool inSub = Player.main.currentSub && Player.main.currentSub == subRoot;
                     //AddDebug("inSub " + inSub);
                     if (inSub)

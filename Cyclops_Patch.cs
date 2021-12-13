@@ -7,9 +7,10 @@ using UnityEngine.UI;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{  
+{
     public class Cyclops_Patch
     {
+        static bool cyclopsHolographicHUDlastState = false;
         static Rigidbody cyclopsRB;
         public static CyclopsEntryHatch ceh;
         //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
@@ -46,26 +47,17 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SubRoot), "ForceLightingState")]
-        class SubRoot_ForceLightingState_Patch
-        {
-            public static void Postfix(SubRoot __instance, bool lightingOn)
-            {
-                __instance.interiorSky.affectedByDayNightCycle = Main.config.cyclopsSunlight && !lightingOn;
-                //AddDebug("affectedByDayNightCycle " + __instance.interiorSky.affectedByDayNightCycle);
-            }
-        }
-
         [HarmonyPatch(typeof(CyclopsHelmHUDManager))]
         class CyclopsHelmHUDManager_Patch
         {
-            [HarmonyPatch(nameof(CyclopsHelmHUDManager.Update))]
             [HarmonyPostfix]
+            [HarmonyPatch("Update")]
             public static void UpdatePostfix(CyclopsHelmHUDManager __instance)
             {
                 //if (Player.main.currentSub && Player.main.currentSub == __instance.subRoot)
                 {
-                    __instance.hudActive = Player.main.currentSub && Player.main.currentSub == __instance.subRoot;
+                    bool powerOn = __instance.subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
+                    __instance.hudActive = powerOn && Player.main.currentSub && Player.main.currentSub == __instance.subRoot;
                     if (__instance.motorMode.engineOn) // hide speed selector when engine off
                         __instance.engineToggleAnimator.SetTrigger("EngineOn");
                     else
@@ -75,25 +67,52 @@ namespace Tweaks_Fixes
                     //__instance.canvasGroup.alpha = 0f;
                 }
             }
-            [HarmonyPatch(nameof(CyclopsHelmHUDManager.StartPiloting))]
-            [HarmonyPrefix]
-            public static void StartPilotingPrefix(CyclopsHelmHUDManager __instance)
+          
+            [HarmonyPostfix]
+            [HarmonyPatch("StartPiloting")]
+            public static void StartPilotingPostfix(CyclopsHelmHUDManager __instance)
             {
-                {
-                    cyclopsRB = __instance.transform.parent.GetComponent<Rigidbody>();
-                    Vehicle_patch.currentVehicleTT = TechType.Cyclops;
-                    Vehicle_patch.currentLights = __instance.transform.parent.Find("Floodlights").GetComponentsInChildren<Light>(true);
-                    //AddDebug("StartPiloting  " + rb.mass);
-                    //AddDebug(" " + __instance.transform.parent.name);
-                    //__instance.canvasGroup.alpha = 0f;
-                }
+                cyclopsRB = __instance.transform.parent.GetComponent<Rigidbody>();
+                Vehicle_patch.currentVehicleTT = TechType.Cyclops;
+                Vehicle_patch.currentLights = __instance.transform.parent.Find("Floodlights").GetComponentsInChildren<Light>(true);
+                //AddDebug("StartPiloting  " + rb.mass);
+                //AddDebug(" " + __instance.transform.parent.name);
+                //__instance.canvasGroup.alpha = 0f;
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("StopPiloting")]
+            public static void StopPilotingPostfix(CyclopsHelmHUDManager __instance)
+            {
+                Vehicle_patch.currentLights[0] = null;
+                //AddDebug("StopPiloting  ");
             }
         }
 
-        [HarmonyPatch(typeof(SubRoot), "OnProtoSerialize")]
-        class SubRoot_OnProtoSerialize_Patch
+        [HarmonyPatch(typeof(SubRoot))]
+        class SubRoot_Patch
         {
-            public static void Postfix(SubRoot __instance)
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
+            public static void StartPostfix(SubRoot __instance)
+            {
+                Transform upgradeConsole = __instance.transform.Find("submarine_engine_console_01_wide");
+                if (upgradeConsole)
+                {
+                    AddDebug("upgradeConsole");
+                    MeshRenderer[] mrs = upgradeConsole.GetComponentsInChildren<MeshRenderer>();
+                    foreach (MeshRenderer mr in mrs)
+                    {
+                        foreach (Material m in mr.materials)
+                            m.DisableKeyword("MARMO_EMISSION");
+                    }
+                }
+                else
+                    AddDebug("no upgradeConsole");
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnProtoSerialize")]
+            public static void OnProtoSerializePostfix(SubRoot __instance)
             {
                 CyclopsMotorMode cyclopsMotorMode = __instance.GetComponent<CyclopsMotorMode>();
                 if (cyclopsMotorMode)
@@ -102,6 +121,13 @@ namespace Tweaks_Fixes
                     //AddDebug("save subThrottleIndex");
                     Main.config.Save();
                 }
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("ForceLightingState")]
+            public static void ForceLightingStatePostfix(SubRoot __instance, bool lightingOn)
+            {
+                __instance.interiorSky.affectedByDayNightCycle = Main.config.cyclopsSunlight && !lightingOn;
+                //AddDebug("affectedByDayNightCycle " + __instance.interiorSky.affectedByDayNightCycle);
             }
         }
 
@@ -317,14 +343,61 @@ namespace Tweaks_Fixes
             {
                 float amountConsumed = 0f;
                 // dont consume power when engine is off
-                if (Player.main.currentSub && Player.main.currentSub.noiseManager &&  Player.main.currentSub.noiseManager.noiseScalar == 0f)
+                if (Player.main.currentSub && Player.main.currentSub.noiseManager && Player.main.currentSub.noiseManager.noiseScalar == 0f)
                     return false;
 
                 if (__instance.subRoot.powerRelay.ConsumeEnergy(__instance.subRoot.silentRunningPowerCost, out amountConsumed))
                     return false;
                 __instance.TurnOffSilentRunning();
-  
+
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(VehicleDockingBay))]
+        internal class VehicleDockingBay_LaunchbayAreaEnter_Patch
+        { // dont play sfx if another vehicle docked
+            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaEnter))]
+            [HarmonyPrefix]
+            public static bool LaunchbayAreaEnterPrefix(VehicleDockingBay __instance)
+            {
+                if (__instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
+                    return false;
+                return !__instance._dockedVehicle;
+            }
+            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaExit))]
+            [HarmonyPrefix]
+            public static bool LaunchbayAreaExitPrefix(VehicleDockingBay __instance)
+            {
+                if (__instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
+                    return false;
+                return !__instance._dockedVehicle;
+            }
+            //[HarmonyPatch(nameof(VehicleDockingBay.UpdateDockedPosition))]
+            //[HarmonyPrefix]
+            public static void UpdateDockedPositionPrefix(VehicleDockingBay __instance, Vehicle vehicle, ref float interpfraction)
+            {
+                AddDebug("UpdateDockedPosition " + vehicle.transform.position);
+                //if (!properlyDocked)
+                //interpfraction = 0;
+                //AddDebug("interpfraction " + interpfraction);
+            }
+            //[HarmonyPatch(nameof(VehicleDockingBay.SetVehicleDocked))]
+            //[HarmonyPostfix]
+            public static void SetVehicleDockedPrefix(VehicleDockingBay __instance, Vehicle vehicle)
+            {
+                //properlyDocked = false;
+                //__instance.exosuitDockPlayerCinematic.StartCinematicMode(Player.main);
+                //__instance.DockVehicle(vehicle);
+                //__instance.GetSubRoot().BroadcastMessage("UnlockDoors", SendMessageOptions.DontRequireReceiver);
+                //SafeAnimator.SetBool(__instance.animator, "exosuit_docked", true);
+                AddDebug("SetVehicleDocked");
+            }
+            //[HarmonyPatch(nameof(VehicleDockingBay.DockVehicle))]
+            //[HarmonyPrefix]
+            public static void DockVehiclePrefix(VehicleDockingBay __instance, Vehicle vehicle)
+            {
+                AddDebug("DockVehicle");
             }
         }
 
@@ -353,8 +426,167 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(GrownPlant __instance)
             {
-                if ( __instance.GetComponentInParent<SubControl>())
+                if (__instance.GetComponentInParent<SubControl>())
                     AddCyclopsCollisionExclusion(__instance.gameObject);
+            }
+        }
+
+        [HarmonyPatch(typeof(CyclopsHolographicHUD))]
+        class CyclopsHolographicHUD_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("UpdateFires")]
+            public static void UpdateFiresPostfix(CyclopsHolographicHUD __instance)
+            {
+                //AddDebug("CyclopsHolographicHUD parent " + __instance.transform.parent.name);
+                SubRoot subRoot = Player.main.currentSub;
+                if (subRoot && subRoot.isCyclops)
+                {
+                    bool isPowered = subRoot.powerRelay.IsPowered();
+                    __instance.gameObject.SetActive(isPowered);
+                    //AddDebug("CyclopsHolographicHUD UpdateFires isPowered " + isPowered);
+                    //AddDebug("CyclopsHolographicHUD UpdateFires cyclopsHolographicHUDlastState " + cyclopsHolographicHUDlastState);
+                    if (cyclopsHolographicHUDlastState && !isPowered)
+                    {
+                        //AddDebug("CyclopsHolographicHUD disable ");
+                        //__instance.gameObject.SetActive(false);
+                        CyclopsCompassHUD cyclopsCompassHUD = subRoot.GetComponentInChildren<CyclopsCompassHUD>();
+                        foreach (Transform child in cyclopsCompassHUD.transform)
+                                child.gameObject.SetActive(false);
+                        CyclopsDecoyScreenHUDManager cdshudm = subRoot.GetComponentInChildren<CyclopsDecoyScreenHUDManager>();
+                        cdshudm.gameObject.SetActive(false);
+                        CyclopsVehicleStorageTerminalManager cvstm = subRoot.GetComponentInChildren<CyclopsVehicleStorageTerminalManager>();
+                        Transform cvstmScreen = cvstm.transform.Find("GUIScreen");
+                        cvstmScreen.gameObject.SetActive(false);
+                        Transform uchTr = subRoot.transform.Find("UpgradeConsoleHUD");
+                        uchTr.gameObject.SetActive(false);
+                    }
+                    else if (!cyclopsHolographicHUDlastState && isPowered)
+                    {
+                        //AddDebug("CyclopsHolographicHUD enable ");
+                        //__instance.gameObject.SetActive(true);
+                        CyclopsCompassHUD cyclopsCompassHUD = subRoot.GetComponentInChildren<CyclopsCompassHUD>();
+                        foreach (Transform child in cyclopsCompassHUD.transform)
+                                child.gameObject.SetActive(true);
+                        CyclopsDecoyScreenHUDManager cdshudm = subRoot.GetComponentInChildren<CyclopsDecoyScreenHUDManager>(true);
+                        cdshudm.gameObject.SetActive(true);
+                        CyclopsVehicleStorageTerminalManager cvstm = subRoot.GetComponentInChildren<CyclopsVehicleStorageTerminalManager>();
+                        Transform cvstmScreen = cvstm.transform.Find("GUIScreen");
+                        cvstmScreen.gameObject.SetActive(true);
+                        Transform uchTr = subRoot.transform.Find("UpgradeConsoleHUD");
+                        uchTr.gameObject.SetActive(true);
+                        
+                    }
+                    cyclopsHolographicHUDlastState = isPowered;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(CyclopsLightingPanel))]
+        internal class CyclopsLightingPanel_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("Update")]
+            public static bool UpdatePrefix(CyclopsLightingPanel __instance)
+            {
+                bool isPowered = __instance.CheckIsPowered();
+                //if (!isPowered)
+                //    __instance.gameObject.SetActive(false);
+                //else
+                //    __instance.gameObject.SetActive(true);
+                //AddDebug("CheckIsPowered " + __instance.CheckIsPowered());
+                if (__instance.prevPowerRelayState && !isPowered)
+                {
+                    //AddDebug("CyclopsLightingPanel not Powered");
+                    __instance.SetExternalLighting(false);
+                    __instance.uiPanel.SetBool("PanelActive", false);
+                    __instance.Invoke("ButtonsOff", 0f);
+                }
+                else if (!__instance.prevPowerRelayState && isPowered)
+                {
+                    //AddDebug("CyclopsLightingPanel  Powered");
+                    __instance.SetExternalLighting(__instance.floodlightsOn);
+                    //__instance.uiPanel.SetBool("PanelActive", true);
+                    //__instance.ButtonsOn();
+                }
+                __instance.prevPowerRelayState = isPowered;
+                return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("OnTriggerEnter")]
+            public static bool OnTriggerEnterPrefix(CyclopsLightingPanel __instance, Collider col)
+            {
+                if (!col.gameObject.Equals(Player.main.gameObject))
+                    return false;
+                if (__instance.CheckIsPowered())
+                {
+                    __instance.uiPanel.SetBool("PanelActive", true);
+                    __instance.ButtonsOn();
+                }
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(CyclopsSonarDisplay))]
+        internal class CyclopsSonarDisplay_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("DistanceCheck")]
+            public static bool UpdatePrefix(CyclopsSonarDisplay __instance)
+            {
+                //__instance.gameObject.SetActive(false);
+                //AddDebug("CyclopsSonarDisplay DistanceCheck ");
+                //AddDebug("CyclopsSonarDisplay parent " + __instance.transform.parent.name);
+                if (Player.main.currentSub && Player.main.currentSub.isCyclops)
+                {
+                    if (Player.main.currentSub.powerRelay.IsPowered())
+                        __instance.gameObject.SetActive(true);
+                    else
+                        __instance.gameObject.SetActive(false);
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(CyclopsSubNameScreen))]
+        internal class CyclopsSubNameScreen_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("ContentOn")]
+            public static bool ContentOnPrefix(CyclopsSubNameScreen __instance)
+            {
+                if (!Player.main.currentSub.powerRelay.IsPowered())
+                    return false;
+
+                __instance.content.SetActive(true);
+                Transform lightTr = __instance.transform.parent.Find("VolumetricLight");
+                if (lightTr)
+                    lightTr.gameObject.SetActive(true);
+
+                return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("ContentOff")]
+            public static bool ContentOffPrefix(CyclopsSubNameScreen __instance)
+            {
+                __instance.content.SetActive(false);
+                Transform lightTr = __instance.transform.parent.Find("VolumetricLight");
+                if (lightTr)
+                    lightTr.gameObject.SetActive(false);
+
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(PilotingChair))]
+        internal class PilotingChair_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("IsValidHandTarget")]
+            public static bool IsValidHandTargetPrefix(PilotingChair __instance, GUIHand hand, ref bool __result)
+            {
+                __result = hand.IsFreeToInteract() && hand.player && hand.player.GetCurrentSub() == __instance.subRoot && hand.player.GetMode() == Player.Mode.Normal && __instance.subRoot.powerRelay.IsPowered();
+                return false;
             }
         }
 

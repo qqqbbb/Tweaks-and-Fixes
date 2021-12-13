@@ -14,45 +14,30 @@ using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{ // debris 80 -35 100
+{ // debris 80 -35 100      200 -70 -680
     class Testing
     {
-        private Vector3 ClipWithTerrain(GameObject go)
+        //[HarmonyPatch(typeof(UpgradeConsole), "OnHandClick")]
+        class UpgradeConsole_OnHandClick_Patch
         {
-            Vector3 origin = go.transform.position;
-            //origin.y = go.transform.position.y + 5f;
-            //RaycastHit hitInfo;
-            //if (!Physics.Raycast(new Ray(origin, Vector3.down), out hitInfo, 10f, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore))
-            //    return;
-            //go.transform.position.y = Mathf.Max(go.transform.position.y, hitInfo.point.y + 0.3f);
-            return origin;
-        }
-
-        void  GetGO()
-        {
-            int numHits = UWE.Utils.SpherecastIntoSharedBuffer(Player.main.transform.position, 2f, Vector3.forward);
-            AddDebug("num Hits " + numHits);
-            AddDebug("sharedHitBuffer.Length " + UWE.Utils.sharedHitBuffer.Length);
-            for (int index1 = 0; index1<numHits; ++index1)
+            static bool Prefix(UpgradeConsole __instance, GUIHand guiHand)
             {
-                RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
-                Vector3 point = raycastHit.point;
-                AddDebug("raycastHit " + raycastHit.collider.gameObject.name);
-                GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
-                if (go == null)
-                    AddDebug("go == null " + raycastHit.collider.gameObject.name);
-                else
-                    AddDebug(go.name);
+                AddDebug("UpgradeConsole OnHandClick");
+                PDA pda = Player.main.GetPDA();
+                Inventory.main.SetUsedStorage((IItemsContainer)__instance.modules);
+                pda.Open(PDATab.Inventory);
+                //__instance.icons[__instance.used].SetForegroundChroma(.1f);
+                return false;
             }
         }
-
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                //Main.Message("Time.time " + Time.time);
+
+                //Main.Message("CanBeAttacked " + Player.main.CanBeAttacked());
                 //AddDebug("activeSelf " + IngameMenu.main.gameObject.activeSelf);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
 
@@ -88,10 +73,10 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
-                        //survival.water--;
+                    //    //survival.water--;
                         __instance.liveMixin.health--;
                     else
-                        //survival.food--;
+                    //    //survival.food--;
                         __instance.liveMixin.health++;
                 }
                 else if(Input.GetKeyDown(KeyCode.Z))
@@ -118,9 +103,9 @@ namespace Tweaks_Fixes
                     //}
                     if (target)
                     {
-                        PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
-                        if (pi)
-                            target = pi.gameObject;
+                        //PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
+                        //if (pi)
+                        //    target = pi.gameObject;
                         //LiveMixin lm = pi.GetComponent<LiveMixin>();
                         //if (lm)
                         //{
@@ -146,6 +131,35 @@ namespace Tweaks_Fixes
                     {
                     }
                 }
+            }
+        }
+
+        private Vector3 ClipWithTerrain(GameObject go)
+        {
+            Vector3 origin = go.transform.position;
+            //origin.y = go.transform.position.y + 5f;
+            //RaycastHit hitInfo;
+            //if (!Physics.Raycast(new Ray(origin, Vector3.down), out hitInfo, 10f, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore))
+            //    return;
+            //go.transform.position.y = Mathf.Max(go.transform.position.y, hitInfo.point.y + 0.3f);
+            return origin;
+        }
+
+        void GetGO()
+        {
+            int numHits = UWE.Utils.SpherecastIntoSharedBuffer(Player.main.transform.position, 2f, Vector3.forward);
+            AddDebug("num Hits " + numHits);
+            AddDebug("sharedHitBuffer.Length " + UWE.Utils.sharedHitBuffer.Length);
+            for (int index1 = 0; index1 < numHits; ++index1)
+            {
+                RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
+                Vector3 point = raycastHit.point;
+                AddDebug("raycastHit " + raycastHit.collider.gameObject.name);
+                GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
+                if (go == null)
+                    AddDebug("go == null " + raycastHit.collider.gameObject.name);
+                else
+                    AddDebug(go.name);
             }
         }
 

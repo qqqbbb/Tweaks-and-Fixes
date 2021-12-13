@@ -9,15 +9,68 @@ namespace Tweaks_Fixes
 {
     class Craft_Patch
     {
+        static bool crafting = false;
+        static List<Battery> batteries = new List<Battery>();
 
         [HarmonyPatch(typeof(Crafter), "Craft")]
         class Crafter_Craft_Patch
         {
             static void Prefix(Crafter __instance, TechType techType, ref float duration)
             {
-                //AddDebug("Craft " + techType);
+                //AddDebug("CrafterLogic Craft " + techType);
+                //crafting = true;
                 duration *= Main.config.craftTimeMult;
-                //return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(CrafterLogic), "NotifyCraftEnd")]
+        class CrafterLogic_NotifyCraftEnd_Patch
+        {
+            static void Postfix(CrafterLogic __instance, GameObject target, TechType techType)
+            {
+                //AddDebug("CrafterLogic NotifyCraftEnd");
+                Battery battery = target.GetComponent<Battery>();
+                if (battery)
+                {
+                    //AddDebug("crafterOpen");
+                    float mult = Main.config.craftedBatteryCharge * .01f;
+                    battery._charge = battery._capacity * mult;
+                    if (batteries.Count == 2)
+                    {
+                        //AddDebug("batteries.Count == 2");
+                        float charge = Mathf.Lerp(batteries[0].charge, batteries[1].charge, .5f);
+                        charge = Main.NormalizeToRange(charge, 0, batteries[0].capacity, 0, battery._capacity);
+                        if (charge < battery._charge)
+                            battery._charge = charge;
+                    }
+                }
+                batteries = new List<Battery>();
+                crafting = false;
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("ConsumeResourcesForRecipe")]
+            static void Prefix(Inventory __instance, TechType techType, uGUI_IconNotifier.AnimationDone endFunc = null)
+            {
+                crafting = true;
+                //AddDebug("ConsumeResourcesForRecipe");
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnRemoveItem")]
+            static void OnRemoveItemPostfix(Inventory __instance, InventoryItem item)
+            {
+                //AddDebug("OnRemoveItem " + item.item.GetTechName());
+                if (crafting)
+                {
+                    Battery battery = item.item.GetComponent<Battery>();
+                    if (battery)
+                        batteries.Add(battery);
+                }
             }
         }
 
@@ -32,5 +85,56 @@ namespace Tweaks_Fixes
                 __result *= Main.config.buildTimeMult;
             }
         }
+
+        //[HarmonyPatch(typeof(CrafterLogic), "TryPickupSingle")]
+        class CrafterLogic_TryPickupSingle_Patch
+        {
+            static bool Prefix(CrafterLogic __instance, TechType techType, ref bool __result)
+            {
+                //craftingStart = false;
+                AddDebug("CrafterLogic TryPickupSingle");
+                Inventory main = Inventory.main;
+                bool flag = false;
+                GameObject original = CraftData.GetPrefabForTechType(techType);
+                if (original == null)
+                {
+                    original = Utils.genericLootPrefab;
+                    flag = true;
+                }
+                if (original != null)
+                {
+                    Pickupable component1 = original.GetComponent<Pickupable>();
+                    if (component1 != null)
+                    {
+                        Vector2int itemSize = CraftData.GetItemSize(component1.GetTechType());
+                        if (main.HasRoomFor(itemSize.x, itemSize.y))
+                        {
+                            GameObject gameObject = UnityEngine.Object.Instantiate(original);
+                            Pickupable pickupable = gameObject.GetComponent<Pickupable>();
+                            if (flag)
+                                pickupable.SetTechTypeOverride(techType, true);
+                            main.ForcePickup(pickupable);
+                            // ForcePickup now before NotifyCraftEnd
+                            CrafterLogic.NotifyCraftEnd(gameObject, __instance.craftingTechType);
+
+                            Player.main.PlayGrab();
+                            __result = true;
+                            return false;
+                        }
+                        AddMessage(Language.main.Get("InventoryFull"));
+                        __result = false;
+                        return false;
+                    }
+                    Debug.LogErrorFormat("Can't find Pickupable component on prefab for TechType.{0}", techType);
+                    __result = true;
+                    return false;
+                }
+                Debug.LogErrorFormat("Can't find prefab for TechType.{0}", techType);
+                __result = true;
+                return false;
+            }
+        }
+
+
     }
 }

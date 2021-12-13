@@ -9,6 +9,7 @@ namespace Tweaks_Fixes
 {
     class Battery_Patch
     {
+
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
         {
@@ -55,7 +56,7 @@ namespace Tweaks_Fixes
                 //    TechTypeExtensions.FromString(name, out TechType tt, true);
                 //    if (tt != TechType.None && __instance.allowedTech.Contains(tt))
                 //    {
-                            //AddDebug("nonRechargeable " + name);
+                //AddDebug("nonRechargeable " + name);
                 //        __instance.allowedTech.Remove(tt);
                 //    }
                 //}
@@ -89,19 +90,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Battery), "OnAfterDeserialize")]
-        class Battery_OnAfterDeserialize_Patch
-        {
-            static void Postfix(Battery __instance)
-            {
-                if (Main.crafterOpen)
-                {
-                    //AddDebug("crafterOpen");
-                    float mult = Main.config.craftedBatteryCharge * .01f;
-                    __instance._charge = __instance._capacity * mult;
-                }
-            }
-        }
 
 
     }

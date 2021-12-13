@@ -157,12 +157,13 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(MapRoomCamera))]
-        class MapRoomCamera_Update_Patch
+        class MapRoomCamera_Patch
         {
-            [HarmonyPatch(nameof(MapRoomCamera.ControlCamera))]
-            [HarmonyPrefix]
-            private static void ControlCameraPrefix(MapRoomCamera __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("ControlCamera")]
+            private static void ControlCameraPostfix(MapRoomCamera __instance)
             {
+                //AddDebug("MapRoomCamera ControlCamera");
                 Vehicle_patch.currentVehicleTT = TechType.MapRoomCamera;
                 Vehicle_patch.currentLights = __instance.GetComponentsInChildren<Light>(true);
                 if (Main.config.lightIntensity.ContainsKey(TechType.MapRoomCamera))
@@ -171,19 +172,21 @@ namespace Tweaks_Fixes
                         l.intensity = Main.config.lightIntensity[TechType.MapRoomCamera];
                 }
             }
-            //[HarmonyPatch(nameof(MapRoomCamera.Update))]
-            //[HarmonyPostfix]
-            private static void UpdatePostfix(MapRoomCamera __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("FreeCamera")]
+            private static void FreeCameraPostfix(MapRoomCamera __instance)
             {
-                if (__instance.controllingPlayer)
-                    Vehicle_patch.UpdateLights();
+                Vehicle_patch.currentLights[0] = null;
+                //AddDebug("MapRoomCamera FreeCamera");
             }
         }
 
         [HarmonyPatch(typeof(MapRoomScreen), "CycleCamera")]
         class MapRoomScreen_CycleCamera_Patch
         {
-            static bool Prefix(MapRoomScreen __instance, int direction)
+            [HarmonyPrefix]
+            [HarmonyPatch("CycleCamera")]
+            static bool CycleCameraPrefix(MapRoomScreen __instance, int direction)
             {
                 if (!Input.GetKey(Main.config.lightKey))
                     return true;

@@ -17,12 +17,11 @@ namespace Tweaks_Fixes
         public static void UpdateLights()
         {
             //AddDebug("UpdateLights " + currentLights.Length);
-
-            if (currentLights.Length == 0 || !currentLights[0].gameObject.activeInHierarchy)
+            if (currentLights == null || currentLights.Length == 0 || currentLights[0] == null || currentLights[0].gameObject == null || !currentLights[0].gameObject.activeInHierarchy)
                 return;
+
             if (!Input.GetKey(Main.config.lightKey))
                 return;
-
             //Light[] lights = __instance.GetComponentsInChildren<Light>();
             //AddDebug("lights.Length  " + currentLights[0].gameObject.activeInHierarchy);
             if (!Tools_Patch.lightIntensityStep.ContainsKey(currentVehicleTT))
@@ -81,8 +80,8 @@ namespace Tweaks_Fixes
             vehicle.ReplenishOxygen();
         }
 
-        [HarmonyPatch(nameof(Vehicle.Awake))]
         [HarmonyPostfix]
+        [HarmonyPatch(nameof(Vehicle.Awake))]
         public static void AwakePostfix(Vehicle __instance)
         {
             //Light l1 = __instance.transform.Find("lights_parent/light_left").gameObject.GetComponent<Light>();
@@ -103,17 +102,25 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(nameof(Vehicle.EnterVehicle))]
-        [HarmonyPrefix]
-        public static void EnterVehiclePrefix(Vehicle __instance)
+        [HarmonyPostfix]
+        [HarmonyPatch("EnterVehicle")]
+        public static void EnterVehiclePostfix(Vehicle __instance)
         {
             currentVehicleTT = CraftData.GetTechType(__instance.gameObject);
             currentLights = __instance.transform.Find("lights_parent").GetComponentsInChildren<Light>(true);
             //AddDebug("EnterVehicle " + currentLights.Length);
         }
 
-        [HarmonyPatch(nameof(Vehicle.OnHandHover))]
         [HarmonyPostfix]
+        [HarmonyPatch("OnPilotModeEnd")]
+        public static void OnPilotModeEndPostfix(Vehicle __instance)
+        {
+            currentLights[0] = null;
+            //AddDebug("Vehicle OnPilotModeEnd " + currentLights.Length);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch("OnHandHover")]
         public static void OnHandHoverPostfix(Vehicle __instance)
         {
             //AddDebug("SeaMoth_patch.seamothName " + SeaMoth_patch.seamothName);
@@ -205,8 +212,8 @@ namespace Tweaks_Fixes
             __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
         }
 
-        [HarmonyPatch(nameof(Vehicle.ApplyPhysicsMove))]
         [HarmonyPrefix]
+        [HarmonyPatch("ApplyPhysicsMove")]
         public static bool ApplyPhysicsMovePrefix(Vehicle __instance)
         {
             //AddDebug("ControlSheme  " + __instance.controlSheme);
@@ -226,8 +233,8 @@ namespace Tweaks_Fixes
             return true;
         }
 
-        [HarmonyPatch(nameof(Vehicle.OnUpgradeModuleChange))]
         [HarmonyPostfix]
+        [HarmonyPatch("OnUpgradeModuleChange")]
         public static void OnUpgradeModuleChangePostfix(Vehicle __instance, TechType techType)
         {
             if (techType != TechType.VehicleArmorPlating)
@@ -248,8 +255,8 @@ namespace Tweaks_Fixes
                 AddDebug("Incoming physical damage will be reduced to 40%");
         }
 
-        [HarmonyPatch(nameof(Vehicle.OnKill))]
         [HarmonyPrefix]
+        [HarmonyPatch("OnKill")]
         public static void OnKillPrefix(Vehicle __instance)
         {
             StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
@@ -263,8 +270,8 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch("OnDockedChanged")]
         [HarmonyPostfix]
+        [HarmonyPatch("OnDockedChanged")]
         public static void OnDockedChangedPrefix(Vehicle __instance, bool docked, Vehicle.DockType dockType)
         {
             if (docked)
@@ -272,9 +279,6 @@ namespace Tweaks_Fixes
             else
                 dockedVehicles[__instance] = Vehicle.DockType.None;
         }
-
-     
-        
 
     }
 
@@ -286,8 +290,8 @@ namespace Tweaks_Fixes
         static TechType currentModule;
         static string useButton;
 
-        [HarmonyPatch("Start")]
         [HarmonyPostfix]
+        [HarmonyPatch("Start")]
         public static void StartPostfix(SeaMoth __instance)
         {
             seamothName = Language.main.Get(TechType.Seamoth);
@@ -302,16 +306,16 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch("OnPilotModeBegin")]
         [HarmonyPostfix]
+        [HarmonyPatch("OnPilotModeBegin")]
         public static void OnPilotModeBeginPostfix(SeaMoth __instance)
         {
             exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " Toggle lights " + TooltipFactory.stringRightHand;
             seamothName = Language.main.Get(TechType.Seamoth);
         }
 
-        [HarmonyPatch("UpdateSounds")]
         [HarmonyPrefix]
+        [HarmonyPatch("UpdateSounds")]
         public static bool UpdateSoundsPrefix(SeaMoth __instance)
         {
             if (!Main.config.seamothMoveTweaks)
@@ -347,8 +351,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPatch("OnUpgradeModuleToggle")]
         [HarmonyPostfix]
+        [HarmonyPatch("OnUpgradeModuleToggle")]
         public static void OnUpgradeModuleTogglePostfix(SeaMoth __instance, int slotID, bool active)
         {
             currentModule = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[slotID]);
@@ -376,8 +380,8 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch("OnUpgradeModuleUse")]
         [HarmonyPostfix]
+        [HarmonyPatch("OnUpgradeModuleUse")]
         public static void OnUpgradeModuleUsePostfix(SeaMoth __instance, int slotID, TechType techType)
         {
             if (techType == TechType.SeamothTorpedoModule)
@@ -396,13 +400,13 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch("Update")]
         [HarmonyPrefix]
+        [HarmonyPatch("Update")]
         public static bool UpdatePrefix(SeaMoth __instance)
         {    // seamoth does not consume more energy when moving diagonally
-            //if (!Main.config.seamothMoveTweaks)
-            //    return true;
-
+            if (!Main.config.seamothMoveTweaks)
+                return true;
+            //AddDebug("SeaMoth Update");
             Vehicle_patch.VehicleUpdate(__instance as Vehicle);
 
             __instance.UpdateSounds();
@@ -482,7 +486,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Start")]
         static void StartPostfix(Exosuit __instance)
         {
-
             //__instance.StartCoroutine(PlayClip(__instance.mainAnimator, "exo_docked"));
             //AddDebug("Start currentLeftArmType " + __instance.currentLeftArmType);
             exosuitName = Language.main.Get("Exosuit");
@@ -832,7 +835,6 @@ namespace Tweaks_Fixes
         }
 
     }
-
 
     [HarmonyPatch(typeof(ExosuitTorpedoArm), "Shoot")]
     class ExosuitTorpedoArm_Shoot_Patch

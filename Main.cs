@@ -151,11 +151,22 @@ namespace Tweaks_Fixes
             return GameObject.FindObjectOfType(typeof(T)) as T[];
         }
 
+        public static ItemsContainer GetOpenContainer()
+        {
+            int storageCount = Inventory.main.usedStorage.Count;
+            if (storageCount > 0)
+            {
+                IItemsContainer itemsContainer = Inventory.main.usedStorage[storageCount - 1];
+                if (itemsContainer is ItemsContainer)
+                    return itemsContainer as ItemsContainer;
+            }
+            return null;
+        }
+
         public static void CleanUp()
         {
             loadingDone = false;
             canBreathe = false;
-            //AddDebug("CleanUp");
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights = new List<GameObject>();
             Crush_Damage.extraCrushDepth = 0;
@@ -164,7 +175,6 @@ namespace Tweaks_Fixes
             Cyclops_Patch.collidersInSub = new HashSet<Collider>();
             Gravsphere_Patch.gasPods = new HashSet<GasPod>();
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
-            //Coffee_Patch.DeleteCoffee();
             Decoy_Patch.decoysToDestroy = new List<GameObject>();
             Vehicle_patch.currentLights = new Light[2];
             Vehicle_patch.dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
@@ -333,7 +343,11 @@ namespace Tweaks_Fixes
             new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(274f, -40f, -194f), new Vector3(4f, 114.77f, 0f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(18.71f, -26.35f, -155.85f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-185f, -42f, 138.5f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-63.85f, -16f, -223f)));
             new Spawnables.Stone().Patch();
         }
 
