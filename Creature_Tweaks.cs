@@ -100,10 +100,12 @@ namespace Tweaks_Fixes
             }
         }
                 
-        [HarmonyPatch(typeof(Creature), nameof(Creature.Start))]
-        public static class Creature_Start_Patch
+        [HarmonyPatch(typeof(Creature))]
+        public static class Creature_Patch
         {
-            public static void Postfix(Creature __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(Creature __instance)
             {
                 VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 vFXSurface.surfaceType = VFXSurfaceTypes.organic;
@@ -123,7 +125,44 @@ namespace Tweaks_Fixes
                         //Object.Destroy(componentsInChild);
                         componentsInChild.enabled = false;
                 }
+
+                //InfectedMixin infectedMixin = __instance.GetComponent<InfectedMixin>();
+                //if (infectedMixin && infectedMixin.infectedAmount == 1f)
+                //{
+                //    AddDebug("Infected " + tt);
+                //    Vector3 pos = __instance.transform.position;
+                //    GameObject beaconPrefab = CraftData.GetPrefabForTechType(TechType.Beacon);
+                //    GameObject prefab = Object.Instantiate(beaconPrefab, pos, Quaternion.identity);
+                //    LargeWorldEntity.Register(prefab);
+                //    Beacon beacon = prefab.GetComponent<Beacon>();
+                //    if (beacon)
+                //        beacon.label = tt.AsString();
+                //}
             }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnKill")]
+            public static void OnKillPostfix(Creature __instance)
+            {
+                //AddDebug("respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
+                Animator animator = __instance.GetAnimator();
+                if (animator == null)
+                    return;
+
+                SafeAnimator.SetBool(animator, "attacking", false);
+
+                if (__instance is Stalker)
+                {
+                    //AnimateByVelocity animByVelocity = __instance.GetComponentInChildren<AnimateByVelocity>();
+                    animator.enabled = false;
+                    //animator.SetFloat(AnimateByVelocity.animSpeed, 0.0f);
+                    //animator.SetFloat(AnimateByVelocity.animPitch, 0.0f);
+                    //animator.SetFloat(AnimateByVelocity.animTilt, 0.0f);
+                    //CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
+                    //collectShiny?.DropShinyTarget();
+                }
+            }
+
         }
 
         [HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
@@ -147,31 +186,6 @@ namespace Tweaks_Fixes
                 //AddDebug("Peeper OnKill " + renderers.Length);
                 //for (int i = 1; i < renderers.Length; i++)
                 renderers[0].enabled = false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Creature), nameof(Creature.OnKill))]
-        class Creature_OnKill_Patch
-        {
-            public static void Postfix(Creature __instance)
-            {
-                //AddDebug("respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
-                Animator animator = __instance.GetAnimator();
-                if (animator == null)
-					return;
-
-				SafeAnimator.SetBool(animator, "attacking", false);
-
-                if (__instance is Stalker)
-                {
-                    //AnimateByVelocity animByVelocity = __instance.GetComponentInChildren<AnimateByVelocity>();
-					animator.enabled = false;
-					//animator.SetFloat(AnimateByVelocity.animSpeed, 0.0f);
-					//animator.SetFloat(AnimateByVelocity.animPitch, 0.0f);
-					//animator.SetFloat(AnimateByVelocity.animTilt, 0.0f);
-                    //CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
-                    //collectShiny?.DropShinyTarget();
-                }
             }
         }
 

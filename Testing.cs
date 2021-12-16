@@ -113,16 +113,20 @@ namespace Tweaks_Fixes
                         //    AddDebug(" HP " + lm.health);
                         //}
                         AddDebug(" " + target.gameObject.name);
-                        if (target.transform.parent)
-                            AddDebug("parent  " + target.transform.parent.name);
-                        AddDebug("TechType  " + CraftData.GetTechType(target.gameObject));
-                        int x = (int)target.transform.position.x;
-                        int y = (int)target.transform.position.y;
-                        int z = (int)target.transform.position.z;
-                        AddDebug(x + " " + y + " " + z);
-                        Rigidbody rb = target.GetComponent<Rigidbody>();
-                        if (rb)
-                            AddDebug("Rigidbody " + rb.mass);
+                        //if (target.transform.parent)
+                        //    AddDebug("parent  " + target.transform.parent.name);
+                        AddDebug("TechType  " + CraftData.GetTechType(target));
+                        //if (target.GetComponent<InfectedMixin>())
+                        //{
+                        //    AddDebug("infectedAmount  " + target.GetComponent<InfectedMixin>().infectedAmount);
+                        //}
+                        //int x = (int)target.transform.position.x;
+                        //int y = (int)target.transform.position.y;
+                        //int z = (int)target.transform.position.z;
+                        //AddDebug(x + " " + y + " " + z);
+                        //Rigidbody rb = target.GetComponent<Rigidbody>();
+                        //if (rb)
+                        //    AddDebug("Rigidbody " + rb.mass);
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {

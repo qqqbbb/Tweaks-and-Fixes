@@ -282,6 +282,7 @@ namespace Tweaks_Fixes
                 config.baseLights.Remove(slotName);
                 config.Save();
             }
+
             [HarmonyPostfix]
             [HarmonyPatch("CreateSlotAsync", new Type[0])]
             public static void CreateSlotAsyncPostfix(SaveLoadManager __instance)

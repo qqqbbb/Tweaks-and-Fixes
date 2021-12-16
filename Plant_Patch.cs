@@ -158,56 +158,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(PickPrefab))]
-        class PickPrefab_Patch
-        {
-            //[HarmonyPatch(nameof(PickPrefab.SetPickedUp))]
-            //[HarmonyPostfix]
-            static void SetPickedUpPostfix(PickPrefab __instance)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (tt != TechType.CreepvineSeedCluster)
-                    return;
-
-                //ChildObjectIdentifier coi = __instance.GetComponent<ChildObjectIdentifier>();
-                PrefabIdentifier pi = __instance.GetComponentInParent<PrefabIdentifier>();
-                if (!pi)
-                    return;
-                FruitPlant fp = pi.GetComponent<FruitPlant>();
-                if (!fp)
-                    return;
-                Light light = pi.GetComponentInChildren<Light>();
-                if (!light)
-                    return;
-                //AddDebug(" inactiveFruits " + fp.inactiveFruits.Count);
-                light.intensity = creepVineSeedLightInt - (float)fp.inactiveFruits.Count / (float)fp.fruits.Length * creepVineSeedLightInt;
-            }
-            [HarmonyPatch("SetPickedState")]
-            [HarmonyPostfix]
-            public static void SetPickedStatePostfix(PickPrefab __instance, bool newPickedState)
-            {
-                //AddDebug(__instance.pickTech + " SetPickedState " + newPickedState);
-                //if (newPickedState)
-                //    return;
-                if (__instance.pickTech == TechType.CreepvineSeedCluster)
-                {
-                    FruitPlant fp = __instance.GetComponentInParent<FruitPlant>();
-                    if (!fp)
-                        return;
-                    Light light = fp.GetComponentInChildren<Light>();
-                    if (light)
-                    {
-                        float inactiveFruits = fp.inactiveFruits.Count;
-                        if (!newPickedState)
-                            inactiveFruits -= 1;
-                        //AddDebug("inactiveFruits " + inactiveFruits);
-                        light.intensity = creepVineSeedLightInt - inactiveFruits / (float)fp.fruits.Length * creepVineSeedLightInt;
-                        //AddDebug("SetPickedState CreepvineSeed " + newPickedState + " " + light.intensity);
-                    }
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(VFXScaleWaving), "Start")]
         class VFXScaleWaving_Patch
         {
@@ -280,10 +230,60 @@ namespace Tweaks_Fixes
             static void Prefix(Planter __instance, InventoryItem item)
             {
                 Plantable p = item.item.GetComponent<Plantable>();
-                if (p.plantTechType == TechType.MelonPlant)
+                if (p && p.plantTechType == TechType.MelonPlant)
                 {
                     //AddDebug("Planter AddItem fix " + p.plantTechType);
                     p.size = Plantable.PlantSize.Large;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PickPrefab))]
+        class PickPrefab_Patch
+        {
+            //[HarmonyPatch(nameof(PickPrefab.SetPickedUp))]
+            //[HarmonyPostfix]
+            static void SetPickedUpPostfix(PickPrefab __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt != TechType.CreepvineSeedCluster)
+                    return;
+
+                //ChildObjectIdentifier coi = __instance.GetComponent<ChildObjectIdentifier>();
+                PrefabIdentifier pi = __instance.GetComponentInParent<PrefabIdentifier>();
+                if (!pi)
+                    return;
+                FruitPlant fp = pi.GetComponent<FruitPlant>();
+                if (!fp)
+                    return;
+                Light light = pi.GetComponentInChildren<Light>();
+                if (!light)
+                    return;
+                //AddDebug(" inactiveFruits " + fp.inactiveFruits.Count);
+                light.intensity = creepVineSeedLightInt - (float)fp.inactiveFruits.Count / (float)fp.fruits.Length * creepVineSeedLightInt;
+            }
+            [HarmonyPatch("SetPickedState")]
+            [HarmonyPostfix]
+            public static void SetPickedStatePostfix(PickPrefab __instance, bool newPickedState)
+            {
+                //AddDebug(__instance.pickTech + " SetPickedState " + newPickedState);
+                //if (newPickedState)
+                //    return;
+                if (__instance.pickTech == TechType.CreepvineSeedCluster)
+                {
+                    FruitPlant fp = __instance.GetComponentInParent<FruitPlant>();
+                    if (!fp)
+                        return;
+                    Light light = fp.GetComponentInChildren<Light>();
+                    if (light)
+                    {
+                        float inactiveFruits = fp.inactiveFruits.Count;
+                        if (!newPickedState)
+                            inactiveFruits -= 1;
+                        //AddDebug("inactiveFruits " + inactiveFruits);
+                        light.intensity = creepVineSeedLightInt - inactiveFruits / (float)fp.fruits.Length * creepVineSeedLightInt;
+                        //AddDebug("SetPickedState CreepvineSeed " + newPickedState + " " + light.intensity);
+                    }
                 }
             }
         }
@@ -388,7 +388,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
 
 
     }

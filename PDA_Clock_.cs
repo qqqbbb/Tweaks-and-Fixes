@@ -27,6 +27,7 @@ namespace Tweaks_Fixes
 
             private void Start()
             {
+                //AddDebug("PDA clock start");
                 //transform.GetChild(0).gameObject.SetActive(false);
                 Destroy(transform.GetChild(0).gameObject);
                 InvokeRepeating("ApplyTimeToText", 0f, 1f);
@@ -55,6 +56,8 @@ namespace Tweaks_Fixes
         {
             private static void Prefix()
             {
+                if (!Main.config.pdaClock)
+                    return;
                 PDA_ClockGO.SetActive(false);
             }
         }
@@ -64,6 +67,9 @@ namespace Tweaks_Fixes
         {
             private static void Postfix(uGUI_Equipment __instance, Equipment equipment)
             {
+                if (!Main.config.pdaClock)
+                    return;
+
                 if (equipment.GetCompatibleSlot(EquipmentType.Body, out string str))
                     PDA_ClockGO.SetActive(true);
                 else
@@ -79,6 +85,9 @@ namespace Tweaks_Fixes
                 //GameObject label = CreateGameObject(__instance, "TimeLabel", -280f);
                 //PDA_Clock.TimeLabelObject = label;
                 //label.GetComponent<Text>().text = "TIME";
+                if (!Main.config.pdaClock)
+                    return;
+
                 PDA_ClockGO = Object.Instantiate(__instance.storageLabel.gameObject, __instance.gameObject.transform);
                 PDA_ClockGO.name = "TimeDisplayText";
                 Vector3 localPosition = PDA_ClockGO.transform.localPosition;
