@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
-// brine -1219 -625 -258
 
 namespace Tweaks_Fixes
 {
@@ -21,7 +20,7 @@ namespace Tweaks_Fixes
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
-        public static bool crafterOpen = false;
+        //public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
         public static bool english = false;
@@ -32,6 +31,19 @@ namespace Tweaks_Fixes
         public static bool vehicleLightsImprovedLoaded = false;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
+
+        public static Component CopyComponent(Component original, GameObject destination)
+        {
+            System.Type type = original.GetType();
+            Component copy = destination.AddComponent(type);
+            // Copied fields can be restricted with BindingFlags
+            System.Reflection.FieldInfo[] fields = type.GetFields();
+            foreach (System.Reflection.FieldInfo field in fields)
+            {
+                field.SetValue(copy, field.GetValue(original));
+            }
+            return copy;
+        }
 
         public static string GetGameObjectPath(GameObject obj)
         {
@@ -170,7 +182,6 @@ namespace Tweaks_Fixes
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights = new List<GameObject>();
             Crush_Damage.extraCrushDepth = 0;
-            crafterOpen = false;
             Cyclops_Patch.ceh = null;
             Cyclops_Patch.collidersInSub = new HashSet<Collider>();
             Gravsphere_Patch.gasPods = new HashSet<GasPod>();
@@ -279,6 +290,7 @@ namespace Tweaks_Fixes
                 //AddDebug("ClearSlotAsync " + slotName);
                 config.escapePodSmokeOut.Remove(slotName);
                 config.openedWreckDoors.Remove(slotName);
+                config.lockerNames.Remove(slotName);
                 config.baseLights.Remove(slotName);
                 config.Save();
             }

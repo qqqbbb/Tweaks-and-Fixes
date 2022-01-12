@@ -187,9 +187,9 @@ namespace Tweaks_Fixes
             public static void Postfix(Inventory __instance)
             {
                 if (Main.config.activeSlot == -1)
-                    Inventory.main.quickSlots.Deselect();
+                    __instance.quickSlots.Deselect();
                 else
-                    Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);
+                    __instance.quickSlots.SelectImmediate(Main.config.activeSlot);
             }
         }
 

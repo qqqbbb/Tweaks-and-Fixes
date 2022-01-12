@@ -17,16 +17,12 @@ namespace Tweaks_Fixes
 { // debris 80 -35 100      200 -70 -680
     class Testing
     {
-        //[HarmonyPatch(typeof(UpgradeConsole), "OnHandClick")]
-        class UpgradeConsole_OnHandClick_Patch
+        //[HarmonyPatch(typeof(GUIHand), "OnToolUseAnim")]
+        class GUIHand_OnToolUseAnim_Patch
         {
-            static bool Prefix(UpgradeConsole __instance, GUIHand guiHand)
+            public static bool Prefix(GUIHand __instance)
             {
-                AddDebug("UpgradeConsole OnHandClick");
-                PDA pda = Player.main.GetPDA();
-                Inventory.main.SetUsedStorage((IItemsContainer)__instance.modules);
-                pda.Open(PDATab.Inventory);
-                //__instance.icons[__instance.used].SetForegroundChroma(.1f);
+                AddDebug("GUIHand OnToolUseAnim");
                 return false;
             }
         }
@@ -37,7 +33,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
 
-                //Main.Message("CanBeAttacked " + Player.main.CanBeAttacked());
+                //Main.Message("IsFreeToInteract " + Main.guiHand.IsFreeToInteract());
                 //AddDebug("activeSelf " + IngameMenu.main.gameObject.activeSelf);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
 
@@ -62,9 +58,9 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    AddDebug(" loadingDone " + Main.loadingDone);
+                    //AddDebug(" loadingDone " + Main.loadingDone);
                     AddDebug("  " + Player.main.GetBiomeString());
-                    Main.Log(" GetBiomeString " + Player.main.GetBiomeString());
+                    //Main.Log(" GetBiomeString " + Player.main.GetBiomeString());
                      //if (Input.GetKey(KeyCode.LeftShift))
                     //    Main.survival.water++; 
                     //else
@@ -83,13 +79,13 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
                     //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
-                    //AddDebug("sub EcoTargetType " + BehaviourData.GetEcoTargetType(Player.main.currentSub.gameObject));
                     //AddDebug("Exosuit " + BehaviourData.GetEcoTargetType(TechType.Exosuit));
                     //AddDebug("GetDepth " + Player.main.GetDepth());
                     //Vector3 vel = Player.main.currentMountedVehicle.useRigidbody.velocity;
                     //bool moving = vel.x > 1f || vel.y > 1f || vel.z > 1f;
                     //AddDebug("moving " + moving);
                     GameObject target = Main.guiHand.activeTarget;
+                    //GameObject target = null;
                     if (!target)
                         Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
                     //if (!target)
@@ -113,8 +109,8 @@ namespace Tweaks_Fixes
                         //    AddDebug(" HP " + lm.health);
                         //}
                         AddDebug(" " + target.gameObject.name);
-                        //if (target.transform.parent)
-                        //    AddDebug("parent  " + target.transform.parent.name);
+                        if (target.transform.parent)
+                            AddDebug("parent  " + target.transform.parent.name);
                         AddDebug("TechType  " + CraftData.GetTechType(target));
                         //if (target.GetComponent<InfectedMixin>())
                         //{

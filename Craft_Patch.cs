@@ -11,6 +11,7 @@ namespace Tweaks_Fixes
     {
         static bool crafting = false;
         static List<Battery> batteries = new List<Battery>();
+        static float timeDecayStart = 0f;
 
         [HarmonyPatch(typeof(Crafter), "Craft")]
         class Crafter_Craft_Patch
@@ -28,7 +29,14 @@ namespace Tweaks_Fixes
         {
             static void Postfix(CrafterLogic __instance, GameObject target, TechType techType)
             {
-                //AddDebug("CrafterLogic NotifyCraftEnd");
+                //AddDebug("CrafterLogic NotifyCraftEnd timeDecayStart " + timeDecayStart);
+                if (Main.config.foodTweaks && timeDecayStart > 0)
+                {
+                    //AddDebug("CrafterLogic NotifyCraftEnd timeDecayStart" + timeDecayStart);
+                    Eatable eatable = target.GetComponent<Eatable>();
+                    if (eatable)
+                        eatable.timeDecayStart = timeDecayStart;
+                }
                 Battery battery = target.GetComponent<Battery>();
                 if (battery)
                 {
@@ -44,6 +52,7 @@ namespace Tweaks_Fixes
                             battery._charge = charge;
                     }
                 }
+                timeDecayStart = 0f;
                 batteries = new List<Battery>();
                 crafting = false;
             }
@@ -70,6 +79,18 @@ namespace Tweaks_Fixes
                     Battery battery = item.item.GetComponent<Battery>();
                     if (battery)
                         batteries.Add(battery);
+
+                    if (Main.config.foodTweaks && Main.IsEatableFish(item.item.gameObject))
+                    {
+                        Eatable eatable = item.item.GetComponent<Eatable>();
+                        //AddDebug(" OnRemoveItem timeDecayStart " + eatable.timeDecayStart);
+                        //AddDebug(" NotifyRemoveItem waterValue " + eatable.GetWaterValue() + " " + eatable.GetFoodValue());
+                        //waterValueMult = eatable.GetWaterValue() / eatable.waterValue;
+                        //foodValueMult = eatable.GetFoodValue() / eatable.foodValue;
+                        timeDecayStart = eatable.timeDecayStart;
+                    }
+                    //else
+                    //    timeDecayStart = 0f;
                 }
             }
         }

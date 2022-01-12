@@ -91,6 +91,8 @@
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Base_Patch.cs" />
+    <Compile Include="PDA_Patch.cs" />
+    <Compile Include="Storage_Patch.cs" />
     <Compile Include="PDA_Clock_.cs" />
     <Compile Include="Spawnables.cs" />
     <Compile Include="Plant_Patch.cs" />

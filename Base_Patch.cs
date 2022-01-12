@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -11,19 +12,25 @@ namespace Tweaks_Fixes
     {
         static int camerasToRemove = 0;
 
+
         public static void ToggleBaseLight(SubRoot subRoot)
         {
-            bool canToggle = subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
+            //bool canToggle = subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
             //AddDebug(" ToggleBaseLight canToggle " + canToggle);
-
-            if (!canToggle)
-                return;
+            //if (!canToggle)
+            //    return;
 
             subRoot.subLightsOn = !subRoot.subLightsOn;
             int x = (int)subRoot.transform.position.x;
             int y = (int)subRoot.transform.position.y;
             int z = (int)subRoot.transform.position.z;
-            string key = x + "_" + y + "_" + z;
+            StringBuilder stringBuilder = new StringBuilder(x.ToString());
+            stringBuilder.Append("_");
+            stringBuilder.Append(y);
+            stringBuilder.Append("_");
+            stringBuilder.Append(z);
+            //string key = x + "_" + y + "_" + z;
+            string key = stringBuilder.ToString();
             string currentSlot = SaveLoadManager.main.currentSlot;
             if (Main.config.baseLights.ContainsKey(currentSlot))
             {
@@ -36,7 +43,6 @@ namespace Tweaks_Fixes
                 Main.config.baseLights[currentSlot][key] = subRoot.subLightsOn;
                 //AddDebug(" ToggleBaseLight " + key + " " + subRoot.subLightsOn);
             }
-
         }
 
         [HarmonyPatch(typeof(SubRoot), "Awake")]
@@ -156,6 +162,7 @@ namespace Tweaks_Fixes
                 return true;
             }
         }
+
 
 
 

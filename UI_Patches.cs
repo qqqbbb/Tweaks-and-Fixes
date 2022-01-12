@@ -9,20 +9,45 @@ namespace Tweaks_Fixes
 {
     class UI_Patches
     {
+        static bool textInput = false;
         static bool fishTooltip = false;
         static bool chargerOpen = false;
         static List <TechType> landPlantSeeds = new List<TechType> { TechType.BulboTreePiece, TechType.PurpleVegetable, TechType.FernPalmSeed, TechType.OrangePetalsPlantSeed, TechType.HangingFruit, TechType.MelonSeed, TechType.PurpleVasePlantSeed, TechType.PinkMushroomSpore, TechType.PurpleRattleSpore, TechType.PinkFlowerSeed };
         static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.AcidMushroomSpore, TechType.BloodOil, TechType.BluePalmSeed, TechType.KooshChunk, TechType.PurpleBranchesSeed, TechType.WhiteMushroomSpore, TechType.EyesPlantSeed, TechType.RedRollPlantSeed, TechType.GabeSFeatherSeed, TechType.JellyPlantSeed, TechType.RedGreenTentacleSeed, TechType.SnakeMushroomSpore, TechType.MembrainTreeSeed, TechType.SmallFanSeed, TechType.RedBushSeed, TechType.RedConePlantSeed, TechType.RedBasketPlantSeed, TechType.SeaCrownSeed, TechType.ShellGrassSeed, TechType.SpottedLeavesPlantSeed, TechType.SpikePlantSeed, TechType.PurpleFanSeed, TechType.PurpleStalkSeed, TechType.PurpleTentacleSeed };
         static HashSet<ItemsContainer> landPlanters = new HashSet<ItemsContainer>();
         static HashSet<ItemsContainer> waterPlanters = new HashSet<ItemsContainer>();
+        static public string beaconToolString = string.Empty;
+        static public string beaconPickString = string.Empty;
+        static public string fishDropString = string.Empty;
+        static public string fishEatString = string.Empty;
+        static public string altToolButton = string.Empty;
+        static public string lightFlareString = string.Empty;
+        static public string throwFlareString = string.Empty;
+        static public string lightAndThrowFlareString = string.Empty;
+        public static string smallStorageString = string.Empty;
+
+
+        static void GetStrings()
+        {
+            //AddDebug("GetStrings");
+            //if (!Main.english)
+            altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
+            fishDropString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
+            fishEatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
+            lightFlareString = Main.config.lightFlare + " (" + altToolButton + ")";
+            throwFlareString = Main.config.throwFlare + " (" + TooltipFactory.stringRightHand + ")";
+            lightAndThrowFlareString = Main.config.lightAndThrowFlare + " (" + TooltipFactory.stringRightHand + ")";
+            beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+            beaconPickString = "(" + TooltipFactory.stringLeftHand + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+            smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + uGUI.FormatButton(GameInput.Button.AltTool) + ")";
+
+        }
 
         [HarmonyPatch(typeof(Aquarium), "Start")]
         class Aquarium_Start_Patch
         {
             static void Postfix(Aquarium __instance)
             {
-                //AddDebug("Trashcan " + __instance.biohazard + " " + __instance.storageContainer.hoverText);
-                //__instance.storageContainer.hoverText = Language.main.Get("LabTrashcan");
                 if (__instance.storageContainer.container.allowedTech == null)
                 {
                     //AddDebug("Aquarium allowedTech == null ");
@@ -87,16 +112,11 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Planter __instance)
             {
-                //if (__instance.storageContainer.container.allowedTech == null)
-                {
-                    //AddDebug("Planter allowedTech == null ");
-                    //TechType techType = CraftData.GetTechType(__instance.gameObject);
-                    ItemsContainerType type = __instance.GetContainerType();
-                    if (type == ItemsContainerType.LandPlants)
-                        landPlanters.Add(__instance.storageContainer.container);
-                    else if (type == ItemsContainerType.WaterPlants)
-                        waterPlanters.Add(__instance.storageContainer.container);
-                }
+                ItemsContainerType type = __instance.GetContainerType();
+                if (type == ItemsContainerType.LandPlants)
+                    landPlanters.Add(__instance.storageContainer.container);
+                else if (type == ItemsContainerType.WaterPlants)
+                    waterPlanters.Add(__instance.storageContainer.container);
             }
         }
 
@@ -199,10 +219,15 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(GUIHand), "OnUpdate")]
-        class GUIHand_OnUpdate_Patch
+        [HarmonyPatch(typeof(GUIHand))]
+        class GUIHand_Patch
         { 
-            static string altToolButton = string.Empty;
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Start")]
+            public static void StartPrefix(GUIHand __instance)
+            {
+
+            }
 
             //[HarmonyPatch(nameof(GUIHand.OnUpdate))]
             //[HarmonyPrefix]
@@ -219,43 +244,61 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-          
-            [HarmonyPatch(nameof(GUIHand.OnUpdate))]
+
             [HarmonyPostfix]
+            [HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
             {
                 PlayerTool tool = __instance.GetTool();
+ 
+                //if (uGUI._main.userInput)
+                //    AddDebug("userInput " + uGUI._main.userInput.canvasGroup.interactable);
+                //if (uGUI._main.itemSelector)
+                //    AddDebug("itemSelector " + uGUI._main.itemSelector);
+                //if (uGUI._main.craftingMenu)
+                //    AddDebug("craftingMenu " + uGUI._main.craftingMenu.selected);
+
                 if (tool)
                 {
                     Flare flare = tool as Flare;
                     if (flare && !Main.flareRepairLoaded)
                     {
                         bool lit = flare.flareActivateTime > 0;
+                        bool canThrow = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
                         string text = string.Empty;
-                        string throwFlare = lit ? Main.config.throwFlare : Main.config.lightAndThrowFlare;
-                        if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
-                            text = throwFlare + " (" + TooltipFactory.stringRightHand + ")";
-                        if (string.IsNullOrEmpty(altToolButton))
-                            altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
-
-                        if (!lit)
+                        //string throwFlare = lit ? Main.config.throwFlare : Main.config.lightAndThrowFlare;
+                        if (!lit && canThrow)
                         {
-                            string text1 = Main.config.lightFlare + " (" + altToolButton + ")";
-                            if (string.IsNullOrEmpty(text))
-                                text = text1;
-                            else
-                                text = text + ",  " + text1;
-
-                            if (GameInput.GetButtonDown(GameInput.Button.AltTool))
-                                Flare_Patch.LightFlare(flare);
+                            StringBuilder stringBuilder = new StringBuilder(lightAndThrowFlareString);
+                            stringBuilder.Append(",  ");
+                            stringBuilder.Append(lightFlareString);
+                            text = stringBuilder.ToString();
                         }
+                        else if(lit && canThrow)
+                            text = throwFlareString;
+                        else if (!lit && !canThrow)
+                            text = lightFlareString;
+
+                        if (!lit && GameInput.GetButtonDown(GameInput.Button.AltTool))
+                            Flare_Patch.LightFlare(flare);
+
                         HandReticle.main.SetUseTextRaw(text, null);
+                    }
+                    Beacon beacon = tool as Beacon;
+                    if (beacon)
+                    {
+                        HandReticle.main.SetUseTextRaw(beaconToolString, null);
+                        //BeaconLabel beaconLabel = beacon.GetComponentInChildren<BeaconLabel>();
+                        if (beacon.beaconLabel && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                        {
+                            uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
+                        }
                     }
                     if (Main.IsEatableFish(tool.gameObject))
                     {
                         string text = string.Empty;
                         if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
-                            text = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
+                            text = fishDropString;
 
                         bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
                         //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
@@ -264,7 +307,7 @@ namespace Tweaks_Fixes
                             if (string.IsNullOrEmpty(altToolButton))
                                 altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
 
-                            string text1 = TooltipFactory.stringEat + " (" + altToolButton + ")";
+                            string text1 = fishEatString;
                             if (string.IsNullOrEmpty(text))
                                 text = text1;
                             else
@@ -284,17 +327,22 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetUseTextRaw(text, null);
                     }
                 }
-                else
-                {
+                else if(!Main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
+                { // ArgumentOutOfRangeException when toggle lights
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase)
                     {
-                        string text = "Toggle lights (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
-                        HandReticle.main.SetUseTextRaw(null, text);
+                        if (subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
+                            return;
+
+                        StringBuilder sb = new StringBuilder("Toggle lights (");
+                        //AddDebug("StringBuilder Capacity " + sb.Capacity);
+                        //string text = "Toggle lights (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+                        sb.Append(uGUI.FormatButton(GameInput.Button.Deconstruct));
+                        sb.Append(")");
+                        HandReticle.main.SetUseTextRaw(null, sb.ToString());
                         if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                        {
                             Base_Patch.ToggleBaseLight(subRoot);
-                        }
                     }
                 }
                 if (!__instance.activeTarget)
@@ -305,13 +353,6 @@ namespace Tweaks_Fixes
                 TechType targetTT = CraftData.GetTechType(__instance.activeTarget);
                 if (targetTT == TechType.None)
                     return;
-                if (targetTT == TechType.Flare && Main.english)
-                {
-                    //AddDebug("activeTarget Flare");
-                    string name = Language.main.Get(targetTT);
-                    name = "Burnt out " + name;
-					HandReticle.main.SetInteractText(name);
-                }
                 // UI tells you if looking at dead fish 
                 LiveMixin liveMixin = __instance.activeTarget.GetComponent<LiveMixin>();
                 if (liveMixin && !liveMixin.IsAlive())
@@ -325,7 +366,7 @@ namespace Tweaks_Fixes
                         if (pickupable.overrideTechType != TechType.None)
                             name = Language.main.Get(pickupable.overrideTechType);
 
-                        name = Language.main.GetFormat<string>("DeadFormat", name);
+                        name = Language.main.GetFormat("DeadFormat", name);
                         HandReticle.main.SetInteractText(name);
                     }
                     else
@@ -334,7 +375,15 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetInteractTextRaw(name, string.Empty);
                     }
                 }
-
+                Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
+                if (flareTarget && Main.english && flareTarget.energyLeft == 0f)
+                {
+                    //AddDebug("activeTarget Flare");
+                    string name = Language.main.Get(targetTT);
+                    name = "Burnt out " + name;
+                    //HandReticle.main.SetInteractText(name);
+                    HandReticle.main.SetInteractTextRaw(name, string.Empty);
+                }
             }
         }
 
@@ -404,10 +453,36 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
-        class TooltipFactory_ItemCommons_Patch
+        [HarmonyPatch(typeof(TooltipFactory))]
+        class TooltipFactory_Patch
         {
-            static void Prefix(StringBuilder sb, TechType techType, GameObject obj)
+            [HarmonyPostfix]
+            [HarmonyPatch("Initialize")]
+            static void InitializePostfix()
+            {
+                if (string.IsNullOrEmpty(altToolButton))
+                {
+                    //AddDebug("TooltipFactory Initialize ");
+                    GetStrings();
+                }
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnLanguageChanged")]
+            static void OnLanguageChangedPostfix()
+            {
+                //AddDebug("TooltipFactory OnLanguageChanged ");
+                GetStrings();
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnBindingsChanged")]
+            static void OnBindingsChangedPostfix()
+            {
+                //AddDebug("TooltipFactory OnBindingsChanged ");
+                GetStrings();
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("ItemCommons")]
+            static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
             {
                 if (!Main.english)
                     return;
@@ -423,7 +498,10 @@ namespace Tweaks_Fixes
                 }
                 fishTooltip = Main.IsEatableFish(obj);
             }
-            static void Postfix(StringBuilder sb, TechType techType, GameObject obj)
+          
+            [HarmonyPostfix]
+            [HarmonyPatch("ItemCommons")]
+            static void ItemCommonsPostfix(StringBuilder sb, TechType techType, GameObject obj)
             {
                 if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
                 {
@@ -479,13 +557,13 @@ namespace Tweaks_Fixes
 
                 ItemsContainer container = (ItemsContainer)item.container;
                 List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
-                if (Input.GetKey(KeyCode.LeftShift))
+                if (Input.GetKey(Main.config.transferAllItemsKey))
                 {
                     //AddDebug("LeftShift ");
                     foreach (TechType itemType in container.GetItemTypes())
                         container.GetItems(itemType, itemsToTransfer);
                 }
-                else if (Input.GetKey(KeyCode.LeftControl))
+                else if (Input.GetKey(Main.config.transferSameItemsKey))
                 {
                     //AddDebug("LeftControl ");
                     container.GetItems(item.item.GetTechType(), itemsToTransfer);
@@ -750,6 +828,45 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
+
+        [HarmonyPatch(typeof(uGUI_SignInput))]
+        class uGUI_SignInput_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnSelect")]
+            static void OnSelectPostfix(uGUI_SignInput __instance)
+            {
+                //AddDebug("uGUI_SignInput OnSelect");
+                textInput = true;
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnDeselect")]
+            static void OnDeselectPostfix(uGUI_SignInput __instance)
+            {
+                //AddDebug("uGUI_SignInput OnDeselect");
+                textInput = false;
+            }
+        }
+
+        [HarmonyPatch(typeof(SubNameInput))]
+        class SubNameInput_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnSelect")]
+            static void OnSelectPostfix(SubNameInput __instance)
+            {
+                //AddDebug("SubNameInput OnSelect");
+                textInput = true;
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnDeselect")]
+            static void OnDeselectPostfix(SubNameInput __instance)
+            {
+                //AddDebug("SubNameInput OnDeselect");
+                textInput = false;
+            }
+        }
+
 
     }
 }

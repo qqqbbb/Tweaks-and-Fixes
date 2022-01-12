@@ -12,6 +12,7 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
         public static bool releasingGrabbedObject = false;
         public static bool shootingObject = false;
+        public static List<GameObject> repCannonGOs = new List<GameObject>();
 
         [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
         public class FlashLight_Start_Patch
@@ -27,11 +28,28 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(Inventory), "OnAddItem")]
+        internal class Inventory_OnAddItem_Patch
+        { 
+            public static void Postfix(Inventory __instance, InventoryItem item)
+            {
+                if (item != null && item.item && item.item.GetTechType() == TechType.SmallStorage)
+                {
+                    AddDebug("Inventory OnAddItem SmallStorage");
+                    Transform label = item.item.transform.Find("LidLabel");
+                    if (label)
+                    {
+                        label.localPosition = new Vector3(0.02f, 0.04f, -0.04f);
+                    }
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(PlayerTool))]
         public class PlayerTool_Patch
         {
             [HarmonyPrefix]
-            [HarmonyPatch(nameof(PlayerTool.Awake))]
+            [HarmonyPatch("Awake")]
             public static void AwakePrefix(PlayerTool __instance)
             {
                 Light[] lights = __instance.GetComponentsInChildren<Light>(true);
@@ -45,11 +63,12 @@ namespace Tweaks_Fixes
                     lightIntensityStep[tt] = lights[0].intensity * .1f;
                     //Main.Log(tt + " lightOrigIntensity " + lights[0].intensity);
                 }
+
             }
             static float knifeRangeDefault = 0f;
             static float knifeDamageDefault = 0f;
             [HarmonyPostfix]
-            [HarmonyPatch(nameof(PlayerTool.OnDraw))]
+            [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -85,7 +104,7 @@ namespace Tweaks_Fixes
                 }
             }
             [HarmonyPostfix]
-            [HarmonyPatch(nameof(PlayerTool.OnHolster))]
+            [HarmonyPatch("OnHolster")]
             public static void OnHolsterPostfix(PlayerTool __instance)
             {
                 if (__instance is LEDLight)
@@ -220,8 +239,6 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
-        public static List<GameObject> repCannonGOs = new List<GameObject>();
 
         [HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
         class RepulsionCannon_OnToolUseAnim_Patch
@@ -371,10 +388,24 @@ namespace Tweaks_Fixes
 
         }
 
-        [HarmonyPatch(typeof(Beacon), "Throw")]
+        [HarmonyPatch(typeof(Beacon))]
         class Beacon_Patch
         {
-            static void Postfix(Beacon __instance)
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
+            static void StartPostfix(Beacon __instance)
+            {
+                if (string.IsNullOrEmpty(UI_Patches.beaconToolString))
+                {
+                    //UI_Patches.beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+                    ////AddDebug("beaconToolString " + UI_Patches.beaconToolString);
+                    ////Main.Log("beaconToolString " + UI_Patches.beaconToolString);
+                    //UI_Patches.beaconPickString = "(" + TooltipFactory.stringLeftHand + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+                }
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("Throw")]
+            static void ThrowPostfix(Beacon __instance)
             {
                 // x and z does not matter, it will stabilize itself
                 __instance.gameObject.transform.rotation = Camera.main.transform.rotation;

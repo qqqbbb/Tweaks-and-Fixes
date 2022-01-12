@@ -288,10 +288,24 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Plantable), "Spawn")]
-        internal class Plantable_Spawn_Patch
+        [HarmonyPatch(typeof(Plantable))]
+        class Plantable_Patch
         {
-            public static void Postfix(ref GameObject __result)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnProtoDeserialize")]
+            static void OnProtoDeserializePostfix(Plantable __instance)
+            {
+                if (__instance.plantTechType == TechType.MelonPlant)
+                {
+                    //AddDebug("Plantable OnProtoDeserialize " + __instance.plantTechType);
+                    //AddDebug("Planter AddItem fix " + p.plantTechType);
+                    __instance.size = Plantable.PlantSize.Large;
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("Spawn")]
+            public static void SpawnPostfix(ref GameObject __result)
             {
                 //AddDebug("Plantable Spawn " + __result.name);
                 Vector3 rot = __result.transform.eulerAngles;
@@ -299,6 +313,7 @@ namespace Tweaks_Fixes
                 __result.transform.eulerAngles = new Vector3(rot.x, y, rot.z);
             }
         }
+
 
         //[HarmonyPatch(typeof(InteractionVolumeCollider))]
         class InteractionVolumeUser_Patch

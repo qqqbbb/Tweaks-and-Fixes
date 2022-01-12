@@ -274,13 +274,15 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnDockedChanged")]
         public static void OnDockedChangedPrefix(Vehicle __instance, bool docked, Vehicle.DockType dockType)
         {
+            //AddDebug("OnDockedChanged docked " + docked);
             if (docked)
                 dockedVehicles[__instance] = dockType;
             else
                 dockedVehicles[__instance] = Vehicle.DockType.None;
         }
-
     }
+
+
 
     [HarmonyPatch(typeof(SeaMoth))]
     class SeaMoth_patch

@@ -204,8 +204,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPatch(nameof(Flare.OnHolster))]
         [HarmonyPostfix]
+        [HarmonyPatch(nameof(Flare.OnHolster))]
         internal static void OnHolsterPostfix(Flare __instance)
         {
             if (Main.flareRepairLoaded)
@@ -217,14 +217,15 @@ namespace Tweaks_Fixes
             //AddDebug("fxIsPlaying " + __instance.fxIsPlaying);
         }
 
-        [HarmonyPatch(nameof(Flare.OnToolUseAnim))]
         [HarmonyPrefix]
+        [HarmonyPatch(nameof(Flare.OnToolUseAnim))]
         internal static bool OnToolUseAnimPrefix(Flare __instance, GUIHand hand)
-        {
+        { // can throw inside base!
             if (Main.flareRepairLoaded)
                 return true;
 
-            //AddDebug("OnToolUseAnim " + __instance.isThrowing);
+            //bool canThrow = Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
+            //AddDebug("OnToolUseAnim GetUsedToolThisFrame " + __instance.GetUsedToolThisFrame());
             if (__instance.isThrowing)
                 return false;
             if (__instance.flareActivateTime == 0)
@@ -346,7 +347,10 @@ namespace Tweaks_Fixes
 			if (Main.flareRepairLoaded)
 				return true;
 
-			if (__instance.isThrowing)
+            //bool canThrow = Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
+            //AddDebug("OnDrop " + canThrow);
+
+            if (__instance.isThrowing)
 			{
 				__instance.GetComponent<Rigidbody>().AddForce(MainCamera.camera.transform.forward * __instance.dropForceAmount * .5f);
 				__instance.GetComponent<Rigidbody>().AddTorque(MainCamera.camera.transform.forward * __instance.dropTorqueAmount * .5f);

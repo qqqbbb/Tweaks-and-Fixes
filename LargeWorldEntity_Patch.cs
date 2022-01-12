@@ -12,10 +12,25 @@ namespace Tweaks_Fixes
     { // biomes to remove light BloodKelp_Trench
         public static HashSet<TechType> removeLight = new HashSet<TechType> { };
        
-        static void AlwaysUseHiPolyMesh(GameObject go)
+        static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
         {
+            //AddDebug("AlwaysUseHiPolyMesh " + go.name);
+            if (techType == TechType.Boomerang)// dont disable FP model
+                go = go.transform.Find("model").gameObject;
             LODGroup lod = go.GetComponent<LODGroup>();
+            if (lod == null)
+                return;
+
             lod.enabled = false;
+            if (techType == TechType.Boomerang || techType == TechType.LargeFloater)
+            { 
+                SkinnedMeshRenderer[] smrs = go.GetComponentsInChildren<SkinnedMeshRenderer>();
+                //AddDebug("AlwaysUseHiPolyMesh " + smrs.Length);
+                for (int i = 1; i < smrs.Length; i++)
+                    smrs[i].enabled = false;
+
+                return;
+            }
             MeshRenderer[] renderers = go.GetComponentsInChildren<MeshRenderer>();
             //AddDebug("AlwaysUseHiPolyMesh " + renderers.Length);
             for (int i = 1; i < renderers.Length; i++)
@@ -68,6 +83,12 @@ namespace Tweaks_Fixes
                 }
                 else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
                     AlwaysUseHiPolyMesh(__instance.gameObject);
+                else if (tt == TechType.BluePalm && __instance.name == "coral_reef_plant_small_01_03(Clone)")
+                    AlwaysUseHiPolyMesh(__instance.gameObject);
+                else if (tt == TechType.Boomerang)
+                    AlwaysUseHiPolyMesh(__instance.gameObject, TechType.Boomerang);
+                else if (tt == TechType.LargeFloater)
+                    AlwaysUseHiPolyMesh(__instance.gameObject, TechType.LargeFloater);
                 else if (tt == TechType.BulboTree || tt == TechType.PurpleVasePlant || tt == TechType.OrangePetalsPlant || tt == TechType.PinkMushroom || tt == TechType.PurpleRattle)
                 {
                     MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
