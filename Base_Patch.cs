@@ -163,7 +163,25 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(StorageContainer), "Open", new Type[] { typeof(Transform) })]
+        class StorageContainer_Open_Patch
+        {// fix bug: when opening standing locker from a distance your PDA does not open
+            public static bool Prefix(StorageContainer __instance, Transform useTransform)
+            {
+                //float dist = (useTransform.position - Player.main.transform.position).magnitude;
+                //AddDebug("Open dist " + dist);
+                PDA pda = Player.main.GetPDA();
+                Inventory.main.SetUsedStorage((IItemsContainer)__instance.container);
+                Transform target = useTransform;
+                PDA.OnClose onCloseCallback = new PDA.OnClose(__instance.OnClosePDA);
+                //double num = __instance.modelSizeRadius + 2.0;
+                if (!pda.Open(PDATab.Inventory, target, onCloseCallback, 4))
+                    return false;
 
+                __instance.open = true;
+                return false;
+            }
+        }
 
 
     }

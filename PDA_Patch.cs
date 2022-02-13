@@ -10,19 +10,22 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     class PDA_Patch
-    { // WTF changes FOV when you open PDA?
+    { 
         static ConditionRules conditionRules;
         static int ruleToRemove;
 
         static void showPDA(PDA pda)
-        {
-            //AddDebug("showPDA");
+        {// FOV 60 .165f
+            //AddDebug("showPDA " + MainCamera.camera.fieldOfView + "  " + MiscSettings.fieldOfView);
             pda.transform.SetParent(Camera.main.transform);
             pda.transform.forward = Camera.main.transform.forward;
             pda.transform.Rotate(new Vector3(0f, 180f, 0f));
             Vector3 pos = Camera.main.transform.position;
-            pda.transform.position = pos + .156f * Camera.main.transform.forward;
-            //pda.transform.Translate(-.2f * Camera.main.transform.right);
+            float f = Mathf.InverseLerp(40f, 90f, MiscSettings.fieldOfView);
+             f = 1f - f;
+            f = Mathf.Lerp(.095f, .26f, f);
+            //float mult = Main.NormalizeToRange(MiscSettings.fieldOfView, 40f, 90f, .095f, .26f);
+            pda.transform.position = pos + f * Camera.main.transform.forward;
             pda.transform.position = pda.transform.position - .2f * Camera.main.transform.right;
         }
 
@@ -40,7 +43,7 @@ namespace Tweaks_Fixes
                     //double maximumY = __instance.maximumY;
                     Vector3 velocity = __instance.playerController.velocity;
                     bool pdaOpen = false;
-                    bool flag2 = false;
+                    bool wasInLockedMode = false;
                     bool inVehicle = false;
                     bool inExosuit = Player.main.inExosuit;
                     bool builderMenuOpen = uGUI_BuilderMenu.IsOpen();
@@ -49,15 +52,15 @@ namespace Tweaks_Fixes
                     {
                         pdaOpen = Player.main.GetPDA().isInUse;
                         inVehicle = Player.main.motorMode == Player.MotorMode.Vehicle;
-                        flag2 = pdaOpen | inVehicle || __instance.cinematicMode;
+                        wasInLockedMode = pdaOpen | inVehicle || __instance.cinematicMode;
                         if (UnityEngine.XR.XRSettings.enabled && VROptions.gazeBasedCursor)
-                            flag2 |= builderMenuOpen;
+                            wasInLockedMode |= builderMenuOpen;
                     }
-                    if (flag2 != __instance.wasInLockedMode || __instance.lookAroundMode != __instance.wasInLookAroundMode)
+                    if (wasInLockedMode != __instance.wasInLockedMode || __instance.lookAroundMode != __instance.wasInLookAroundMode)
                     {
                         __instance.camRotationX = 0f;
                         __instance.camRotationY = 0f;
-                        __instance.wasInLockedMode = flag2;
+                        __instance.wasInLockedMode = wasInLockedMode;
                         __instance.wasInLookAroundMode = __instance.lookAroundMode;
                     }
                     bool flag5 = (!__instance.cinematicMode || __instance.lookAroundMode && !pdaOpen) && __instance.mouseLookEnabled && (inVehicle || AvatarInputHandler.main == null || AvatarInputHandler.main.IsEnabled() || Builder.isPlacing);
@@ -65,10 +68,11 @@ namespace Tweaks_Fixes
                         flag5 = false;
                     Transform transform = __instance.transform;
                     float num1 = pdaOpen || __instance.lookAroundMode || Player.main.GetMode() == Player.Mode.LockedPiloting ? 1f : -1f;
-                    if (!flag2 || __instance.cinematicMode && !__instance.lookAroundMode)
+                    if (!wasInLockedMode || __instance.cinematicMode && !__instance.lookAroundMode)
                     {
                         __instance.cameraOffsetTransform.localEulerAngles = UWE.Utils.LerpEuler(__instance.cameraOffsetTransform.localEulerAngles, Vector3.zero, Time.deltaTime * 5f);
                     }
+                    //else
                     else if (!Main.config.instantPDA)
                     {
                         //AddDebug("MainCameraControl Update 11");
@@ -76,6 +80,10 @@ namespace Tweaks_Fixes
                         __instance.rotationY = Mathf.LerpAngle(__instance.rotationY, 0f, Time.deltaTime * 10f);
                         __instance.transform.localEulerAngles = new Vector3(-__instance.rotationY, __instance.rotationX, 0f);
                         __instance.cameraUPTransform.localEulerAngles = UWE.Utils.LerpEuler(__instance.cameraUPTransform.localEulerAngles, Vector3.zero, Time.deltaTime * 30f);
+                    }
+                    //else if (Main.config.instantPDA)
+                    {
+
                     }
                     if (!UnityEngine.XR.XRSettings.enabled)
                     {
@@ -100,7 +108,7 @@ namespace Tweaks_Fixes
                         __instance.camRotationY = Mathf.LerpAngle(__instance.camRotationY, 0f, Time.deltaTime * 2f);
                         __instance.transform.localEulerAngles = new Vector3(-__instance.camRotationY + __instance.camShake, __instance.camRotationX, 0f);
                     }
-                    else if (flag2)
+                    else if (wasInLockedMode)
                     {
                         if (!UnityEngine.XR.XRSettings.enabled)
                         {
@@ -131,7 +139,7 @@ namespace Tweaks_Fixes
                     __instance.UpdateStrafeTilt();
                     Vector3 vector3_1 = __instance.transform.localEulerAngles + new Vector3(0f, 0f, __instance.cameraAngleMotion.y * __instance.cameraTiltMod + __instance.strafeTilt + __instance.camShake * 0.5f);
                     float num3 = 0f - __instance.skin;
-                    if (!flag2 && __instance.GetCameraBob())
+                    if (!wasInLockedMode && __instance.GetCameraBob())
                     {
                         __instance.smoothedSpeed = UWE.Utils.Slerp(__instance.smoothedSpeed, Mathf.Min(1f, velocity.magnitude / 5f), Time.deltaTime);
                         num3 += ((Mathf.Sin(Time.time * 6f) - 1f) * (0.0199999995529652f + __instance.smoothedSpeed * 0.150000005960464f)) * __instance.swimCameraAnimation;
@@ -153,10 +161,10 @@ namespace Tweaks_Fixes
                     Vector3 vector3_3 = __instance.transform.localPosition;
                     if (UnityEngine.XR.XRSettings.enabled)
                     {
-                        vector3_2.y = !flag2 || inVehicle ? 0f : __instance.viewModelLockedYaw;
+                        vector3_2.y = !wasInLockedMode || inVehicle ? 0f : __instance.viewModelLockedYaw;
                         if (!inVehicle && !__instance.cinematicMode)
                         {
-                            if (!flag2)
+                            if (!wasInLockedMode)
                             {
                                 Quaternion rotation = __instance.playerController.forwardReference.rotation;
                                 Quaternion quaternion = __instance.gameObject.transform.parent.rotation.GetInverse() * rotation;
@@ -221,7 +229,6 @@ namespace Tweaks_Fixes
                     Inventory.main.SetUsedStorage(PlayerTimeCapsule.main.container);
                     (__instance.ui.GetTab(PDATab.Gallery) as uGUI_GalleryTab).SetSelectListener(new uGUI_GalleryTab.ImageSelectListener((__instance.ui.GetTab(PDATab.TimeCapsule) as uGUI_TimeCapsuleTab).SelectImage), "ScreenshotSelect", "ScreenshotSelectTooltip");
                 }
-
                 __instance.ui.OnOpenPDA(tab);
                 __instance.sequence.Set(0.5f, true, new SequenceCallback(__instance.Activated));
                 GoalManager.main.OnCustomGoalEvent("Open_PDA");
@@ -236,7 +243,7 @@ namespace Tweaks_Fixes
                 if (activeDistance < 0f)
                     activeDistance = 3f;
                 __instance.activeSqrDistance = activeDistance * activeDistance;
-                UwePostProcessingManager.OpenPDA();
+                //UwePostProcessingManager.OpenPDA();
                 if (Main.config.instantPDA)
                     showPDA(__instance);
                 __result = true;
@@ -252,7 +259,7 @@ namespace Tweaks_Fixes
                 if (!Main.config.instantPDA)
                     return true;
 
-                __instance.gameObject.SetActive(false);
+                //AddDebug("Close");
                 MainCameraControl.main.ResetLockedVRViewModelAngle();
                 Vehicle vehicle = Player.main.GetVehicle();
                 if (vehicle != null)
@@ -262,18 +269,46 @@ namespace Tweaks_Fixes
                 __instance.isInUse = false;
                 __instance.ui.OnClosePDA();
                 MainGameController.Instance.PerformGarbageCollection();
-                if (HandReticle.main != null)
-                    HandReticle.main.UnrequestCrosshairHide();
+                //if (HandReticle.main != null)
+                HandReticle.main?.UnrequestCrosshairHide();
                 Inventory.main.SetViewModelVis(true);
                 __instance.sequence.Set(0.5f, false, new SequenceCallback(__instance.Deactivated));
                 __instance.screen.SetActive(false);
-                UwePostProcessingManager.ClosePDA();
+                //UwePostProcessingManager.ClosePDA();
+                __instance.gameObject.SetActive(false);
+                Inventory.main.quickSlots.Select(__instance.prevQuickSlot);
                 if (__instance.onClose == null)
                     return false;
                 PDA.OnClose onClose = __instance.onClose;
-                __instance.onClose = (PDA.OnClose)null;
-                onClose(__instance);
+                __instance.onClose = null;
+                onClose(__instance);       
+                return false;
+            }
 
+            [HarmonyPrefix]
+            [HarmonyPatch("Update")]
+            static bool UpdatePrefix(PDA __instance)
+            {
+                if (!Main.config.instantPDA)
+                    return true;
+                __instance.sequence.Update();
+                //AddDebug("ignorePDAInput " + __instance.ignorePDAInput);
+                //if (__instance.sequence.active)
+                //{
+                //float b = SNCameraRoot.main.mainCamera.aspect > 1.5 ? __instance.cameraFieldOfView : __instance.cameraFieldOfViewAtFourThree;
+                //SNCameraRoot.main.SetFov(Mathf.Lerp(MiscSettings.fieldOfView, b, __instance.sequence.t));
+                //}
+                Player main = Player.main;
+                if (__instance.isInUse && __instance.isFocused && (GameInput.GetButtonDown(GameInput.Button.PDA) && !__instance.ui.introActive))
+                {
+                    __instance.Close();
+                }
+                else
+                {
+                    if (!__instance.targetWasSet || !(__instance.target == null) && (__instance.target.transform.position - main.transform.position).sqrMagnitude < __instance.activeSqrDistance)
+                        return false;
+                    __instance.Close();
+                }
                 return false;
             }
         }
@@ -296,6 +331,26 @@ namespace Tweaks_Fixes
                     return y > Ocean.main.GetOceanLevel() - 1f && y < Ocean.main.GetOceanLevel() + 1f && !Player.main.IsInside() && !Player.main.precursorOutOfWater;
                 })).WhenChanges((ConditionRules.BoolHandlerFunction)(newValue => SafeAnimator.SetBool(__instance.animator, "on_surface", newValue)));
                 cr.AddCondition((ConditionRules.ConditionFunction)(() => __instance.player.GetInMechMode())).WhenChanges((ConditionRules.BoolHandlerFunction)(newValue => SafeAnimator.SetBool(__instance.animator, "using_mechsuit", newValue)));
+                return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(UwePostProcessingManager), "OpenPDA")]
+        class UwePostProcessingManager_OpenPDA_Patch
+        {
+            static bool Prefix(UwePostProcessingManager __instance)
+            {
+                AddDebug("UwePostProcessingManager OpenPDA");
+                return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(UwePostProcessingManager), "ClosePDA")]
+        class UwePostProcessingManager_ClosePDA_Patch
+        {
+            static bool Prefix(UwePostProcessingManager __instance)
+            {
+                AddDebug("UwePostProcessingManager ClosePDA");
                 return false;
             }
         }

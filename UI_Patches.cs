@@ -18,29 +18,39 @@ namespace Tweaks_Fixes
         static HashSet<ItemsContainer> waterPlanters = new HashSet<ItemsContainer>();
         static public string beaconToolString = string.Empty;
         static public string beaconPickString = string.Empty;
-        static public string fishDropString = string.Empty;
-        static public string fishEatString = string.Empty;
+        static public string dropString = string.Empty;
+        static public string eatString = string.Empty;
         static public string altToolButton = string.Empty;
         static public string lightFlareString = string.Empty;
         static public string throwFlareString = string.Empty;
         static public string lightAndThrowFlareString = string.Empty;
         public static string smallStorageString = string.Empty;
-
+        public static string deconstructButton = string.Empty;
+        public static string seaglideString = string.Empty;
 
         static void GetStrings()
         {
-            //AddDebug("GetStrings");
-            //if (!Main.english)
+            //AddDebug("GetStrings " + Main.config.translatableStrings.Count);
+            //if ( config.translatableStrings.Count < 16)
+            //{
+            //    config.translatableStrings = new List<string> { "Burnt out ",  "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map"," " ," TEST " ,    };
+            //    config.Save();
+            //}
+            Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
+            Exosuit_Patch.exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[2] + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+            Exosuit_Patch.armNamesChanged = true;
             altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
-            fishDropString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
-            fishEatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
-            lightFlareString = Main.config.lightFlare + " (" + altToolButton + ")";
-            throwFlareString = Main.config.throwFlare + " (" + TooltipFactory.stringRightHand + ")";
-            lightAndThrowFlareString = Main.config.lightAndThrowFlare + " (" + TooltipFactory.stringRightHand + ")";
-            beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
-            beaconPickString = "(" + TooltipFactory.stringLeftHand + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+            deconstructButton = uGUI.FormatButton(GameInput.Button.Deconstruct);
+            dropString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
+            eatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
+            lightFlareString = Main.config.translatableStrings[12] + " (" + altToolButton + ")";
+            throwFlareString = Main.config.translatableStrings[10] + " (" + TooltipFactory.stringRightHand + ")";
+            lightAndThrowFlareString = Main.config.translatableStrings[11] + " (" + TooltipFactory.stringRightHand + ")";
+            beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
+            beaconPickString = "(" + TooltipFactory.stringLeftHand + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + uGUI.FormatButton(GameInput.Button.AltTool) + ")";
-
+            //seaglideString = Main.config.translatableStrings[2] + " (" + TooltipFactory.stringRightHand + ")  " + Main.config.translatableStrings[13] + " (" + altToolButton + ")";
+            seaglideString = Main.config.translatableStrings[13] + " (" + altToolButton + ")";
         }
 
         [HarmonyPatch(typeof(Aquarium), "Start")]
@@ -189,6 +199,7 @@ namespace Tweaks_Fixes
                     }
                 }
             }
+           
             [HarmonyPostfix]
             [HarmonyPatch("OnClosePDA")]
             static void OnClosePDAPostfix(uGUI_InventoryTab __instance)
@@ -199,25 +210,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(StorageContainer), "Open", new Type[] { typeof(Transform) })]
-        class StorageContainer_Open_Patch
-        {// fix bug: when opening standing locker from a distance your PDA does not open
-            public static bool Prefix(StorageContainer __instance, Transform useTransform)
-            {
-                //float dist = (useTransform.position - Player.main.transform.position).magnitude;
-                //AddDebug("Open dist " + dist);
-                PDA pda = Player.main.GetPDA();
-                Inventory.main.SetUsedStorage((IItemsContainer)__instance.container);
-                Transform target = useTransform;
-                PDA.OnClose onCloseCallback = new PDA.OnClose(__instance.OnClosePDA);
-                //double num = __instance.modelSizeRadius + 2.0;
-                if (!pda.Open(PDATab.Inventory, target, onCloseCallback, 4))
-                    return false;
-
-                __instance.open = true;
-                return false;
-            }
-        }
 
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
@@ -288,57 +280,66 @@ namespace Tweaks_Fixes
                     if (beacon)
                     {
                         HandReticle.main.SetUseTextRaw(beaconToolString, null);
-                        //BeaconLabel beaconLabel = beacon.GetComponentInChildren<BeaconLabel>();
                         if (beacon.beaconLabel && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                         {
                             uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
                         }
                     }
+                    DeployableStorage ds = tool as DeployableStorage;
+                    if (ds)
+                    {
+                        //Transform tr = ds.transform.Find("StorageContainer");
+                        //StorageContainer sc = tr.GetComponent<StorageContainer>();
+                        //StringBuilder sb = new StringBuilder(Language.main.Get(sc.hoverText));
+                        //sb.Append(" (");
+                        //sb.Append(TooltipFactory.stringLeftHand);
+                        //sb.Append(")\n");
+                        Transform tr = ds.transform.Find("LidLabel/Label");
+                        ColoredLabel cl = tr.GetComponent<ColoredLabel>();
+                        StringBuilder sb = new StringBuilder(dropString);
+                        //sb.Append(Language.main.Get(cl.stringEditLabel));
+                        sb.Append(", ");
+                        sb.Append(Language.main.Get(cl.stringEditLabel));
+                        sb.Append(" (");
+                        sb.Append(deconstructButton);
+                        sb.Append(")");
+                        HandReticle.main.SetUseTextRaw(sb.ToString(), null);
+                        //if (GameInput.GetButtonDown(GameInput.Button.LeftHand))
+                        //    sc.OnHandClick(__instance);
+                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                            cl.signInput.Select(true);
+                    }
                     if (Main.IsEatableFish(tool.gameObject))
                     {
-                        string text = string.Empty;
-                        if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
-                            text = fishDropString;
+                        StringBuilder sb = new StringBuilder();
+                        bool canDrop = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
+                        if (canDrop)
+                            sb.Append(dropString);
 
                         bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
                         //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
                         if (!cantEat)
                         {
-                            if (string.IsNullOrEmpty(altToolButton))
-                                altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
-
-                            string text1 = fishEatString;
-                            if (string.IsNullOrEmpty(text))
-                                text = text1;
-                            else
-                                text = text + ",  " + text1;
-
+                            if (canDrop)
+                                sb.Append(",  ");
+                            sb.Append(eatString);
                             if (GameInput.GetButtonDown(GameInput.Button.AltTool))
                             {
-                                Eatable eatable = tool.GetComponent<Eatable>();
-                                //if (__instance.GetTechType() == TechType.Bladderfish)
-                                if (eatable)
-                                {
-                                    Inventory playerInv = Inventory.main;
-                                    playerInv.UseItem(playerInv.quickSlots.heldItem);
-                                }
+                                Inventory playerInv = Inventory.main;
+                                playerInv.UseItem(playerInv.quickSlots.heldItem);
                             }
                         }
-                        HandReticle.main.SetUseTextRaw(text, null);
+                        HandReticle.main.SetUseTextRaw(sb.ToString(), null);
                     }
                 }
                 else if(!Main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
-                { // ArgumentOutOfRangeException when toggle lights
+                {
                     SubRoot subRoot = Player.main.currentSub;
-                    if (subRoot && subRoot.isBase)
+                    if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
                     {
-                        if (subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
-                            return;
-
-                        StringBuilder sb = new StringBuilder("Toggle lights (");
-                        //AddDebug("StringBuilder Capacity " + sb.Capacity);
-                        //string text = "Toggle lights (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
-                        sb.Append(uGUI.FormatButton(GameInput.Button.Deconstruct));
+                        StringBuilder sb = new StringBuilder(Main.config.translatableStrings[2]);
+                        sb.Append(" (");
+                        sb.Append(deconstructButton);
                         sb.Append(")");
                         HandReticle.main.SetUseTextRaw(null, sb.ToString());
                         if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
@@ -376,13 +377,12 @@ namespace Tweaks_Fixes
                     }
                 }
                 Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
-                if (flareTarget && Main.english && flareTarget.energyLeft == 0f)
+                if (flareTarget && Main.languageCheck && flareTarget.energyLeft == 0f)
                 {
                     //AddDebug("activeTarget Flare");
-                    string name = Language.main.Get(targetTT);
-                    name = "Burnt out " + name;
-                    //HandReticle.main.SetInteractText(name);
-                    HandReticle.main.SetInteractTextRaw(name, string.Empty);
+                    StringBuilder sb = new StringBuilder(Main.config.translatableStrings[0]);
+                    sb.Append(Language.main.Get(targetTT));
+                    HandReticle.main.SetInteractTextRaw(sb.ToString(), string.Empty);
                 }
             }
         }
@@ -466,6 +466,7 @@ namespace Tweaks_Fixes
                     GetStrings();
                 }
             }
+
             [HarmonyPostfix]
             [HarmonyPatch("OnLanguageChanged")]
             static void OnLanguageChangedPostfix()
@@ -484,17 +485,17 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
             {
-                if (!Main.english)
-                    return;
-
-                Flare flare = obj.GetComponent<Flare>();
-                if (flare)
+                if (Main.languageCheck)
                 {
-                    //AddDebug("flare.energyLeft " + flare.energyLeft);
-                    if (flare.energyLeft <= 0f)
-                        TooltipFactory.WriteTitle(sb, "Burnt out ");
-                    else if (flare.flareActivateTime > 0f)
-                        TooltipFactory.WriteTitle(sb, "Lit ");
+                    Flare flare = obj.GetComponent<Flare>();
+                    if (flare)
+                    {
+                        //AddDebug("flare.energyLeft " + flare.energyLeft);
+                        if (flare.energyLeft <= 0f)
+                            TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[0]);
+                        else if (flare.flareActivateTime > 0f)
+                            TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[1]);
+                    }
                 }
                 fishTooltip = Main.IsEatableFish(obj);
             }
@@ -503,20 +504,34 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPostfix(StringBuilder sb, TechType techType, GameObject obj)
             {
-                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                if (Main.languageCheck)
                 {
-                    TooltipFactory.WriteDescription(sb, "Increases your safe diving depth by " + Crush_Damage.crushDepthEquipment[techType] + " meters.");
+                    if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                    {
+                        StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[3]);
+                        sb_.Append(Crush_Damage.crushDepthEquipment[techType]);
+                        sb_.Append(Main.config.translatableStrings[4]);
+                        TooltipFactory.WriteDescription(sb, sb_.ToString());
+                    }
+                    if (techType == TechType.FirstAidKit)
+                    {
+                        StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[5]);
+                        sb_.Append(Main.config.medKitHP);
+                        sb_.Append(Main.config.translatableStrings[6]);
+                        TooltipFactory.WriteDescription(sb, sb_.ToString());
+                    }
                 }
                 if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
                 {
                     Rigidbody rb = obj.GetComponent<Rigidbody>();
                     if (rb)
-                        TooltipFactory.WriteDescription(sb, "mass " + rb.mass);
+                    {
+                        StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[7]);
+                        sb_.Append(rb.mass);
+                        TooltipFactory.WriteDescription(sb, sb_.ToString());
+                    }
                 }
-                if (techType == TechType.FirstAidKit)
-                {
-                    TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
-                }
+
             }
         }
 
@@ -527,19 +542,41 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("FormatString " + text);
                 //AddDebug("FormatString " + __result);
-                if (!fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(float)  )
+                if (!Main.languageCheck || !fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(float)  )
                     return;
                 //AddDebug("FormatString GetType" + args[0].GetType());
                 float value = (float)args[0];
                 if (value > 0f && text.Contains("FOOD:") || text.Contains("H₂O:"))
                 {
                     string[] tokens = __result.Split(':');
-                    if(Main.config.eatRawFish == Config.EatingRawFish.Harmless)
-                        __result = tokens[0] + ": min 0, max " + value;
+                    string min = Main.config.translatableStrings[8];
+                    string max = Main.config.translatableStrings[9];
+                    StringBuilder sb_ = new StringBuilder(tokens[0]);
+                    sb_.Append(min);
+                    if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                    {
+                        //__result = tokens[0] + min + "0" + max + value;
+                        sb_.Append("0");
+                        sb_.Append(max);
+                        sb_.Append(value);
+                    }
                     else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
-                        __result = tokens[0] + ": min -" + value + ", max " + value;
+                    {
+                        //__result = tokens[0] + min + "-" + value + max + value;
+                        sb_.Append("-");
+                        sb_.Append(value);
+                        sb_.Append(max);
+                        sb_.Append(value);
+                    }
                     else if(Main.config.eatRawFish == Config.EatingRawFish.Harmful)
-                        __result = tokens[0] + ": min -" + value + ", max 0";
+                    {
+                        //__result = tokens[0] + min + "-" + value + max + "0";
+                        sb_.Append("-");
+                        sb_.Append(value);
+                        sb_.Append(max);
+                        sb_.Append("0");
+                    }
+                    __result = sb_.ToString();
                 }
             }
         }
@@ -829,41 +866,32 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(uGUI_SignInput))]
-        class uGUI_SignInput_Patch
+        [HarmonyPatch(typeof(uGUI_InputGroup))]
+        class uGUI_InputGroup_Patch
         {
             [HarmonyPostfix]
             [HarmonyPatch("OnSelect")]
-            static void OnSelectPostfix(uGUI_SignInput __instance)
+            static void OnSelectPostfix(uGUI_InputGroup __instance)
             {
-                //AddDebug("uGUI_SignInput OnSelect");
+                //AddDebug("uGUI_InputGroup OnSelect");
                 textInput = true;
             }
             [HarmonyPostfix]
             [HarmonyPatch("OnDeselect")]
-            static void OnDeselectPostfix(uGUI_SignInput __instance)
+            static void OnDeselectPostfix(uGUI_InputGroup __instance)
             {
-                //AddDebug("uGUI_SignInput OnDeselect");
+                //AddDebug("uGUI_InputGroup OnDeselect");
                 textInput = false;
             }
         }
 
-        [HarmonyPatch(typeof(SubNameInput))]
-        class SubNameInput_Patch
+        [HarmonyPatch(typeof(PlayerTool), "GetCustomUseText")]
+        class PlayerTool_GetCustomUseText_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnSelect")]
-            static void OnSelectPostfix(SubNameInput __instance)
+            static void Postfix(PlayerTool __instance, ref string __result)
             {
-                //AddDebug("SubNameInput OnSelect");
-                textInput = true;
-            }
-            [HarmonyPostfix]
-            [HarmonyPatch("OnDeselect")]
-            static void OnDeselectPostfix(SubNameInput __instance)
-            {
-                //AddDebug("SubNameInput OnDeselect");
-                textInput = false;
+                if (!Main.seaglideMapControlsLoaded && __instance is Seaglide)
+                    __result = seaglideString;
             }
         }
 

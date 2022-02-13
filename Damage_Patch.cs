@@ -227,7 +227,7 @@ namespace Tweaks_Fixes
         class LiveMixin_Patch
         {
             [HarmonyPostfix]
-            [HarmonyPatch(nameof(LiveMixin.Start))]
+            [HarmonyPatch("Start")]
             static void StartPostfix(LiveMixin __instance)
             {
                 //__instance.onHealTempDamage = LiveMixin.floatEventPool.Get();

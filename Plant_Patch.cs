@@ -56,7 +56,10 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnEnable")]
             public static void OnEnablePostfix(GrowingPlant __instance)
             {
-                if (__instance.name == "GrowingBulboTreePiece(Clone)")
+                //TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //AddDebug(__instance.name + " GrowingPlant OnEnable " + tt);
+                string name = __instance.name;
+                if (name == "GrowingBulboTreePiece(Clone)")
                 {
                     MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
                     foreach (MeshRenderer mr in mrs)
@@ -67,6 +70,10 @@ namespace Tweaks_Fixes
                             m.DisableKeyword("UWE_WAVING");
                         }
                     }
+                }
+                else if (name == "GrowingMembrainTree(Clone)")
+                {   //  all LOD meshes look the same, render distance is too small
+                    LargeWorldEntity_Patch.AlwaysUseHiPolyMesh(__instance.gameObject);
                 }
             }
             //[HarmonyPrefix]
@@ -81,6 +88,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SetScale")]
             static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
             {
+                if (!Main.config.fixMelons)
+                    return true;
+
                 TechType tt = __instance.seed.plantTechType;
                 if (tt == TechType.MelonPlant)
                 {
@@ -107,7 +117,7 @@ namespace Tweaks_Fixes
         class FruitPlant_Patch
         {
             [HarmonyPrefix]
-            [HarmonyPatch(nameof(FruitPlant.Start))]
+            [HarmonyPatch("Start")]
             public static void StartPrefix(FruitPlant __instance)
             { // lantern tree respawns fruits only in creative mode
                 __instance.fruitSpawnEnabled = true;
@@ -115,7 +125,7 @@ namespace Tweaks_Fixes
                 __instance.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
             }
             [HarmonyPostfix]
-            [HarmonyPatch(nameof(FruitPlant.Initialize))]
+            [HarmonyPatch("Initialize")]
             public static void InitializePostfix(FruitPlant __instance)
             {
                 if (CraftData.GetTechType(__instance.gameObject) == TechType.Creepvine)
@@ -131,8 +141,8 @@ namespace Tweaks_Fixes
                     //AddDebug(__instance.name + " Initialize intensity " + f);
                 }
             }
-            [HarmonyPatch(nameof(FruitPlant.Update))]
             [HarmonyPrefix]
+            [HarmonyPatch("Update")]
             static bool UpdatePrefix(FruitPlant __instance)
             {
                 if (!__instance.fruitSpawnEnabled)
@@ -140,6 +150,7 @@ namespace Tweaks_Fixes
 
                 if (__instance.inactiveFruits.Count > 0 && DayNightCycle.main.timePassed > __instance.timeNextFruit)
                 {
+                    //AddDebug(__instance.name + " Spawn fruit");
                     PickPrefab random = __instance.inactiveFruits.GetRandom();
                     random.SetPickedState(false);
                     __instance.inactiveFruits.Remove(random);
@@ -229,6 +240,9 @@ namespace Tweaks_Fixes
         {
             static void Prefix(Planter __instance, InventoryItem item)
             {
+                if (!Main.config.fixMelons)
+                    return;
+
                 Plantable p = item.item.GetComponent<Plantable>();
                 if (p && p.plantTechType == TechType.MelonPlant)
                 {
@@ -295,6 +309,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnProtoDeserialize")]
             static void OnProtoDeserializePostfix(Plantable __instance)
             {
+                if (!Main.config.fixMelons)
+                    return;
+
                 if (__instance.plantTechType == TechType.MelonPlant)
                 {
                     //AddDebug("Plantable OnProtoDeserialize " + __instance.plantTechType);

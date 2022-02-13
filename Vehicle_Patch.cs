@@ -237,6 +237,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnUpgradeModuleChange")]
         public static void OnUpgradeModuleChangePostfix(Vehicle __instance, TechType techType)
         {
+            //AddDebug("OnUpgradeModuleChange");
             if (techType != TechType.VehicleArmorPlating)
                 return;
 
@@ -281,7 +282,6 @@ namespace Tweaks_Fixes
                 dockedVehicles[__instance] = Vehicle.DockType.None;
         }
     }
-
 
 
     [HarmonyPatch(typeof(SeaMoth))]
@@ -463,6 +463,7 @@ namespace Tweaks_Fixes
         static public void GetNames(Exosuit exosuit)
         {
             //AddDebug("GetNames " + exosuit.name);
+
             if (exosuit.currentLeftArmType == TechType.ExosuitTorpedoArmModule)
                 leftArm = GetTorpedoName(exosuit, 0);
             else
@@ -490,10 +491,10 @@ namespace Tweaks_Fixes
         {
             //__instance.StartCoroutine(PlayClip(__instance.mainAnimator, "exo_docked"));
             //AddDebug("Start currentLeftArmType " + __instance.currentLeftArmType);
-            exosuitName = Language.main.Get("Exosuit");
+
             //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
             //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
-            exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " Toggle lights (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+            exosuitName = Language.main.Get("Exosuit");
             GetNames(__instance);
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
             {
@@ -697,11 +698,11 @@ namespace Tweaks_Fixes
         [HarmonyPostfix]
         public static void UpdatePostfix(Exosuit __instance)
         {
-            if (Player.main.currentMountedVehicle == __instance && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-            {
-                if (Main.vehicleLightsImprovedLoaded)
-                    return;
+            if (Main.vehicleLightsImprovedLoaded)
+                return;
 
+            if (!Main.pda.isInUse && Player.main.currentMountedVehicle == __instance && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+            {
                 Transform lightsT = __instance.transform.Find("lights_parent");
                 if (lightsT)
                 {
@@ -723,6 +724,7 @@ namespace Tweaks_Fixes
 
             if (armNamesChanged || !__instance.hasInitStrings || __instance.lastHasPropCannon != hasPropCannon)
             {
+                //AddDebug("TooltipFactory.stringLeftHand " + TooltipFactory.stringLeftHand);
                 __instance.uiStringPrimary = leftArm + " " + TooltipFactory.stringLeftHand + "  " + rightArm + " " + TooltipFactory.stringRightHand + "  ";
                 if (hasPropCannon)
                     __instance.uiStringPrimary += "\n" + LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool);
@@ -836,6 +838,38 @@ namespace Tweaks_Fixes
             return false;
         }
 
+    }
+
+    //[HarmonyPatch(typeof(ExosuitGrapplingArm), "FixedUpdate")]
+    class ExosuitGrapplingArm_FixedUpdate_Patch
+    {
+        static bool Prefix(ExosuitGrapplingArm __instance)
+        {
+            //AddDebug("ExosuitTorpedoArm Shoot " + torpedoType.techType + " " + __result);
+            if (__instance.hook.attached)
+            {
+                __instance.grapplingLoopSound.Play();
+                Vector3 vector3_1 = __instance.hook.transform.position - __instance.front.position;
+                Vector3 vector3_2 = Vector3.Normalize(vector3_1);
+                if (vector3_1.magnitude > 1f)
+                {
+                    if (!__instance.exosuit.IsUnderwater() && __instance.exosuit.transform.position.y + 0.2f >= __instance.grapplingStartPos.y)
+                        vector3_2.y = Mathf.Min(vector3_2.y, 0f);
+                    //__instance.exosuit.GetComponent<Rigidbody>().AddForce(vector3_2 * 15f, ForceMode.Acceleration);
+                    __instance.hook.GetComponent<Rigidbody>().AddForce(-vector3_2 * 400f, ForceMode.Force);
+                }
+                __instance.rope.SetIsHooked();
+            }
+            else if (__instance.hook.flying)
+            {
+                if ((__instance.hook.transform.position - __instance.front.position).magnitude > 35f)
+                    __instance.ResetHook();
+                __instance.grapplingLoopSound.Play();
+            }
+            else
+                __instance.grapplingLoopSound.Stop();
+            return false;
+        }
     }
 
     [HarmonyPatch(typeof(ExosuitTorpedoArm), "Shoot")]

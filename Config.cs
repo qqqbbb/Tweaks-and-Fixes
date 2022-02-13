@@ -62,8 +62,7 @@ namespace Tweaks_Fixes
         //public EmptySeamothCanBeAttacked emptySeamothCanBeAttacked;
         //[Choice("Unmanned cyclops can be attacked", Tooltip = "By default unmanned cyclops can not be attacked.")]
         //public EmptyCyclopsCanBeAttacked emptyCyclopsCanBeAttacked;
-        [Toggle("Instantly open PDA", Tooltip = "Your PDA will open and close instantly. Direction you are looking at will not change when you open it. Game has to be reloaded after changing this.")]
-        public bool instantPDA = false;
+
         [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time in seconds it takes your hunger and thirst to update. This is not the same as the 'hunger/thirst' setting from the 'Day/Night Speed' mod. That setting changes amount of food you lose.")]
         public int hungerUpdateInterval = 10;
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
@@ -158,6 +157,8 @@ namespace Tweaks_Fixes
         //public bool baseLightOff = false;
         [Toggle("Sunlight affects lighting in cyclops", Tooltip = "")]
         public bool cyclopsSunlight = false;
+        [Toggle("Instantly open PDA", Tooltip = "Your PDA will open and close instantly. Direction you are looking at will not change when you open it. Game has to be reloaded after changing this.")]
+        public bool instantPDA = false;
         [Toggle("Always show health and food values in UI", Tooltip = "Health and food values will be always shown not only when PDA is open.")]
         public bool alwaysShowHealthNunbers = false;
         [Toggle("PDA clock", Tooltip = "Game has to be reloaded after changing this.")]
@@ -193,7 +194,10 @@ namespace Tweaks_Fixes
         public Dictionary<string, int> crushDepthEquipment = new Dictionary<string, int>
         {
              { "ReinforcedDiveSuit", 0 },
-
+        };
+        public Dictionary<string, int> crushDamageEquipment = new Dictionary<string, int>
+        {
+             { "ReinforcedDiveSuit", 0 },
         };
         public Dictionary<string, float> itemMass = new Dictionary<string, float>
         {
@@ -262,10 +266,6 @@ namespace Tweaks_Fixes
         public List<string> removeLight = new List<string> { };
         public List<string> biomesRemoveLight = new List<string> { };
         public List<string> stalkerPlayThings = new List<string> { "ScrapMetal", "MapRoomCamera", "Beacon", "Seaglide", "CyclopsDecoy", "Gravsphere", "SmallStorage", "FireExtinguisher", "DoubleTank", "PlasteelTank", "PrecursorKey_Blue", "PrecursorKey_Orange", "PrecursorKey_Purple", "PrecursorKey_Red", "PrecursorKey_White", "Rebreather", "Tank", "HighCapacityTank", "Flare", "Flashlight", "Builder", "LaserCutter", "LEDLight", "DiveReel", "PropulsionCannon", "Knife", "HeatBlade", "Scanner", "Welder", "RepulsionCannon", "StasisRifle" };
-        public string throwFlare = "Throw";
-        public string lightAndThrowFlare = "Light and throw";
-        public string lightFlare = "Light";
-        //public List<string> expiredDecoys = new List<string>();
         public Dictionary<TechType, float> lightIntensity = new Dictionary<TechType, float>();
         public Dictionary<string, float> damageMult_ = new Dictionary<string, float> { { "Creepvine", 1f } };
         public bool pickedUpFireExt = false;
@@ -279,6 +279,28 @@ namespace Tweaks_Fixes
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
         //}
         //public HashSet<TechType> ttt = new HashSet<TechType> {TechType.Coffee };
+        public bool fixMelons = true;
+        public string[] sss = new string[] {"a","aa" };
+
+        public List<string> translatableStrings = new List<string> //  translate config enums 
+        { "Burnt out ", //  0   flare
+            "Lit ",      // 1   flare
+        "Toggle lights", // 2   toggle base lights
+        "Increases your safe diving depth by ", // 3 crushDepthEquipment
+        " meters.", // 4    crushDepthEquipment
+        "Restores ", // 5    medkit desc
+        " health.", // 6    medkit desc
+        "mass ",    // 7     invMultWater   invMultLand
+        ": min ",     // 8    eatRawFish tooltip 
+        ", max ",     // 9    eatRawFish tooltip 
+        "Throw",        // 10   flare   
+        "Light and throw",  //  11  flare   
+        "Light" ,        // 12   flare   
+        "Toggle map" ,    // 13   Seaglide map   
+         //" " ,    // 14   
+         // " TEST " ,    // 15  
+        };
+
     }
 
 }

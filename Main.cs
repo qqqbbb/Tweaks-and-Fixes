@@ -23,14 +23,31 @@ namespace Tweaks_Fixes
         //public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
-        public static bool english = false;
+        //public static bool english = false;
         public static System.Random rndm = new System.Random();
         public static bool advancedInventoryLoaded = false;
         public static bool flareRepairLoaded = false;
         public static bool cyclopsDockingLoaded = false;
         public static bool vehicleLightsImprovedLoaded = false;
+        public static bool languageCheck = false;
+        public static bool pickupFullCarryallsLoaded = false;
+        public static bool seaglideMapControlsLoaded = false;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
+
+        public static bool IsDestroyed(GameObject gameObject)
+        {
+            // UnityEngine overloads the == opeator for the GameObject type
+            // and returns null when the object has been destroyed, but 
+            // actually the object is still there but has not been cleaned up yet
+            // if we test both we can determine if the object has been destroyed.
+            return gameObject == null && !ReferenceEquals(gameObject, null);
+        }
+
+        public static bool IsDestroyed(Component component)
+        {
+            return component == null && !ReferenceEquals(component, null);
+        }
 
         public static Component CopyComponent(Component original, GameObject destination)
         {
@@ -43,6 +60,15 @@ namespace Tweaks_Fixes
                 field.SetValue(copy, field.GetValue(original));
             }
             return copy;
+        }
+
+        public static T CopyComponent<T>(T original, GameObject destination) where T : Component
+        {
+            Type type = ((object)original).GetType();
+            Component component = destination.AddComponent(type);
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                field.SetValue((object)component, field.GetValue((object)original));
+            return component as T;
         }
 
         public static string GetGameObjectPath(GameObject obj)
@@ -192,6 +218,8 @@ namespace Tweaks_Fixes
             Exosuit_Patch.exosuitStarted = false;
             Damage_Patch.healTempDamageTime = 0;
             Damage_Patch.tempDamageLMs = new List<LiveMixin>();
+            Storage_Patch.savedSigns = new List<Sign>();
+            Storage_Patch.decoLockers = new List<StorageContainer>();
             config.Load();
         }
 
@@ -232,10 +260,10 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Language __instance)
             {
-                if (Language.main.currentLanguage == "English")
+                languageCheck = __instance.GetCurrentLanguage() == "English" || config.translatableStrings[0] != "Burnt out ";
+                //AddDebug("Language Awake " + languageCheck);
+                if (languageCheck)
                 {
-                    english = true;
-                    //AddDebug("English");
                     //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
                     LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
                     LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot.");
@@ -268,13 +296,10 @@ namespace Tweaks_Fixes
                         lm.SyncUpdatingState();
                     }
                 }
-                //if (Cyclops_Patch.cyclopsHelmHUDManager)
-                //{
-                //    if (Cyclops_Patch.cyclopsHelmHUDManager.LOD.IsFull() && Player.main.currentSub != Cyclops_Patch.cyclopsHelmHUDManager.subRoot && !Cyclops_Patch.cyclopsHelmHUDManager.subRoot.subDestroyed)
-                //    {
-                //        Cyclops_Patch.cyclopsHelmHUDManager.canvasGroup.alpha = 0f;
-                //    }
-                //}
+                foreach (Sign sign in Storage_Patch.savedSigns)
+                    sign.OnProtoDeserialize(null);
+                Storage_Patch.savedSigns = new List<Sign>();
+
                 if (EscapePod.main)
                     Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
             }
@@ -369,6 +394,10 @@ namespace Tweaks_Fixes
         {
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
             //dayNightSpeedLoaded = iqMod != null;
+            //if (Language.main == null)
+            //    Log("Language.main == null"); 
+            seaglideMapControlsLoaded = QModServices.Main.ModPresent("SeaglideMapControls");
+            pickupFullCarryallsLoaded = QModServices.Main.ModPresent("PickupFullCarryalls");
             advancedInventoryLoaded = QModServices.Main.ModPresent("AdvancedInventory");
             flareRepairLoaded = QModServices.Main.ModPresent("Rm_FlareRepair");
             cyclopsDockingLoaded = QModServices.Main.ModPresent("CyclopsDockingMod");
@@ -381,6 +410,12 @@ namespace Tweaks_Fixes
                 //Log("crushDepthEquipment TechType " + tt);
                 if (tt != TechType.None)
                     Crush_Damage.crushDepthEquipment[tt] = item.Value;
+            }
+            foreach (var item in config.crushDamageEquipment)
+            {
+                TechTypeExtensions.FromString(item.Key, out TechType tt, true);
+                if (tt != TechType.None)
+                    Crush_Damage.crushDamageEquipment[tt] = item.Value * .01f;
             }
             foreach (var item in config.itemMass)
             {

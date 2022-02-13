@@ -155,9 +155,8 @@ namespace Tweaks_Fixes
                 //{ 
                 //__instance.BaseVerticalAccel = __instance.BaseForwardAccel * .5f;
                 //}
-                TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
-                techTag.type = TechType.Cyclops;
-
+                //TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
+                //techTag.type = TechType.Cyclops;
                 Transform tr = __instance.transform.Find("Headlights");
                 if (tr)
                     UnityEngine.Object.Destroy(tr.gameObject);
@@ -341,12 +340,11 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(CyclopsSilentRunningAbilityButton __instance)
             {
-                float amountConsumed = 0f;
                 // dont consume power when engine is off
                 if (Player.main.currentSub && Player.main.currentSub.noiseManager && Player.main.currentSub.noiseManager.noiseScalar == 0f)
                     return false;
 
-                if (__instance.subRoot.powerRelay.ConsumeEnergy(__instance.subRoot.silentRunningPowerCost, out amountConsumed))
+                if (__instance.subRoot.powerRelay.ConsumeEnergy(__instance.subRoot.silentRunningPowerCost, out float amountConsumed))
                     return false;
                 __instance.TurnOffSilentRunning();
 

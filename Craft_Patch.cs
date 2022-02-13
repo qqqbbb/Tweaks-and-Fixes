@@ -107,6 +107,34 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Constructor))]
+        class Constructor_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnEnable")]
+            static void OnEnablePostfix(Constructor __instance)
+            {
+                if (!__instance.deployed)
+                {
+                    WorldForces wf = __instance.GetComponent<WorldForces>();
+                    if (wf)
+                        wf.underwaterGravity = 1f;
+                }
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("Deploy")]
+            static void Deployostfix(Constructor __instance, bool value)
+            {
+                //AddDebug("Deploy " + value);
+                if (value)
+                {
+                    WorldForces wf = __instance.GetComponent<WorldForces>();
+                    if (wf)
+                        wf.underwaterGravity = -3f;
+                }
+            }
+        }
+
         //[HarmonyPatch(typeof(CrafterLogic), "TryPickupSingle")]
         class CrafterLogic_TryPickupSingle_Patch
         {

@@ -16,14 +16,37 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 { // debris 80 -35 100      200 -70 -680
     class Testing
-    {
-        //[HarmonyPatch(typeof(GUIHand), "OnToolUseAnim")]
-        class GUIHand_OnToolUseAnim_Patch
+    {// 970 12 -63
+        //[HarmonyPatch(typeof(KeypadDoorConsole), "NumberButtonPress")]
+        class KeypadDoorConsole_NumberButtonPress_Patch
         {
-            public static bool Prefix(GUIHand __instance)
+            public static void Prefix(KeypadDoorConsole __instance, int index)
             {
-                AddDebug("GUIHand OnToolUseAnim");
-                return false;
+                AddDebug(" " + index);
+                AddDebug("accessCode " + __instance.accessCode);
+                //return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(Story.StoryGoal), "Execute")]
+        class StoryGoal_Execute_Patch
+        {
+            public static void Postfix(Story.StoryGoal __instance, string key, Story.GoalType goalType)
+            {
+                AddDebug("StoryGoal " + key);
+                AddDebug("goalType " + goalType);
+                //return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(PDAEncyclopedia), "AddAndPlaySound")]
+        class PDAEncyclopedia_AddAndPlaySound_Patch
+        {
+            public static void Postfix(string key, PDAEncyclopedia.EntryData __result)
+            {
+                AddDebug("AddAndPlaySound " + key);
+                AddDebug("EntryData " + __result.key);
+                //return false;
             }
         }
 
@@ -33,7 +56,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
 
-                //Main.Message("IsFreeToInteract " + Main.guiHand.IsFreeToInteract());
+                //Main.Message("Builder.isPlacing " + Builder.isPlacing);
                 //AddDebug("activeSelf " + IngameMenu.main.gameObject.activeSelf);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
 

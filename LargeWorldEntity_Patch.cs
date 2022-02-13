@@ -11,28 +11,19 @@ namespace Tweaks_Fixes
     class LargeWorldEntity_Patch
     { // biomes to remove light BloodKelp_Trench
         public static HashSet<TechType> removeLight = new HashSet<TechType> { };
-       
-        static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
+
+        public static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
         {
             //AddDebug("AlwaysUseHiPolyMesh " + go.name);
             if (techType == TechType.Boomerang)// dont disable FP model
                 go = go.transform.Find("model").gameObject;
-            LODGroup lod = go.GetComponent<LODGroup>();
+            LODGroup lod = go.GetComponentInChildren<LODGroup>();
             if (lod == null)
                 return;
 
             lod.enabled = false;
-            if (techType == TechType.Boomerang || techType == TechType.LargeFloater)
-            { 
-                SkinnedMeshRenderer[] smrs = go.GetComponentsInChildren<SkinnedMeshRenderer>();
-                //AddDebug("AlwaysUseHiPolyMesh " + smrs.Length);
-                for (int i = 1; i < smrs.Length; i++)
-                    smrs[i].enabled = false;
-
-                return;
-            }
-            MeshRenderer[] renderers = go.GetComponentsInChildren<MeshRenderer>();
-            //AddDebug("AlwaysUseHiPolyMesh " + renderers.Length);
+            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
+            //AddDebug(go.name + " AlwaysUseHiPolyMesh " + renderers.Length);
             for (int i = 1; i < renderers.Length; i++)
                 renderers[i].enabled = false;
         }

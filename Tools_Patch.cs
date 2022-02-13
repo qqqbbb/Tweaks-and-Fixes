@@ -13,6 +13,7 @@ namespace Tweaks_Fixes
         public static bool releasingGrabbedObject = false;
         public static bool shootingObject = false;
         public static List<GameObject> repCannonGOs = new List<GameObject>();
+        static ToggleLights seaglideToggleLights = null;
 
         [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
         public class FlashLight_Start_Patch
@@ -67,6 +68,7 @@ namespace Tweaks_Fixes
             }
             static float knifeRangeDefault = 0f;
             static float knifeDamageDefault = 0f;
+          
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
@@ -103,6 +105,7 @@ namespace Tweaks_Fixes
                     //AddDebug(" LEDLight OnDraw " + __instance.transform.localPosition);
                 }
             }
+         
             [HarmonyPostfix]
             [HarmonyPatch("OnHolster")]
             public static void OnHolsterPostfix(PlayerTool __instance)
@@ -412,6 +415,66 @@ namespace Tweaks_Fixes
                 __instance.transform.Rotate(0f, 180f, 0f);
             }
         }
+
+        [HarmonyPatch(typeof(Seaglide))]
+        internal class Seaglide_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnDraw")]
+            public static void OnDrawPostfix(Seaglide __instance)
+            {
+                if (!Main.seaglideMapControlsLoaded)
+                    seaglideToggleLights = __instance.toggleLights;
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnHolster")]
+            public static void OnHolsterPostfix(Seaglide __instance)
+            {
+                    seaglideToggleLights = null;
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(Seaglide __instance)
+            {
+                if (!Main.seaglideMapControlsLoaded)
+                    __instance.toggleLights.lightState = 2; // dont show map
+                //Main.Message("lightState " + __instance.toggleLights.lightState);
+            }
+        }
+
+        [HarmonyPatch(typeof(ToggleLights))]
+        internal class ToggleLights_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("CheckLightToggle")]
+            public static bool CheckLightTogglePrefix(ToggleLights __instance)
+            {
+                if (!Main.seaglideMapControlsLoaded && __instance == seaglideToggleLights)
+                {
+                    if (Main.pda.isInUse)
+                        return false;
+
+                    //HandReticle.main.SetUseTextRaw(UI_Patches.seaglideString, null);
+                    if (GameInput.GetButtonDown(GameInput.Button.RightHand))
+                        __instance.SetLightsActive(!__instance.lightsActive);
+                    else if (GameInput.GetButtonDown(GameInput.Button.AltTool))
+                    {
+                        if (__instance.lightState == 2)
+                            __instance.lightState = 0;
+                        else
+                            __instance.lightState = 2;
+                    }
+                    //AddDebug("lightState " + __instance.lightState);
+                    return false;
+                }
+                return true;
+            }
+
+
+        }
+
 
     }
 }

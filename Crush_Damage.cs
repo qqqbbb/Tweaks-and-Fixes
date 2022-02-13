@@ -8,9 +8,11 @@ namespace Tweaks_Fixes
     public class Crush_Damage
     {
         public static float crushInterval = 3f;
+        public static float crushDamageResistance = 0f;
         public static int extraCrushDepth = 0;
         public static Dictionary<TechType, int> crushDepthEquipment = new Dictionary<TechType, int>();
-
+        public static Dictionary<TechType, float> crushDamageEquipment = new Dictionary<TechType, float>();
+        
         public static void CrushDamage()
         {
             if (!Player.main.gameObject.activeInHierarchy)
@@ -18,12 +20,13 @@ namespace Tweaks_Fixes
 
             float depth = Ocean.main.GetDepthOf(Player.main.gameObject);
             float crushDepth = Main.config.crushDepth + extraCrushDepth;
-            if (depth < crushDepth || !Player.main.IsSwimming())
+            if (depth < crushDepth || !Player.main.IsSwimming() || !Player.main.liveMixin)
                 return;
 
-            float damage = (depth - crushDepth) * Main.config.crushDamageMult;
-            if (!Player.main.liveMixin)
-                return;
+            float mult = 1f - crushDamageResistance;
+            float damage = (depth - crushDepth) * Main.config.crushDamageMult * mult;
+            if (damage < 0f)
+                damage = 0f;
             //AddDebug(" CrushDamageUpdate " + damage);
             Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
@@ -44,6 +47,13 @@ namespace Tweaks_Fixes
                     extraCrushDepth += crushDepthEquipment[tt];
                     //AddDebug("crushDepth " + Main.config.crushDepth);
                 }
+                if (crushDamageEquipment.ContainsKey(tt))
+                {
+                    //AddDebug("crushDamageEquipment " + crushDamageEquipment[tt]);
+                    crushDamageResistance += crushDamageEquipment[tt];
+                    if (crushDamageResistance > 1f)
+                        crushDamageResistance = 1f;
+                }
             }
             [HarmonyPostfix]
             [HarmonyPatch("OnUnequip")]
@@ -58,6 +68,13 @@ namespace Tweaks_Fixes
                     //Main.config.crushDepth -= crushDepthEquipment[tt];
                     extraCrushDepth -= crushDepthEquipment[tt];
                     //AddDebug("crushDepth " + Main.config.crushDepth);
+                }
+                if(crushDamageEquipment.ContainsKey(tt))
+                {
+                    //AddDebug("crushDamageEquipment " + crushDamageEquipment[tt]);
+                    crushDamageResistance -= crushDamageEquipment[tt];
+                    if (crushDamageResistance < 0f)
+                        crushDamageResistance = 0f;
                 }
             }
         }

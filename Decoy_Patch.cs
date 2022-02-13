@@ -30,8 +30,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CyclopsDecoy))]
         class CyclopsDecoy_Patch
         {
-            [HarmonyPatch(nameof(CyclopsDecoy.Start))]
             [HarmonyPrefix]
+            [HarmonyPatch("Start")]
             static bool StartPrefix(CyclopsDecoy __instance)
             {
                 //AddDebug("CyclopsDecoy launch " + __instance.launch);
@@ -77,8 +77,9 @@ namespace Tweaks_Fixes
                 //__instance.Invoke("Despawn", Main.config.subDecoyLifeTime);
                 return false;
             }
-            [HarmonyPatch(nameof(CyclopsDecoy.Despawn))]
+          
             [HarmonyPrefix]
+            [HarmonyPatch("Despawn")]
             static bool DespawnPrefix(CyclopsDecoy __instance)
             {
                 //AddDebug("Despawn Decoy");
