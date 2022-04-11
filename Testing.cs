@@ -17,16 +17,16 @@ namespace Tweaks_Fixes
 { // debris 80 -35 100      200 -70 -680
     class Testing
     {// 970 12 -63
-        //[HarmonyPatch(typeof(KeypadDoorConsole), "NumberButtonPress")]
-        class KeypadDoorConsole_NumberButtonPress_Patch
+        //[HarmonyPatch(typeof(SubRoot), "Update")]
+        class SubControl_Update_Patch
         {
-            public static void Prefix(KeypadDoorConsole __instance, int index)
+            public static void Prefix(SubRoot __instance)
             {
-                AddDebug(" " + index);
-                AddDebug("accessCode " + __instance.accessCode);
-                //return false;
+                AddDebug("SubRoot Update LOD " + __instance.LOD.IsFull());
+                //AddDebug("CyclopsHelmHUDManager Update IsAlive " + __instance.subLiveMixin.IsAlive());
             }
         }
+
 
         //[HarmonyPatch(typeof(Story.StoryGoal), "Execute")]
         class StoryGoal_Execute_Patch
@@ -56,8 +56,9 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
 
-                //Main.Message("Builder.isPlacing " + Builder.isPlacing);
-                //AddDebug("activeSelf " + IngameMenu.main.gameObject.activeSelf);
+                //Main.Message("mainCamera forward" + Player.main.camRoot.mainCamera.transform.forward);
+                //AddDebug("timePassedAsFloat " + (int)DayNightCycle.main.timePassedAsFloat);
+                //AddDebug("isUnderwaterForSwimming " + __instance.isUnderwaterForSwimming.value);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
 
                 if (Input.GetKeyDown(KeyCode.B))
@@ -76,13 +77,11 @@ namespace Tweaks_Fixes
                     int z = Mathf.RoundToInt(Player.main.transform.position.z);
                     AddDebug(x + " " + y + " " + z);
                     AddDebug("" + Player.main.GetBiomeString());
-                    //Inventory.main.container.Resize(8,8);   GetPlayerBiome()
-                    //HandReticle.main.SetInteractText(nameof(startingFood) + " " + dict[i]);
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     //AddDebug(" loadingDone " + Main.loadingDone);
-                    AddDebug("  " + Player.main.GetBiomeString());
+                    //AddDebug("  " + Player.main.GetBiomeString());
                     //Main.Log(" GetBiomeString " + Player.main.GetBiomeString());
                      //if (Input.GetKey(KeyCode.LeftShift))
                     //    Main.survival.water++; 
@@ -310,6 +309,13 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        //[HarmonyPatch(typeof(Targeting), "GetTarget", new Type[] { typeof(float), typeof(GameObject), typeof(float), typeof(Targeting.FilterRaycast) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out, ArgumentType.Normal })]
+        class Targeting_GetTarget_PostfixPatch
+        {
+            public static void Postfix(ref GameObject result)
+            {
+                //AddDebug(" Targeting GetTarget  " + result.name);
+            }
+        }
     }
 }

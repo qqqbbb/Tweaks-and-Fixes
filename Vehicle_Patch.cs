@@ -1,18 +1,22 @@
 ﻿using HarmonyLib;
 using UnityEngine;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Collections;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
+
     [HarmonyPatch(typeof(Vehicle))]
-    class Vehicle_patch
+    public class Vehicle_patch
     {
+        public static GameObject decoyPrefab;
         public static Light[] currentLights = new Light[2];
         public static TechType currentVehicleTT;
         public static Dictionary<Vehicle, Vehicle.DockType> dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
+        static FMODAsset fireSound = null;
 
         public static void UpdateLights()
         {
@@ -81,7 +85,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(nameof(Vehicle.Awake))]
+        [HarmonyPatch("Awake")]
         public static void AwakePostfix(Vehicle __instance)
         {
             //Light l1 = __instance.transform.Find("lights_parent/light_left").gameObject.GetComponent<Light>();
@@ -100,6 +104,53 @@ namespace Tweaks_Fixes
                 foreach (Light l in lights)
                     l.intensity = Main.config.lightIntensity[tt];
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch("Start")]
+        public static void StartPostfix(Vehicle __instance)
+        {
+            if (Main.config.seamothDecoy && decoyPrefab)
+            {
+                List<TorpedoType> torpedoTypes = new List<TorpedoType>(__instance.torpedoTypes);
+                TorpedoType decoy = new TorpedoType();
+                decoy.techType = TechType.CyclopsDecoy;
+                decoy.prefab = decoyPrefab;
+                __instance.torpedoTypes = new TorpedoType[3] {decoy, torpedoTypes[0], torpedoTypes[1]};
+            }
+        }
+         
+        [HarmonyPrefix]
+        [HarmonyPatch("TorpedoShot")]
+        public static bool Prefix(Vehicle __instance, ItemsContainer container, TorpedoType torpedoType, Transform muzzle, ref bool __result)
+        {
+            if (torpedoType.techType == TechType.CyclopsDecoy)
+            {
+                if (torpedoType == null || !container.DestroyItem(torpedoType.techType))
+                {
+                    __result = false;
+                    return false;
+                }
+                //AddDebug("TorpedoShot CyclopsDecoy ");
+                Transform aimingTransform = Player.main.camRoot.GetAimingTransform();
+                GameObject decoy = UnityEngine.Object.Instantiate(torpedoType.prefab, muzzle.position + Player.main.camRoot.mainCamera.transform.forward, aimingTransform.rotation);
+                decoy.transform.Rotate(90f, 0f, 0f, Space.Self);
+                CyclopsDecoy cd = decoy.GetComponent<CyclopsDecoy>();
+                cd.launch = true;
+                if (fireSound == null)
+                {
+                    fireSound = ScriptableObject.CreateInstance<FMODAsset>();
+                    fireSound.path = "event:/sub/seamoth/torpedo_fire";
+                    fireSound.id = "{63375e84-44b4-4be9-a5bd-80f3e974790d}";
+                }
+                if (fireSound)
+                    FMODUWE.PlayOneShot(fireSound, decoy.transform.position);
+
+                __result = true;
+                return false;
+            }
+            else
+                return true;
         }
 
         [HarmonyPostfix]
@@ -127,7 +178,7 @@ namespace Tweaks_Fixes
             //EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
             if (__instance.onGround && !Inventory.main.GetHeld() && __instance is SeaMoth && !__instance.docked && !Player.main.IsSwimming())
             {
-                HandReticle.main.SetInteractText("Push " + SeaMoth_patch.seamothName, false, HandReticle.Hand.Right);
+                HandReticle.main.SetInteractText(Main.config.translatableStrings[14] + SeaMoth_patch.seamothName, false, HandReticle.Hand.Right);
                 if (GameInput.GetButtonDown(GameInput.Button.RightHand))
                 {
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
@@ -306,12 +357,15 @@ namespace Tweaks_Fixes
                 __instance.verticalForce = __instance.forwardForce * .5f;
                 __instance.backwardForce = 0f;
             }
+
         }
 
         [HarmonyPostfix]
         [HarmonyPatch("OnPilotModeBegin")]
         public static void OnPilotModeBeginPostfix(SeaMoth __instance)
         {
+            //AddDebug("OnPilotModeBegin");
+            //__instance.OnUpgradeModuleToggle();
             exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " Toggle lights " + TooltipFactory.stringRightHand;
             seamothName = Language.main.Get(TechType.Seamoth);
         }
@@ -357,6 +411,11 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnUpgradeModuleToggle")]
         public static void OnUpgradeModuleTogglePostfix(SeaMoth __instance, int slotID, bool active)
         {
+            if (!active)
+            {
+                useButton = null;
+                return;
+            }
             currentModule = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[slotID]);
             string currentModuleName = Language.main.Get(currentModule);
             currentModuleName = currentModuleName.Replace(seamothName, "");
@@ -367,7 +426,7 @@ namespace Tweaks_Fixes
             else
                 useButton = currentModuleName + " " + TooltipFactory.stringLeftHand;
             ItemsContainer storageInSlot = __instance.GetStorageInSlot(slotID, TechType.SeamothTorpedoModule);
-            //AddDebug("OnUpgradeModuleToggle " + currentModule + " " + active);
+            AddDebug("OnUpgradeModuleToggle " + currentModule + " " + active);
             if (currentModule == TechType.SeamothTorpedoModule)
             {
                 for (int index = 0; index < __instance.torpedoTypes.Length; ++index)
@@ -394,7 +453,13 @@ namespace Tweaks_Fixes
                     if (storageInSlot.Contains(__instance.torpedoTypes[index].techType))
                     {
                         TechType torpedoType = __instance.torpedoTypes[index].techType;
-                        useButton = Language.main.Get(torpedoType) + " x" + storageInSlot.GetCount(torpedoType) + " " + TooltipFactory.stringLeftHand ;
+                        StringBuilder sb = new StringBuilder(Language.main.Get(torpedoType));
+                        sb.Append(" x");
+                        sb.Append(storageInSlot.GetCount(torpedoType));
+                        sb.Append(" ");
+                        sb.Append(TooltipFactory.stringLeftHand);
+                        useButton = sb.ToString();
+                        //useButton = Language.main.Get(torpedoType) + " x" + storageInSlot.GetCount(torpedoType) + " " + TooltipFactory.stringLeftHand ;
                         break;
                     }
                     useButton = Language.main.Get("VehicleTorpedoNoAmmo");
@@ -405,7 +470,7 @@ namespace Tweaks_Fixes
         [HarmonyPrefix]
         [HarmonyPatch("Update")]
         public static bool UpdatePrefix(SeaMoth __instance)
-        {    // seamoth does not consume more energy when moving diagonally
+        {    // seamoth does not consume more energy when moving diagonally. Upgrade module UI
             if (!Main.config.seamothMoveTweaks)
                 return true;
             //AddDebug("SeaMoth Update");
@@ -425,7 +490,6 @@ namespace Tweaks_Fixes
             __instance.UpdateDockedAnim();
             return false;
         }
-
     }
 
     [HarmonyPatch(typeof(Exosuit))]
@@ -446,7 +510,9 @@ namespace Tweaks_Fixes
             TorpedoType[] torpedoTypes = exosuit.torpedoTypes;
             for (int index = 0; index < torpedoTypes.Length; ++index)
             {
+
                 TechType torpedoType = torpedoTypes[index].techType;
+                //AddDebug(torpedoType + " " + container.GetCount(torpedoType));
                 if (container.Contains(torpedoType))
                 {
                     //AddDebug(torpedoType + " " + container.GetCount(torpedoType));
@@ -872,10 +938,28 @@ namespace Tweaks_Fixes
         }
     }
 
-    [HarmonyPatch(typeof(ExosuitTorpedoArm), "Shoot")]
-    class ExosuitTorpedoArm_Shoot_Patch
-    { 
-        static void Postfix(ExosuitTorpedoArm __instance, TorpedoType torpedoType, bool __result)
+    [HarmonyPatch(typeof(ExosuitTorpedoArm))]
+    class ExosuitTorpedoArm_Patch
+    {
+        [HarmonyPostfix]
+        [HarmonyPatch("OnAddItem")]
+        static void OnAddItemPostfix(ExosuitTorpedoArm __instance)
+        {
+            //AddDebug("ExosuitTorpedoArm OnAddItem ");
+            Exosuit_Patch.GetNames(__instance.exosuit);
+            Exosuit_Patch.armNamesChanged = true;
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch("OnRemoveItem")]
+        static void OnRemoveItemPostfix(ExosuitTorpedoArm __instance)
+        {
+            //AddDebug("ExosuitTorpedoArm OnRemoveItem ");
+            Exosuit_Patch.GetNames(__instance.exosuit);
+            Exosuit_Patch.armNamesChanged = true;
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch("Shoot")]
+        static void ShootPostfix(ExosuitTorpedoArm __instance, TorpedoType torpedoType, bool __result)
         {
             //AddDebug("ExosuitTorpedoArm Shoot " + torpedoType.techType + " " + __result);
             Exosuit_Patch.GetNames(__instance.exosuit);
@@ -1026,4 +1110,84 @@ namespace Tweaks_Fixes
         }
     }
 
+    [HarmonyPatch(typeof(SeamothStorageContainer))]
+    class SeamothStorageContainer_Patch
+    {
+        //[HarmonyPatch("Awake")]
+        //[HarmonyPrefix]
+        public static void AwakePrefix(SeamothStorageContainer __instance)
+        {
+            if (Main.config.seamothDecoy && __instance.allowedTech.Length == 2)
+            {
+                __instance.allowedTech = new TechType[3] { TechType.WhirlpoolTorpedo, TechType.GasTorpedo, TechType.CyclopsDecoy };
+            }
+        }
+
+        [HarmonyPatch("OnCraftEnd")]
+        [HarmonyPrefix]
+        public static bool OnCraftEndPrefix(SeamothStorageContainer __instance, TechType techType)
+        {
+            __instance.Init();
+            if (techType == TechType.SeamothTorpedoModule || techType == TechType.ExosuitTorpedoArmModule)
+            {
+                for (int index = 0; index < Main.config.freeTorpedos; ++index)
+                {
+                    GameObject gameObject = CraftData.InstantiateFromPrefab(TechType.WhirlpoolTorpedo);
+                    if (gameObject != null)
+                    {
+                        Pickupable component = gameObject.GetComponent<Pickupable>();
+                        if (component != null)
+                        {
+                            Pickupable pickupable = component.Pickup(false);
+                            if (__instance.container.AddItem(pickupable) == null)
+                                UnityEngine.Object.Destroy(pickupable.gameObject);
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(ItemsContainer))]
+    class ItemsContainer_Patch
+    {
+        //[HarmonyPostfix]
+        //[HarmonyPatch("IsTechTypeAllowed")]
+        public static void IsTechTypeAllowedPostfix(ItemsContainer __instance, TechType techType, bool __result)
+        {
+            AddDebug(__instance._label + " IsTechTypeAllowed " + techType + " " + __result);
+
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch("SetAllowedTechTypes")]
+        public static void SetAllowedTechTypesPostfix(ItemsContainer __instance, ref TechType[] allowedTech)
+        {
+            if (Main.config.seamothDecoy && __instance._label == "VehicleTorpedoStorageLabel")
+            {
+                //AddDebug(__instance._label + " type " + __instance.containerType);
+                __instance.allowedTech = new HashSet<TechType> { TechType.GasTorpedo, TechType.WhirlpoolTorpedo, TechType.CyclopsDecoy };
+            }
+        }
+    }
+
+    //[HarmonyPatch(typeof(SeamothTorpedo), "Awake")]
+    class SeamothTorpedo_Awake_Patch
+    {
+        static void Postfix(SeamothTorpedo __instance)
+        {
+            AddDebug("SeamothTorpedo Awake ");
+            if (__instance.fireSound)
+            {
+                AddDebug("SeamothTorpedo Awake fireSound");
+                Main.Log("SeamothTorpedo fireSound id " + __instance.fireSound.id);
+                Main.Log("SeamothTorpedo fireSound path " + __instance.fireSound.path);
+            }
+        }
+    }
+
+
+
 }
+
+

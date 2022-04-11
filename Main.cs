@@ -287,6 +287,7 @@ namespace Tweaks_Fixes
                     return;
                 }
                 //AddDebug(" uGUI_SceneLoading done");
+                Builder.Initialize();
                 loadingDone = true;
                 foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
                 {

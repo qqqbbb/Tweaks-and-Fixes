@@ -9,7 +9,6 @@ namespace Tweaks_Fixes
 {
      class Food_Patch : MonoBehaviour
      {
-
         static float foodCons = .5f; // vanilla 0.4
         static float waterCons = .5f; // vanilla 0.55
         //static float updateHungerInterval { get { return Main.config.hungerUpdateInterval / DayNightCycle.main.dayNightSpeed; } }

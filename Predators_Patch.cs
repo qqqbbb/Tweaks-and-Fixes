@@ -115,6 +115,7 @@ namespace Tweaks_Fixes
                 //AddDebug(__instance.myTechType + " AggressionTarget PLAYER ");
                 return false;
             }
+          
             [HarmonyPrefix]
             [HarmonyPatch("IsTargetValid", new Type[] { typeof(GameObject) })]
             public static bool IsTargetValidPrefix(GameObject target, AggressiveWhenSeeTarget __instance, ref bool __result)

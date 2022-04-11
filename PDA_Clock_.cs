@@ -15,7 +15,6 @@ namespace Tweaks_Fixes
             private Text textComponent;
             private const float oneHour = 0.0416666679084301f;
             //public static GameObject TimeLabelObject { private get; set; }
-
             bool blink = false;
 
             private void Awake()
@@ -32,8 +31,6 @@ namespace Tweaks_Fixes
                 Destroy(transform.GetChild(0).gameObject);
                 InvokeRepeating("ApplyTimeToText", 0f, 1f);
             }
-
-            //private void Update() => ApplyTimeToText();
 
             private void ApplyTimeToText()
             {

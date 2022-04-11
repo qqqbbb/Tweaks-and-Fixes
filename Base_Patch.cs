@@ -183,6 +183,21 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(FMOD_CustomEmitter), "Awake")]
+        class FMOD_CustomEmitter_Awake_Patch
+        {
+            static void Postfix(FMOD_CustomEmitter __instance)
+            {
+                if (Main.config.silentReactor && __instance.asset && __instance.asset.path == "event:/sub/base/nuke_gen_loop")
+                { 
+                    //AddDebug(__instance.name + " FMOD_CustomEmitter Awake ");
+                    __instance.SetAsset(null);
+                }
+            }
+        }
+
+
+
 
     }
 }

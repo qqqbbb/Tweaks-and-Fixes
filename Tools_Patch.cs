@@ -14,8 +14,9 @@ namespace Tweaks_Fixes
         public static bool shootingObject = false;
         public static List<GameObject> repCannonGOs = new List<GameObject>();
         static ToggleLights seaglideToggleLights = null;
+        public static Dictionary<Creature, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<Creature, Dictionary<TechType, int>>();
 
-        [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
+          [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
         public class FlashLight_Start_Patch
         {
             public static void Prefix(FlashLight __instance)
@@ -36,7 +37,7 @@ namespace Tweaks_Fixes
             {
                 if (item != null && item.item && item.item.GetTechType() == TechType.SmallStorage)
                 {
-                    AddDebug("Inventory OnAddItem SmallStorage");
+                    //AddDebug("Inventory OnAddItem SmallStorage");
                     Transform label = item.item.transform.Find("LidLabel");
                     if (label)
                     {
@@ -104,6 +105,10 @@ namespace Tweaks_Fixes
                     __instance.transform.localScale = new Vector3(.9f, .9f, .9f);
                     //AddDebug(" LEDLight OnDraw " + __instance.transform.localPosition);
                 }
+                //else if (__instance is BuilderTool)
+                { // BuilderTool HandleInput patch uses Builder.placeLayerMask
+                    //Builder.Initialize();
+                }
             }
          
             [HarmonyPostfix]
@@ -115,10 +120,12 @@ namespace Tweaks_Fixes
             }
         }
          
-        [HarmonyPatch(typeof(Knife), nameof(Knife.OnToolUseAnim))]
-        class Knife_OnToolUseAnim_Postfix_Patch
+        [HarmonyPatch(typeof(Knife))]
+        class Knife_Patch
         {
-            public static void Postfix(Knife __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnToolUseAnim")]
+            public static void OnToolUseAnimPostfix(Knife __instance)
             {
                 if (!Main.guiHand.activeTarget)
                     return;
@@ -141,7 +148,46 @@ namespace Tweaks_Fixes
                     }
                 }
             }
-        } 
+
+            [HarmonyPostfix]
+            [HarmonyPatch("GiveResourceOnDamage")]
+            public static void GiveResourceOnDamagePostfix(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
+            {
+                if (isAlive || wasAlive)
+                    return;
+
+                TechType techType = CraftData.GetTechType(target);
+                string name = techType.AsString();
+                if (Main.config.deadCreatureLoot.ContainsKey(name))
+                {
+                    Creature creature = target.GetComponent<Creature>();
+                    if (creature == null)
+                        return;
+
+                    if (deadCreatureLoot.ContainsKey(creature))
+                    {
+                        foreach (var pair in Main.config.deadCreatureLoot[name])
+                        {
+                            TechType loot = pair.Key;
+                            int max = pair.Value;
+                            if (deadCreatureLoot[creature].ContainsKey(loot) && deadCreatureLoot[creature][loot] < max)
+                            {
+                                CraftData.AddToInventory(loot);
+                                deadCreatureLoot[creature][loot]++; 
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var pair in Main.config.deadCreatureLoot[name])
+                        {
+                            CraftData.AddToInventory(pair.Key);
+                            deadCreatureLoot.Add(creature, new Dictionary<TechType, int>{{pair.Key, 1}});
+                        }
+                    }
+                }
+            }
+        }
 
         [HarmonyPatch(typeof(Constructor), "OnEnable")]
         class Constructor_OnEnable_Patch
@@ -309,7 +355,7 @@ namespace Tweaks_Fixes
                 Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
                 if (target == null)
                 {
-                    AddDebug(" no target");
+                    //AddDebug(" no target");
                     return false;
                 }
                 UniqueIdentifier ui = target.GetComponentInParent<UniqueIdentifier>();
@@ -317,22 +363,22 @@ namespace Tweaks_Fixes
                     AddDebug("target " + ui.gameObject.name);
                 else
                 {
-                    AddDebug(target.name + "has no identifier");
+                    //AddDebug(target.name + "has no identifier");
                     return false;
                 }
                 if (ui.gameObject.GetComponent<FruitPlant>())
                 {
-                    AddDebug("FruitPlant");
+                    //AddDebug("FruitPlant");
                     return false;
                 }
                 if (!__instance.ValidateObject(ui.gameObject))
                 {
-                    AddDebug("could not Validate Object");
+                    //AddDebug("could not Validate Object");
                     return false;
                 }
                 if (ui.gameObject.GetComponent<Pickupable>())
                 {
-                    AddDebug("Pickupable");
+                    //AddDebug("Pickupable");
                     __result = target;
                     return false;
                 }
@@ -340,10 +386,10 @@ namespace Tweaks_Fixes
                 if (aabb.size.x * aabb.size.y * aabb.size.z <= __instance.maxAABBVolume)
                 {
                     __result = target;
-                    AddDebug("small object");
+                    //AddDebug("small object");
                 }
-                if (__result == null)
-                    AddDebug("ValidateNewObject null");
+                //if (__result == null)
+                    //AddDebug("ValidateNewObject null");
                 return false;
             }
 
@@ -375,14 +421,14 @@ namespace Tweaks_Fixes
                 //    return;
                 Rigidbody rb = __instance.grabbedObject.GetComponent<Rigidbody>();
                 //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
-                if (rb)
-                    AddDebug("Rigidbody useGravity " + rb.useGravity);
+                //if (rb)
+                //    AddDebug("Rigidbody useGravity " + rb.useGravity);
                 WorldForces wf = __instance.grabbedObject.GetComponent<WorldForces>();
                 if (wf)
                 {
-                    AddDebug("WorldForces handleGravity " + wf.handleGravity);
-                    AddDebug("WorldForces aboveWaterGravity " + wf.aboveWaterGravity);
-                    AddDebug("WorldForces underwaterGravity " + wf.underwaterGravity);
+                    //AddDebug("WorldForces handleGravity " + wf.handleGravity);
+                    //AddDebug("WorldForces aboveWaterGravity " + wf.aboveWaterGravity);
+                    //AddDebug("WorldForces underwaterGravity " + wf.underwaterGravity);
                 }
 
                 //    rb.useGravity = true;
@@ -431,7 +477,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnHolster")]
             public static void OnHolsterPostfix(Seaglide __instance)
             {
-                    seaglideToggleLights = null;
+                seaglideToggleLights = null;
             }
 
             [HarmonyPostfix]

@@ -258,8 +258,25 @@ namespace Tweaks_Fixes
                     float damage = 0f;
                     if (!__instance.shielded)
                     {
-                        if (type == DamageType.Heat && dealer == Player.mainObject &&  __instance.GetComponent<LavaLizard>())
-                            type = DamageType.Normal;
+                        if (dealer == Player.mainObject)
+                        {
+                            //if (type == DamageType.Normal)
+                            //{
+                            //    Stalker stalker = __instance.GetComponent<Stalker>();
+                            //    if (stalker)
+                            //    {
+                            //        LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                            //        if (lm && !lm.IsAlive())
+                            //        {
+                                        //AddDebug("Stalker TakeDamage ");
+                                        //stalker.LoseTooth();
+                                //    }
+                                //}
+                            //}
+                            if (type == DamageType.Heat && __instance.GetComponent<LavaLizard>())
+                                type = DamageType.Normal;
+                        }
+
                         damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
                         //if (dealer == Player.mainObject)
                         //    AddDebug("TakeDamage originalDamage " + originalDamage + " damage " + damage);

@@ -74,7 +74,7 @@ namespace Tweaks_Fixes
         public bool foodTweaks = false;
         [Toggle("New poison damage system", Tooltip = "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.")]
         public bool newPoisonSystem = false;
-        [Slider("Fruit growth time", 0, 100, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit to grow. Also applies to creepvine seeds and blood oil. 'Plants growth' setting from 'Day night speed' mod will affect this. You have to reload your game after changing this.")]
+        [Slider("Fruit growth time", 0, 100, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit, creepvine seeds and blood oil to grow. 'Plants growth' setting from 'Day night speed' mod will affect this. You have to reload your game after changing this.")]
         public int fruitGrowTime = 1;
         [Toggle("Can't eat underwater", Tooltip = "If enabled you will not be able to eat or drink when swimming underwater.")]
         public bool cantEatUnderwater = false;
@@ -109,31 +109,29 @@ namespace Tweaks_Fixes
         public bool realOxygenCons = false;
         //[Slider("brainCoralBubbleInterval", 1, 20, DefaultValue = 3, Step = 1, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
         //public int brainCoralBubbleInterval = 3;
-
-  
-
         //[Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
         //public bool predatorsDontFlee = false;
         [Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player.")]
         public bool creaturesRespawn = false;
         [Toggle("Do not spawn fragments for unlocked blueprints", Tooltip = "")]
         public bool dontSpawnKnownFragments = false;
+        [Toggle("Unlock prawn suit only by scanning prawn suit", Tooltip = "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arms. Game has to be reloaded after changing this.")]
+        public bool cantScanExosuitClawArm = false;
         [Toggle("Camera bobbing", Tooltip = "Camera bobbing when swimming.")]
         public bool cameraBobbing = true;
         [Toggle("Free camera drones for scanner room", Tooltip = "If disabled scanner room will be built without camera drones.")]
         public bool mapRoomFreeCameras = true;
         //[Slider("flare light intensity", 0.1f, 1f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "You have to reequip your flare after changing this.")]
         //public float flareIntensity = .5f;
-        [Toggle("Unlock prawn suit only by scanning prawn suit", Tooltip = "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arms. Game has to be reloaded after changing this.")]
-        public bool cantScanExosuitClawArm = false;
-
         [Slider("Free torpedos", 0, 6, DefaultValue = 2, Step = 1, Format = "{0:F0}", Tooltip = "Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.")]
         public int freeTorpedos = 2;
+        [Toggle("Seamoth and prawn suit can use creature decoy", Tooltip = "After changing this you have to restart the game.")]
+        public bool seamothDecoy = false;
         [Slider("Creature decoy battery life time", 10, 500, DefaultValue = 90, Step = 10, Format = "{0:F0}", Tooltip = "Creature decoy stops working after this number of seconds.")]
         public int decoyLifeTime = 90;
         [Slider("Creature decoy HP", 0, 500, DefaultValue = 0, Step = 10, Format = "{0:F0}", Tooltip = "When it's not 0 creature decoy will be destroyed after taking this amount of damage. By default its HP is infinite.")]
         public int decoyHP = 0;
-        [Toggle("Creature decoy works only when launched form cyclops", Tooltip = "")]
+        [Toggle("Creature decoy does not work when dropped from inventory", Tooltip = "")]
         public bool decoyRequiresSub = false;
         //[Toggle("Remove light from open databox", Tooltip = "Disable databox light when you open it so it does not draw your attention next time you see it. Game has to be reloaded after changing this.")]
         //public bool disableDataboxLight = false;
@@ -157,7 +155,7 @@ namespace Tweaks_Fixes
         //public bool baseLightOff = false;
         [Toggle("Sunlight affects lighting in cyclops", Tooltip = "")]
         public bool cyclopsSunlight = false;
-        [Toggle("Instantly open PDA", Tooltip = "Your PDA will open and close instantly. Direction you are looking at will not change when you open it. Game has to be reloaded after changing this.")]
+        [Toggle("Instantly open PDA", Tooltip = "Your PDA will open and close instantly. Direction you are looking at will not change when you open it. Game has to be reloaded after changing this. Leave this off if using FCS mods.")]
         public bool instantPDA = false;
         [Toggle("Always show health and food values in UI", Tooltip = "Health and food values will be always shown not only when PDA is open.")]
         public bool alwaysShowHealthNunbers = false;
@@ -270,6 +268,8 @@ namespace Tweaks_Fixes
         public Dictionary<string, float> damageMult_ = new Dictionary<string, float> { { "Creepvine", 1f } };
         public bool pickedUpFireExt = false;
         public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
+        //public Dictionary<string, TechType> aliveCreatureLoot = new Dictionary<string, TechType>();
+        public Dictionary<string, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<string, Dictionary<TechType, int>> { { "Stalker", new Dictionary<TechType, int> { { TechType.StalkerTooth, 2 } } }, { "Gasopod", new Dictionary<TechType, int> { { TechType.GasPod, 5 } } } };
         //public Dictionary<string, Decoy_Patch.decoyData> decoys = new Dictionary<string, Decoy_Patch.decoyData>();
         //public HashSet<TechType> canAttackPlayer = new HashSet<TechType> { "Shocker, TechType.Biter, TechType.Blighter, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.Crash, TechType.Mesmer, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.Bleeder, TechType.Shuttlebug, TechType.CaveCrawler, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
         //public HashSet<TechType> canAttackVehicle = new HashSet<TechType> { TechType.Shocker, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
@@ -280,7 +280,8 @@ namespace Tweaks_Fixes
         //}
         //public HashSet<TechType> ttt = new HashSet<TechType> {TechType.Coffee };
         public bool fixMelons = true;
-        public string[] sss = new string[] {"a","aa" };
+        public bool randomPlantRotation = true;
+        public bool silentReactor = false;
 
         public List<string> translatableStrings = new List<string> //  translate config enums 
         { "Burnt out ", //  0   flare
@@ -297,7 +298,7 @@ namespace Tweaks_Fixes
         "Light and throw",  //  11  flare   
         "Light" ,        // 12   flare   
         "Toggle map" ,    // 13   Seaglide map   
-         //" " ,    // 14   
+         "Push " ,    // 14   push beached seamoth
          // " TEST " ,    // 15  
         };
 

@@ -91,6 +91,7 @@
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Base_Patch.cs" />
+    <Compile Include="Randomize.cs" />
     <Compile Include="PDA_Patch.cs" />
     <Compile Include="Storage_Patch.cs" />
     <Compile Include="PDA_Clock_.cs" />
@@ -100,12 +101,10 @@
     <Compile Include="Decoy_Patch.cs" />
     <Compile Include="Fragment_Patch.cs" />
     <Compile Include="Predators_Patch.cs" />
-    <Compile Include="Torpedo_Patch.cs" />
     <Compile Include="Coffee_Patch.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
     <Compile Include="Pickupable_Patch.cs" />
     <Compile Include="Oxygen_Patch.cs" />
-    <Compile Include="Starting_Loot_Patch.cs" />
     <Compile Include="Craft_Patch.cs" />
     <Compile Include="Damage_Patch.cs" />
     <Compile Include="Databox_Light_Patch.cs" />

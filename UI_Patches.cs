@@ -31,11 +31,14 @@ namespace Tweaks_Fixes
         static void GetStrings()
         {
             //AddDebug("GetStrings " + Main.config.translatableStrings.Count);
-            //if ( config.translatableStrings.Count < 16)
-            //{
-            //    config.translatableStrings = new List<string> { "Burnt out ",  "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map"," " ," TEST " ,    };
-            //    config.Save();
-            //}
+            if (Main.config.translatableStrings.Count < 15)
+            {
+                Main.config.translatableStrings = new List<string> (Main.config.translatableStrings);
+                Main.config.translatableStrings.Add("Push ");
+                Main.config.Save();
+            }
+            //foreach (string s in Main.config.translatableStrings)
+            //    Main.Log("translatableStrings " + s);
             Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
             Exosuit_Patch.exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[2] + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
             Exosuit_Patch.armNamesChanged = true;
@@ -137,13 +140,21 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnOpenPDA")]
             static void OnOpenPDAPostfix(uGUI_InventoryTab __instance)
             {
-                IItemsContainer itemsContainer = Inventory.main.GetUsedStorage(0);
+                IItemsContainer itemsContainer = null;
+                //AddDebug("UsedStorageCount " + Inventory.main.usedStorage.Count);
+                for (int i = 0; i < Inventory.main.usedStorage.Count; i++)
+                {
+                    itemsContainer = Inventory.main.GetUsedStorage(i);
+                    if (itemsContainer != null)
+                    {
+                        //AddDebug("UsedStorage " + i);
+                        break;
+                    }
+                }
                 Equipment equipment = itemsContainer as Equipment;
                 ItemsContainer container = itemsContainer as ItemsContainer;
-                //    AddDebug("GetUsedStorageCount " + Inventory.main.GetUsedStorageCount());
                 if (container != null)
                 {
-                    //AddDebug(" container ");
                     if (landPlanters.Contains(container))
                     {
                         //AddDebug(" landPlanter ");

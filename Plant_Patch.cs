@@ -325,9 +325,12 @@ namespace Tweaks_Fixes
             public static void SpawnPostfix(ref GameObject __result)
             {
                 //AddDebug("Plantable Spawn " + __result.name);
-                Vector3 rot = __result.transform.eulerAngles;
-                float y = UnityEngine.Random.Range(0, 360);
-                __result.transform.eulerAngles = new Vector3(rot.x, y, rot.z);
+                if (Main.config.randomPlantRotation)
+                {
+                    Vector3 rot = __result.transform.eulerAngles;
+                    float y = UnityEngine.Random.Range(0, 360);
+                    __result.transform.eulerAngles = new Vector3(rot.x, y, rot.z);
+                }
             }
         }
 

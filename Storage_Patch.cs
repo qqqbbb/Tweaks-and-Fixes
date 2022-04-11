@@ -406,7 +406,13 @@ namespace Tweaks_Fixes
                 {
                     if (techTag.type == TechType.SmallLocker)
                     {
-                        //ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>(true);
+                        //AddDebug("StorageContainer OnConstructedChanged " + __instance.prefabRoot.name);
+                        if (Main.loadingDone && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
+                        { // collision does not match mesh. Can see it after fixing cyclops collision. move it so cant see it when outside
+                            //AddDebug("StorageContainer OnConstructedChanged parent " + __instance.transform.parent.name);
+                            __instance.transform.position += __instance.transform.forward * .05f;
+                        }
+
                         Transform label = __instance.transform.Find("Label");
                         if (label)
                         {
@@ -460,64 +466,15 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(StorageContainer __instance)
             {
-                if (true)
-                { /*
-                 TechTag techTag = __instance.GetComponent<TechTag>();
-                 //Constructable c = __instance.GetComponent<Constructable>();
-                 //if (c)
-                 //    AddDebug("StorageContainer Awake constructed " + c.constructed);
-                 if (techTag)
-                 {
-                     //AddDebug("StorageContainer Awake " + techTag.type);
+                TechTag techTag = __instance.GetComponent<TechTag>();
+                //AddDebug("StorageContainer Awake " + __instance.prefabRoot.name);
+                //if (__instance.transform.parent)
+                //    AddDebug("StorageContainer Awake parent " + __instance.transform.parent.name);
 
-                     if (techTag.type == TechType.SmallLocker)
-                     {
-                         ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>(true);
-                         if (cl)
-                         {
-                             Collider collider = cl.GetComponent<Collider>();
-                             if (collider)
-                                 UnityEngine.Object.Destroy(collider);
-                         }
-                     }
-                     else if (techTag.type == TechType.Locker)
-                     {
-                         //AddDebug(__instance.name + "StorageContainer Awake isPlacing " + Builder.isPlacing);
-                         //AddDebug("StorageContainer Awake hoverText " + __instance.hoverText);
-                         //AddDebug("StorageContainer Awake storageLabel " + __instance.storageLabel);
-                         Transform parent = __instance.transform.parent;
-                         if (parent)
-                         {
-                             AddDebug("StorageContainer Awake parent " + __instance.transform.parent.name);
-                             TechTag parentTT = parent.GetComponent<TechTag>();
-                             if (parentTT) // decorations locker
-                             { // runs twice on load
-                                 //AddDebug("StorageContainer Awake parent TechTag " + parentTT.type);
-                                 if ( parentTT.type.ToString() == "DecorativeLockerClosed")
-                                 {
-                                     Transform decoDoor = parent.Find("submarine_locker_03_door_01/locker_04_door");
-                                     if (decoDoor)
-                                     { // runs twice on load
-                                         //AddDebug("decoDoor ");
-                                         CleanDecoLocker(__instance.transform);
-                                         AddLabel(decoDoor, 2, __instance.transform.parent);
-                                     }
-                                     return;
-                                 }
-                             }
-                         }
-                         Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
-                         if (doorRight)// parent is null when built
-                         { // dummy lockers from Decorations mod also get label
-                             //if (parent == null)
-                                 AddDebug("StartCoroutine AddLabel Locker " + __instance.name);
-                             AddLabel(doorRight, 0, __instance.transform);
-                         }
-                     }
-                 }
-                 */
-            }
-                //if (__instance.GetComponent<CyclopsLocker>())
+                if (techTag && techTag.type == TechType.SmallLocker)
+                {
+
+                }
                 if (__instance.name == "submarine_locker_01_door")
                 {
                     PrefabIdentifier pi = __instance.GetComponentInParent<PrefabIdentifier>();

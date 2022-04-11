@@ -10,20 +10,20 @@ namespace Tweaks_Fixes
     class Coffee_Patch
     {
         public static BoxCollider vendMachCol = null;
-        public static Dictionary<CoffeeVendingMachine, Pickupable> spawnedCoffees = new Dictionary<CoffeeVendingMachine, Pickupable>();
-        public static Dictionary<CoffeeVendingMachine, Pickupable> spawnedCoffeesRight = new Dictionary<CoffeeVendingMachine, Pickupable>();
+        public static Dictionary<CoffeeVendingMachine, Pickupable> spawnedCoffee = new Dictionary<CoffeeVendingMachine, Pickupable>();
+        public static Dictionary<CoffeeVendingMachine, Pickupable> spawnedCoffeeRight = new Dictionary<CoffeeVendingMachine, Pickupable>();
         //public static Dictionary<CoffeeVendingMachine, BoxCollider> shiftedColliders = new Dictionary<CoffeeVendingMachine, BoxCollider>();
         public static Dictionary<Eatable, float> spawnedCoffeeTime = new Dictionary<Eatable, float>();
         public static float pourCoffeeTime = 10f;
 
         public static bool HasCoffee(CoffeeVendingMachine cvm)
         {
-            foreach (var kv in spawnedCoffees)
+            foreach (var kv in spawnedCoffee)
             {
                 if (kv.Key == cvm && kv.Value)
                     return true;
             }
-            foreach (var kv in spawnedCoffeesRight)
+            foreach (var kv in spawnedCoffeeRight)
             {
                 if (kv.Key == cvm && kv.Value)
                     return true;
@@ -95,7 +95,7 @@ namespace Tweaks_Fixes
                     return false;
                 //AddDebug(" spawnDelay " + __instance.spawnDelay);
 
-                if (!spawnedCoffees.ContainsKey(__instance) || spawnedCoffees[__instance] == null)
+                if (!spawnedCoffee.ContainsKey(__instance) || spawnedCoffee[__instance] == null)
                 {
                     __instance.vfxController.Play(0);
                     __instance.waterSoundSlot1.Play();
@@ -107,7 +107,7 @@ namespace Tweaks_Fixes
                         ShiftCollider(__instance);
                     }
                 }
-                else if (!spawnedCoffeesRight.ContainsKey(__instance) || spawnedCoffeesRight[__instance] == null)
+                else if (!spawnedCoffeeRight.ContainsKey(__instance) || spawnedCoffeeRight[__instance] == null)
                 {
                     __instance.vfxController.Play(1);
                     __instance.waterSoundSlot2.Play();
@@ -140,9 +140,9 @@ namespace Tweaks_Fixes
 
             coffee.transform.position += coffee.transform.up * .06f;
             if (right)
-                spawnedCoffeesRight[__instance] = coffee.GetComponent<Pickupable>();
+                spawnedCoffeeRight[__instance] = coffee.GetComponent<Pickupable>();
             else
-                spawnedCoffees[__instance] = coffee.GetComponent<Pickupable>();
+                spawnedCoffee[__instance] = coffee.GetComponent<Pickupable>();
 
             coffee.transform.SetParent(__instance.transform, true);
             spawnedCoffeeTime[coffee.GetComponent<Eatable>()] = DayNightCycle.main.timePassedAsFloat;
@@ -170,18 +170,18 @@ namespace Tweaks_Fixes
                     }
                     //AddDebug("waterValue " + eatable.waterValue);
                     CoffeeVendingMachine cvm = null;
-                    foreach (var kv in spawnedCoffees)
+                    foreach (var kv in spawnedCoffee)
                     {
                         if (kv.Value == __instance)
                             cvm = kv.Key;
                     }
                     if (cvm)
                     {
-                        spawnedCoffees[cvm] = null;
+                        spawnedCoffee[cvm] = null;
                         cvm.waterSoundSlot1.Stop();
                     }
                     bool found = false;
-                    foreach (var kv in spawnedCoffeesRight)
+                    foreach (var kv in spawnedCoffeeRight)
                     {
                         if (kv.Value == __instance)
                         {
@@ -191,7 +191,7 @@ namespace Tweaks_Fixes
                     }
                     if (found && cvm)
                     {
-                        spawnedCoffeesRight[cvm] = null;
+                        spawnedCoffeeRight[cvm] = null;
                         cvm.waterSoundSlot2.Stop();
                         //AddDebug(" spawnedCoffees_ " + spawnedCoffees_[cvm]);
                     }

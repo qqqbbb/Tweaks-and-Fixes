@@ -1,6 +1,9 @@
 ﻿
 using UnityEngine;
 using HarmonyLib;
+//using System;
+using System.Collections.Generic;
+//using System.Linq;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -31,25 +34,17 @@ namespace Tweaks_Fixes
             escapePod.damagedSound.Stop();
             escapePod.damageEffectsShowing = false;
             escapePod.lightingController.LerpToState(0, 5f);
-            uGUI_EscapePod.main.SetHeader(Language.main.Get("IntroEscapePod4Header"), (Color)new Color32((byte)159, (byte)243, (byte)63, byte.MaxValue));
-            uGUI_EscapePod.main.SetContent(Language.main.Get("IntroEscapePod4Content"), (Color)new Color32((byte)159, (byte)243, (byte)63, byte.MaxValue));
-            uGUI_EscapePod.main.SetPower(Language.main.Get("IntroEscapePod4Power"), (Color)new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue));
+            uGUI_EscapePod.main.SetHeader(Language.main.Get("IntroEscapePod4Header"), new Color32((byte)159, (byte)243, (byte)63, byte.MaxValue));
+            uGUI_EscapePod.main.SetContent(Language.main.Get("IntroEscapePod4Content"), new Color32((byte)159, (byte)243, (byte)63, byte.MaxValue));
+            uGUI_EscapePod.main.SetPower(Language.main.Get("IntroEscapePod4Power"), new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue));
             RegeneratePowerSource[] cells = escapePod.GetAllComponentsInChildren<RegeneratePowerSource>();
             int maxPower = Main.config.escapePodMaxPower;
-            if (cells != null)
+            foreach (RegeneratePowerSource cell in cells)
             {
-                foreach (RegeneratePowerSource cell in cells)
-                {
-                    //AddDebug("maxPower " + maxPower);
-                    AddDebug("RegeneratePowerSource " + cell.name);
-                    AddDebug("RegeneratePowerSource parent " + cell.transform.parent.name);
-                    if (cell.transform.parent.parent)
-                        AddDebug("RegeneratePowerSource parent parent " + cell.transform.parent.parent.name);
-                    if (cell.transform.parent.parent.parent)
-                        AddDebug("RegeneratePowerSource parent parent parent " + cell.transform.parent.parent.parent.name);
-
-                    cell.powerSource.maxPower = maxPower;
-                }
+                //AddDebug("RepairPod maxPower " + maxPower);
+                //AddDebug("RegeneratePowerSource " + cell.name);
+                cell.regenerationThreshhold = maxPower;
+                cell.powerSource.maxPower = maxPower;
             }
         }
 
@@ -102,19 +97,17 @@ namespace Tweaks_Fixes
                 uGUI_EscapePod.main.SetPower(Language.main.Get("IntroEscapePod3Power"), (Color)new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue));
                 RegeneratePowerSource[] cells = __instance.GetAllComponentsInChildren<RegeneratePowerSource>();
                 int maxPower = Main.config.escapePodMaxPower;
-                if (cells != null)
+                //AddDebug("DamagePod maxPower " + maxPower);
+                foreach (RegeneratePowerSource cell in cells)
                 {
-                    //AddDebug("cells " + cells.Length);
-                    foreach (RegeneratePowerSource cell in cells)
+                    //AddDebug("maxPower " + maxPower);
+                    cell.regenerationThreshhold = maxPower;
+                    if (Main.config.escapePodPowerTweak)
+                        cell.powerSource.maxPower = maxPower * .5f;
+                    else
                     {
-                        //AddDebug("maxPower " + maxPower);
-                        if (Main.config.escapePodPowerTweak)
-                            cell.powerSource.maxPower = maxPower * .5f;
-                        else
-                        {
-                            cell.powerSource.maxPower = maxPower;
-                            cell.powerSource.power = maxPower;
-                        }
+                        cell.powerSource.maxPower = maxPower;
+                        cell.powerSource.power = maxPower;
                     }
                 }
                 return false;
@@ -226,6 +219,26 @@ namespace Tweaks_Fixes
             static void StartPostfix(IntroFireExtinguisherHandTarget __instance)
             {
                 Main.config.pickedUpFireExt = true;
+            }
+        }
+
+        [HarmonyPatch(typeof(LootSpawner), "Start")]
+        class LootSpawner_Start_Patch
+        {
+            public static void Postfix(LootSpawner __instance)
+            {
+                __instance.escapePodTechTypes = new List<TechType>();
+                foreach (KeyValuePair<string, int> loot in Main.config.startingLoot)
+                {
+                    TechTypeExtensions.FromString(loot.Key, out TechType tt, true);
+                    //Main.Log("Start Loot " + tt);
+                    //AddDebug("Start Loot " + tt);
+                    if (tt == TechType.None)
+                        continue;
+
+                    for (int i = 0; i < loot.Value; i++)
+                        __instance.escapePodTechTypes.Add(tt);
+                }
             }
         }
 

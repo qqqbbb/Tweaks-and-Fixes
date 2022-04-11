@@ -77,7 +77,25 @@ namespace Tweaks_Fixes
                 //__instance.Invoke("Despawn", Main.config.subDecoyLifeTime);
                 return false;
             }
-          
+
+            [HarmonyPrefix]
+            [HarmonyPatch("Update")]
+            static bool UpdatePrefix(CyclopsDecoy __instance)
+            {
+                if (!__instance.launch)
+                    return false;
+                if (Player.main.currentSub)
+                    __instance.transform.Translate(new Vector3(0f, __instance.launchSpeed, 0f), Space.World);
+                else
+                    __instance.transform.position += __instance.transform.up * __instance.launchSpeed;
+
+                __instance.launchSpeed = Mathf.MoveTowards(__instance.launchSpeed, 0f, Time.deltaTime);
+                if (!Mathf.Approximately(__instance.launchSpeed, 0f))
+                    return false;
+                __instance.launch = false;
+                return false;
+            }
+
             [HarmonyPrefix]
             [HarmonyPatch("Despawn")]
             static bool DespawnPrefix(CyclopsDecoy __instance)
@@ -147,6 +165,17 @@ namespace Tweaks_Fixes
             }
         }
 
+
+        [HarmonyPatch(typeof(CyclopsDecoyManager), "Start")]
+        class CyclopsDecoyManager_Start_Patch
+        {
+            static void Prefix(CyclopsDecoyManager __instance)
+            {
+                //AddDebug("CyclopsDecoyManager Start");
+                Vehicle_patch.decoyPrefab = __instance.decoyLauncher.decoyPrefab;
+            }
+        }
+        
         //[HarmonyPatch(typeof(AggressiveWhenSeeTarget), "IsTargetValid", new Type[] { typeof(GameObject) })]
         class AggressiveWhenSeeTarget_IsTargetValid_Patch
         {
