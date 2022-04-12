@@ -95,12 +95,17 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
-            {// Start runs for prefab too
+            {
+                //FixCollision(__instance);
+            }
+
+            private static void FixCollision(SubRoot __instance)
+            {
                 if (__instance.isCyclops && __instance.name == "Cyclops-MainPrefab(Clone)")
-                { 
+                {// Start runs for prefab too
                     Transform outerCol = __instance.transform.Find("CyclopsCollision/zOuterGroup");
                     if (outerCol)
                     {
@@ -135,7 +140,7 @@ namespace Tweaks_Fixes
                     }
                     Transform launchBayleft_wall = __instance.transform.Find("CyclopsCollision/launchBayleft_wall");
                     if (launchBayleft_wall)
-                    { 
+                    {
                         launchBayleft_wall.localPosition = new Vector3(-.04f, 0f, 0f);
                         Vector3 rot = launchBayleft_wall.eulerAngles;
                         launchBayleft_wall.eulerAngles = new Vector3(80f, rot.y, rot.z);
@@ -189,6 +194,7 @@ namespace Tweaks_Fixes
                     engineRoomRightWall.transform.eulerAngles = new Vector3(engineRoomRightWallRot.x, engineRoomRightWallRot.y + .75f, engineRoomRightWallRot.z);
                 }
             }
+
             [HarmonyPostfix]
             [HarmonyPatch("OnProtoSerialize")]
             public static void OnProtoSerializePostfix(SubRoot __instance)
