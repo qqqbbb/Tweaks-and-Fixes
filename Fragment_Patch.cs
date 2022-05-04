@@ -10,7 +10,6 @@ namespace Tweaks_Fixes
 {
     class Fragment_Patch
     {
-
         //[HarmonyPatch(typeof(CSVEntitySpawner), nameof(CSVEntitySpawner.GetPrefabForSlot))]
         internal class CSVEntitySpawner_GetPrefabForSlot_Patch
         {
@@ -125,7 +124,6 @@ namespace Tweaks_Fixes
                 if (Main.config.dontSpawnKnownFragments && __instance.techType == TechType.Fragment)
                 {
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
-
                     if (PDAScanner.complete.Contains(tt))
                     {
                         //AddDebug("ResourceTracker start " + __instance.techType + " " + CraftData.GetTechType(__instance.gameObject));

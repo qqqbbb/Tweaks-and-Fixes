@@ -72,6 +72,8 @@ namespace Tweaks_Fixes
         public EatingRawFish eatRawFish;
         [Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Game has to be reloaded after changing this.")]
         public bool foodTweaks = false;
+        [Toggle("Heat blade cooks fish on kill", Tooltip = "")]
+        public bool heatBladeCooks = true;
         [Toggle("New poison damage system", Tooltip = "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.")]
         public bool newPoisonSystem = false;
         [Slider("Fruit growth time", 0, 100, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit, creepvine seeds and blood oil to grow. 'Plants growth' setting from 'Day night speed' mod will affect this. You have to reload your game after changing this.")]
@@ -97,7 +99,7 @@ namespace Tweaks_Fixes
         public bool noFishCatching = false;
         [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
         public bool noBreakingWithHand = false;
-        [Toggle("Drop held tool when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
+        [Toggle("Drop tool in your hands when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
         public bool dropHeldTool = false;
         [Toggle("Stalkers grab tools from player's hands when playing", Tooltip = "Stalkers can grab only things that are in the mod config's 'stalkerPlayThings' list.")]
         public bool stalkersGrabShinyTool = false;
@@ -111,8 +113,15 @@ namespace Tweaks_Fixes
         //public int brainCoralBubbleInterval = 3;
         //[Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
         //public bool predatorsDontFlee = false;
-        [Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player.")]
-        public bool creaturesRespawn = false;
+        [Choice("Creatures respawn if killed by player", Tooltip = "By default big creatures and leviathans never respawn if killed by player.")]
+        public CreatureRespawn creatureRespawn;
+        //public bool creaturesRespawn = false;
+        [Slider("Fish respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes small fish to respawn after it was killed or caught. If it's 0, default (6 hours) value will be used. Game has to be reloaded after changing this.")]
+        public int fishRespawnTime = 0;
+        [Slider("Big creatures respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a creature that you can't catch to respawn after it was killed. If it's 0, default (12 hours) value will be used. Game has to be reloaded after changing this.")]
+        public int creatureRespawnTime = 0;
+        [Slider("Leviathan respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a leviathan to respawn after it was killed. If it's 0, default (1 day) value will be used. Game has to be reloaded after changing this.")]
+        public int leviathanRespawnTime = 0;
         [Toggle("Do not spawn fragments for unlocked blueprints", Tooltip = "")]
         public bool dontSpawnKnownFragments = false;
         [Toggle("Unlock prawn suit only by scanning prawn suit", Tooltip = "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arms. Game has to be reloaded after changing this.")]
@@ -125,8 +134,8 @@ namespace Tweaks_Fixes
         //public float flareIntensity = .5f;
         [Slider("Free torpedos", 0, 6, DefaultValue = 2, Step = 1, Format = "{0:F0}", Tooltip = "Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.")]
         public int freeTorpedos = 2;
-        [Toggle("Seamoth and prawn suit can use creature decoy", Tooltip = "After changing this you have to restart the game.")]
-        public bool seamothDecoy = false;
+        //[Toggle("Seamoth and prawn suit can use creature decoy", Tooltip = "After changing this you have to restart the game.")]
+        //public bool seamothDecoy = false;
         [Slider("Creature decoy battery life time", 10, 500, DefaultValue = 90, Step = 10, Format = "{0:F0}", Tooltip = "Creature decoy stops working after this number of seconds.")]
         public int decoyLifeTime = 90;
         [Slider("Creature decoy HP", 0, 500, DefaultValue = 0, Step = 10, Format = "{0:F0}", Tooltip = "When it's not 0 creature decoy will be destroyed after taking this amount of damage. By default its HP is infinite.")]
@@ -153,6 +162,8 @@ namespace Tweaks_Fixes
         public bool fixFootstepSound = false;
         //[Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
         //public bool baseLightOff = false;
+        [Toggle("Fix cyclops wall collision", Tooltip = "Wall collision inside cyclops will be much more accurate. Might cause issues when used with other mods.")]
+        public bool fixCyclopsCollision = false;
         [Toggle("Sunlight affects lighting in cyclops", Tooltip = "")]
         public bool cyclopsSunlight = false;
         [Toggle("Instantly open PDA", Tooltip = "Your PDA will open and close instantly. Direction you are looking at will not change when you open it. Game has to be reloaded after changing this. Leave this off if using FCS mods.")]
@@ -167,16 +178,13 @@ namespace Tweaks_Fixes
         public KeyCode lightKey = KeyCode.LeftShift;
         [Keybind("Move all items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items.")]
         public KeyCode transferAllItemsKey = KeyCode.LeftControl;
-        [Keybind("Move the same items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items of the same type.")]
+        [Keybind("Move same items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items of the same type.")]
         public KeyCode transferSameItemsKey = KeyCode.LeftShift;
-
-
 
         public int subThrottleIndex = -1;
         public float knifeRangeDefault = 0f;
         public float playerCamRot = -1f;
         public int activeSlot = -1;
-        //public float poison = 0f;
         public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
@@ -256,11 +264,12 @@ namespace Tweaks_Fixes
         {
             //Base_Light.UpdateBaseLight();
         }
+        public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
         public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum SeaTreaderOutcrop { Vanilla, Only_when_stomping_ground, Never }
-        public List<string> silentCreatures = new List<string> { };
+        public List<string> silentCreatures = new List<string> {  };
         public List<string> removeLight = new List<string> { };
         public List<string> biomesRemoveLight = new List<string> { };
         public List<string> stalkerPlayThings = new List<string> { "ScrapMetal", "MapRoomCamera", "Beacon", "Seaglide", "CyclopsDecoy", "Gravsphere", "SmallStorage", "FireExtinguisher", "DoubleTank", "PlasteelTank", "PrecursorKey_Blue", "PrecursorKey_Orange", "PrecursorKey_Purple", "PrecursorKey_Red", "PrecursorKey_White", "Rebreather", "Tank", "HighCapacityTank", "Flare", "Flashlight", "Builder", "LaserCutter", "LEDLight", "DiveReel", "PropulsionCannon", "Knife", "HeatBlade", "Scanner", "Welder", "RepulsionCannon", "StasisRifle" };
@@ -283,6 +292,7 @@ namespace Tweaks_Fixes
         public bool randomPlantRotation = true;
         public bool silentReactor = false;
 
+        // also edit UI_Patches.GetStrings when editing this
         public List<string> translatableStrings = new List<string> //  translate config enums 
         { "Burnt out ", //  0   flare
             "Lit ",      // 1   flare
@@ -299,7 +309,8 @@ namespace Tweaks_Fixes
         "Light" ,        // 12   flare   
         "Toggle map" ,    // 13   Seaglide map   
          "Push " ,    // 14   push beached seamoth
-         // " TEST " ,    // 15  
+          "Need knife to break it" ,    // 15  no breaking with bare hands  BreakableResource
+        "Need knife to break it free" ,    // 16  no breaking with bare hands  Pickupable
         };
 
     }

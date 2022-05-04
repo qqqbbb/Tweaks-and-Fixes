@@ -15,9 +15,6 @@ namespace Tweaks_Fixes
         public static CyclopsEntryHatch ceh;
         //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
-        //public static BoxCollider leftUpperWall;
-        //public static BoxCollider rightUpperWall;
-        //static bool upperWallMoved = false;
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -39,9 +36,7 @@ namespace Tweaks_Fixes
                 if (c == null)
                     continue;
                 foreach (Collider myCol in myCols)
-                {
                     Physics.IgnoreCollision(myCol, c);
-                }
             }
             foreach (Collider c in myCols)
             {
@@ -95,11 +90,12 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
             {
-                //FixCollision(__instance);
+                if (Main.config.fixCyclopsCollision)
+                    FixCollision(__instance);
             }
 
             private static void FixCollision(SubRoot __instance)
@@ -207,6 +203,7 @@ namespace Tweaks_Fixes
                     Main.config.Save();
                 }
             }
+          
             [HarmonyPostfix]
             [HarmonyPatch("ForceLightingState")]
             public static void ForceLightingStatePostfix(SubRoot __instance, bool lightingOn)
@@ -215,7 +212,6 @@ namespace Tweaks_Fixes
                 //AddDebug("affectedByDayNightCycle " + __instance.interiorSky.affectedByDayNightCycle);
             }
         }
-
 
         //[HarmonyPatch(typeof(GUIHand), "UpdateActiveTarget")]
         class GUIHand_UpdateActiveTarget_PostfixPatch
@@ -574,7 +570,8 @@ namespace Tweaks_Fixes
             public static void Postfix()
             { // ignore cyclops outer colliders when building in cyclops
               //Builder.placeLayerMask = (LayerMask)~(1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Trigger") | 1 << LayerMask.NameToLayer("NotUseable"));
-                Builder.placeLayerMask = -6815745;
+                if (Main.config.fixCyclopsCollision)
+                    Builder.placeLayerMask = -6815745;
                //AddDebug("Builder Initialize ");
                // Main.Log("Builder Initialize " + Builder.placeLayerMask.value);
             }
@@ -586,7 +583,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(ref GameObject result, ref bool __result, float maxDistance, Targeting.FilterRaycast filter, out float distance)
             {
                 //AddDebug(" Targeting GetTarget  " + result.name);
-                if (!Player.main.currentSub || !Player.main.currentSub.isCyclops)
+                if (!Main.config.fixCyclopsCollision || !Player.main.currentSub || !Player.main.currentSub.isCyclops)
                 {
                     distance = 0f;
                     return true;
@@ -715,8 +712,10 @@ namespace Tweaks_Fixes
         class BuilderTool_HandleInput_Patch
         { // ignore cyclops outer colliders when building in cyclops
             //static readonly Targeting.FilterRaycast filter = hit => hit.collider != null && hit.collider.gameObject.layer == LayerID.NotUseable;
-            public static bool Prefix(BuilderTool __instance )
+            public static bool Prefix(BuilderTool __instance)
             {
+                if (!Main.config.fixCyclopsCollision)
+                    return true;
                 if (__instance.handleInputFrame == Time.frameCount)
                     return false;
                 //AddDebug("BuilderTool HandleInput ");
@@ -727,7 +726,6 @@ namespace Tweaks_Fixes
                 RaycastHit hitInfo;
                 if (!Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 30f, Builder.placeLayerMask.value, QueryTriggerInteraction.Collide))
                     return false;
-
                 //AddDebug("BuilderTool HandleInput Target " + hitInfo.collider.name + " parent " + hitInfo.collider.transform.parent.name);
                 bool buttonHeld1 = GameInput.GetButtonHeld(GameInput.Button.LeftHand);
                 bool buttonDown = GameInput.GetButtonDown(GameInput.Button.Deconstruct);
@@ -1029,6 +1027,20 @@ namespace Tweaks_Fixes
             {
                 __result = hand.IsFreeToInteract() && hand.player && hand.player.GetCurrentSub() == __instance.subRoot && hand.player.GetMode() == Player.Mode.Normal && __instance.subRoot.powerRelay.IsPowered();
                 return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(CyclopsEngineSpinManager), "PollCyclopsMotorMode")]
+        class CyclopsEngineSpinManager_PollCyclopsMotorMode_Patch
+        {
+            public static void Postfix(CyclopsEngineSpinManager __instance)
+            {
+                AddDebug("cyclopsMotorMode " + __instance.cyclopsMotorMode.cyclopsMotorMode);
+                AddDebug("spinSpeed " + __instance.spinSpeed);
+                //foreach (var item in __instance.spinSpeeds)
+                //{
+                //    AddDebug("spinSpeeds " + item);
+                //}
             }
         }
 

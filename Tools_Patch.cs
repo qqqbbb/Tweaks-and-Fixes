@@ -201,10 +201,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(ScannerTool), "Update")]
-        class ScannerTool_Update_Patch
-        {// SHOW power when equipped
-            private static bool Prefix(ScannerTool __instance)
+        [HarmonyPatch(typeof(ScannerTool))]
+        class ScannerTool_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("Update")]// Show power when equipped
+            private static bool UpdatePrefix(ScannerTool __instance)
             {
                 //PlayerTool playerTool = 
                 //bool isDrawn = (bool)PlayerTool_get_isDrawn.Invoke(__instance, new object[] { });
@@ -221,6 +223,31 @@ namespace Tweaks_Fixes
                     }
                 }
                 return false;
+            }
+
+            static bool scanning = false;
+            static bool finishedScan = false;
+
+            [HarmonyPostfix]
+            [HarmonyPatch("Scan")]
+            private static void ScanPostfix(ScannerTool __instance, PDAScanner.Result __result)
+            { // -57 -23 -364
+                //if (__result != PDAScanner.Result.None)
+                //    AddDebug("Scan " + __result.ToString());
+                if (finishedScan && PDAScanner.scanTarget.techType == TechType.StarshipCargoCrate)
+                { // destroy crate
+                    //AddDebug("finished scan " + __result.ToString() + " " + PDAScanner.scanTarget.gameObject.name);
+                    UnityEngine.Object.Destroy(PDAScanner.scanTarget.gameObject);
+                    scanning = false;
+                    finishedScan = false;
+                    return;
+                }
+                if (scanning && __result == PDAScanner.Result.Done || __result == PDAScanner.Result.Researched)
+                    finishedScan = true;
+                else
+                    finishedScan = false;
+
+                scanning = PDAScanner.IsFragment(PDAScanner.scanTarget.techType);
             }
         }
 

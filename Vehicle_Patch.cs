@@ -110,7 +110,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Start")]
         public static void StartPostfix(Vehicle __instance)
         {
-            if (Main.config.seamothDecoy && decoyPrefab)
+            if (decoyPrefab)
             {
                 List<TorpedoType> torpedoTypes = new List<TorpedoType>(__instance.torpedoTypes);
                 TorpedoType decoy = new TorpedoType();
@@ -1117,7 +1117,7 @@ namespace Tweaks_Fixes
         //[HarmonyPrefix]
         public static void AwakePrefix(SeamothStorageContainer __instance)
         {
-            if (Main.config.seamothDecoy && __instance.allowedTech.Length == 2)
+            if (__instance.allowedTech.Length == 2)
             {
                 __instance.allowedTech = new TechType[3] { TechType.WhirlpoolTorpedo, TechType.GasTorpedo, TechType.CyclopsDecoy };
             }
@@ -1163,7 +1163,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("SetAllowedTechTypes")]
         public static void SetAllowedTechTypesPostfix(ItemsContainer __instance, ref TechType[] allowedTech)
         {
-            if (Main.config.seamothDecoy && __instance._label == "VehicleTorpedoStorageLabel")
+            if (__instance._label == "VehicleTorpedoStorageLabel")
             {
                 //AddDebug(__instance._label + " type " + __instance.containerType);
                 __instance.allowedTech = new HashSet<TechType> { TechType.GasTorpedo, TechType.WhirlpoolTorpedo, TechType.CyclopsDecoy };

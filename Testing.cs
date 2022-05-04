@@ -17,38 +17,9 @@ namespace Tweaks_Fixes
 { // debris 80 -35 100      200 -70 -680
     class Testing
     {// 970 12 -63
-        //[HarmonyPatch(typeof(SubRoot), "Update")]
-        class SubControl_Update_Patch
-        {
-            public static void Prefix(SubRoot __instance)
-            {
-                AddDebug("SubRoot Update LOD " + __instance.LOD.IsFull());
-                //AddDebug("CyclopsHelmHUDManager Update IsAlive " + __instance.subLiveMixin.IsAlive());
-            }
-        }
 
-
-        //[HarmonyPatch(typeof(Story.StoryGoal), "Execute")]
-        class StoryGoal_Execute_Patch
-        {
-            public static void Postfix(Story.StoryGoal __instance, string key, Story.GoalType goalType)
-            {
-                AddDebug("StoryGoal " + key);
-                AddDebug("goalType " + goalType);
-                //return false;
-            }
-        }
-
-        //[HarmonyPatch(typeof(PDAEncyclopedia), "AddAndPlaySound")]
-        class PDAEncyclopedia_AddAndPlaySound_Patch
-        {
-            public static void Postfix(string key, PDAEncyclopedia.EntryData __result)
-            {
-                AddDebug("AddAndPlaySound " + key);
-                AddDebug("EntryData " + __result.key);
-                //return false;
-            }
-        }
+        //static HashSet<TechType> creatures = new HashSet<TechType>();
+        //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
@@ -82,8 +53,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(" loadingDone " + Main.loadingDone);
                     //AddDebug("  " + Player.main.GetBiomeString());
-                    //Main.Log(" GetBiomeString " + Player.main.GetBiomeString());
-                     //if (Input.GetKey(KeyCode.LeftShift))
+                    //if (Input.GetKey(KeyCode.LeftShift))
                     //    Main.survival.water++; 
                     //else
                     //    Main.survival.food++;
@@ -182,6 +152,38 @@ namespace Tweaks_Fixes
                     AddDebug("go == null " + raycastHit.collider.gameObject.name);
                 else
                     AddDebug(go.name);
+            }
+        }
+
+        //[HarmonyPatch(typeof(SubRoot), "Update")]
+        class SubControl_Update_Patch
+        {
+            public static void Prefix(SubRoot __instance)
+            {
+                AddDebug("SubRoot Update LOD " + __instance.LOD.IsFull());
+                //AddDebug("CyclopsHelmHUDManager Update IsAlive " + __instance.subLiveMixin.IsAlive());
+            }
+        }
+
+        //[HarmonyPatch(typeof(Story.StoryGoal), "Execute")]
+        class StoryGoal_Execute_Patch
+        {
+            public static void Postfix(Story.StoryGoal __instance, string key, Story.GoalType goalType)
+            {
+                AddDebug("StoryGoal " + key);
+                AddDebug("goalType " + goalType);
+                //return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(PDAEncyclopedia), "AddAndPlaySound")]
+        class PDAEncyclopedia_AddAndPlaySound_Patch
+        {
+            public static void Postfix(string key, PDAEncyclopedia.EntryData __result)
+            {
+                AddDebug("AddAndPlaySound " + key);
+                AddDebug("EntryData " + __result.key);
+                //return false;
             }
         }
 

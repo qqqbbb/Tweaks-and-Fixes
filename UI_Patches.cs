@@ -31,10 +31,12 @@ namespace Tweaks_Fixes
         static void GetStrings()
         {
             //AddDebug("GetStrings " + Main.config.translatableStrings.Count);
-            if (Main.config.translatableStrings.Count < 15)
+            if (Main.config.translatableStrings.Count < 17)
             {
-                Main.config.translatableStrings = new List<string> (Main.config.translatableStrings);
-                Main.config.translatableStrings.Add("Push ");
+                //Main.config.translatableStrings = new List<string> (Main.config.translatableStrings);
+                //Main.config.translatableStrings.Add("Need knife to break it");
+                //Main.config.translatableStrings.Add("Need knife to break it free");
+                Main.config.translatableStrings = new List<string>{ "Burnt out ", "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map", "Push ", "Need knife to break it", "Need knife to break it free" };
                 Main.config.Save();
             }
             //foreach (string s in Main.config.translatableStrings)

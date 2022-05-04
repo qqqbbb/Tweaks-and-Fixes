@@ -73,10 +73,8 @@ namespace Tweaks_Fixes
                 //    LiveMixin liveMixin = __instance.creature.liveMixin;
                 //AddDebug(name + " maxHealth " + liveMixin.maxHealth + " Health " + liveMixin.health);
                 //}
-
                 //Main.Message(name + " originalTargetPosition " + __instance.swimBehaviour.originalTargetPosition);
                 //Main.Message(name + " moveTo " + __instance.moveTo);
-
                 //}
                 CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
                 if (collectShiny)
@@ -87,7 +85,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Stalker), nameof(Stalker.CheckLoseTooth))]
+        [HarmonyPatch(typeof(Stalker), "CheckLoseTooth")]
         public static class Stalker_CheckLoseTooth_Patch
         {
             public static bool Prefix(Stalker __instance, GameObject target)
@@ -165,17 +163,58 @@ namespace Tweaks_Fixes
 
         }
 
-        [HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
-        class CreatureDeath_OnKill_Prefix_Patch
+        [HarmonyPatch(typeof(CreatureDeath))]
+        class CreatureDeath_Patch
         {
-            static void Prefix(CreatureDeath __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPostfix(CreatureDeath __instance)
             {
-                if (Main.config.creaturesRespawn)
+                if (__instance.GetComponent<Pickupable>()) // fish
                 {
-                    __instance.respawnOnlyIfKilledByCreature = false;
+                    if (Main.config.fishRespawnTime > 0)
+                        __instance.respawnInterval = Main.config.fishRespawnTime * 1200f;
+                }
+                else
+                {
+                    LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
+                    if (liveMixin)
+                    {
+                        if (liveMixin.maxHealth >= 3000f) // Leviathan
+                        {
+                            if (Main.config.leviathanRespawnTime > 0)
+                                __instance.respawnInterval = Main.config.leviathanRespawnTime * 1200f;
+
+                            if (Main.config.creatureRespawn == Config.CreatureRespawn.Leviathans_only || Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_and_leviathans)
+                                __instance.respawnOnlyIfKilledByCreature = false;
+                        }
+                        else
+                        {
+                            if (Main.config.creatureRespawnTime > 0)
+                                __instance.respawnInterval = Main.config.creatureRespawnTime * 1200f;
+
+                            if (Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_and_leviathans || Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_only)
+                                __instance.respawnOnlyIfKilledByCreature = false;
+                        }
+                    }
                 }
             }
-            static void Postfix(CreatureDeath __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnTakeDamage")]
+            static void OnTakeDamagePostfix(CreatureDeath __instance)
+            {
+                if (!Main.config.heatBladeCooks)
+                    __instance.lastDamageWasHeat = false;
+            }
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnKill")]
+            static void OnKillPrefix(CreatureDeath __instance)
+            {
+                //AddDebug(__instance.name + " OnKill");
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnKill")]
+            static void OnKillPostfix(CreatureDeath __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (tt != TechType.Peeper)
