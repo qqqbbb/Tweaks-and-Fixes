@@ -238,10 +238,11 @@ namespace Tweaks_Fixes
                     //__instance.data.damageEffect = null;
                     __instance.data.deathEffect = null;
                 }
-                if (!Main.loadingDone)
+                if (!Main.loadingDone && __instance.tempDamage > 0)
                 { // __instance.tempDamage is -1
                     tempDamageLMs.Add(__instance);
                     //AddDebug("tempDamage " + __instance.tempDamage);
+                    //Main.Log("tempDamage " + __instance.tempDamage);
                 }
             }
 
@@ -251,6 +252,7 @@ namespace Tweaks_Fixes
             {
                 //if (dealer)
                 //    AddDebug("dealer " + dealer.name);
+                //Main.Log("TakeDamage " + __instance.name + ' ' + type);
                 bool killed = false;
                 bool creativeMode = GameModeUtils.IsInvisible() && __instance.invincibleInCreative;
                 if (__instance.health > 0f && !__instance.invincible && !creativeMode)
@@ -260,23 +262,9 @@ namespace Tweaks_Fixes
                     {
                         if (dealer == Player.mainObject)
                         {
-                            //if (type == DamageType.Normal)
-                            //{
-                            //    Stalker stalker = __instance.GetComponent<Stalker>();
-                            //    if (stalker)
-                            //    {
-                            //        LiveMixin lm = __instance.GetComponent<LiveMixin>();
-                            //        if (lm && !lm.IsAlive())
-                            //        {
-                                        //AddDebug("Stalker TakeDamage ");
-                                        //stalker.LoseTooth();
-                                //    }
-                                //}
-                            //}
                             if (type == DamageType.Heat && __instance.GetComponent<LavaLizard>())
                                 type = DamageType.Normal;
                         }
-
                         damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
                         //if (dealer == Player.mainObject)
                         //    AddDebug("TakeDamage originalDamage " + originalDamage + " damage " + damage);
@@ -307,21 +295,23 @@ namespace Tweaks_Fixes
                             __instance.SyncUpdatingState();
                         }
                     }
-                    __instance.damageInfo.Clear();
-                    __instance.damageInfo.originalDamage = originalDamage;
-                    __instance.damageInfo.damage = damage;
-                    __instance.damageInfo.position = position == new Vector3() ? __instance.transform.position : position;
-                    __instance.damageInfo.type = type;
-                    __instance.damageInfo.dealer = dealer;
-                    __instance.NotifyAllAttachedDamageReceivers(__instance.damageInfo);
+                    if (__instance.damageInfo != null)
+                    {
+                        __instance.damageInfo.Clear();
+                        __instance.damageInfo.originalDamage = originalDamage;
+                        __instance.damageInfo.damage = damage;
+                        __instance.damageInfo.position = position == new Vector3() ? __instance.transform.position : position;
+                        __instance.damageInfo.type = type;
+                        __instance.damageInfo.dealer = dealer;
+                        __instance.NotifyAllAttachedDamageReceivers(__instance.damageInfo);
+                    }
                     if (__instance.shielded)
                     {
                         __result = killed;
                         return false;
                     }
-                    if (__instance.damageClip && damage > 0f && (damage >= __instance.minDamageForSound && type != DamageType.Radiation))
+                    if (__instance.damageInfo != null && __instance.damageClip && damage > 0f && (damage >= __instance.minDamageForSound && type != DamageType.Radiation))
                         Utils.PlayEnvSound(__instance.damageClip, __instance.damageInfo.position);
-
                     if (__instance.loopingDamageEffect && !__instance.loopingDamageEffectObj && __instance.GetHealthFraction() < __instance.loopEffectBelowPercent)
                     {
                         //__instance.loopingDamageEffectObj = UWE.Utils.InstantiateWrap(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
@@ -339,7 +329,7 @@ namespace Tweaks_Fixes
                         electricalDamageEffect.transform.localScale = bounds.size * 0.65f;
                         __instance.timeLastElecDamageEffect = Time.time;
                     }
-                    else if (Time.time > __instance.timeLastDamageEffect + 1f && damage > 0f && dealer != Player.main.gameObject && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter || type == DamageType.Drill)
+                    else if (Main.loadingDone && Time.time > __instance.timeLastDamageEffect + 1f && damage > 0f && dealer != Player.main.gameObject && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter || type == DamageType.Drill)
                     { // dont spawn damage particles if knifed by player
                         VFXSurface vfxSurface = __instance.GetComponentInChildren<VFXSurface>();
                         if (vfxSurface)
@@ -356,9 +346,8 @@ namespace Tweaks_Fixes
                             GameObject go = Utils.SpawnPrefabAt(__instance.damageEffect, __instance.transform, __instance.damageInfo.position);
                             //setBloodColor = true;
                             if (__instance.GetComponent<Creature>())
-                            {
                                 SetBloodColor(go);
-                            }
+
                             __instance.timeLastDamageEffect = Time.time;
                         }
                     }

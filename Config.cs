@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
         public float invMultWater = 0f;
         [Slider("Inventory weight multiplier on land", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultLand = 0f;
-        [Toggle("Seamoth movement tweaks", Tooltip = "Seamoth does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and sideways speed is halved and  it can not move backward.")]
+        [Toggle("Seamoth movement tweaks", Tooltip = "Seamoth does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and sideways speed is halved and  it can not move backward. Game has to be reloaded after changing this.")]
         public bool seamothMoveTweaks = false;
         [Toggle("Prawn suit movement tweaks", Tooltip = "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power than walking. Game has to be reloaded after changing this.")]
         public bool exosuitMoveTweaks = false;
@@ -72,7 +72,7 @@ namespace Tweaks_Fixes
         public EatingRawFish eatRawFish;
         [Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Game has to be reloaded after changing this.")]
         public bool foodTweaks = false;
-        [Toggle("Heat blade cooks fish on kill", Tooltip = "")]
+        [Toggle("Thermoblade blade cooks fish on kill", Tooltip = "")]
         public bool heatBladeCooks = true;
         [Toggle("New poison damage system", Tooltip = "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.")]
         public bool newPoisonSystem = false;
@@ -94,7 +94,8 @@ namespace Tweaks_Fixes
         public float knifeRangeMult = 1f;
         [Slider("Knife damage multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeDamageMult = 1f;
-
+        //[Toggle("Stasis rifle tweaks", Tooltip = "Only creatures smaller than the stasis orb will be frozen. Player is not immune to stasis orb.")]
+        //public bool stasisRifleTweak = false;
         [Toggle("Can't catch fish with bare hands", Tooltip = "To catch fish you will have to use propulsion cannon or grav trap. Does not apply if you are inside alien containment.")]
         public bool noFishCatching = false;
         [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
@@ -162,7 +163,7 @@ namespace Tweaks_Fixes
         public bool fixFootstepSound = false;
         //[Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
         //public bool baseLightOff = false;
-        [Toggle("Fix cyclops wall collision", Tooltip = "Wall collision inside cyclops will be much more accurate. Might cause issues when used with other mods.")]
+        [Toggle("Fix cyclops wall collision", Tooltip = "Wall collision inside cyclops will be much more accurate. Might cause issues when used with other mods. Game has to be reloaded after changing this.")]
         public bool fixCyclopsCollision = false;
         [Toggle("Sunlight affects lighting in cyclops", Tooltip = "")]
         public bool cyclopsSunlight = false;
@@ -176,6 +177,8 @@ namespace Tweaks_Fixes
         public KeyCode quickslotKey = KeyCode.LeftAlt;
         [Keybind("Light intensity key", Tooltip = "When holding a tool in your hand or driving a vehicle press 'Cycle next' or 'Cycle previous' key while holding down this key to change the tool's or vehicle's light intensity.")]
         public KeyCode lightKey = KeyCode.LeftShift;
+        [Keybind("Change torpedo key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to change torpedo in your current vehicle.")]
+        public KeyCode changeTorpedoKey = KeyCode.LeftAlt;
         [Keybind("Move all items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items.")]
         public KeyCode transferAllItemsKey = KeyCode.LeftControl;
         [Keybind("Move same items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items of the same type.")]
@@ -186,6 +189,7 @@ namespace Tweaks_Fixes
         public float playerCamRot = -1f;
         public int activeSlot = -1;
         public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
+        public Dictionary<string, bool> radioFixed = new Dictionary<string, bool>();
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
         public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
@@ -208,6 +212,10 @@ namespace Tweaks_Fixes
         public Dictionary<string, float> itemMass = new Dictionary<string, float>
         {
             { "ScrapMetal", 120 },
+        };
+        public HashSet<string> unmovableItems = new HashSet<string>
+        {
+            
         };
         public Dictionary<string, float> bloodColor = new Dictionary<string, float>
         {
@@ -291,12 +299,14 @@ namespace Tweaks_Fixes
         public bool fixMelons = true;
         public bool randomPlantRotation = true;
         public bool silentReactor = false;
-
+        public bool removeFragmentCrate = true;
+        //[Slider("growingPlantUpdateInterval", 0, 10, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "")]
+        public int growingPlantUpdateInterval = 0;
         // also edit UI_Patches.GetStrings when editing this
         public List<string> translatableStrings = new List<string> //  translate config enums 
         { "Burnt out ", //  0   flare
             "Lit ",      // 1   flare
-        "Toggle lights", // 2   toggle base lights
+        "Toggle lights", // 2   toggle lights
         "Increases your safe diving depth by ", // 3 crushDepthEquipment
         " meters.", // 4    crushDepthEquipment
         "Restores ", // 5    medkit desc
@@ -311,7 +321,18 @@ namespace Tweaks_Fixes
          "Push " ,    // 14   push beached seamoth
           "Need knife to break it" ,    // 15  no breaking with bare hands  BreakableResource
         "Need knife to break it free" ,    // 16  no breaking with bare hands  Pickupable
-        };
+        "Toggle lights",            // 17  toggle seamoth lights
+        ". Press and hold ",         // 18  seamoth defense module
+        " to charge the shot",      // 19  seamoth defense module
+        " Change torpedo ",      // 20  vehicle UI
+        " Hold ",                // 21  exosuit UI
+        " and press ",          // 22  exosuit UI
+        " to change torpedo ",      // 23  exosuit UI
+        // 24 Bladderfish ttoltip
+        "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.",
+        // 25 SeamothElectricalDefense tooltip
+        "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot."
+    };
 
     }
 

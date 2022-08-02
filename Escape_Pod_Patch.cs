@@ -50,10 +50,7 @@ namespace Tweaks_Fixes
 
         public static bool IsSmokeOut(string slot)
         {
-            if (Main.config.escapePodSmokeOut.ContainsKey(slot) && Main.config.escapePodSmokeOut[slot])
-                return true;
-
-            return false;
+            return Main.config.escapePodSmokeOut.ContainsKey(slot) && Main.config.escapePodSmokeOut[slot];
         }
 
         public static void LetSmokeOut(EscapePod escapePod)
@@ -74,10 +71,11 @@ namespace Tweaks_Fixes
             Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot] = true;
         }
 
-        [HarmonyPatch(typeof(EscapePod), "ShowDamagedEffects")]
-        class ShowDamagedEffects_Patch
+        [HarmonyPatch(typeof(EscapePod))]
+        class EscapePod_Patch
         {
             [HarmonyPrefix]
+            [HarmonyPatch("ShowDamagedEffects")]
             public static bool DamagePod(EscapePod __instance)
             {
                 //AddDebug("try DamagePod " + __instance.introCinematic.state);
@@ -112,21 +110,17 @@ namespace Tweaks_Fixes
                 }
                 return false;
             }
-        }
 
-        [HarmonyPatch(typeof(EscapePod), "UpdateDamagedEffects")]
-        class EscapePod_UpdateDamagedEffects_Patch
-        {
-            public static bool Prefix(EscapePod __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("UpdateDamagedEffects")]
+            public static bool UpdateDamagedEffectsPrefix(EscapePod __instance)
             {
                 return false;
             }
-        }
 
-        [HarmonyPatch(typeof(EscapePod), "StopIntroCinematic")]
-        class EscapePod_StopIntroCinematic_Patch
-        {
-            public static void Postfix(EscapePod __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("StopIntroCinematic")]
+            public static void StopIntroCinematicPostfix(EscapePod __instance)
             {
                 RegeneratePowerSource[] cells = EscapePod.main.gameObject.GetAllComponentsInChildren<RegeneratePowerSource>();
                 int maxPower = Main.config.escapePodMaxPower;
@@ -139,15 +133,21 @@ namespace Tweaks_Fixes
                     }
                 }
             }
-        }
 
-        [HarmonyPatch(typeof(EscapePod), "OnRepair")]
-        class EscapePod_OnRepair_Patch
-        {
-            public static void Postfix(EscapePod __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnRepair")]
+            public static void OnRepairPostfix(EscapePod __instance)
             {
                 RepairPod(__instance);
             }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("DamageRadio")]
+            public static void DamageRadioPostfix(EscapePod __instance)
+            {
+                AddDebug("DamageRadio");
+            }
+
         }
 
         [HarmonyPatch(typeof(EscapePodFirstUseCinematicsController))]
@@ -178,7 +178,7 @@ namespace Tweaks_Fixes
 
                 if (__instance.liveMixin.GetHealthFraction() < 0.99f)
                 {
-                    ShowDamagedEffects_Patch.DamagePod(__instance);
+                    EscapePod_Patch.DamagePod(__instance);
                     if (IsSmokeOut(SaveLoadManager.main.currentSlot))
                         LetSmokeOut(__instance);
                 }
@@ -263,17 +263,34 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Radio), "OnHandHover")]
-        //class Radio_OnHandHover_Patch
-        //{
-        //    public static void Postfix(Radio __instance)
-        //    {
-        //        LiveMixin radioLM = __instance.GetComponent<LiveMixin>();
-        //        if (radioLM)
-        //            Main.Message("radio health " + radioLM.health);
-        //        else
-        //            Main.Message("no radioLM  ");
-        //    }
-        //}
+        [HarmonyPatch(typeof(Radio))]
+        class Radio_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnEnable")]
+            public static void OnEnablePostfix(Radio __instance)
+            { // fix: radio repairs itself after reload
+                bool fixed_ = Main.config.radioFixed.ContainsKey(SaveLoadManager.main.currentSlot) &&  Main.config.radioFixed[SaveLoadManager.main.currentSlot];
+                //AddDebug("radio OnEnable " + fixed_);
+                //AddDebug("radio OnEnable health " + __instance.liveMixin.health);
+                if (!fixed_ && __instance.IsFullHealth())
+                {
+                    //AddDebug("radio should be damaged ");
+                    __instance.liveMixin.TakeDamage(80f);
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnRepair")]
+            public static void OnRepairPostfix(Radio __instance)
+            {
+                //LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                //if (lm)
+                //    AddDebug("radio OnRepair " + lm.health);
+                Main.config.radioFixed[SaveLoadManager.main.currentSlot] = true;
+            }
+        }
+
+
     }
 }

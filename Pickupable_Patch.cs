@@ -13,6 +13,7 @@ namespace Tweaks_Fixes
 
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> shinies = new HashSet<TechType>();
+        public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
 
         [HarmonyPatch(typeof(Pickupable))]
         public class Pickupable_Patch_
@@ -22,6 +23,12 @@ namespace Tweaks_Fixes
             static void AwakePostfix(Pickupable __instance)
             {
                 TechType tt = __instance.GetTechType();
+                if (unmovableItems.Contains(tt))
+                { // isKinematic gets saved
+                    Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                    if (rb)
+                        rb.constraints = RigidbodyConstraints.FreezeAll;
+                }
                 if (itemMass.ContainsKey(tt))
                 {
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
@@ -38,13 +45,7 @@ namespace Tweaks_Fixes
                     et = __instance.gameObject.AddComponent<EcoTarget>();
                     et.type = EcoTargetType.Shiny;
                 }
-                //if (tt == TechType.CyclopsDecoy)
-                //{
-                //    if (__instance.transform.parent.name == "CellRoot(Clone)")
-                //    {
-                //        PrefabIdentifier pi = __instance.GetComponent<PrefabIdentifier>();
-                //}
-                //}
+
             }
 
             [HarmonyPrefix]

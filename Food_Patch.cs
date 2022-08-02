@@ -233,6 +233,15 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Eatable __instance)
             {
+                if (!Main.loadingDone)
+                {
+                    EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
+                    if (ecoTarget && ecoTarget.type == EcoTargetType.DeadMeat && ecoTarget.transform.parent.name == "CellRoot(Clone)")
+                    {
+                        //Main.Log("DeadMeat " + ecoTarget.name + " PARENT " + ecoTarget.transform.parent.name);
+                        Destroy(__instance.gameObject);
+                    }
+                }
                 //AddDebug("Eatable awake " + __instance.gameObject.name);
                 //Main.Log("Eatable awake " + __instance.gameObject.name + " decomposes "+ __instance.decomposes);
                 //__instance.kDecayRate *= .5f;
@@ -241,6 +250,7 @@ namespace Tweaks_Fixes
                 //Main.Log("kDecayRate " + __instance.kDecayRate);
                 //Main.Log("waterValue " + __instance.waterValue);
                 //Creature creature = __instance.GetComponent<Creature>();
+
                 if (__instance.decomposes)
                 {
                     __instance.kDecayRate *= Main.config.foodDecayRateMult;

@@ -75,7 +75,9 @@ namespace Tweaks_Fixes
             static void UpdatePostfix(Player __instance)
             {
                 if (__instance.currentMountedVehicle)
+                {
                     Vehicle_patch.UpdateLights();
+                }
                 else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
                     Vehicle_patch.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());

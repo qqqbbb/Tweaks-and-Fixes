@@ -12,14 +12,13 @@ namespace Tweaks_Fixes
     {
         static GameObject bubble;
         public static float extraBreathPeriod = 0f;
-        //public static float extraBreathPeriod = 0f;
         public static float bubbleEndTime = 0f;
 
         public class OxygenArea_Mono : MonoBehaviour
         {
             void OnTriggerExit(Collider other)
             {
-                if (other.gameObject.FindAncestor<Player>() == Player.main)
+                if (Main.refillOxygenTankLoaded && other.gameObject.FindAncestor<Player>() == Player.main)
                 {
                     Main.canBreathe = false;
                     //AddDebug("OnTriggerExit ");
@@ -45,7 +44,7 @@ namespace Tweaks_Fixes
             public static void Postfix(OxygenPipe __instance)
             {
                 //AddDebug("UpdatePipe " );
-                if (__instance.oxygenProvider.activeInHierarchy)
+                if (Main.refillOxygenTankLoaded && __instance.oxygenProvider.activeInHierarchy)
                 {
                     __instance.oxygenProvider.EnsureComponent<OxygenArea_Mono>();
                 }
@@ -57,12 +56,14 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Bubble __instance, bool hitPlayer)
             {
-                if (hitPlayer)
+                if (Main.refillOxygenTankLoaded && hitPlayer)
                 {
                     //extraBreathPeriod += extraBreathPeriodDefault;
                     bubbleEndTime = Time.time + extraBreathPeriod;
+                    //bubbleEndTime = __instance.oxygenSeconds + extraBreathPeriod;
                     Main.canBreathe = true;
-                    //AddDebug("Bubble hit player " );
+                    //AddDebug("Bubble Pop extraBreathPeriod " + extraBreathPeriod);
+                    //AddDebug("Bubble Pop bubbleEndTime " + bubbleEndTime);
                 }
             }
         }
@@ -123,7 +124,7 @@ namespace Tweaks_Fixes
         { // OnTriggerExit does not fire when you pick up pipe
             public static void Postfix(OxygenArea __instance, Collider other)
             {
-                if (other.gameObject.FindAncestor<Player>() == Player.main)
+                if (Main.refillOxygenTankLoaded && other.gameObject.FindAncestor<Player>() == Player.main)
                 {
                     Main.canBreathe = true;
                     //AddDebug("OnTriggerStay ");
@@ -147,13 +148,13 @@ namespace Tweaks_Fixes
             public static void Postfix(Player __instance, ref bool __result)
             {
 
-                if (Main.canBreathe)
+                if (Main.refillOxygenTankLoaded && Main.canBreathe)
                 {
                     if (bubbleEndTime > 0 && Time.time > bubbleEndTime)
                     {
                         bubbleEndTime = 0f;
                         Main.canBreathe = false;
-                        //AddDebug("bubbleEndTime ");
+                        //AddDebug("CanBreathe bubbleEndTime 0");
                     }
                     __result = Main.canBreathe;
                 }

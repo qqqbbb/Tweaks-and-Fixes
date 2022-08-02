@@ -1030,6 +1030,28 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(CyclopsDestructionEvent), "SwapToDamagedModels")]
+        class CyclopsDestructionEvent_SwapToDamagedModels_Patch
+        {
+            static bool Prefix(CyclopsDestructionEvent __instance)
+            {
+                for (int index = 0; index < __instance.intact.Length; ++index)
+                {
+                    GameObject go = __instance.intact[index];
+                    if (go) // need this line 
+                        go.SetActive(false);
+                }
+                for (int index = 0; index < __instance.destroyed.Length; ++index)
+                    __instance.destroyed[index].SetActive(true);
+                __instance.ToggleSinking(true);
+                __instance.subRoot.subWarning = false;
+                __instance.subRoot.BroadcastMessage("NewAlarmState", null, SendMessageOptions.DontRequireReceiver);
+                __instance.subRoot.subDestroyed = true;
+                __instance.pingInstance.enabled = false;
+                return false;
+            }
+        }
+
         //[HarmonyPatch(typeof(CyclopsEngineSpinManager), "PollCyclopsMotorMode")]
         class CyclopsEngineSpinManager_PollCyclopsMotorMode_Patch
         {

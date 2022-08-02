@@ -27,25 +27,39 @@ namespace Tweaks_Fixes
         public static string smallStorageString = string.Empty;
         public static string deconstructButton = string.Empty;
         public static string seaglideString = string.Empty;
-
+        static public string changeTorpedoButton = string.Empty;
+        static public string propCannonString = string.Empty;
+        static public string changeTorpedoExosuitButtonGamepad = string.Empty;
+        static public string changeTorpedoExosuitButtonKeyboard = string.Empty;
+        static public string cycleNextButton = string.Empty;
+        static public string cyclePrevButton = string.Empty;
+        public static string stasisRifleString = string.Empty;
+        public static string scannerString = string.Empty;
+        static public string slot1Button = string.Empty;
+        static public string slot2Button = string.Empty;
+        static public string slot1Plus2Button = string.Empty;
+        static public string exosuitExitButton = string.Empty;
+        
         static void GetStrings()
         {
             //AddDebug("GetStrings " + Main.config.translatableStrings.Count);
-            if (Main.config.translatableStrings.Count < 17)
+            if (Main.config.translatableStrings.Count < 26)
             {
                 //Main.config.translatableStrings = new List<string> (Main.config.translatableStrings);
                 //Main.config.translatableStrings.Add("Need knife to break it");
                 //Main.config.translatableStrings.Add("Need knife to break it free");
-                Main.config.translatableStrings = new List<string>{ "Burnt out ", "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map", "Push ", "Need knife to break it", "Need knife to break it free" };
+                Main.config.translatableStrings = new List<string>{ "Burnt out ", "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map", "Push ", "Need knife to break it", "Need knife to break it free", "Toggle lights", ". Press and hold ", " to charge the shot", " Change torpedo ", " Hold ", " and press ", " to change torpedo ", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot." };
                 Main.config.Save();
             }
             //foreach (string s in Main.config.translatableStrings)
             //    Main.Log("translatableStrings " + s);
-            Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
-            Exosuit_Patch.exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[2] + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
-            Exosuit_Patch.armNamesChanged = true;
             altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
+            cycleNextButton = uGUI.FormatButton(GameInput.Button.CycleNext);
+            cyclePrevButton = uGUI.FormatButton(GameInput.Button.CyclePrev);
             deconstructButton = uGUI.FormatButton(GameInput.Button.Deconstruct);
+            Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
+            propCannonString = LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool);
+            Exosuit_Patch.armNamesChanged = true;
             dropString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
             eatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
             lightFlareString = Main.config.translatableStrings[12] + " (" + altToolButton + ")";
@@ -53,9 +67,21 @@ namespace Tweaks_Fixes
             lightAndThrowFlareString = Main.config.translatableStrings[11] + " (" + TooltipFactory.stringRightHand + ")";
             beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             beaconPickString = "(" + TooltipFactory.stringLeftHand + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
-            smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + uGUI.FormatButton(GameInput.Button.AltTool) + ")";
+            smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + altToolButton + ")";
             //seaglideString = Main.config.translatableStrings[2] + " (" + TooltipFactory.stringRightHand + ")  " + Main.config.translatableStrings[13] + " (" + altToolButton + ")";
             seaglideString = Main.config.translatableStrings[13] + " (" + altToolButton + ")";
+            changeTorpedoButton = Main.config.translatableStrings[20] + "(" + altToolButton + ")";
+            changeTorpedoExosuitButtonGamepad = Main.config.translatableStrings[21] + "(" + altToolButton + ")" + Main.config.translatableStrings[22] + "(" + cycleNextButton + "), " + "(" + cyclePrevButton + ")" + Main.config.translatableStrings[23];
+            slot1Button = "(" + uGUI.FormatButton(GameInput.Button.Slot1) + ")";
+            slot2Button = "(" + uGUI.FormatButton(GameInput.Button.Slot2) + ")";
+            slot1Plus2Button = slot1Button + slot2Button;
+            //Main.Log("changeTorpedoButton GetStrings " + UI_Patches.changeTorpedoButton);
+            stasisRifleString = Main.config.translatableStrings[18].Substring(1) + "(" + TooltipFactory.stringRightHand + ")" + Main.config.translatableStrings[19];
+            scannerString = LanguageCache.GetButtonFormat("ScannerSelfScanFormat", GameInput.Button.AltTool);
+            exosuitExitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + ' ' + Main.config.translatableStrings[17] + " (" + deconstructButton + ")";
+            Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
+            if (exosuit)
+                Exosuit_Patch.GetArmNames(exosuit);
         }
 
         [HarmonyPatch(typeof(Aquarium), "Start")]
@@ -157,9 +183,9 @@ namespace Tweaks_Fixes
                 ItemsContainer container = itemsContainer as ItemsContainer;
                 if (container != null)
                 {
+                    //AddDebug(" container ");
                     if (landPlanters.Contains(container))
                     {
-                        //AddDebug(" landPlanter ");
                         foreach (var pair in __instance.inventory.items)
                         {
                             if (!landPlantSeeds.Contains(pair.Key.item.GetTechType()))
@@ -179,19 +205,21 @@ namespace Tweaks_Fixes
                     }
                     foreach (var pair in __instance.inventory.items)
                     {
-                        if (!container.IsTechTypeAllowed(pair.Key.item.GetTechType()))
+                        TechType tt = pair.Key.item.GetTechType();
+                        //AddDebug(tt + " Allowed " + container.IsTechTypeAllowed(tt));
+                        if (!container.IsTechTypeAllowed(tt))
                             pair.Value.SetChroma(0f);
                     }
                 }
                 if (equipment != null)
                 {
-                    //AddDebug(" equipment != null ");
+                    //AddDebug(" equipment ");
                     bool charger = equipment.GetCompatibleSlot( EquipmentType.BatteryCharger, out string s) || equipment.GetCompatibleSlot(EquipmentType.PowerCellCharger, out string ss);
                     //AddDebug("charger " + charger);
                     foreach (var pair in __instance.inventory.items)
                     {
                         EquipmentType itemType = CraftData.GetEquipmentType(pair.Key.item.GetTechType());
-                        //AddDebug(pair.Key.item.GetTechType() + " " + equipmentType);
+                        //AddDebug(pair.Key.item.GetTechType() + " " + itemType);
                         string slot = string.Empty;
                         if (equipment.GetCompatibleSlot(itemType, out slot))
                         {
@@ -345,7 +373,7 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetUseTextRaw(sb.ToString(), null);
                     }
                 }
-                else if(!Main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
+                else if(!Main.baseLightSwitchLoaded && !Main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
                 {
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)

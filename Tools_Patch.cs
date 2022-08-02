@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
         static ToggleLights seaglideToggleLights = null;
         public static Dictionary<Creature, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<Creature, Dictionary<TechType, int>>();
 
-          [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
+        [HarmonyPatch(typeof(FlashLight), "Start")]
         public class FlashLight_Start_Patch
         {
             public static void Prefix(FlashLight __instance)
@@ -25,14 +25,14 @@ namespace Tweaks_Fixes
                 for (int i = lights.Length - 1; i >= 0; i--)
                 {
                     if (lights[i].type == LightType.Point)
-						lights[i].enabled = false;
+                        lights[i].enabled = false;
                 }
             }
         }
 
         //[HarmonyPatch(typeof(Inventory), "OnAddItem")]
         internal class Inventory_OnAddItem_Patch
-        { 
+        {
             public static void Postfix(Inventory __instance, InventoryItem item)
             {
                 if (item != null && item.item && item.item.GetTechType() == TechType.SmallStorage)
@@ -69,7 +69,7 @@ namespace Tweaks_Fixes
             }
             static float knifeRangeDefault = 0f;
             static float knifeDamageDefault = 0f;
-          
+
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
@@ -105,12 +105,12 @@ namespace Tweaks_Fixes
                     __instance.transform.localScale = new Vector3(.9f, .9f, .9f);
                     //AddDebug(" LEDLight OnDraw " + __instance.transform.localPosition);
                 }
-                //else if (__instance is BuilderTool)
-                { // BuilderTool HandleInput patch uses Builder.placeLayerMask
+
+                {
                     //Builder.Initialize();
                 }
             }
-         
+
             [HarmonyPostfix]
             [HarmonyPatch("OnHolster")]
             public static void OnHolsterPostfix(PlayerTool __instance)
@@ -118,8 +118,23 @@ namespace Tweaks_Fixes
                 if (__instance is LEDLight)
                     __instance.transform.localScale = Vector3.one;
             }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("GetCustomUseText")]
+            public static void GetCustomUseTextPostfix(PlayerTool __instance, ref string __result)
+            {
+                if (__instance is StasisRifle)
+                {
+                    __result = UI_Patches.stasisRifleString;
+                }
+                else if (__instance is ScannerTool)
+                {
+                    //AddDebug("GetCustomUseText");
+                    __result = UI_Patches.scannerString;
+                }
+            }
         }
-         
+
         [HarmonyPatch(typeof(Knife))]
         class Knife_Patch
         {
@@ -173,7 +188,7 @@ namespace Tweaks_Fixes
                             if (deadCreatureLoot[creature].ContainsKey(loot) && deadCreatureLoot[creature][loot] < max)
                             {
                                 CraftData.AddToInventory(loot);
-                                deadCreatureLoot[creature][loot]++; 
+                                deadCreatureLoot[creature][loot]++;
                             }
                         }
                     }
@@ -182,7 +197,7 @@ namespace Tweaks_Fixes
                         foreach (var pair in Main.config.deadCreatureLoot[name])
                         {
                             CraftData.AddToInventory(pair.Key);
-                            deadCreatureLoot.Add(creature, new Dictionary<TechType, int>{{pair.Key, 1}});
+                            deadCreatureLoot.Add(creature, new Dictionary<TechType, int> { { pair.Key, 1 } });
                         }
                     }
                 }
@@ -234,7 +249,7 @@ namespace Tweaks_Fixes
             { // -57 -23 -364
                 //if (__result != PDAScanner.Result.None)
                 //    AddDebug("Scan " + __result.ToString());
-                if (finishedScan && PDAScanner.scanTarget.techType == TechType.StarshipCargoCrate)
+                if (Main.config.removeFragmentCrate && finishedScan && PDAScanner.scanTarget.techType == TechType.StarshipCargoCrate)
                 { // destroy crate
                     //AddDebug("finished scan " + __result.ToString() + " " + PDAScanner.scanTarget.gameObject.name);
                     UnityEngine.Object.Destroy(PDAScanner.scanTarget.gameObject);
@@ -308,7 +323,7 @@ namespace Tweaks_Fixes
                 {
                     if (step > 0 && l.intensity > lightOrigIntensity[TechType.MapRoomCamera])
                         return false;
-                    l.intensity += step; 
+                    l.intensity += step;
                     //AddDebug("Light Intensity " + l.intensity);
                     Main.config.lightIntensity[TechType.MapRoomCamera] = l.intensity;
                 }
@@ -416,7 +431,7 @@ namespace Tweaks_Fixes
                     //AddDebug("small object");
                 }
                 //if (__result == null)
-                    //AddDebug("ValidateNewObject null");
+                //AddDebug("ValidateNewObject null");
                 return false;
             }
 
@@ -545,9 +560,185 @@ namespace Tweaks_Fixes
                 return true;
             }
 
-
         }
 
+        //[HarmonyPatch(typeof(StasisRifle))]
+        class StasisRifle_Patch
+        {
+            //[HarmonyPrefix]
+            //[HarmonyPatch("EndCharge")]
+            private static bool EndChargePrefix(StasisRifle __instance)
+            {
+                if (!__instance.isCharging)
+                    return false;
+
+                //AddDebug("EndCharge");
+                __instance.isCharging = false;
+                __instance.fxControl.StopAndDestroy(0, 0f);
+                if (__instance.chargeBegin.GetIsStartingOrPlaying())
+                    __instance.chargeBegin.Stop(false);
+                if (__instance.chargeLoop.GetIsStartingOrPlaying())
+                    __instance.chargeLoop.Stop(false);
+                __instance.Animate(false);
+                return false;
+            }
+        }
+
+
+        //[HarmonyPatch(typeof(StasisSphere))]
+        class StasisSphere_Patch
+        {
+            private static bool isBigger(StasisSphere stasisSphere, GameObject go)
+            {// does not work every time for boneshark
+                float stasisSphereVolume = UWE.Utils.GetAABBVolume(stasisSphere.gameObject);
+                float volume = UWE.Utils.GetAABBVolume(go);
+                //AddDebug(go.name + " isBigger " + (int)stasisSphereVolume + ' ' + (int)volume);
+                return volume > stasisSphereVolume;
+            }
+
+            //[HarmonyPrefix]
+            //[HarmonyPatch("LateUpdate")]
+            private static bool LateUpdatePrefix(StasisSphere __instance)
+            {
+                //if (!Main.config.stasisRifleTweak)
+                //    return true;
+
+                if (!__instance.fieldEnabled)
+                    return false;
+
+                __instance.fieldEnergy -= Time.deltaTime / __instance.time;
+                float fieldRadius = __instance.fieldRadius;
+                //AddDebug("fieldRadius " + (fieldRadius.ToString("1.1") ));
+                float num1 = (fieldRadius * fieldRadius + 4f);
+                if (__instance.fieldEnergy <= 0f)
+                {
+                    __instance.fieldEnergy = 0f;
+                    __instance.CancelAll();
+                    FMODUWE.PlayOneShot(__instance.soundDeactivate, __instance.tr.position);
+                }
+                else
+                {
+                    Rigidbody target = null;
+                    List<Rigidbody> rigidbodyList = new List<Rigidbody>();
+                    int num2 = UWE.Utils.OverlapSphereIntoSharedBuffer(__instance.tr.position, fieldRadius, (int)__instance.fieldLayerMask);
+                    float distToPlayer = Vector3.Distance(__instance.tr.position, Player.main.transform.position);
+                    //AddDebug("distance to player " + (int)distToPlayer + ' ' + (int)(fieldRadius ));
+                    __instance.tr.localScale = (2f * fieldRadius + 2f) * Vector3.one;
+                    if (distToPlayer < fieldRadius + .5f)
+                    {
+                        //AddDebug("freeze player ");
+                        Player.main.rigidBody.isKinematic = true;
+                        //bool bigger = isBigger(__instance, Player.mainObject);
+                        //AddDebug("Player isBigger " + bigger);
+                    }
+                    else if (distToPlayer > fieldRadius - .5f)
+                    {
+                        //AddDebug("unfreeze player ");
+                        Player.main.rigidBody.isKinematic = false;
+                    }
+                    for (int index = 0; index < num2; ++index)
+                    {
+                        //AddDebug("sharedColliderBuffer " + UWE.Utils.sharedColliderBuffer[index].name);
+                        Collider collider = UWE.Utils.sharedColliderBuffer[index];
+                        //if (collider.bounds.size.magnitude < fieldRadius && __instance.Freeze(collider, ref target))
+                        //    rigidbodyList.Add(target);
+                        if ( __instance.Freeze(collider, ref target))
+                        {
+                            //AddDebug("Freeze " + target.name + " size.magnitude " + (int)collider.bounds.size.magnitude);
+                            rigidbodyList.Add(target);
+                        }
+                    }
+                    for (int index = __instance.targets.Count - 1; index >= 0; --index)
+                    {
+                        target = __instance.targets[index];
+                        if (target == null || !target.gameObject.activeSelf)
+                        {
+                            __instance.targets.RemoveAt(index);
+                        }
+                        else
+                        {
+                            Pickupable pickupable = target.GetComponentInParent<Pickupable>();
+                            if (pickupable != null && pickupable.attached)
+                                __instance.targets.RemoveAt(index);
+                            else if (!rigidbodyList.Contains(target))
+                            {
+                                Vector3 end = target.ClosestPointOnBounds(__instance.tr.position);
+                                Vector3 vector3 = end - __instance.tr.position;
+                                //UnityEngine.Debug.DrawLine(__instance.tr.position, end, Color.red);
+                                if (vector3.sqrMagnitude > num1)
+                                {
+                                    __instance.Unfreeze(target);
+                                    __instance.targets.RemoveAt(index);
+                                }
+                            }
+                        }
+                    }
+                    __instance.UpdateMaterials();
+                }
+                return false;
+            }
+
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Freeze")]
+            private static bool FreezePrefix(StasisSphere __instance, Collider other, ref Rigidbody target, ref bool __result)
+            {
+                //if (!Main.config.stasisRifleTweak)
+                //    return true;
+
+                //AddDebug("Freeze Collider " + other.name + " bounds.size " + other.bounds.size);
+                target = other.GetComponentInParent<Rigidbody>();
+
+                if (target == null || target.isKinematic)
+                {
+                    __result = false;
+                    return false;
+                }
+                if (__instance.targets.Contains(target))
+                {
+                    __result = true;
+                    return false;
+                }
+                bool bigger = isBigger(__instance, target.gameObject);
+                //AddDebug("Freeze " + target.name + " isBigger " + bigger);
+                if (bigger)
+                {
+                    __result = false;
+                    return false;
+                }
+                target.isKinematic = true;
+                __instance.targets.Add(target);
+                Utils.PlayOneShotPS(__instance.vfxFreeze, target.GetComponent<Transform>().position, Quaternion.identity);
+                FMODUWE.PlayOneShot(__instance.soundEnter, __instance.tr.position);
+                target.SendMessage("OnFreeze", SendMessageOptions.DontRequireReceiver);
+                __result = true;
+                return false;
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("CancelAll")]
+            private static void CancelAllPrefix(StasisSphere __instance)
+            {
+                //AddDebug("CancelAll");
+                Player.main.rigidBody.isKinematic = false;
+            }
+        }
+
+
+
+        //[HarmonyPatch(typeof(Bullet), "Deactivate")]
+        public class Bullet_Deactivate_Patch
+        {
+            public static void Prefix(Bullet __instance)
+            {
+                AddDebug("Deactivate");
+                //Light[] lights = __instance.GetComponentsInChildren<Light>(true);
+                //for (int i = lights.Length - 1; i >= 0; i--)
+                //{
+                //    if (lights[i].type == LightType.Point)
+                //        lights[i].enabled = false;
+                //}
+            }
+        }
 
     }
 }

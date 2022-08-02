@@ -37,7 +37,7 @@ namespace Tweaks_Fixes
             if (wf)
                 UnityEngine.Object.Destroy(wf);
         }
-
+        
         [HarmonyPatch(typeof(LargeWorldEntity))]
         class LargeWorldEntity_Awake_Patch
         {
@@ -103,6 +103,7 @@ namespace Tweaks_Fixes
                 else if (tt == TechType.BloodRoot || tt == TechType.BloodVine || tt == TechType.Creepvine)
                 {
                     PickPrefab[] pickPrefabs = __instance.gameObject.GetComponentsInChildren<PickPrefab>(true);
+
                     if (pickPrefabs.Length > 0)
                     {
                         FruitPlant fp = __instance.gameObject.EnsureComponent<FruitPlant>();
@@ -112,7 +113,7 @@ namespace Tweaks_Fixes
                         fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
                         //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
                         if (fp.fruitSpawnInterval == 0f)
-                            fp.fruitSpawnInterval = 1;
+                            fp.fruitSpawnInterval = 1f;
                         //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);
                         fp.fruits = pickPrefabs;
                         if (tt == TechType.Creepvine)
@@ -122,7 +123,6 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
                     int x = (int)__instance.transform.position.x;
@@ -216,6 +216,7 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        
+          
     }
 }

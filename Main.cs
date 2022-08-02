@@ -20,10 +20,8 @@ namespace Tweaks_Fixes
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
-        //public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
-        //public static bool english = false;
         public static System.Random rndm = new System.Random();
         public static bool advancedInventoryLoaded = false;
         public static bool flareRepairLoaded = false;
@@ -32,8 +30,20 @@ namespace Tweaks_Fixes
         public static bool languageCheck = false;
         public static bool pickupFullCarryallsLoaded = false;
         public static bool seaglideMapControlsLoaded = false;
+        public static bool baseLightSwitchLoaded = false;
+        public static bool prawnSuitTorpedoDisplayLoaded = false;
+        public static bool torpedoImprovementsLoaded = false;
+        public static bool refillOxygenTankLoaded = false;
+        
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
+
+        public static Bounds GetAABB(GameObject go)
+        {
+            FixedBounds fb = go.GetComponent<FixedBounds>();
+            Bounds bounds = fb == null ? UWE.Utils.GetEncapsulatedAABB(go) : fb.bounds;
+            return bounds;
+        }
 
         public static bool IsDestroyed(GameObject gameObject)
         {
@@ -260,13 +270,13 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Language __instance)
             {
-                languageCheck = __instance.GetCurrentLanguage() == "English" || config.translatableStrings[0] != "Burnt out ";
+                languageCheck = __instance.GetCurrentLanguage() == "English" || !config.translatableStrings[0].Equals("Burnt out ");
                 //AddDebug("Language Awake " + languageCheck);
                 if (languageCheck)
                 {
                     //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
-                    LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
-                    LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot.");
+                    LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[24]);
+                    LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, config.translatableStrings[25]);
                 }
             }
         }
@@ -287,22 +297,30 @@ namespace Tweaks_Fixes
                     return;
                 }
                 //AddDebug(" uGUI_SceneLoading done");
-                Builder.Initialize();
+                //Builder.Initialize();
                 loadingDone = true;
                 foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
                 {
-                    if (lm.tempDamage > 0)
-                    {
-                        //AddDebug("uGUI_SceneLoading End " + lm.tempDamage);
-                        lm.SyncUpdatingState();
-                    }
+                    //AddDebug("uGUI_SceneLoading End " + lm.tempDamage);
+                    lm.SyncUpdatingState();
                 }
-                foreach (Sign sign in Storage_Patch.savedSigns)
-                    sign.OnProtoDeserialize(null);
-                Storage_Patch.savedSigns = new List<Sign>();
 
                 if (EscapePod.main)
                     Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
+
+                try
+                { // for some users throws NullReferenceException
+  //                  at(wrapper managed - to - native) UnityEngine.Transform.set_localScale_Injected(UnityEngine.Transform, UnityEngine.Vector3 &)
+  //at UnityEngine.Transform.set_localScale(UnityEngine.Vector3 value)[0x00000] in < 11d76d5f2da344218c391ad1f20978b4 >:0  //at uGUI_SignInput.UpdateScale()
+                    foreach (Sign sign in Storage_Patch.savedSigns)
+                        sign.OnProtoDeserialize(null);
+                }
+                catch (NullReferenceException)
+                {
+                    //throw;
+                    Log("NullReferenceException in  sign.OnProtoDeserialize  uGUI_SceneLoading_End_Patch");
+                }
+                Storage_Patch.savedSigns = new List<Sign>();
             }
         }
 
@@ -315,6 +333,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("ClearSlotAsync " + slotName);
                 config.escapePodSmokeOut.Remove(slotName);
+                config.radioFixed.Remove(slotName);
                 config.openedWreckDoors.Remove(slotName);
                 config.lockerNames.Remove(slotName);
                 config.baseLights.Remove(slotName);
@@ -341,6 +360,8 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(IngameMenu __instance)
             {
+                //AddDebug("SaveGame ");
+                config.Save();
                 for (int i = Decoy_Patch.decoysToDestroy.Count - 1; i >= 0; i--)
                     UnityEngine.Object.Destroy(Decoy_Patch.decoysToDestroy[i]);
                 //AddDebug("decoysToDestroy.Count " + Decoy_Patch.decoysToDestroy.Count);
@@ -397,12 +418,17 @@ namespace Tweaks_Fixes
             //dayNightSpeedLoaded = iqMod != null;
             //if (Language.main == null)
             //    Log("Language.main == null"); 
+            prawnSuitTorpedoDisplayLoaded = QModServices.Main.ModPresent("PrawnSuitTorpedoDisplay");
+            baseLightSwitchLoaded = QModServices.Main.ModPresent("BaseLightSwitch");
             seaglideMapControlsLoaded = QModServices.Main.ModPresent("SeaglideMapControls");
             pickupFullCarryallsLoaded = QModServices.Main.ModPresent("PickupFullCarryalls");
             advancedInventoryLoaded = QModServices.Main.ModPresent("AdvancedInventory");
             flareRepairLoaded = QModServices.Main.ModPresent("Rm_FlareRepair");
             cyclopsDockingLoaded = QModServices.Main.ModPresent("CyclopsDockingMod");
             vehicleLightsImprovedLoaded = QModServices.Main.ModPresent("Rm_VehicleLightsImproved");
+            torpedoImprovementsLoaded = QModServices.Main.ModPresent("TorpedoImprovements");
+            refillOxygenTankLoaded = QModServices.Main.ModPresent("OxygenTank");
+
             //Main.Log("vehicleLightsImprovedLoaded " + vehicleLightsImprovedLoaded);
             foreach (var item in config.crushDepthEquipment)
             {
@@ -425,6 +451,15 @@ namespace Tweaks_Fixes
                 //Log("crushDepthEquipment TechType " + tt);
                 if (tt != TechType.None)
                     Pickupable_Patch.itemMass[tt] = item.Value;
+            }
+            foreach (var name in config.unmovableItems)
+            {
+                TechTypeExtensions.FromString(name, out TechType tt, true);
+                if (tt != TechType.None)
+                {
+                    Pickupable_Patch.unmovableItems.Add(tt);
+                    //Log("unmovableItems " + tt);
+                }
             }
             foreach (string name in config.gravTrappable)
             {

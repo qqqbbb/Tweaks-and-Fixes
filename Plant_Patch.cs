@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
         public static float creepVineSeedLightInt = 2f;
         public static Dictionary<GameObject, int> enteredColliders = new Dictionary<GameObject, int> ();
         static Dictionary<GameObject, HashSet<GameObject>> disabledChildren = new Dictionary<GameObject, HashSet<GameObject>>();
-
+       
         static void ToggleKelp(GameObject go, bool enable)
         {
             //if (enable)
@@ -52,6 +52,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GrowingPlant))]
         class GrowingPlant_Patch
         {
+            static int growUpdateTime = 0;
+
             [HarmonyPostfix]
             [HarmonyPatch("OnEnable")]
             public static void OnEnablePostfix(GrowingPlant __instance)
@@ -76,12 +78,34 @@ namespace Tweaks_Fixes
                     LargeWorldEntity_Patch.AlwaysUseHiPolyMesh(__instance.gameObject);
                 }
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("GetGrowthDuration")]
-            public static bool GetGrowthDurationPrefix(GrowingPlant __instance, ref float __result)
+          
+            [HarmonyPrefix]
+            [HarmonyPatch("Update")]
+            public static bool UpdatePrefix(GrowingPlant __instance)
             {
-                //__result = __instance.growthDuration * Main.config.plantGrowthTimeMult * (NoCostConsoleCommand.main.fastGrowCheat ? 0.01f : 1f);
+                if (Main.config.growingPlantUpdateInterval == 0f)
+                    return true;
+
+                if (growUpdateTime + Main.config.growingPlantUpdateInterval > Time.time)
+                    return false;
+
+                //AddDebug("GrowingPlant Update");
+                growUpdateTime = (int)Time.time;
+                float progress = __instance.GetProgress();
+                __instance.SetScale(__instance.growingTransform, progress);
+                __instance.SetPosition(__instance.growingTransform);
+                if (progress < 1f)
+                    return false;
+
+                __instance.SpawnGrownModel();
                 return false;
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("SpawnGrownModel")]
+            public static void SpawnGrownModelPostfix(GrowingPlant __instance)
+            {
+                AddDebug("SpawnGrownModel");
             }
 
             [HarmonyPrefix]
@@ -119,11 +143,23 @@ namespace Tweaks_Fixes
             [HarmonyPrefix]
             [HarmonyPatch("Start")]
             public static void StartPrefix(FruitPlant __instance)
-            { // lantern tree respawns fruits only in creative mode
+            { // wild lantern tree respawns fruits only in creative mode
                 __instance.fruitSpawnEnabled = true;
                 // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
                 __instance.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
             }
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Initialize")]
+            public static void InitializePrefix(FruitPlant __instance)
+            {
+                if (__instance.inactiveFruits == null)
+                    AddDebug("inactiveFruits == null");
+                if (__instance.fruits == null)
+                    AddDebug("fruits == null");
+                if (__instance.fruits.Length > 0 && __instance.fruits[0].pickedEvent == null)
+                    AddDebug("pickedEvent == null");
+            }
+       
             [HarmonyPostfix]
             [HarmonyPatch("Initialize")]
             public static void InitializePostfix(FruitPlant __instance)
@@ -136,11 +172,14 @@ namespace Tweaks_Fixes
                     //    AddDebug(__instance.name + " LIGHTS " + lights.Length);
                     if (!light)
                         return;
+                    //if (__instance.fruits == null)
+                    //    AddDebug(__instance.name + " __instance.fruits == null ");
 
                     light.intensity = creepVineSeedLightInt - (float)__instance.inactiveFruits.Count / (float)__instance.fruits.Length * creepVineSeedLightInt;
                     //AddDebug(__instance.name + " Initialize intensity " + f);
                 }
             }
+          
             [HarmonyPrefix]
             [HarmonyPatch("Update")]
             static bool UpdatePrefix(FruitPlant __instance)
@@ -150,11 +189,16 @@ namespace Tweaks_Fixes
 
                 if (__instance.inactiveFruits.Count > 0 && DayNightCycle.main.timePassed > __instance.timeNextFruit)
                 {
-                    //AddDebug(__instance.name + " Spawn fruit");
                     PickPrefab random = __instance.inactiveFruits.GetRandom();
                     random.SetPickedState(false);
                     __instance.inactiveFruits.Remove(random);
                     __instance.timeNextFruit += __instance.fruitSpawnInterval;
+                    //if (Vector3.Distance(Player.main.transform.position, __instance.transform.position) < 5f)
+                    //{
+                    //    AddDebug(__instance.name + " Spawn fruit");
+                    //    AddDebug("fruitSpawnInterval " + __instance.fruitSpawnInterval);
+                    //    AddDebug("timeNextFruit " + (int)__instance.timeNextFruit);
+                    //}
                     //if (CraftData.GetTechType(__instance.gameObject) != TechType.Creepvine)
                     //    return false;
                     //Light light = __instance.GetComponentInChildren<Light>();
@@ -162,7 +206,7 @@ namespace Tweaks_Fixes
                     //{
                     //    float f = creepVineSeedLightInt - (float)__instance.inactiveFruits.Count / (float)__instance.fruits.Length * creepVineSeedLightInt;
                     //    light.intensity = f;
-                        //AddDebug("intensity " + f);
+                    //AddDebug("intensity " + f);
                     //}
                 }
                 return false;
@@ -276,6 +320,7 @@ namespace Tweaks_Fixes
                 //AddDebug(" inactiveFruits " + fp.inactiveFruits.Count);
                 light.intensity = creepVineSeedLightInt - (float)fp.inactiveFruits.Count / (float)fp.fruits.Length * creepVineSeedLightInt;
             }
+         
             [HarmonyPatch("SetPickedState")]
             [HarmonyPostfix]
             public static void SetPickedStatePostfix(PickPrefab __instance, bool newPickedState)
@@ -333,7 +378,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
 
         //[HarmonyPatch(typeof(InteractionVolumeCollider))]
         class InteractionVolumeUser_Patch
@@ -424,6 +468,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        
     }
 }

@@ -16,22 +16,20 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 { // debris 80 -35 100      200 -70 -680
     class Testing
-    {// 970 12 -63
-
+    {
         //static HashSet<TechType> creatures = new HashSet<TechType>();
         //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
 
-        //[HarmonyPatch(typeof(Player), "Update")]
+         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-
                 //Main.Message("mainCamera forward" + Player.main.camRoot.mainCamera.transform.forward);
                 //AddDebug("timePassedAsFloat " + (int)DayNightCycle.main.timePassedAsFloat);
+                //AddDebug("Time.time " + (int)Time.time);
                 //AddDebug("isUnderwaterForSwimming " + __instance.isUnderwaterForSwimming.value);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
-
                 if (Input.GetKeyDown(KeyCode.B))
                 {
                     //AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
@@ -51,6 +49,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    
                     //AddDebug(" loadingDone " + Main.loadingDone);
                     //AddDebug("  " + Player.main.GetBiomeString());
                     //if (Input.GetKey(KeyCode.LeftShift))
@@ -91,6 +90,7 @@ namespace Tweaks_Fixes
                     //}
                     if (target)
                     {
+                        //Debug(target);
                         //PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
                         //if (pi)
                         //    target = pi.gameObject;
@@ -309,6 +309,25 @@ namespace Tweaks_Fixes
                 }
 
             }
+        }
+
+        static void Debug(GameObject go)
+        {
+            if (!go || go.name == "Debug")
+                return;
+
+            if (!go.transform.Find("Debug"))
+            {
+                GameObject debug = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                debug.name = "Debug";
+                debug.GetComponent<SphereCollider>().enabled = false;
+                debug.transform.SetParent(go.transform, false);
+                debug.GetComponent<MeshRenderer>().material.color = new Color(1f,0f,0f);
+                AddDebug("Creating debug sphere for: " + go.name);
+                //debug.transform.localScale = Vector3.one * 0.1f;
+            }
+            //for (var i = 0; i < go.transform.childCount; ++i)
+            //    Debug(go.transform.GetChild(i).gameObject);
         }
 
         //[HarmonyPatch(typeof(Targeting), "GetTarget", new Type[] { typeof(float), typeof(GameObject), typeof(float), typeof(Targeting.FilterRaycast) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out, ArgumentType.Normal })]

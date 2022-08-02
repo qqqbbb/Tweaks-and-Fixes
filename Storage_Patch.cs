@@ -799,6 +799,18 @@ namespace Tweaks_Fixes
                     }
                 }
             }
+
+            //[HarmonyPrefix]
+            //[HarmonyPatch("UpdateScale")]
+            static bool UpdateScalePostfix(uGUI_SignInput __instance)
+            {
+                if (__instance.rt == null)
+                    return false;
+
+                float num = __instance.baseScale + __instance.scaleStep * __instance.scaleIndex;
+                __instance.rt.localScale = new Vector3(num, num, 1f);
+                return false;
+            }
         }
 
         [HarmonyPatch(typeof(Constructable))]
