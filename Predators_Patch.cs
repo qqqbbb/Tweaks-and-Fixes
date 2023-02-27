@@ -13,44 +13,50 @@ namespace Tweaks_Fixes
         static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
         static Dictionary<AttackCyclops, AggressiveWhenSeeTarget> attackCyclopsAWST = new Dictionary<AttackCyclops, AggressiveWhenSeeTarget>();
         //public static HashSet<string> testMeleeAttack = new HashSet<string>();
-
+        
         public static bool IsLightOn(Vehicle vehicle)
         { 
             Light[] lights = vehicle.GetComponentsInChildren<Light>();
             foreach (Light l in lights)
             {
-			    if (l.enabled && l.gameObject.activeInHierarchy && l.intensity > 0f && l.range > 0f)
+                if (l.enabled && l.gameObject.activeInHierarchy && l.intensity > 0f && l.range > 0f)
                     return true;
             }
             return false;
         }
 
-        [HarmonyPatch(typeof(SubRoot), "Start")]
-        internal class SubRoot_Start_Patch
+        [HarmonyPatch(typeof(SubRoot))]
+        class SubRoot_Start_Patch
         {
-            public static void Postfix(SubRoot __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(SubRoot __instance)
             {
                 if (__instance.isCyclops)
                 {
                     cyclops.Add(__instance);
                 }
             }
-        }
-
-        [HarmonyPatch(typeof(SubRoot), "OnPlayerExited")]
-        internal class SubRoot_OnPlayerExited_Patch
-        {
-            public static void Postfix(SubRoot __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnPlayerExited")]
+            public static void OnPlayerExitedPostfix(SubRoot __instance)
             {
                 if (__instance.isCyclops)
                 {
                     __instance.live.invincible = Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Vanilla || Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.No;
                 }
             }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnKill")]
+            public static void OnKillPostfix(SubRoot __instance)
+            {
+                cyclops.Remove(__instance);
+            }
         }
 
+        
         [HarmonyPatch(typeof(CyclopsHelmHUDManager))]
-        internal class CyclopsHelmHUDManager_Patch
+        class CyclopsHelmHUDManager_Patch
         {
             [HarmonyPrefix]
             [HarmonyPatch("OnTakeCreatureDamage")]
@@ -80,18 +86,10 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
-        [HarmonyPatch(typeof(SubRoot), "OnKill")]
-        internal class SubRoot_OnKill_Patch
-        {
-            public static void Postfix(SubRoot __instance)
-            {
-                cyclops.Remove(__instance);
-            }
-        }
+        
 
         [HarmonyPatch(typeof(AggressiveWhenSeeTarget))]
-        internal class AggressiveWhenSeeTarget_Patch
+        class AggressiveWhenSeeTarget_Patch
         {
             [HarmonyPrefix]
             [HarmonyPatch("GetAggressionTarget")]
@@ -115,27 +113,37 @@ namespace Tweaks_Fixes
                 //AddDebug(__instance.myTechType + " AggressionTarget PLAYER ");
                 return false;
             }
-          
+
             [HarmonyPrefix]
             [HarmonyPatch("IsTargetValid", new Type[] { typeof(GameObject) })]
             public static bool IsTargetValidPrefix(GameObject target, AggressiveWhenSeeTarget __instance, ref bool __result)
             {
-                if (__instance.targetType != EcoTargetType.Shark || Main.config.predatorExclusion.Contains(__instance.myTechType))
+                if (__instance.targetType != EcoTargetType.Shark)
                     return true;
 
+                if (Main.config.predatorExclusion.Contains(__instance.myTechType))
+                {
+                    __result = false;
+                    return false;
+                }
+                if (target == null || target == __instance.creature.GetFriend())
+                {
+                    __result = false;
+                    return false;
+                }
                 if (target == Player.main.gameObject)
                 {
                     //AddDebug(__instance.myTechType + " Player");
-                    if (!Player.main.CanBeAttacked() || Player.main.precursorOutOfWater || PrecursorMoonPoolTrigger.inMoonpool)
+                    if (!Player.main.CanBeAttacked() || GameModeUtils.IsInvisible() || Player.main.precursorOutOfWater || PrecursorMoonPoolTrigger.inMoonpool)
                     {
                         __result = false;
                         return false;
                     }
-                    if (BehaviourData.GetBehaviourType(__instance.myTechType) == BehaviourType.Leviathan)
+                    if (CreatureData.GetBehaviourType(__instance.myTechType) == BehaviourType.Leviathan)
                     { // prevent leviathan attacking player on land
-                        if (Player.main.depthLevel > -5f)
+                        if (Player.main.depthLevel > -1f)
                         {
-                            //AddDebug(" prevent leviathan attacking player on land");
+                            AddDebug(" prevent leviathan attacking player on land");
                             __result = false;
                             return false;
                         }
@@ -151,12 +159,12 @@ namespace Tweaks_Fixes
                     }
                     if (Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.No && Player.main.currentMountedVehicle == null)
                     {
-						__result = false;
-						return false;
+                        __result = false;
+                        return false;
                     }
-                    if (BehaviourData.GetBehaviourType(__instance.myTechType) == BehaviourType.Leviathan)
+                    if (CreatureData.GetBehaviourType(__instance.myTechType) == BehaviourType.Leviathan)
                     { // prevent leviathan attack on land
-                        if (Ocean.main.GetDepthOf(target) < 5f)
+                        if (Ocean.GetDepthOf(target) > -1f)
                         {
                             __result = false;
                             return false;
@@ -168,11 +176,7 @@ namespace Tweaks_Fixes
                     //__result = moving || canBeAttacked;
                     return false;
                 }
-                if (target == null || target == __instance.creature.friend)
-                {
-                    __result = false;
-                    return false;
-                }
+
                 TechType targetTT = CraftData.GetTechType(target);
                 if (targetTT == TechType.CyclopsDecoy)
                 {
@@ -213,14 +217,15 @@ namespace Tweaks_Fixes
                 //__result = !Physics.Linecast(__instance.transform.position, target.transform.position, Voxeland.GetTerrainLayerMask());
                 return false;
             }
+            
             [HarmonyPrefix]
             [HarmonyPatch("ScanForAggressionTarget")]
             public static bool ScanForAggressionTargetPrefix(AggressiveWhenSeeTarget __instance)
             {
-                if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy)
+                if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy || !__instance.enabled || Main.config.predatorExclusion.Contains(__instance.myTechType))
                     return false;
 
-                if (__instance.targetType != EcoTargetType.Shark || Main.config.predatorExclusion.Contains(__instance.myTechType))
+                if (__instance.targetType != EcoTargetType.Shark)
                     return true;
 
                 if (Main.config.aggrMult <= 1 && __instance.creature && __instance.creature.Hunger.Value < __instance.hungerThreshold)
@@ -229,7 +234,7 @@ namespace Tweaks_Fixes
                 if (Main.config.aggrMult == 3 && Player.main.CanBeAttacked() && __instance.creature.GetCanSeeObject(Player.main.gameObject))
                 {
                     __instance.creature.Aggression.Add(__instance.aggressionPerSecond);
-                    __instance.lastScarePosition.lastScarePosition = Player.main.gameObject.transform.position;
+                    //__instance.lastScarePosition.lastScarePosition = Player.main.gameObject.transform.position;
                     __instance.lastTarget.target = Player.main.gameObject;
                     if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
                         __instance.sightedSound.StartEvent();
@@ -255,8 +260,7 @@ namespace Tweaks_Fixes
                     }
                     //UnityEngine.Debug.DrawLine(aggressionTarget.transform.position, __instance.transform.position, Color.white);
                     __instance.creature.Aggression.Add((__instance.aggressionPerSecond * distMult * infection));
-
-                    __instance.lastScarePosition.lastScarePosition = aggressionTarget.transform.position;
+                    //__instance.lastScarePosition.lastScarePosition = aggressionTarget.transform.position;
                     __instance.lastTarget.target = aggressionTarget;
                     if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
                         __instance.sightedSound.StartEvent();
@@ -265,9 +269,9 @@ namespace Tweaks_Fixes
             }
 
         }
-
+        
         [HarmonyPatch(typeof(EcoRegion), "FindNearestTarget")]
-        internal class EcoRegion_FindNearestTarget_Patch
+        class EcoRegion_FindNearestTarget_Patch
         {
             public static bool PreFix(EcoRegion __instance, EcoTargetType type, Vector3 wsPos, EcoRegion.TargetFilter isTargetValid, ref float bestDist, ref IEcoTarget best)
             {
@@ -280,7 +284,6 @@ namespace Tweaks_Fixes
                 float minSqrMagnitude = float.MaxValue;
                 if (!__instance.ecoTargets.TryGetValue((int)type, out ecoTargetSet))
                 {
-                    //ProfilingUtils.EndSample();
                 }
                 foreach (IEcoTarget ecoTarget in ecoTargetSet)
                 {
@@ -307,12 +310,13 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-				if (best != null)
-					bestDist = Mathf.Sqrt(minSqrMagnitude);
+                if (best != null)
+                    bestDist = Mathf.Sqrt(minSqrMagnitude);
+
                 return false;
             }
         }
-
+        
         public static bool CanAttackSub(AttackCyclops attackCyclops)
         {
             if (Main.config.aggrMult == 0)
@@ -330,6 +334,7 @@ namespace Tweaks_Fixes
                 CyclopsNoiseManager cyclopsNoiseManager = null;
                 if (Player.main.currentSub && Player.main.currentSub.noiseManager)
                     cyclopsNoiseManager = Player.main.currentSub.noiseManager;
+
                 if (attackCyclops.forcedNoiseManager)
                     cyclopsNoiseManager = attackCyclops.forcedNoiseManager;
 
@@ -342,7 +347,7 @@ namespace Tweaks_Fixes
                 return Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Only_if_lights_on && lightOn;
             }
         }
-
+        
         public static SubRoot GetClosestSub(Vector3 pos)
         {
             float closestDist = float.PositiveInfinity;
@@ -359,10 +364,12 @@ namespace Tweaks_Fixes
             return closest;
         }
 
-        [HarmonyPatch(typeof(AttackCyclops), "Start")]
-        internal class AttackCyclops_Start_Patch
+        [HarmonyPatch(typeof(AttackCyclops))]
+        class AttackCyclops_Start_Patch
         {
-            public static void Postfix(AttackCyclops __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(AttackCyclops __instance)
             {
                 //AddDebug("AttackCyclops " + __instance.name);
                 AggressiveWhenSeeTarget[] awst = __instance.GetAllComponentsInChildren<AggressiveWhenSeeTarget>();
@@ -375,12 +382,9 @@ namespace Tweaks_Fixes
                     }
                 }
             }
-        }
-
-        [HarmonyPatch(typeof(AttackCyclops), "UpdateAggression")]
-        internal class AttackCyclops_UpdateAggression_Patch
-        {
-            public static bool Prefix(AttackCyclops __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("UpdateAggression")]
+            public static bool UpdateAggressionPrefix(AttackCyclops __instance)
             {
                 if (Main.config.aggrMult == 1f)
                     return true;
@@ -422,7 +426,7 @@ namespace Tweaks_Fixes
                 }
                 else if (closestDecoy == null)
                 {
-                    if(inSub)
+                    if (inSub)
                     {
                         cyclopsNoiseManager = Player.main.currentSub.noiseManager;
                         if (__instance.forcedNoiseManager != null)
@@ -444,7 +448,7 @@ namespace Tweaks_Fixes
                     Vector3 position = cyclopsNoiseManager.transform.position;
                     //float aggrMult = Main.config.aggrMult < 1 ? 1 : Main.config.aggrMult;
                     float noise = cyclopsNoiseManager.GetNoisePercent();
-                    if ( __instance.creature.GetCanSeeObject(cyclopsNoiseManager.gameObject))
+                    if (__instance.creature.GetCanSeeObject(cyclopsNoiseManager.gameObject))
                     {
                         //AddDebug("can see sub" + __instance.attackAggressionThreshold);
                         if (cyclopsNoiseManager.lightingPanel.lightingOn)
@@ -465,12 +469,9 @@ namespace Tweaks_Fixes
                 }
                 return false;
             }
-        }
-
-        [HarmonyPatch(typeof(AttackCyclops), "OnCollisionEnter")]
-        internal class AttackCyclops_OnCollisionEnter_Patch
-        {
-            public static bool Prefix(AttackCyclops __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("OnCollisionEnter")]
+            public static bool OnCollisionEnterPrefix(AttackCyclops __instance)
             {
                 if (Main.config.aggrMult == 0f)
                 {
@@ -479,46 +480,49 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-        }
-
-        [HarmonyPatch(typeof(AttackCyclops), "IsTargetValid")]
-        internal class AttackCyclops_IsTargetValid_Patch
-        {
-            public static bool Prefix(AttackCyclops __instance, IEcoTarget target, ref bool __result)
+            [HarmonyPrefix]
+            [HarmonyPatch("IsTargetValid")]
+            public static bool IsTargetValidPrefix(AttackCyclops __instance, IEcoTarget target, ref bool __result)
             {
                 TechType myTT = CraftData.GetTechType(__instance.gameObject);
                 if (Main.config.predatorExclusion.Contains(myTT))
                     __result = false;
                 else
                     __result = Vector3.Distance(target.GetPosition(), __instance.transform.position) < 150f * Main.config.aggrMult;
+
                 return false;
             }
         }
 
-        [HarmonyPatch(typeof(AttachToVehicle), "Evaluate")]
-        internal class AttachToVehicle_Evaluate_Patch
+        [HarmonyPatch(typeof(AttachToVehicle))]
+        class AttachToVehicle_Evaluate_Patch
         {
-            public static bool Prefix(AttachToVehicle __instance, Creature creature, ref float __result)
+            [HarmonyPrefix]
+            [HarmonyPatch("Start")]
+            public static void StartPrefix(AttachToVehicle __instance)
+            {
+                AddDebug("AttachToVehicle Start " + __instance.name);
+            }
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Evaluate")]
+            public static bool EvaluatePrefix(AttachToVehicle __instance, Creature creature, ref float __result, float time)
             {
                 if (GameModeUtils.IsInvisible())
                 {
                     __result = 0f;
                     return false;
                 }
-                if (Time.time > __instance.timeNextScan)
+                if (time > __instance.timeNextScan)
                 {
                     __instance.UpdateCurrentTarget();
-                    __instance.timeNextScan = Time.time + __instance.scanInterval;
+                    __instance.timeNextScan = time + __instance.scanInterval;
                 }
-                __result = __instance.timeDetached + 4f < Time.time && __instance.currTarget != null && (__instance.currTarget.transform.position - __instance.transform.position).sqrMagnitude <= __instance.currTarget.distanceToStartAction * __instance.currTarget.distanceToStartAction * Main.config.aggrMult ? __instance.GetEvaluatePriority() : 0f;
+                __result = __instance.timeDetached + 4f < time && __instance.currTarget != null && (__instance.currTarget.transform.position - __instance.transform.position).sqrMagnitude <= __instance.currTarget.distanceToStartAction * __instance.currTarget.distanceToStartAction * Main.config.aggrMult ? __instance.GetEvaluatePriority() : 0f;
                 return false;
             }
-        }
-
-        [HarmonyPatch(typeof(AttachToVehicle), "IsValidTarget")]
-        internal class AttachToVehicle_IsValidTarget_Patch
-        {
-            public static void Postfix(AttachToVehicle __instance, IEcoTarget target, ref bool __result)
+            [HarmonyPostfix]
+            [HarmonyPatch("IsValidTarget")]
+            public static void IsValidTargetPostfix(AttachToVehicle __instance, IEcoTarget target, ref bool __result)
             {
                 if (Main.config.aggrMult == 0f || Main.config.predatorExclusion.Contains(CraftData.GetTechType(__instance.gameObject)))
                     __result = false;
@@ -526,20 +530,19 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(AggressiveToPilotingVehicle), "UpdateAggression")]
-        internal class AggressiveToPilotingVehicle_UpdateAggression_Patch
+        class AggressiveToPilotingVehicle_UpdateAggression_Patch
         {
             public static bool Prefix(AggressiveToPilotingVehicle __instance)
             {
                 Player player = Player.main;
-                if (player == null || player.GetMode() != Player.Mode.LockedPiloting)
+                if (player == null || player.GetMode() != Player.Mode.LockedPiloting || Main.config.aggrMult == 0)
                     return false;
-                if (Main.config.aggrMult == 0)
-                    return false;
+
                 TechType myTT = CraftData.GetTechType(__instance.gameObject);
                 if (Main.config.predatorExclusion.Contains(myTT))
                     return false;
                 Vehicle vehicle = player.GetVehicle();
-                if (vehicle == null || vehicle.prevVelocity == Vector3.zero || Vector3.Distance(vehicle.transform.position, __instance.transform.position) > __instance.range * Main.config.aggrMult)
+                if (vehicle == null || Vector3.Distance(vehicle.transform.position, __instance.transform.position) > __instance.range * Main.config.aggrMult)
                     return false;
                 //__instance.creature.GetCanSeeObject(Player.main.gameObject))
                 __instance.lastTarget.target = vehicle.gameObject;
@@ -549,9 +552,9 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
+        
         [HarmonyPatch(typeof(MeleeAttack))]
-        internal class MeleeAttack_Patch
+        class MeleeAttack_Patch
         {
             //[HarmonyPostfix]
             //[HarmonyPatch("OnEnable")]
@@ -561,13 +564,13 @@ namespace Tweaks_Fixes
                 //AddDebug(tt + " canBitePlayer " + __instance.canBitePlayer + " canBiteVehicle " + __instance.canBiteVehicle + " canBiteCyclops " + __instance.canBiteCyclops);
                 //testMeleeAttack.Add(tt + " canBitePlayer " + __instance.canBitePlayer + " canBiteVehicle " + __instance.canBiteVehicle + " canBiteCyclops " + __instance.canBiteCyclops);
             }
-           
+
             [HarmonyPrefix]
             [HarmonyPatch("CanBite")]
             public static bool CanBitePrefix(MeleeAttack __instance, GameObject target, ref bool __result)
             {
                 //TechType targetTT = CraftData.GetTechType(target);
-                if (__instance.frozen || __instance.creature.Aggression.Value < __instance.biteAggressionThreshold || Time.time < __instance.timeLastBite + __instance.biteInterval)
+                if (__instance.frozen || __instance.creature.Aggression.Value < __instance.biteAggressionThreshold || Time.time < __instance.timeLastBite + __instance.biteInterval || __instance.creature.IsFriendlyTo(target) || !__instance.CanDealDamageTo(target))
                 {  
                     __result = false;
                     return false;
@@ -575,11 +578,8 @@ namespace Tweaks_Fixes
                 Player player = target.GetComponent<Player>();
                 if (player != null)
                 {
-                    //if (!player.CanBeAttacked() || !__instance.canBitePlayer)
-                    {
-                        __result = Main.config.aggrMult > 0f && player.CanBeAttacked() && __instance.canBitePlayer;
-                        return false;
-                    }
+                    __result = Main.config.aggrMult > 0f && player.CanBeAttacked() && __instance.canBitePlayer;
+                    return false;
                 }
                 SubRoot subRoot = target.GetComponent<SubRoot>();
                 if (subRoot && subRoot.isCyclops)
@@ -671,13 +671,13 @@ namespace Tweaks_Fixes
                     AddDebug(tt + " MeleeAttack CanBite " + tt1 + " " + __result);
             }
         }
-
+        
         [HarmonyPatch(typeof(AttackLastTarget), "CanAttackTarget")]
-        internal class AttackLastTarget_CanAttackTarget_Patch
+        class AttackLastTarget_CanAttackTarget_Patch
         { 
             public static bool Prefix(AttackLastTarget __instance, GameObject target, ref bool __result)
             {
-                if (target == null)
+                if (target == null || __instance.creature.IsFriendlyTo(target))
                 {
                     __result = false;
                     return false;
@@ -693,71 +693,6 @@ namespace Tweaks_Fixes
                 LiveMixin lm = target.GetComponent<LiveMixin>();
                 __result = lm && lm.IsAlive();
                 return false;
-            }
-        }
-      
-
-
-        //[HarmonyPatch(typeof(AttackCyclops), "SetCurrentTarget")]
-        internal class AttackCyclops_SetCurrentTarget_Patch
-        {
-            public static void Postfix(AttackCyclops __instance, GameObject target, bool isDecoy)
-            {
-                Main.Message("AttackCyclops SetCurrentTarget " + target + " " + Vector3.Distance(target.transform.position, __instance.transform.position));
-            }
-        }
-
-        //[HarmonyPatch(typeof(Creature), "Start")]
-        internal class Creature_Start_Patch
-        {
-            public static void Postfix(Creature __instance)
-            {
-                if (__instance.hasEyes)
-                {
-                    TechType techType = CraftData.GetTechType(__instance.gameObject);
-                    Main.Log(techType + " eyeFOV " + __instance.eyeFOV);
-                }
-
-                //AddDebug("Creature Start " + techType);
-                //if (Main.config.canAttackSub.Contains(techType))
-                {
-                    //AttackCyclops attackCyclops = __instance.gameObject.GetComponent<AttackCyclops>();
-                    //if (!attackCyclops)
-                    //{
-                    //    AddDebug("Add  AttackCyclops");
-                    //    attackCyclops = __instance.gameObject.AddComponent<AttackCyclops>();
-                    //    attackCyclops.aggressiveToNoise = new CreatureTrait(0);
-                    //    attackCyclops.maxDistToLeash = 150f;
-                    //    attackCyclops.evaluatePriority = .9f;
-                    //    attackCyclops.swimVelocity = 25f;
-                    //    attackCyclops.attackPause = 3f;
-                    //}
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(MoveTowardsTarget), "UpdateCurrentTarget")]
-        internal class MoveTowardsTarget_UpdateCurrentTarget_Patch
-        { // this does not target player
-            public static bool Prefix(MoveTowardsTarget __instance)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (__instance.targetType == EcoTargetType.Shark)
-                {
-                    //AddDebug(tt + " aggr " + __instance.creature.Aggression.Value + " req aggr " + __instance.requiredAggression);
-                    float aggr = Main.config.aggrMult > 1f ? Main.config.aggrMult : 1f;
-                    if (EcoRegionManager.main != null && (Mathf.Approximately(__instance.requiredAggression, 0f) || __instance.creature.Aggression.Value * aggr >= __instance.requiredAggression))
-                    {
-                        AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
-                        if (awst)
-                            aggr *= awst.maxSearchRings;
-                        IEcoTarget nearestTarget = EcoRegionManager.main.FindNearestTarget(__instance.targetType, __instance.transform.position, __instance.isTargetValidFilter, (int)aggr);
-                        __instance.currentTarget = nearestTarget;
-                    }
-                    return false;
-                }
-                else
-                    return true;
             }
         }
 

@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> shinies = new HashSet<TechType>();
         public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
-
+        
         [HarmonyPatch(typeof(Pickupable))]
         public class Pickupable_Patch_
         {
@@ -42,14 +42,15 @@ namespace Tweaks_Fixes
                     EcoTarget et = __instance.gameObject.GetComponent<EcoTarget>();
                     if (et && et.type == EcoTargetType.Shiny)
                         return;
+
                     et = __instance.gameObject.AddComponent<EcoTarget>();
                     et.type = EcoTargetType.Shiny;
                 }
 
             }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("OnHandHover")]
+            
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnHandHover")]
             public static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)
             {
                 if (!hand.IsFreeToInteract())
@@ -70,6 +71,7 @@ namespace Tweaks_Fixes
                         ISecondaryTooltip component = __instance.gameObject.GetComponent<ISecondaryTooltip>();
                         if (component != null)
                             text2 = component.GetSecondaryTooltip();
+
                         text1 = __instance.usePackUpIcon ? LanguageCache.GetPackUpText(techType) : LanguageCache.GetPickupText(techType);
                         //AddDebug("text2 " + text2);
                         handReticle.SetIcon(__instance.usePackUpIcon ? HandReticle.IconType.PackUp : HandReticle.IconType.Hand);
@@ -77,15 +79,18 @@ namespace Tweaks_Fixes
                     if (exosuit)
                     {
                         //AddDebug("exosuit");
-                        HandReticle.Hand hand1 = canPickUp ? HandReticle.Hand.Left : HandReticle.Hand.None;
+                        GameInput.Button button = canPickUp ? GameInput.Button.LeftHand : GameInput.Button.None;
                         if (exosuit.leftArmType != TechType.ExosuitClawArmModule)
-                            hand1 = HandReticle.Hand.Right;
-                        handReticle.SetInteractText(text1, text2, false, false, hand1);
+                            button = GameInput.Button.RightHand;
+
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, button);
+                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
                     }
                     else
                     {
                         if (techType == TechType.Beacon)
                         {
+                            //AddDebug("Beacon ");
                             BeaconLabel beaconLabel = __instance.GetComponentInChildren<BeaconLabel>();
                             if (beaconLabel)
                             {
@@ -93,49 +98,62 @@ namespace Tweaks_Fixes
                                     uGUI.main.userInput.RequestString(beaconLabel.stringBeaconLabel, beaconLabel.stringBeaconSubmit, beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beaconLabel.SetLabel));
                                 text2 = beaconLabel.labelName;
                             }
-                            //text1 = "(" + TooltipFactory.stringLeftHand + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+                            text1 = "(" + TooltipFactory.stringButton0 + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
                             StringBuilder stringBuilder = new StringBuilder(text1);
                             stringBuilder.Append(UI_Patches.beaconPickString);
-                            handReticle.SetInteractTextRaw(stringBuilder.ToString(), text2);
+
+                            HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), false, GameInput.Button.LeftHand);
+                            HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
+
+                            //handReticle.SetInteractTextRaw(stringBuilder.ToString(), text2);
                         }
                         else
-                            handReticle.SetInteractText(text1, text2, false, false, HandReticle.Hand.Left);
+                        {
+                            HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, GameInput.Button.LeftHand);
+                            HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
+                        }
                     }
                 }
                 else if (__instance.isPickupable && !Player.main.HasInventoryRoom(__instance))
-                    handReticle.SetInteractInfo(techType.AsString(), "InventoryFull");
+                {
+                    HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
+                    HandReticle.main.SetText(HandReticle.TextType.HandSubscript, "InventoryFull", true);
+                }
                 else
-                    handReticle.SetInteractInfo(techType.AsString());
+                {
+                    HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
+                    HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
+                }
                 
                 return false;
             }
         }
-
-        [HarmonyPatch(typeof(BeaconLabel))]
+            
+        //[HarmonyPatch(typeof(BeaconLabel))]
         class BeaconLabel_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
             static void StartPostfix(BeaconLabel __instance)
             {
                 Collider collider = __instance.GetComponent<Collider>();
                 if (collider)
                     UnityEngine.Object.Destroy(collider);
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("OnPickedUp")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnPickedUp")]
             static bool OnPickedUpPrefix(BeaconLabel __instance)
             {
                 return false;
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("OnDropped")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnDropped")]
             static bool OnDroppedPrefix(BeaconLabel __instance)
             {
                 return false;
             }
         }
-
+            
         [HarmonyPatch(typeof(Survival), "Use")]
         class Survival_Awake_Patch
         {
@@ -187,16 +205,17 @@ namespace Tweaks_Fixes
                         FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
                         so.path = CraftData.GetUseEatSound(techType);
                         Utils.PlayFMODAsset(so, __instance.transform);
+                        //FMODUWE.PlayOneShot(CraftData.GetUseEatSound(techType), Player.main.transform.position);
                     }
                 }
                 return false;
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), "GetUseItemAction")]
-        internal class Inventory_GetUseItemAction_Patch
+        [HarmonyPatch(typeof(Inventory), "GetItemAction")]
+        class Inventory_GetUseItemAction_Patch
         {
-            internal static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
+            static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
             {
                 Pickupable pickupable = item.item;
                 TechType tt = pickupable.GetTechType();
@@ -222,6 +241,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        
+        }
     }
-}

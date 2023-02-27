@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
@@ -16,6 +17,7 @@ namespace Tweaks_Fixes
         public static Dictionary<Eatable, float> spawnedCoffeeTime = new Dictionary<Eatable, float>();
         public static float pourCoffeeTime = 10f;
 
+    
         public static bool HasCoffee(CoffeeVendingMachine cvm)
         {
             foreach (var kv in spawnedCoffee)
@@ -30,7 +32,7 @@ namespace Tweaks_Fixes
             }
             return false;
         }
-
+        
         public static void ShiftCollider(CoffeeVendingMachine __instance, bool down = false)
         {
             BoxCollider collider = __instance.GetComponentInChildren<BoxCollider>();
@@ -47,9 +49,8 @@ namespace Tweaks_Fixes
                 //shiftedColliders[__instance] = collider;
                 collider.transform.position = new Vector3(colPos.x, colPos.y + .4f, colPos.z);
             }
-
         }
-
+        
         [HarmonyPatch(typeof(CoffeeVendingMachine), "Start")]
         class CoffeeVendingMachine_Start_Patch
         {
@@ -62,12 +63,12 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
+         
         [HarmonyPatch(typeof(Eatable), "Awake")]
         class Eatable_Awake_Patch
         {
             public static void Postfix(Eatable __instance)
-            { // cyclops physics go insane if game loads and there is coffee in cvm and their colliders overlap
+            { // cyclops physics go insane if there is coffee in cvm when game loads 
                 if (Main.loadingDone || __instance.transform.parent == null)
                     return;
 
@@ -85,7 +86,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+          
         [HarmonyPatch(typeof(CoffeeVendingMachine), "OnMachineUse")]
         class CoffeeVendingMachine_OnMachineUse_Patch
         {
@@ -93,18 +94,20 @@ namespace Tweaks_Fixes
             {
                 if (!__instance.enabled || __instance.powerRelay == null || !__instance.powerRelay.IsPowered())
                     return false;
-                //AddDebug(" spawnDelay " + __instance.spawnDelay);
 
+                //AddDebug(" OnMachineUse spawnedCoffee " + spawnedCoffee.ContainsKey(__instance));
+                //AddDebug(" OnMachineUse spawnedCoffeeRight " + spawnedCoffeeRight.ContainsKey(__instance));
                 if (!spawnedCoffee.ContainsKey(__instance) || spawnedCoffee[__instance] == null)
                 {
                     __instance.vfxController.Play(0);
                     __instance.waterSoundSlot1.Play();
                     //__instance.timeLastUseSlot1 = Time.time;
-                    SpawnCoffee(__instance);
-                    if (HasCoffee(__instance))
+                    __instance.StartCoroutine(SpawnCoffee(__instance));
+                    //SpawnCoffee(__instance);
+                    //if (HasCoffee(__instance))
                     {
                         //AddDebug(" ShiftCollider ");
-                        ShiftCollider(__instance);
+                        //ShiftCollider(__instance);
                     }
                 }
                 else if (!spawnedCoffeeRight.ContainsKey(__instance) || spawnedCoffeeRight[__instance] == null)
@@ -112,17 +115,21 @@ namespace Tweaks_Fixes
                     __instance.vfxController.Play(1);
                     __instance.waterSoundSlot2.Play();
                     //__instance.timeLastUseSlot2 = Time.time;
-                    SpawnCoffee(__instance, true);
+                    //SpawnCoffee(__instance, true);
+                    __instance.StartCoroutine(SpawnCoffee(__instance, true));
                 }
-
                 return false;
             }
         }
-
-        public static void SpawnCoffee(CoffeeVendingMachine __instance, bool right = false)
+          
+        public static IEnumerator SpawnCoffee(CoffeeVendingMachine __instance, bool right = false)
         {
             //pourCoffeeTime = __instance.spawnDelay;
-            GameObject coffee = CraftData.InstantiateFromPrefab(TechType.Coffee);
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(TechType.Coffee, result);
+            GameObject coffee = result.Get();
+            AddDebug("SpawnCoffee coffee " + coffee.name);
+            ShiftCollider(__instance);
             coffee.GetComponent<Rigidbody>().isKinematic = true;
             coffee.transform.localScale = new Vector3(.7f, .7f, .7f);
             //Vector3 pos = __instance.transform.position;
@@ -147,6 +154,7 @@ namespace Tweaks_Fixes
             coffee.transform.SetParent(__instance.transform, true);
             spawnedCoffeeTime[coffee.GetComponent<Eatable>()] = DayNightCycle.main.timePassedAsFloat;
             //coffee.transform.position += coffee.transform. * .29f;
+            
         }
 
         [HarmonyPatch(typeof(Pickupable), "Pickup")]
@@ -204,5 +212,6 @@ namespace Tweaks_Fixes
 
             }
         }
+        
     }
 }

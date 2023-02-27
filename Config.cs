@@ -12,7 +12,8 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-
+        [Slider("Day/night cycle speed multiplier", 0f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
+        public float gameSpeed = 1f;
         [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
         public float playerSpeedMult = 1f;
         [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
@@ -72,7 +73,7 @@ namespace Tweaks_Fixes
         public EatingRawFish eatRawFish;
         [Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Game has to be reloaded after changing this.")]
         public bool foodTweaks = false;
-        [Toggle("Thermoblade blade cooks fish on kill", Tooltip = "")]
+        [Toggle("Thermoblade cooks fish on kill", Tooltip = "")]
         public bool heatBladeCooks = true;
         [Toggle("New poison damage system", Tooltip = "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.")]
         public bool newPoisonSystem = false;
@@ -90,12 +91,12 @@ namespace Tweaks_Fixes
         public float fishSpeedMult = 1f;
         [Slider("Other creatures speed multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
         public float creatureSpeedMult = 1f;
-        [Slider("Knife attack range multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
+        [Slider("Knife range multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeRangeMult = 1f;
         [Slider("Knife damage multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeDamageMult = 1f;
         //[Toggle("Stasis rifle tweaks", Tooltip = "Only creatures smaller than the stasis orb will be frozen. Player is not immune to stasis orb.")]
-        //public bool stasisRifleTweak = false;
+        public bool stasisRifleTweak = false;
         [Toggle("Can't catch fish with bare hands", Tooltip = "To catch fish you will have to use propulsion cannon or grav trap. Does not apply if you are inside alien containment.")]
         public bool noFishCatching = false;
         [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
@@ -104,8 +105,8 @@ namespace Tweaks_Fixes
         public bool dropHeldTool = false;
         [Toggle("Stalkers grab tools from player's hands when playing", Tooltip = "Stalkers can grab only things that are in the mod config's 'stalkerPlayThings' list.")]
         public bool stalkersGrabShinyTool = false;
-        [Slider("Stalker losing tooth probability", 0f, 1f, DefaultValue = .5f, Step = .1f, Format = "{0:R0}", Tooltip = "Probability of a stalker losing its tooth when it bites something hard.")]
-        public float stalkerLoseTooth = .5f;
+        [Slider("Stalker losing tooth probability percent", 0, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "Probability percent of a stalker losing its tooth when biting something hard.")]
+        public int stalkerLoseTooth = 50;
         [Toggle("Disable tutorial messages", Tooltip = "Disable messages that tell you to 'eat something', 'break limestone', etc. Game has to be reloaded after changing this.")]
         public bool disableHints = false;
         [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla oxygen consumption has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
@@ -147,7 +148,7 @@ namespace Tweaks_Fixes
         //public bool disableDataboxLight = false;
         [Slider("Life pod power cell max charge", 10, 100, DefaultValue = 25, Step = 1, Format = "{0:F0}", Tooltip = "Max charge for each of its 3 power cells. Game has to be reloaded after changing this.")]
         public int escapePodMaxPower = 25;
-        [Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are 30% charged. Game has to be reloaded after changing this.")]
+        [Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are not charged. Game has to be reloaded after changing this.")]
         public bool escapePodPowerTweak = false;
         [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries and power cells you craft will be set to this.")]
         public int craftedBatteryCharge = 100;
@@ -159,16 +160,16 @@ namespace Tweaks_Fixes
         public bool noKillParticles = false;
         [Choice("Outcrops from seatreaders", Tooltip = "")]
         public SeaTreaderOutcrop seaTreaderOutcrop;
-        [Toggle("No metal clicking sound when walking", Tooltip = "Removes metal clicking sound when walking on metal surface.")]
-        public bool fixFootstepSound = false;
+        //[Toggle("No metal clicking sound when walking", Tooltip = "Removes metal clicking sound when walking on metal surface.")]
+        public bool fixFootstepSound = true;
         //[Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
         //public bool baseLightOff = false;
-        [Toggle("Fix cyclops wall collision", Tooltip = "Wall collision inside cyclops will be much more accurate. Might cause issues when used with other mods. Game has to be reloaded after changing this.")]
+        //[Toggle("Fix cyclops wall collision", Tooltip = "Wall collision inside cyclops will be much more accurate. Might cause issues when used with other mods. Game has to be reloaded after changing this.")]
         public bool fixCyclopsCollision = false;
-        [Toggle("Sunlight affects lighting in cyclops", Tooltip = "")]
+        //[Toggle("Sunlight affects lighting in cyclops", Tooltip = "")]
         public bool cyclopsSunlight = false;
-        [Toggle("Instantly open PDA", Tooltip = "Your PDA will open and close instantly. Direction you are looking at will not change when you open it. Game has to be reloaded after changing this. Leave this off if using FCS mods.")]
-        public bool instantPDA = false;
+        //[Toggle("Instantly open PDA", Tooltip = "Your PDA will open and close instantly. Direction you are looking at will not change when you open it. Game has to be reloaded after changing this. Leave this off if using FCS mods.")]
+        //public bool instantPDA = false;
         [Toggle("Always show health and food values in UI", Tooltip = "Health and food values will be always shown not only when PDA is open.")]
         public bool alwaysShowHealthNunbers = false;
         [Toggle("PDA clock", Tooltip = "Game has to be reloaded after changing this.")]
@@ -177,8 +178,8 @@ namespace Tweaks_Fixes
         public KeyCode quickslotKey = KeyCode.LeftAlt;
         [Keybind("Light intensity key", Tooltip = "When holding a tool in your hand or driving a vehicle press 'Cycle next' or 'Cycle previous' key while holding down this key to change the tool's or vehicle's light intensity.")]
         public KeyCode lightKey = KeyCode.LeftShift;
-        [Keybind("Change torpedo key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to change torpedo in your current vehicle.")]
-        public KeyCode changeTorpedoKey = KeyCode.LeftAlt;
+        //[Keybind("Change torpedo key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to change torpedo in your current vehicle.")]
+        //public KeyCode changeTorpedoKey = KeyCode.LeftAlt;
         [Keybind("Move all items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items.")]
         public KeyCode transferAllItemsKey = KeyCode.LeftControl;
         [Keybind("Move same items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items of the same type.")]
@@ -186,7 +187,6 @@ namespace Tweaks_Fixes
 
         public int subThrottleIndex = -1;
         public float knifeRangeDefault = 0f;
-        public float playerCamRot = -1f;
         public int activeSlot = -1;
         public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
         public Dictionary<string, bool> radioFixed = new Dictionary<string, bool>();
@@ -296,10 +296,18 @@ namespace Tweaks_Fixes
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
         //}
         //public HashSet<TechType> ttt = new HashSet<TechType> {TechType.Coffee };
+        static void UpdateGameSpeed()
+        {
+            if (DayNightCycle.main)
+                DayNightCycle.main._dayNightSpeed = Main.config.gameSpeed;
+        }
         public bool fixMelons = true;
         public bool randomPlantRotation = true;
         public bool silentReactor = false;
         public bool removeFragmentCrate = true;
+        public bool fleeOnDamage = true;
+        public bool creepvineLights = true;
+        
         //[Slider("growingPlantUpdateInterval", 0, 10, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "")]
         public int growingPlantUpdateInterval = 0;
         // also edit UI_Patches.GetStrings when editing this
@@ -319,8 +327,8 @@ namespace Tweaks_Fixes
         "Light" ,        // 12   flare   
         "Toggle map" ,    // 13   Seaglide map   
          "Push " ,    // 14   push beached seamoth
-          "Need knife to break it" ,    // 15  no breaking with bare hands  BreakableResource
-        "Need knife to break it free" ,    // 16  no breaking with bare hands  Pickupable
+          "Need a knife to break it" ,    // 15  no breaking with bare hands  BreakableResource
+        "Need a knife to break it free" ,    // 16  no breaking with bare hands  Pickupable
         "Toggle lights",            // 17  toggle seamoth lights
         ". Press and hold ",         // 18  seamoth defense module
         " to charge the shot",      // 19  seamoth defense module

@@ -2,24 +2,25 @@
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal static class PDA_Clock_
+    static class PDA_Clock_
     {
         public static GameObject PDA_ClockGO { get; set; }
 
         public class PDA_Clock : MonoBehaviour
         {
-            private Text textComponent;
+            private TextMeshProUGUI textComponent;
             private const float oneHour = 0.0416666679084301f;
             //public static GameObject TimeLabelObject { private get; set; }
             bool blink = false;
 
             private void Awake()
             {
-                textComponent = GetComponent<Text>();
+                textComponent = GetComponent<TextMeshProUGUI>();
                 textComponent.fontSize = 50;
                 textComponent.color = Color.white;
             }
@@ -38,7 +39,7 @@ namespace Tweaks_Fixes
                     return;
                 //AddDebug("ApplyTimeToText " + gameObject.activeSelf + " " + gameObject.activeInHierarchy);
                 float dayScalar = DayNightCycle.main.GetDayScalar();
-                int minutes = Mathf.FloorToInt((dayScalar % oneHour / oneHour * 60f));
+                int minutes = Mathf.FloorToInt(dayScalar % oneHour / oneHour * 60f);
                 int hours = Mathf.FloorToInt(dayScalar * 24f);
                 //string str1 = "";
                 //string str2 = dayScalar < 0.75 ? (dayScalar < 0.5 ? (dayScalar < 0.25 ? "Midnight" : "Morning") : "Noon") : "Evening";
@@ -49,7 +50,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(uGUI_InventoryTab), "OnOpenPDA")]
-        internal static class uGUI_InventoryTab_OnOpenPDA_Patch
+        static class uGUI_InventoryTab_OnOpenPDA_Patch
         {
             private static void Prefix()
             {
@@ -60,7 +61,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(uGUI_Equipment), "Init")]
-        internal static class uGUI_Equipment_Init_Patch
+        static class uGUI_Equipment_Init_Patch
         {
             private static void Postfix(uGUI_Equipment __instance, Equipment equipment)
             {
@@ -75,7 +76,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(uGUI_InventoryTab), "Awake")]
-        internal static class uGUI_InventoryTab_Awake_Patch
+        static class uGUI_InventoryTab_Awake_Patch
         {
             private static void Postfix(uGUI_InventoryTab __instance)
             {

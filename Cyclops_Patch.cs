@@ -11,10 +11,13 @@ namespace Tweaks_Fixes
     public class Cyclops_Patch
     {
         static bool cyclopsHolographicHUDlastState = false;
-        static Rigidbody cyclopsRB;
+        static Rigidbody cyclopsRB; // vanilla code does not cache RB
         public static CyclopsEntryHatch ceh;
         //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
+        static float vertSpeedMult = .5f;
+        static float backwardSpeedMult = .5f;
+        
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -26,7 +29,7 @@ namespace Tweaks_Fixes
             else
                 instance.image.sprite = instance.inactiveSprite;
         }
-
+        
         static void AddCyclopsCollisionExclusion(GameObject go)
         {
             //AddDebug(__instance.name + " in cyclops");
@@ -38,18 +41,16 @@ namespace Tweaks_Fixes
                 foreach (Collider myCol in myCols)
                     Physics.IgnoreCollision(myCol, c);
             }
-            foreach (Collider c in myCols)
-            {
-                collidersInSub.Add(c);
-                //AddDebug("add collider to collidersInSub");
-            }
+            collidersInSub.AddRange(myCols);
+            //foreach (Collider c in myCols)
+            //AddDebug("add collider to collidersInSub");
         }
-
+        
         [HarmonyPatch(typeof(CyclopsHelmHUDManager))]
         class CyclopsHelmHUDManager_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Update")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Update")]
             public static void UpdatePostfix(CyclopsHelmHUDManager __instance)
             {
                 //if (Player.main.currentSub && Player.main.currentSub == __instance.subRoot)
@@ -86,7 +87,7 @@ namespace Tweaks_Fixes
                 //AddDebug("StopPiloting  ");
             }
         }
-
+        
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
         {
@@ -94,100 +95,11 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
             {
-                if (Main.config.fixCyclopsCollision)
-                    FixCollision(__instance);
-            }
-
-            private static void FixCollision(SubRoot __instance)
-            {
-                if (__instance.isCyclops && __instance.name == "Cyclops-MainPrefab(Clone)")
-                {// Start runs for prefab too
-                    Transform outerCol = __instance.transform.Find("CyclopsCollision/zOuterGroup");
-                    if (outerCol)
-                    {
-                        //AddDebug("SubRoot Start " );
-                        foreach (Transform child in outerCol)
-                        { // ignore cyclops outer colliders when building in cyclops
-                            //AddDebug("outerCol child " + child.name);
-                            child.gameObject.layer = LayerID.NotUseable;
-                            //child.gameObject.SetActive(false);
-                        }
-                    }
-                    Transform rightLowerWall = __instance.transform.Find("CyclopsCollision/keelFrontGroup/right_wall");
-                    if (rightLowerWall)
-                    {
-                        rightLowerWall.localPosition = new Vector3(-.25f, 0f, 0f);
-                        Vector3 rot = rightLowerWall.eulerAngles;
-                        rightLowerWall.eulerAngles = new Vector3(80f, rot.y, rot.z);
-                    }
-                    Transform leftLowerWall = __instance.transform.Find("CyclopsCollision/keelFrontGroup/left_wall");
-                    if (leftLowerWall)
-                    {
-                        leftLowerWall.localPosition = new Vector3(-.15f, 0f, 0f);
-                        Vector3 rot = leftLowerWall.eulerAngles;
-                        leftLowerWall.eulerAngles = new Vector3(80f, rot.y, rot.z);
-                    }
-                    Transform launchBayright_wall = __instance.transform.Find("CyclopsCollision/launchBayright_wall");
-                    if (launchBayright_wall)
-                    {
-                        launchBayright_wall.localPosition = new Vector3(-.125f, 0f, 0f);
-                        Vector3 rot = launchBayright_wall.eulerAngles;
-                        launchBayright_wall.eulerAngles = new Vector3(80f, rot.y, rot.z);
-                    }
-                    Transform launchBayleft_wall = __instance.transform.Find("CyclopsCollision/launchBayleft_wall");
-                    if (launchBayleft_wall)
-                    {
-                        launchBayleft_wall.localPosition = new Vector3(-.04f, 0f, 0f);
-                        Vector3 rot = launchBayleft_wall.eulerAngles;
-                        launchBayleft_wall.eulerAngles = new Vector3(80f, rot.y, rot.z);
-                    }
-                    Transform secondRoomGroup = __instance.transform.Find("CyclopsCollision/secondRoomGroup");
-                    Transform secondRoomRight_wall = __instance.transform.Find("CyclopsCollision/secondRoomGroup/right_wall");
-                    BoxCollider[] colliders = secondRoomRight_wall.GetComponents<BoxCollider>();
-                    //AddDebug("secondRoomRight_wall size " + colliders[0].size);
-                    GameObject leftWall = new GameObject("leftWall");
-                    leftWall.transform.SetParent(secondRoomGroup);
-                    Vector3 leftWallPos = secondRoomRight_wall.transform.position;
-                    leftWall.transform.position = new Vector3(leftWallPos.x + .15f, leftWallPos.y, leftWallPos.z);
-                    Vector3 leftWallRot = secondRoomRight_wall.transform.eulerAngles;
-                    Vector3 leftWallCenter = colliders[0].center;
-                    leftWall.transform.eulerAngles = new Vector3(leftWallRot.x - 3.5f, leftWallRot.y + 1f, leftWallRot.z);
-                    BoxCollider leftWallСol = leftWall.AddComponent<BoxCollider>();
-                    leftWallСol.size = colliders[0].size;
-                    leftWallСol.center = new Vector3(leftWallCenter.x + .4f, leftWallCenter.y, leftWallCenter.z);
-                    UnityEngine.Object.Destroy(colliders[0]);
-                    Vector3 rightWallPos = colliders[1].transform.position;
-                    colliders[1].transform.position = new Vector3(rightWallPos.x - 1.05f, rightWallPos.y, rightWallPos.z);
-                    Vector3 rightWallRot = colliders[1].transform.eulerAngles;
-                    colliders[1].transform.eulerAngles = new Vector3(rightWallRot.x + 3.5f, rightWallRot.y + .9f, rightWallRot.z);
-
-                    Transform controlRoomGroup = __instance.transform.Find("CyclopsCollision/controlRoomGroup");
-                    Transform controlRoomRightWall = __instance.transform.Find("CyclopsCollision/controlRoomGroup/right_wall");
-                    BoxCollider[] controlRoomСolliders = controlRoomRightWall.GetComponents<BoxCollider>();
-                    GameObject controlRoomLeftWall = new GameObject("leftWall");
-                    controlRoomLeftWall.transform.eulerAngles = controlRoomRightWall.transform.eulerAngles;
-                    controlRoomLeftWall.transform.SetParent(controlRoomGroup);
-                    Vector3 controlRoomLeftWallPos = controlRoomRightWall.transform.position;
-                    controlRoomLeftWall.transform.position = new Vector3(controlRoomLeftWallPos.x + .35f, controlRoomLeftWallPos.y, controlRoomLeftWallPos.z);
-                    BoxCollider controlRoomLeftWallСol = controlRoomLeftWall.AddComponent<BoxCollider>();
-                    controlRoomLeftWallСol.size = controlRoomСolliders[0].size;
-                    controlRoomLeftWallСol.center = controlRoomСolliders[0].center;
-                    UnityEngine.Object.Destroy(controlRoomСolliders[0]);
-                    Vector3 controlRoomRightWallPos = controlRoomСolliders[1].transform.position;
-                    controlRoomСolliders[1].transform.position = new Vector3(controlRoomRightWallPos.x - .5f, controlRoomRightWallPos.y, controlRoomRightWallPos.z);
-
-                    Transform engineRoomLeftWall = __instance.transform.Find("CyclopsCollision/engineRoomGroup/right_wall");
-                    engineRoomLeftWall.name = "leftWall";
-                    Transform engineRoomRightWall = __instance.transform.Find("CyclopsCollision/engineRoomGroup/right_wall");
-                    Vector3 engineRoomLeftWallPos = engineRoomLeftWall.transform.position;
-                    Vector3 engineRoomLeftWallRot = engineRoomLeftWall.transform.eulerAngles;
-                    engineRoomLeftWall.transform.eulerAngles = new Vector3(engineRoomLeftWallRot.x, engineRoomLeftWallRot.y - 1f, engineRoomLeftWallRot.z);
-                    engineRoomLeftWall.transform.position = new Vector3(engineRoomLeftWallPos.x + 1f, engineRoomLeftWallPos.y, engineRoomLeftWallPos.z);
-                    Vector3 engineRoomRightWallPos = engineRoomRightWall.transform.position;
-
-                    engineRoomRightWall.transform.position = new Vector3(engineRoomRightWallPos.x - 1.0f, engineRoomRightWallPos.y, engineRoomRightWallPos.z);
-                    Vector3 engineRoomRightWallRot = engineRoomRightWall.transform.eulerAngles;
-                    engineRoomRightWall.transform.eulerAngles = new Vector3(engineRoomRightWallRot.x, engineRoomRightWallRot.y + .75f, engineRoomRightWallRot.z);
+                if (__instance.isCyclops)
+                {
+                    WorldForces wf = __instance.GetComponent<WorldForces>();
+                    if (wf) // prevent it from jumping out of water when surfacing
+                        wf.aboveWaterGravity = 30f;
                 }
             }
 
@@ -203,89 +115,17 @@ namespace Tweaks_Fixes
                     Main.config.Save();
                 }
             }
-          
+
             [HarmonyPostfix]
             [HarmonyPatch("ForceLightingState")]
             public static void ForceLightingStatePostfix(SubRoot __instance, bool lightingOn)
             {
-                __instance.interiorSky.affectedByDayNightCycle = Main.config.cyclopsSunlight && !lightingOn;
+                if (__instance.isCyclops)
+                    __instance.interiorSky.affectedByDayNightCycle = Main.config.cyclopsSunlight && !lightingOn;
                 //AddDebug("affectedByDayNightCycle " + __instance.interiorSky.affectedByDayNightCycle);
             }
         }
-
-        //[HarmonyPatch(typeof(GUIHand), "UpdateActiveTarget")]
-        class GUIHand_UpdateActiveTarget_PostfixPatch
-        {
-            public static bool Prefix(GUIHand __instance)
-            {
-                if (!Player.main.currentSub || !Player.main.currentSub.isCyclops)
-                    return true;
-
-                PlayerTool tool = __instance.GetTool();
-                if (tool != null && tool.GetComponent<PropulsionCannon>() != null && tool.GetComponent<PropulsionCannon>().IsGrabbingObject())
-                {
-                    __instance.activeTarget = tool.GetComponent<PropulsionCannon>().GetNearbyGrabbedObject();
-                    __instance.suppressTooltip = true;
-                }
-                else if (tool != null && tool.DoesOverrideHand() || !Targeting.GetTarget(Player.main.gameObject, 2f, out __instance.activeTarget, out __instance.activeHitDistance))
-                {
-                    __instance.activeTarget = null;
-                    __instance.activeHitDistance = 0.0f;
-                }
-                else if (__instance.activeTarget.layer == LayerID.NotUseable)
-                {
-         
-                    if (__instance.activeTarget.transform.parent && __instance.activeTarget.transform.parent.name == "zOuterGroup")
-                    {
-                        //AddDebug(" NotUseable + " + __instance.activeTarget.transform.parent.name);
-                    }
-                    else
-                        __instance.activeTarget = null;
-                }
-                else
-                {
-                    IHandTarget handTarget = null;
-                    for (Transform transform = __instance.activeTarget.transform; transform != null; transform = transform.parent)
-                    {
-                        handTarget = transform.GetComponent<IHandTarget>();
-                        if (handTarget != null)
-                        {
-                            __instance.activeTarget = transform.gameObject;
-                            break;
-                        }
-                    }
-                    if (handTarget == null)
-                    {
-                        switch (CraftData.GetHarvestTypeFromTech(CraftData.GetTechType(__instance.activeTarget)))
-                        {
-                            case HarvestType.None:
-                                __instance.activeTarget = null;
-                                break;
-                            case HarvestType.Pick:
-                                if (Utils.FindAncestorWithComponent<Pickupable>(__instance.activeTarget) == null)
-                                {
-                                    LargeWorldEntity ancestorWithComponent = Utils.FindAncestorWithComponent<LargeWorldEntity>(__instance.activeTarget);
-                                    ancestorWithComponent.gameObject.AddComponent<Pickupable>();
-                                    ancestorWithComponent.gameObject.AddComponent<WorldForces>().useRigidbody = ancestorWithComponent.GetComponent<Rigidbody>();
-                                    break;
-                                }
-                                break;
-                        }
-                    }
-                }
-                if (!IntroVignette.isIntroActive)
-                    return false;
-                __instance.activeTarget = __instance.FilterIntroTarget(__instance.activeTarget);
-                //AddDebug(" UpdateActiveTarget + " + __instance.activeTarget);
-                return false;
-            }
-
-            public static void Postfix(GUIHand __instance)
-            {
-                //AddDebug(" UpdateActiveTarget + " + __instance.activeTarget);
-            }
-        }
-
+        
         [HarmonyPatch(typeof(CyclopsMotorModeButton), "Start")]
         class CyclopsMotorModeButton_Start_Patch
         {
@@ -298,12 +138,14 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(SubControl))]
         class SubControl_Patch
         {
-            [HarmonyPatch(nameof(SubControl.Start))]
+            static int numBallastWeight;
+
             [HarmonyPostfix]
+            [HarmonyPatch("Start")]
             public static void StartPostfix(SubControl __instance)
             {
                 //if (Main.config.vehicleMoveTweaks) 
@@ -312,8 +154,10 @@ namespace Tweaks_Fixes
                 //}
                 //TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
                 //techTag.type = TechType.Cyclops;
+                numBallastWeight = __instance.gameObject.GetComponentsInChildren<BallastWeight>().Length;
+                //AddDebug("Start numBallastWeight " + numBallastWeight);
                 Transform tr = __instance.transform.Find("Headlights");
-                if (tr)
+                if (tr) // not used
                     UnityEngine.Object.Destroy(tr.gameObject);
 
                 Tools_Patch.lightOrigIntensity[TechType.Cyclops] = 2f;
@@ -327,10 +171,11 @@ namespace Tweaks_Fixes
                 }
 
             }
-            [HarmonyPatch(nameof(SubControl.Update))]
+
             [HarmonyPrefix]
+            [HarmonyPatch("Update")]
             public static bool UpdatePrefix(SubControl __instance)
-            { // fix max diagonal speed 
+            { // fix diagonal speed 
                 if (!__instance.LOD.IsFull())
                     return false;
 
@@ -341,10 +186,10 @@ namespace Tweaks_Fixes
                 if (__instance.controlMode == SubControl.Mode.DirectInput)
                 {
                     __instance.throttle = GameInput.GetMoveDirection();
-                    __instance.throttle.Normalize();
+                    __instance.throttle.Normalize(); //my
                     //AddDebug("throttle " + __instance.throttle);
                     //AddDebug(".magnitude " + __instance.throttle.magnitude);
-                    if (__instance.canAccel && __instance.throttle.magnitude > 0.0001)
+                    if (__instance.canAccel && __instance.throttle.magnitude > 0.0001f)
                     {
                         float amountConsumed = 0f;
                         float amount = __instance.throttle.magnitude * __instance.cyclopsMotorMode.GetPowerConsumption() * Time.deltaTime / __instance.sub.GetPowerRating();
@@ -361,30 +206,35 @@ namespace Tweaks_Fixes
                         float topClamp = 0.33f;
                         if (__instance.useThrottleIndex == 1)
                             topClamp = 0.66f;
+
                         if (__instance.useThrottleIndex == 2)
                             topClamp = 1f;
+
                         __instance.engineRPMManager.AccelerateInput(topClamp);
                         for (int index = 0; index < __instance.throttleHandlers.Length; ++index)
                             __instance.throttleHandlers[index].OnSubAppliedThrottle();
+
                         if (__instance.lastTimeThrottled < Time.time - 5f)
                             Utils.PlayFMODAsset(__instance.engineStartSound, MainCamera.camera.transform);
                     }
                     if (AvatarInputHandler.main.IsEnabled())
                     {
                         if (GameInput.GetButtonDown(GameInput.Button.RightHand))
-                            __instance.transform.parent.BroadcastMessage("ToggleFloodlights", (object)null, SendMessageOptions.DontRequireReceiver);
+                            __instance.transform.parent.BroadcastMessage("ToggleFloodlights", null, SendMessageOptions.DontRequireReceiver);
+
                         if (GameInput.GetButtonDown(GameInput.Button.Exit))
                             Player.main.TryEject();
                     }
                 }
-                if (__instance.appliedThrottle)
-                    return false;
-                __instance.throttle = new Vector3(0.0f, 0.0f, 0.0f);
+                if (!__instance.appliedThrottle)
+                    __instance.throttle = new Vector3(0f, 0f, 0f);
+
+                __instance.UpdateAnimation();
                 return false;
             }
 
-            [HarmonyPatch(nameof(SubControl.FixedUpdate))]
             [HarmonyPrefix]
+            [HarmonyPatch("FixedUpdate")]
             public static bool FixedUpdatePrefix(SubControl __instance)
             {  // halve vertical and backward speed
                 if (!Main.config.cyclopsMoveTweaks)
@@ -395,71 +245,33 @@ namespace Tweaks_Fixes
 
                 for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
                     __instance.accelerationModifiers[index].ModifyAcceleration(ref __instance.throttle);
-                if (Ocean.main.GetDepthOf(__instance.gameObject) < 0f)
-                    return false;
 
-                float b1 = 0.0f;
-                float b2 = 0.0f;
+                if (Ocean.GetDepthOf(__instance.gameObject) <= 0f)
+                    return false;
 
                 if (Mathf.Abs(__instance.throttle.x) > 0.0001f)
                 {
                     float baseTurningTorque = __instance.BaseTurningTorque;
                     if (__instance.canAccel)
                         cyclopsRB.AddTorque(__instance.sub.subAxis.up * baseTurningTorque * __instance.turnScale * __instance.throttle.x, ForceMode.Acceleration);
-
-                    ShipSide useShipSide;
-                    if (__instance.throttle.x > 0.0)
-                    {
-                        useShipSide = ShipSide.Port;
-                        b1 = 90f;
-                    }
-                    else
-                    {
-                        useShipSide = ShipSide.Starboard;
-                        b1 = -90f;
-                    }
-                    if (__instance.throttle.x < -0.1f || __instance.throttle.x > 0.1f)
-                    {
-                        for (int index = 0; index < __instance.turnHandlers.Length; ++index)
-                            __instance.turnHandlers[index].OnSubTurn(useShipSide);
-                    }
                 }
                 if (Mathf.Abs(__instance.throttle.y) > 0.0001f)
                 {
-                    //AddDebug("BaseVerticalAccel  " + __instance.BaseVerticalAccel);
-                    //AddDebug("accelScale  " + __instance.accelScale);
-                    b2 = __instance.throttle.y <= 0f ? -90f : 90f;
-                    float num = __instance.BaseVerticalAccel * .5f + __instance.gameObject.GetComponentsInChildren<BallastWeight>().Length * __instance.AccelPerBallast;
-                    Vector3 accel = Vector3.up * num * __instance.accelScale * __instance.throttle.y;
-                    //AddDebug("accel  " + accel);
+                    float num = __instance.BaseVerticalAccel * vertSpeedMult + numBallastWeight * __instance.AccelPerBallast;
                     if (__instance.canAccel)
-                        cyclopsRB.AddForce(accel, ForceMode.Acceleration);
+                        cyclopsRB.AddForce(Vector3.up * num * __instance.accelScale * __instance.throttle.y, ForceMode.Acceleration);
                 }
                 if (__instance.canAccel)
                 {
-                    if (__instance.throttle.z > 0.0001f)
-                    {
-                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
-                    }
+                     if (__instance.throttle.z > 0.0001f)
+                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel *  __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
                     else if (__instance.throttle.z < -0.0001f)
-                    {
-                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * .5f * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
-                    }
+                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * backwardSpeedMult * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
                 }
-                __instance.steeringWheelYaw = Mathf.Lerp(__instance.steeringWheelYaw, b1, Time.deltaTime * __instance.steeringReponsiveness);
-                __instance.steeringWheelPitch = Mathf.Lerp(__instance.steeringWheelPitch, b2, Time.deltaTime * __instance.steeringReponsiveness);
-                if (!__instance.mainAnimator)
-                    return false;
-
-                __instance.mainAnimator.SetFloat("view_yaw", __instance.steeringWheelYaw);
-                __instance.mainAnimator.SetFloat("view_pitch", __instance.steeringWheelPitch);
-                Player.main.playerAnimator.SetFloat("cyclops_yaw", __instance.steeringWheelYaw);
-                Player.main.playerAnimator.SetFloat("cyclops_pitch", __instance.steeringWheelPitch);
-
                 return false;
             }
         }
-
+        
         [HarmonyPatch(typeof(CyclopsEntryHatch), "OnTriggerEnter")]
         class CyclopsEntryHatch_Start_Patch
         { // OnTriggerExit does not fire if you use closest ladder so hatch does not close
@@ -472,7 +284,7 @@ namespace Tweaks_Fixes
                 //cyclopsHelmHUDManager.hudActive = true;
             }
         }
-
+        
         [HarmonyPatch(typeof(CinematicModeTriggerBase), "OnHandClick")]
         class CinematicModeTriggerBase_OnHandClick_Patch
         {
@@ -483,14 +295,14 @@ namespace Tweaks_Fixes
                     CinematicModeTrigger cmt = __instance as CinematicModeTrigger;
                     if (cmt && cmt.handText == "ClimbLadder")
                     {
-                        //AddDebug("CLOSE !!! " );
+                        //AddDebug("CLOSE ! " );
                         ceh.hatchOpen = false;
                     }
                 }
             }
         }
-
-        [HarmonyPatch(typeof(CyclopsSilentRunningAbilityButton), "SilentRunningIteration")]
+        
+        //[HarmonyPatch(typeof(CyclopsSilentRunningAbilityButton), "SilentRunningIteration")]
         class CyclopsSilentRunningAbilityButton_SilentRunningIteration_Patch
         {
             public static bool Prefix(CyclopsSilentRunningAbilityButton __instance)
@@ -508,7 +320,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(VehicleDockingBay))]
-        internal class VehicleDockingBay_LaunchbayAreaEnter_Patch
+        public class VehicleDockingBay_LaunchbayAreaEnter_Patch
         { // dont play sfx if another vehicle docked
             [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaEnter))]
             [HarmonyPrefix]
@@ -554,290 +366,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Builder), "IsObstacle", new Type[]{typeof(Collider)})]
-        //[HarmonyPatch(typeof(Builder), "CheckTag")]
-        class Builder_IsObstacle_Patch
-        {
-            public static void Postfix(Collider c, ref bool __result)
-            {
-                //AddDebug("Builder CheckTag " + c.name);
-            }
-        }
-
-        [HarmonyPatch(typeof(Builder), "Initialize")]
-        class Builder_Initialize_Patch
-        {
-            public static void Postfix()
-            { // ignore cyclops outer colliders when building in cyclops
-              //Builder.placeLayerMask = (LayerMask)~(1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Trigger") | 1 << LayerMask.NameToLayer("NotUseable"));
-                if (Main.config.fixCyclopsCollision)
-                    Builder.placeLayerMask = -6815745;
-               //AddDebug("Builder Initialize ");
-               // Main.Log("Builder Initialize " + Builder.placeLayerMask.value);
-            }
-        }
-
-        [HarmonyPatch(typeof(Targeting), "GetTarget", new Type[] { typeof(float), typeof(GameObject), typeof(float), typeof(Targeting.FilterRaycast) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out, ArgumentType.Normal })]
-        class Targeting_GetTarget_PrefixPatch
-        {
-            public static bool Prefix(ref GameObject result, ref bool __result, float maxDistance, Targeting.FilterRaycast filter, out float distance)
-            {
-                //AddDebug(" Targeting GetTarget  " + result.name);
-                if (!Main.config.fixCyclopsCollision || !Player.main.currentSub || !Player.main.currentSub.isCyclops)
-                {
-                    distance = 0f;
-                    return true;
-                }
-                bool flag = false;
-                Transform transform = MainCamera.camera.transform;
-                Vector3 position = transform.position;
-                Vector3 forward = transform.forward;
-                Ray ray = new Ray(position, forward);
-                //int layerMask = -2097153;
-                int layerMask = Builder.placeLayerMask;
-                QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Collide;
-                int numHits1 = UWE.Utils.RaycastIntoSharedBuffer(ray, maxDistance, Builder.placeLayerMask, queryTriggerInteraction);
-                RaycastHit resultHit;
-                if (Targeting.Filter(UWE.Utils.sharedHitBuffer, numHits1, filter, out resultHit))
-                    flag = true;
-                if (!flag)
-                {
-                    for (int index = 0; index < Targeting.radiuses.Length; ++index)
-                    {
-                        float radiuse = Targeting.radiuses[index];
-                        ray.origin = position + forward * radiuse;
-                        int numHits2 = UWE.Utils.SpherecastIntoSharedBuffer(ray, radiuse, maxDistance, layerMask, queryTriggerInteraction);
-                        if (Targeting.Filter(UWE.Utils.sharedHitBuffer, numHits2, filter, out resultHit))
-                        {
-                            flag = true;
-                            break;
-                        }
-                    }
-                }
-                Targeting.Reset();
-                result = resultHit.collider != null ? resultHit.collider.gameObject : null;
-                distance = resultHit.distance;
-                __result = flag;
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Fabricator), "Start")]
-        class Fabricator_Start_Patch
-        {
-            public static void Postfix(Fabricator __instance)
-            { 
-                if (Main.loadingDone && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
-                { // collision does not match mesh. Can see it after fixing cyclops collision. move it so cant see it when outside
-                  //AddDebug("Fabricator Start parent " + __instance.transform.parent.name);
-                    __instance.transform.position += __instance.transform.forward * .11f;
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(Builder), "CheckAsSubModule")]
-        class Builder_CheckAsSubModule_Patch
-        {
-            //static int colliderLayerID = LayerID.NotUseable;
-            //static GameObject outerCol = null;
-            static Dictionary<GameObject, int> outerColliders = new Dictionary<GameObject, int>();
-
-            public static bool Prefix(ref bool __result)
-            {
-                //AddDebug("Builder CheckAsSubModule " + __result);
-                if (!Constructable.CheckFlags(Builder.allowedInBase, Builder.allowedInSub, Builder.allowedOutside))
-                {
-                    __result = false;
-                    return false;
-                }
-                Transform aimTransform = Builder.GetAimTransform();
-                Builder.placementTarget = null;
-                RaycastHit hitInfo;
-                if (!Physics.Raycast(aimTransform.position, aimTransform.forward, out hitInfo, Builder.placeMaxDistance, Builder.placeLayerMask.value, QueryTriggerInteraction.Ignore))
-                {
-                    __result = false;
-                    return false;
-                }
-                //AddDebug("Builder CheckAsSubModule " + hitInfo.collider.name + " layer " + hitInfo.collider.gameObject.layer);
-                SubRoot subRoot = Player.main.currentSub;
-                if (subRoot && subRoot.isCyclops)
-                {
-                    //while (subOuterCol.Contains(hitInfo.collider))
-                    //{
-                    //    AddDebug("Builder CheckAsSubModule outer col " + hitInfo.collider.name + " parent " + hitInfo.collider.gameObject.transform.parent);
-                    //    outerColliders[hitInfo.collider.gameObject] = hitInfo.collider.gameObject.layer;
-                    //    hitInfo.collider.gameObject.layer = LayerID.Player;
-                    //    if (!Physics.Raycast(aimTransform.position, aimTransform.forward, out hitInfo, Builder.placeMaxDistance, Builder.placeLayerMask.value, QueryTriggerInteraction.Ignore))
-                    //    {
-                    //        __result = false;
-                    //        return false;
-                    //    }
-                    //    AddDebug("Raycast again " + hitInfo.collider.name + " parent " + hitInfo.collider.gameObject.transform.parent);
-                    //}
-                }
-                Builder.placementTarget = hitInfo.collider.gameObject;
-                Builder.SetPlaceOnSurface(hitInfo, ref Builder.placePosition, ref Builder.placeRotation);
-                if (!Builder.CheckTag(hitInfo.collider) || !Builder.CheckSurfaceType(Builder.GetSurfaceType(hitInfo.normal)) || !Builder.CheckDistance(hitInfo.point, Builder.placeMinDistance) || !Builder.allowedOnConstructables && Builder.HasComponent<Constructable>(hitInfo.collider.gameObject))
-                {
-                    __result = false;
-                    return false;
-                }
-                if (!Player.main.IsInSub())
-                {
-                    GameObject hitObject = UWE.Utils.GetEntityRoot(Builder.placementTarget);
-                    if (!hitObject)
-                        hitObject = Builder.placementTarget;
-                    if (!Builder.ValidateOutdoor(hitObject))
-                    {
-                        __result = false;
-                        return false;
-                    }
-                }
-                __result = Builder.CheckSpace(Builder.placePosition, Builder.placeRotation, Builder.bounds, Builder.placeLayerMask.value, hitInfo.collider);
-                return false;
-            }
-
-            public static void Postfix(ref bool __result)
-            {
-                foreach (var pair in outerColliders)
-                {
-                    //AddDebug("restore layer " + pair.Key.name);
-                    pair.Key.layer = pair.Value;
-                }
-                outerColliders = new Dictionary<GameObject, int>();
-            }
-        }
-
-        [HarmonyPatch(typeof(BuilderTool), "HandleInput")]
-        class BuilderTool_HandleInput_Patch
-        { // ignore cyclops outer colliders when building in cyclops
-            //static readonly Targeting.FilterRaycast filter = hit => hit.collider != null && hit.collider.gameObject.layer == LayerID.NotUseable;
-            public static bool Prefix(BuilderTool __instance)
-            {
-                if (!Main.config.fixCyclopsCollision)
-                    return true;
-                if (__instance.handleInputFrame == Time.frameCount)
-                    return false;
-                //AddDebug("BuilderTool HandleInput ");
-                __instance.handleInputFrame = Time.frameCount;
-                if (!__instance.isDrawn || Builder.isPlacing || (!AvatarInputHandler.main.IsEnabled() || __instance.TryDisplayNoPowerTooltip()))
-                    return false;
-                //AddDebug("BuilderTool HandleInput placeLayerMask " + Builder.placeLayerMask.value);
-                RaycastHit hitInfo;
-                if (!Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 30f, Builder.placeLayerMask.value, QueryTriggerInteraction.Collide))
-                    return false;
-                //AddDebug("BuilderTool HandleInput Target " + hitInfo.collider.name + " parent " + hitInfo.collider.transform.parent.name);
-                bool buttonHeld1 = GameInput.GetButtonHeld(GameInput.Button.LeftHand);
-                bool buttonDown = GameInput.GetButtonDown(GameInput.Button.Deconstruct);
-                bool buttonHeld2 = GameInput.GetButtonHeld(GameInput.Button.Deconstruct);
-                Constructable constructable = hitInfo.collider.GetComponentInParent<Constructable>();
-                if (constructable != null && hitInfo.distance > constructable.placeMaxDistance)
-                    constructable = null;
-                if (constructable != null)
-                {
-                    __instance.OnHover(constructable);
-                    if (buttonHeld1)
-                    {
-                        __instance.Construct(constructable, true);
-                    }
-                    else
-                    {
-                        string reason;
-                        if (constructable.DeconstructionAllowed(out reason))
-                        {
-                            if (!buttonHeld2)
-                                return false;
-                            if (constructable.constructed)
-                                constructable.SetState(false, false);
-                            else
-                                __instance.Construct(constructable, false);
-                        }
-                        else
-                        {
-                            if (!buttonDown || string.IsNullOrEmpty(reason))
-                                return false;
-                            AddMessage(reason);
-                        }
-                    }
-                }
-                else
-                {
-                    BaseDeconstructable deconstructable = hitInfo.collider.GetComponentInParent<BaseDeconstructable>();
-                    //BaseDeconstructable deconstructable = result.GetComponentInParent<BaseDeconstructable>();
-                    if (deconstructable == null)
-                    {
-                        BaseExplicitFace componentInParent = hitInfo.collider.GetComponentInParent<BaseExplicitFace>();
-                        //BaseExplicitFace componentInParent = result.GetComponentInParent<BaseExplicitFace>();
-                        if (componentInParent != null)
-                            deconstructable = componentInParent.parent;
-                    }
-                    if (deconstructable == null)
-                        return false;
-                    string reason;
-                    if (deconstructable.DeconstructionAllowed(out reason))
-                    {
-                        __instance.OnHover(deconstructable);
-                        if (!buttonDown)
-                            return false;
-                        deconstructable.Deconstruct();
-                    }
-                    else
-                    {
-                        if (!buttonDown || string.IsNullOrEmpty(reason))
-                            return false;
-                        AddMessage(reason);
-                    }
-                }
-                return false;
-            }
-        }
-
-        //[HarmonyPatch(typeof(BuilderTool), "OnHolster")]
-        class BuilderTool_OnHolster_Patch
-        {
-            public static void Prefix(BuilderTool __instance)
-            {
-                SubRoot subRoot = Player.main.currentSub;
-                if (subRoot && subRoot.isCyclops)
-                {
-                    //AddDebug("BuilderTool OnHolster ");
-                    Transform outerCol = subRoot.transform.Find("CyclopsCollision/zOuterGroup");
-                    if (outerCol)
-                    {
-                        foreach (Transform child in outerCol)
-                        {
-                            //AddDebug("outerCol child " + child.name);
-                            //child.gameObject.layer = LayerID.Default;
-                            //child.gameObject.SetActive(false);
-                        }
-                    }
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(PlayerTool), "OnDraw")]
-        class PlayerTool_OnDraw_Patch
-        {
-            public static void Prefix(PlayerTool __instance)
-            {
-                SubRoot subRoot = Player.main.currentSub;
-                if (subRoot && subRoot.isCyclops && __instance is BuilderTool)
-                {
-                    //AddDebug("PlayerTool OnDraw ");
-                    Transform outerCol = subRoot.transform.Find("CyclopsCollision/zOuterGroup");
-                    if (outerCol)
-                    {
-                        foreach (Transform child in outerCol)
-                        {
-                            //AddDebug("outerCol child " + child.name);
-                            child.gameObject.layer = LayerID.Player;
-                            //child.gameObject.SetActive(false);
-                        }
-                    }
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(Constructable), "Start")]
         class Constructable_Start_Patch
         {
@@ -852,7 +380,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(Plantable), "Spawn")]
-        internal class Plantable_Spawn_Patch
+        public class Plantable_Spawn_Patch
         {
             public static void Postfix(Plantable __instance, Transform parent, bool isIndoor, GameObject __result)
             {
@@ -862,7 +390,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(GrownPlant), "Awake")]
-        internal class GrownPlant_Awake_Patch
+        public class GrownPlant_Awake_Patch
         {
             public static void Postfix(GrownPlant __instance)
             {
@@ -870,7 +398,7 @@ namespace Tweaks_Fixes
                     AddCyclopsCollisionExclusion(__instance.gameObject);
             }
         }
-
+        
         [HarmonyPatch(typeof(CyclopsHolographicHUD))]
         class CyclopsHolographicHUD_Patch
         {
@@ -893,6 +421,7 @@ namespace Tweaks_Fixes
                         CyclopsCompassHUD cyclopsCompassHUD = subRoot.GetComponentInChildren<CyclopsCompassHUD>();
                         foreach (Transform child in cyclopsCompassHUD.transform)
                                 child.gameObject.SetActive(false);
+
                         CyclopsDecoyScreenHUDManager cdshudm = subRoot.GetComponentInChildren<CyclopsDecoyScreenHUDManager>();
                         cdshudm.gameObject.SetActive(false);
                         CyclopsVehicleStorageTerminalManager cvstm = subRoot.GetComponentInChildren<CyclopsVehicleStorageTerminalManager>();
@@ -915,7 +444,7 @@ namespace Tweaks_Fixes
                         cvstmScreen.gameObject.SetActive(true);
                         Transform uchTr = subRoot.transform.Find("UpgradeConsoleHUD");
                         uchTr.gameObject.SetActive(true);
-                        
+
                     }
                     cyclopsHolographicHUDlastState = isPowered;
                 }
@@ -923,7 +452,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(CyclopsLightingPanel))]
-        internal class CyclopsLightingPanel_Patch
+        public class CyclopsLightingPanel_Patch
         {
             [HarmonyPrefix]
             [HarmonyPatch("Update")]
@@ -956,8 +485,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnTriggerEnter")]
             public static bool OnTriggerEnterPrefix(CyclopsLightingPanel __instance, Collider col)
             {
-                if (!col.gameObject.Equals(Player.main.gameObject))
+                if (col.gameObject != Player.main.gameObject)
                     return false;
+
                 if (__instance.CheckIsPowered())
                 {
                     __instance.uiPanel.SetBool("PanelActive", true);
@@ -968,7 +498,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(CyclopsSonarDisplay))]
-        internal class CyclopsSonarDisplay_Patch
+        public class CyclopsSonarDisplay_Patch
         {
             [HarmonyPrefix]
             [HarmonyPatch("DistanceCheck")]
@@ -989,7 +519,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(CyclopsSubNameScreen))]
-        internal class CyclopsSubNameScreen_Patch
+        public class CyclopsSubNameScreen_Patch
         {
             [HarmonyPrefix]
             [HarmonyPatch("ContentOn")]
@@ -1019,7 +549,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(PilotingChair))]
-        internal class PilotingChair_Patch
+        public class PilotingChair_Patch
         {
             [HarmonyPrefix]
             [HarmonyPatch("IsValidHandTarget")]
@@ -1043,6 +573,7 @@ namespace Tweaks_Fixes
                 }
                 for (int index = 0; index < __instance.destroyed.Length; ++index)
                     __instance.destroyed[index].SetActive(true);
+
                 __instance.ToggleSinking(true);
                 __instance.subRoot.subWarning = false;
                 __instance.subRoot.BroadcastMessage("NewAlarmState", null, SendMessageOptions.DontRequireReceiver);
@@ -1066,6 +597,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
+      
     }
 }

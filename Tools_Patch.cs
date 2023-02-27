@@ -16,6 +16,7 @@ namespace Tweaks_Fixes
         static ToggleLights seaglideToggleLights = null;
         public static Dictionary<Creature, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<Creature, Dictionary<TechType, int>>();
 
+        
         [HarmonyPatch(typeof(FlashLight), "Start")]
         public class FlashLight_Start_Patch
         {
@@ -26,23 +27,6 @@ namespace Tweaks_Fixes
                 {
                     if (lights[i].type == LightType.Point)
                         lights[i].enabled = false;
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(Inventory), "OnAddItem")]
-        internal class Inventory_OnAddItem_Patch
-        {
-            public static void Postfix(Inventory __instance, InventoryItem item)
-            {
-                if (item != null && item.item && item.item.GetTechType() == TechType.SmallStorage)
-                {
-                    //AddDebug("Inventory OnAddItem SmallStorage");
-                    Transform label = item.item.transform.Find("LidLabel");
-                    if (label)
-                    {
-                        label.localPosition = new Vector3(0.02f, 0.04f, -0.04f);
-                    }
                 }
             }
         }
@@ -58,9 +42,10 @@ namespace Tweaks_Fixes
                 if (lights.Length > 0)
                 { // seaglide uses 2 lights
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    //AddDebug(tt + " PlayerTool.Awake lights " + lights.Length);
                     if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
                         return;
-                    //AddDebug(tt + " PlayerTool.Awake lights " + lights.Length);
+
                     lightOrigIntensity[tt] = lights[0].intensity;
                     lightIntensityStep[tt] = lights[0].intensity * .1f;
                     //Main.Log(tt + " lightOrigIntensity " + lights[0].intensity);
@@ -98,25 +83,6 @@ namespace Tweaks_Fixes
                     //AddDebug(" attackDist  " + knife.attackDist);
                     //AddDebug(" damage  " + knife.damage);
                 }
-                else if (__instance is LEDLight)
-                {
-                    __instance.transform.localPosition = new Vector3(0.075f, -0.08f, -0.09f);
-                    __instance.transform.localEulerAngles = new Vector3(33f, 77f, 45f);
-                    __instance.transform.localScale = new Vector3(.9f, .9f, .9f);
-                    //AddDebug(" LEDLight OnDraw " + __instance.transform.localPosition);
-                }
-
-                {
-                    //Builder.Initialize();
-                }
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("OnHolster")]
-            public static void OnHolsterPostfix(PlayerTool __instance)
-            {
-                if (__instance is LEDLight)
-                    __instance.transform.localScale = Vector3.one;
             }
 
             [HarmonyPostfix]
@@ -134,7 +100,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(Knife))]
         class Knife_Patch
         {
@@ -142,16 +108,16 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnToolUseAnim")]
             public static void OnToolUseAnimPostfix(Knife __instance)
             {
-                if (!Main.guiHand.activeTarget)
+                if (!Player.main.guiHand.activeTarget)
                     return;
 
-                BreakableResource breakableResource = Main.guiHand.activeTarget.GetComponent<BreakableResource>();
+                BreakableResource breakableResource = Player.main.guiHand.activeTarget.GetComponent<BreakableResource>();
                 if (breakableResource)
                 {
                     breakableResource.BreakIntoResources();
                     //AddDebug("BreakableResource");
                 }
-                Pickupable pickupable = Main.guiHand.activeTarget.GetComponent<Pickupable>();
+                Pickupable pickupable = Player.main.guiHand.activeTarget.GetComponent<Pickupable>();
                 if (pickupable)
                 {
                     TechType techType = pickupable.GetTechType();
@@ -159,7 +125,7 @@ namespace Tweaks_Fixes
                     {
                         Rigidbody rb = pickupable.GetComponent<Rigidbody>();
                         if (rb && rb.isKinematic)  // attached to wall
-                            pickupable.OnHandClick(Main.guiHand);
+                            pickupable.OnHandClick(Player.main.guiHand);
                     }
                 }
             }
@@ -203,7 +169,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(Constructor), "OnEnable")]
         class Constructor_OnEnable_Patch
         {
@@ -212,7 +178,8 @@ namespace Tweaks_Fixes
                 //AddDebug("OnEnable Constructor ");
                 ImmuneToPropulsioncannon itpc = __instance.GetComponent<ImmuneToPropulsioncannon>();
                 //itpc.enabled = false;
-                UnityEngine.Object.Destroy(itpc);
+                if (itpc)
+                    UnityEngine.Object.Destroy(itpc);
             }
         }
 
@@ -265,7 +232,7 @@ namespace Tweaks_Fixes
                 scanning = PDAScanner.IsFragment(PDAScanner.scanTarget.techType);
             }
         }
-
+        
         [HarmonyPatch(typeof(MapRoomCamera))]
         class MapRoomCamera_Patch
         {
@@ -319,10 +286,12 @@ namespace Tweaks_Fixes
                 float step = lightIntensityStep[TechType.MapRoomCamera];
                 if (direction < 0)
                     step = -step;
+
                 foreach (Light l in Vehicle_patch.currentLights)
                 {
                     if (step > 0 && l.intensity > lightOrigIntensity[TechType.MapRoomCamera])
                         return false;
+
                     l.intensity += step;
                     //AddDebug("Light Intensity " + l.intensity);
                     Main.config.lightIntensity[TechType.MapRoomCamera] = l.intensity;
@@ -330,170 +299,10 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
-        [HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
-        class RepulsionCannon_OnToolUseAnim_Patch
-        {
-            static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)
-            {
-                //AddDebug("ShootObject " + rb.name);
-                if (__instance.energyMixin.charge <= 0f)
-                    return false;
-                float num1 = Mathf.Clamp01(__instance.energyMixin.charge * .25f);
-                Vector3 forward = MainCamera.camera.transform.forward;
-                Vector3 position = MainCamera.camera.transform.position;
-                int num2 = UWE.Utils.SpherecastIntoSharedBuffer(position, 1f, forward, 35f, ~(1 << LayerMask.NameToLayer("Player")));
-                float num3 = 0f;
-                for (int index1 = 0; index1 < num2; ++index1)
-                {
-                    RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
-                    Vector3 point = raycastHit.point;
-                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) * .02857f);
-                    GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
-                    if (go == null)
-                        go = raycastHit.collider.gameObject;
-                    Rigidbody rb = go.GetComponent<Rigidbody>();
-                    if (rb != null)
-                    {
-                        num3 += rb.mass;
-                        bool flag = true;
-                        go.GetComponents<IPropulsionCannonAmmo>(__instance.iammo);
-                        for (int index2 = 0; index2 < __instance.iammo.Count; ++index2)
-                        {
-                            if (!__instance.iammo[index2].GetAllowedToShoot())
-                            {
-                                flag = false;
-                                break;
-                            }
-                        }
-                        __instance.iammo.Clear();
-                        if (flag && !(raycastHit.collider is MeshCollider) && (go.GetComponent<Pickupable>() != null || go.GetComponent<Living>() != null || rb.mass <= 1300f && UWE.Utils.GetAABBVolume(go) <= 400f))
-                        {
-                            float num5 = (1f + rb.mass * 0.005f);
-                            Vector3 velocity = forward * num4 * num1 * 70f / num5;
-                            repCannonGOs.Add(go);
-                            __instance.ShootObject(rb, velocity);
-                        }
-                    }
-                }
-                __instance.energyMixin.ConsumeEnergy(4f);
-                __instance.fxControl.Play();
-                __instance.callBubblesFX = true;
-                Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
-                float num6 = Mathf.Clamp(num3 / 100f, 0f, 15f);
-                Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(PropulsionCannon))]
-        class PropulsionCannon_Patch
-        {
-            //[HarmonyPatch(nameof(PropulsionCannon.TraceForGrabTarget))]
-            //[HarmonyPrefix]
-            static bool TraceForGrabTargetPrefix(PropulsionCannon __instance, ref GameObject __result)
-            {
-                __result = null;
-                Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
-                if (target == null)
-                {
-                    //AddDebug(" no target");
-                    return false;
-                }
-                UniqueIdentifier ui = target.GetComponentInParent<UniqueIdentifier>();
-                if (ui)
-                    AddDebug("target " + ui.gameObject.name);
-                else
-                {
-                    //AddDebug(target.name + "has no identifier");
-                    return false;
-                }
-                if (ui.gameObject.GetComponent<FruitPlant>())
-                {
-                    //AddDebug("FruitPlant");
-                    return false;
-                }
-                if (!__instance.ValidateObject(ui.gameObject))
-                {
-                    //AddDebug("could not Validate Object");
-                    return false;
-                }
-                if (ui.gameObject.GetComponent<Pickupable>())
-                {
-                    //AddDebug("Pickupable");
-                    __result = target;
-                    return false;
-                }
-                Bounds aabb = __instance.GetAABB(ui.gameObject);
-                if (aabb.size.x * aabb.size.y * aabb.size.z <= __instance.maxAABBVolume)
-                {
-                    __result = target;
-                    //AddDebug("small object");
-                }
-                //if (__result == null)
-                //AddDebug("ValidateNewObject null");
-                return false;
-            }
-
-            [HarmonyPatch("OnShoot")]
-            [HarmonyPrefix]
-            static void OnShootPrefix(PropulsionCannon __instance)
-            {
-                if (__instance.grabbedObject == null)
-                    return;
-                //AddDebug("OnShoot " + __instance.grabbedObject.name);
-                releasingGrabbedObject = true;
-            }
-
-            [HarmonyPatch("ReleaseGrabbedObject")]
-            [HarmonyPrefix]
-            static void ReleaseGrabbedObjectPrefix(PropulsionCannon __instance)
-            {
-                if (__instance.grabbedObject == null)
-                    return;
-                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
-                releasingGrabbedObject = true;
-            }
-
-            //[HarmonyPatch("GrabObject")]
-            //[HarmonyPostfix]
-            static void GrabObjectPostfix(PropulsionCannon __instance, GameObject target)
-            {
-                //if (__instance.grabbedObject == null)
-                //    return;
-                Rigidbody rb = __instance.grabbedObject.GetComponent<Rigidbody>();
-                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
-                //if (rb)
-                //    AddDebug("Rigidbody useGravity " + rb.useGravity);
-                WorldForces wf = __instance.grabbedObject.GetComponent<WorldForces>();
-                if (wf)
-                {
-                    //AddDebug("WorldForces handleGravity " + wf.handleGravity);
-                    //AddDebug("WorldForces aboveWaterGravity " + wf.aboveWaterGravity);
-                    //AddDebug("WorldForces underwaterGravity " + wf.underwaterGravity);
-                }
-
-                //    rb.useGravity = true;
-                //releasingGrabbedObject = true;
-            }
-
-        }
-
+        
         [HarmonyPatch(typeof(Beacon))]
         class Beacon_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
-            static void StartPostfix(Beacon __instance)
-            {
-                if (string.IsNullOrEmpty(UI_Patches.beaconToolString))
-                {
-                    //UI_Patches.beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
-                    ////AddDebug("beaconToolString " + UI_Patches.beaconToolString);
-                    ////Main.Log("beaconToolString " + UI_Patches.beaconToolString);
-                    //UI_Patches.beaconPickString = "(" + TooltipFactory.stringLeftHand + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
-                }
-            }
             [HarmonyPostfix]
             [HarmonyPatch("Throw")]
             static void ThrowPostfix(Beacon __instance)
@@ -504,92 +313,11 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Seaglide))]
-        internal class Seaglide_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnDraw")]
-            public static void OnDrawPostfix(Seaglide __instance)
-            {
-                if (!Main.seaglideMapControlsLoaded)
-                    seaglideToggleLights = __instance.toggleLights;
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("OnHolster")]
-            public static void OnHolsterPostfix(Seaglide __instance)
-            {
-                seaglideToggleLights = null;
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
-            public static void StartPostfix(Seaglide __instance)
-            {
-                if (!Main.seaglideMapControlsLoaded)
-                    __instance.toggleLights.lightState = 2; // dont show map
-                //Main.Message("lightState " + __instance.toggleLights.lightState);
-            }
-        }
-
-        [HarmonyPatch(typeof(ToggleLights))]
-        internal class ToggleLights_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("CheckLightToggle")]
-            public static bool CheckLightTogglePrefix(ToggleLights __instance)
-            {
-                if (!Main.seaglideMapControlsLoaded && __instance == seaglideToggleLights)
-                {
-                    if (Main.pda.isInUse)
-                        return false;
-
-                    //HandReticle.main.SetUseTextRaw(UI_Patches.seaglideString, null);
-                    if (GameInput.GetButtonDown(GameInput.Button.RightHand))
-                        __instance.SetLightsActive(!__instance.lightsActive);
-                    else if (GameInput.GetButtonDown(GameInput.Button.AltTool))
-                    {
-                        if (__instance.lightState == 2)
-                            __instance.lightState = 0;
-                        else
-                            __instance.lightState = 2;
-                    }
-                    //AddDebug("lightState " + __instance.lightState);
-                    return false;
-                }
-                return true;
-            }
-
-        }
-
-        //[HarmonyPatch(typeof(StasisRifle))]
-        class StasisRifle_Patch
-        {
-            //[HarmonyPrefix]
-            //[HarmonyPatch("EndCharge")]
-            private static bool EndChargePrefix(StasisRifle __instance)
-            {
-                if (!__instance.isCharging)
-                    return false;
-
-                //AddDebug("EndCharge");
-                __instance.isCharging = false;
-                __instance.fxControl.StopAndDestroy(0, 0f);
-                if (__instance.chargeBegin.GetIsStartingOrPlaying())
-                    __instance.chargeBegin.Stop(false);
-                if (__instance.chargeLoop.GetIsStartingOrPlaying())
-                    __instance.chargeLoop.Stop(false);
-                __instance.Animate(false);
-                return false;
-            }
-        }
-
-
         //[HarmonyPatch(typeof(StasisSphere))]
         class StasisSphere_Patch
         {
             private static bool isBigger(StasisSphere stasisSphere, GameObject go)
-            {// does not work every time for boneshark
+            {// does not work reliably for boneshark
                 float stasisSphereVolume = UWE.Utils.GetAABBVolume(stasisSphere.gameObject);
                 float volume = UWE.Utils.GetAABBVolume(go);
                 //AddDebug(go.name + " isBigger " + (int)stasisSphereVolume + ' ' + (int)volume);
@@ -600,8 +328,8 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("LateUpdate")]
             private static bool LateUpdatePrefix(StasisSphere __instance)
             {
-                //if (!Main.config.stasisRifleTweak)
-                //    return true;
+                if (!Main.config.stasisRifleTweak)
+                    return true;
 
                 if (!__instance.fieldEnabled)
                     return false;
@@ -682,8 +410,8 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("Freeze")]
             private static bool FreezePrefix(StasisSphere __instance, Collider other, ref Rigidbody target, ref bool __result)
             {
-                //if (!Main.config.stasisRifleTweak)
-                //    return true;
+                if (!Main.config.stasisRifleTweak)
+                    return true;
 
                 //AddDebug("Freeze Collider " + other.name + " bounds.size " + other.bounds.size);
                 target = other.GetComponentInParent<Rigidbody>();
@@ -719,11 +447,57 @@ namespace Tweaks_Fixes
             private static void CancelAllPrefix(StasisSphere __instance)
             {
                 //AddDebug("CancelAll");
-                Player.main.rigidBody.isKinematic = false;
+                if (Main.loadingDone)
+                    Player.main.rigidBody.isKinematic = false;
             }
         }
 
 
+
+        //[HarmonyPatch(typeof(Seaglide))]
+        class Seaglide_Patch
+        {
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnDraw")]
+            public static void OnDrawPostfix(Seaglide __instance)
+            {
+                if (!Main.seaglideMapControlsLoaded)
+                    seaglideToggleLights = __instance.toggleLights;
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnHolster")]
+            public static void OnHolsterPostfix(Seaglide __instance)
+            {
+                seaglideToggleLights = null;
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
+            public static void StartPostfix(Seaglide __instance)
+            {
+                if (!Main.seaglideMapControlsLoaded)
+                    __instance.toggleLights.lightState = 2; // dont show map
+                //Main.Message("lightState " + __instance.toggleLights.lightState);
+            }
+        }
+
+        //[HarmonyPatch(typeof(Inventory), "OnAddItem")]
+        class Inventory_OnAddItem_Patch
+        {
+            public static void Postfix(Inventory __instance, InventoryItem item)
+            {
+                if (item != null && item.item && item.item.GetTechType() == TechType.SmallStorage)
+                {
+                    //AddDebug("Inventory OnAddItem SmallStorage");
+                    Transform label = item.item.transform.Find("LidLabel");
+                    if (label)
+                    {
+                        label.localPosition = new Vector3(0.02f, 0.04f, -0.04f);
+                    }
+                }
+            }
+        }
 
         //[HarmonyPatch(typeof(Bullet), "Deactivate")]
         public class Bullet_Deactivate_Patch
@@ -740,5 +514,186 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(ToggleLights))]
+        class ToggleLights_Patch
+        {
+            //[HarmonyPrefix]
+            //[HarmonyPatch("CheckLightToggle")]
+            public static bool CheckLightTogglePrefix(ToggleLights __instance)
+            {
+                if (!Main.seaglideMapControlsLoaded && __instance == seaglideToggleLights)
+                {
+                    if (Player.main.pda.isInUse)
+                        return false;
+
+                    //HandReticle.main.SetUseTextRaw(UI_Patches.seaglideString, null);
+                    if (GameInput.GetButtonDown(GameInput.Button.RightHand))
+                        __instance.SetLightsActive(!__instance.lightsActive);
+                    else if (GameInput.GetButtonDown(GameInput.Button.AltTool))
+                    {
+                        if (__instance.lightState == 2)
+                            __instance.lightState = 0;
+                        else
+                            __instance.lightState = 2;
+                    }
+                    //AddDebug("lightState " + __instance.lightState);
+                    return false;
+                }
+                return true;
+            }
+
+        }
+
+        //[HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
+        class RepulsionCannon_OnToolUseAnim_Patch
+        {
+            static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)
+            {
+                //AddDebug("ShootObject " + rb.name);
+                if (__instance.energyMixin.charge <= 0f)
+                    return false;
+
+                float num1 = Mathf.Clamp01(__instance.energyMixin.charge * .25f);
+                Vector3 forward = MainCamera.camera.transform.forward;
+                Vector3 position = MainCamera.camera.transform.position;
+                int num2 = UWE.Utils.SpherecastIntoSharedBuffer(position, 1f, forward, 35f, ~(1 << LayerMask.NameToLayer("Player")));
+                float num3 = 0f;
+                for (int index1 = 0; index1 < num2; ++index1)
+                {
+                    RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
+                    Vector3 point = raycastHit.point;
+                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) * .02857f);
+                    GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
+                    if (go == null)
+                        go = raycastHit.collider.gameObject;
+
+                    Rigidbody rb = go.GetComponent<Rigidbody>();
+                    if (rb != null)
+                    {
+                        num3 += rb.mass;
+                        bool flag = true;
+                        go.GetComponents<IPropulsionCannonAmmo>(__instance.iammo);
+                        for (int index2 = 0; index2 < __instance.iammo.Count; ++index2)
+                        {
+                            if (!__instance.iammo[index2].GetAllowedToShoot())
+                            {
+                                flag = false;
+                                break;
+                            }
+                        }
+                        __instance.iammo.Clear();
+                        if (flag && !(raycastHit.collider is MeshCollider) && (go.GetComponent<Pickupable>() != null || go.GetComponent<Living>() != null || rb.mass <= 1300f && UWE.Utils.GetAABBVolume(go) <= 400f))
+                        {
+                            float num5 = (1f + rb.mass * 0.005f);
+                            Vector3 velocity = forward * num4 * num1 * 70f / num5;
+                            repCannonGOs.Add(go);
+                            __instance.ShootObject(rb, velocity);
+                        }
+                    }
+                }
+                __instance.energyMixin.ConsumeEnergy(4f);
+                __instance.fxControl.Play();
+                __instance.callBubblesFX = true;
+                Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
+                float num6 = Mathf.Clamp(num3 / 100f, 0f, 15f);
+                Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
+                return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(PropulsionCannon))]
+        class PropulsionCannon_Patch
+        {
+            //[HarmonyPatch(nameof(PropulsionCannon.TraceForGrabTarget))]
+            //[HarmonyPrefix]
+            static bool TraceForGrabTargetPrefix(PropulsionCannon __instance, ref GameObject __result)
+            {
+                __result = null;
+                Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
+                if (target == null)
+                {
+                    //AddDebug(" no target");
+                    return false;
+                }
+                UniqueIdentifier ui = target.GetComponentInParent<UniqueIdentifier>();
+                if (ui)
+                    AddDebug("target " + ui.gameObject.name);
+                else
+                {
+                    //AddDebug(target.name + "has no identifier");
+                    return false;
+                }
+                if (ui.gameObject.GetComponent<FruitPlant>())
+                {
+                    //AddDebug("FruitPlant");
+                    return false;
+                }
+                if (!__instance.ValidateObject(ui.gameObject))
+                {
+                    //AddDebug("could not Validate Object");
+                    return false;
+                }
+                if (ui.gameObject.GetComponent<Pickupable>())
+                {
+                    //AddDebug("Pickupable");
+                    __result = target;
+                    return false;
+                }
+                Bounds aabb = __instance.GetAABB(ui.gameObject);
+                if (aabb.size.x * aabb.size.y * aabb.size.z <= __instance.maxAABBVolume)
+                {
+                    __result = target;
+                    //AddDebug("small object");
+                }
+                //if (__result == null)
+                //AddDebug("ValidateNewObject null");
+                return false;
+            }
+
+            //[HarmonyPatch("OnShoot")]
+            //[HarmonyPrefix]
+            static void OnShootPrefix(PropulsionCannon __instance)
+            {
+                if (__instance.grabbedObject == null)
+                    return;
+                //AddDebug("OnShoot " + __instance.grabbedObject.name);
+                releasingGrabbedObject = true;
+            }
+
+            //[HarmonyPatch("ReleaseGrabbedObject")]
+            //[HarmonyPrefix]
+            static void ReleaseGrabbedObjectPrefix(PropulsionCannon __instance)
+            {
+                if (__instance.grabbedObject == null)
+                    return;
+                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
+                releasingGrabbedObject = true;
+            }
+
+            //[HarmonyPatch("GrabObject")]
+            //[HarmonyPostfix]
+            static void GrabObjectPostfix(PropulsionCannon __instance, GameObject target)
+            {
+                //if (__instance.grabbedObject == null)
+                //    return;
+                Rigidbody rb = __instance.grabbedObject.GetComponent<Rigidbody>();
+                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
+                //if (rb)
+                //    AddDebug("Rigidbody useGravity " + rb.useGravity);
+                WorldForces wf = __instance.grabbedObject.GetComponent<WorldForces>();
+                if (wf)
+                {
+                    //AddDebug("WorldForces handleGravity " + wf.handleGravity);
+                    //AddDebug("WorldForces aboveWaterGravity " + wf.aboveWaterGravity);
+                    //AddDebug("WorldForces underwaterGravity " + wf.underwaterGravity);
+                }
+
+                //    rb.useGravity = true;
+                //releasingGrabbedObject = true;
+            }
+
+
+        }
+   
     }
 }

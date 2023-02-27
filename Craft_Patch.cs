@@ -13,6 +13,7 @@ namespace Tweaks_Fixes
         static List<Battery> batteries = new List<Battery>();
         static float timeDecayStart = 0f;
 
+        
         [HarmonyPatch(typeof(Crafter), "Craft")]
         class Crafter_Craft_Patch
         {
@@ -23,7 +24,7 @@ namespace Tweaks_Fixes
                 duration *= Main.config.craftTimeMult;
             }
         }
-
+        
         [HarmonyPatch(typeof(CrafterLogic), "NotifyCraftEnd")]
         class CrafterLogic_NotifyCraftEnd_Patch
         {
@@ -57,7 +58,7 @@ namespace Tweaks_Fixes
                 crafting = false;
             }
         }
-
+        
         [HarmonyPatch(typeof(Inventory))]
         class Inventory_Patch
         {
@@ -94,7 +95,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(Constructable), "GetConstructInterval")]
         class Constructable_GetConstructInterval_Patch
         {
@@ -106,7 +107,7 @@ namespace Tweaks_Fixes
                 __result *= Main.config.buildTimeMult;
             }
         }
-
+        
         [HarmonyPatch(typeof(Constructor))]
         class Constructor_Patch
         {
@@ -115,75 +116,77 @@ namespace Tweaks_Fixes
             static void OnEnablePostfix(Constructor __instance)
             {
                 if (!__instance.deployed)
-                {
+                { // vanilla underwaterGravity 4
+                    //AddDebug("Constructor OnEnable");
                     WorldForces wf = __instance.GetComponent<WorldForces>();
                     if (wf)
                         wf.underwaterGravity = 1f;
                 }
             }
-            [HarmonyPostfix]
+
+           [HarmonyPostfix]
             [HarmonyPatch("Deploy")]
             static void Deployostfix(Constructor __instance, bool value)
-            {
-                //AddDebug("Deploy " + value);
+           {
+               //AddDebug("Constructor Deploy " + value);
                 if (value)
-                {
-                    WorldForces wf = __instance.GetComponent<WorldForces>();
-                    if (wf)
-                        wf.underwaterGravity = -3f;
-                }
-            }
-        }
+               {
+                   WorldForces wf = __instance.GetComponent<WorldForces>();
+                   if (wf)
+                       wf.underwaterGravity = -3f;
+               }
+           }
+       }
+         /*
+       //[HarmonyPatch(typeof(CrafterLogic), "TryPickupSingle")]
+       class CrafterLogic_TryPickupSingle_Patch
+       {
+           static bool Prefix(CrafterLogic __instance, TechType techType, ref bool __result)
+           {
+               //craftingStart = false;
+               AddDebug("CrafterLogic TryPickupSingle");
+               Inventory main = Inventory.main;
+               bool flag = false;
+               GameObject original = CraftData.GetPrefabForTechType(techType);
+               if (original == null)
+               {
+                   original = Utils.genericLootPrefab;
+                   flag = true;
+               }
+               if (original != null)
+               {
+                   Pickupable component1 = original.GetComponent<Pickupable>();
+                   if (component1 != null)
+                   {
+                       Vector2int itemSize = CraftData.GetItemSize(component1.GetTechType());
+                       if (main.HasRoomFor(itemSize.x, itemSize.y))
+                       {
+                           GameObject gameObject = UnityEngine.Object.Instantiate(original);
+                           Pickupable pickupable = gameObject.GetComponent<Pickupable>();
+                           if (flag)
+                               pickupable.SetTechTypeOverride(techType, true);
+                           main.ForcePickup(pickupable);
+                           // ForcePickup now before NotifyCraftEnd
+                           CrafterLogic.NotifyCraftEnd(gameObject, __instance.craftingTechType);
 
-        //[HarmonyPatch(typeof(CrafterLogic), "TryPickupSingle")]
-        class CrafterLogic_TryPickupSingle_Patch
-        {
-            static bool Prefix(CrafterLogic __instance, TechType techType, ref bool __result)
-            {
-                //craftingStart = false;
-                AddDebug("CrafterLogic TryPickupSingle");
-                Inventory main = Inventory.main;
-                bool flag = false;
-                GameObject original = CraftData.GetPrefabForTechType(techType);
-                if (original == null)
-                {
-                    original = Utils.genericLootPrefab;
-                    flag = true;
-                }
-                if (original != null)
-                {
-                    Pickupable component1 = original.GetComponent<Pickupable>();
-                    if (component1 != null)
-                    {
-                        Vector2int itemSize = CraftData.GetItemSize(component1.GetTechType());
-                        if (main.HasRoomFor(itemSize.x, itemSize.y))
-                        {
-                            GameObject gameObject = UnityEngine.Object.Instantiate(original);
-                            Pickupable pickupable = gameObject.GetComponent<Pickupable>();
-                            if (flag)
-                                pickupable.SetTechTypeOverride(techType, true);
-                            main.ForcePickup(pickupable);
-                            // ForcePickup now before NotifyCraftEnd
-                            CrafterLogic.NotifyCraftEnd(gameObject, __instance.craftingTechType);
+                           Player.main.PlayGrab();
+                           __result = true;
+                           return false;
+                       }
+                       AddMessage(Language.main.Get("InventoryFull"));
+                       __result = false;
+                       return false;
+                   }
+                   Debug.LogErrorFormat("Can't find Pickupable component on prefab for TechType.{0}", techType);
+                   __result = true;
+                   return false;
+               }
+               Debug.LogErrorFormat("Can't find prefab for TechType.{0}", techType);
+               __result = true;
+               return false;
+           }
+       }
 
-                            Player.main.PlayGrab();
-                            __result = true;
-                            return false;
-                        }
-                        AddMessage(Language.main.Get("InventoryFull"));
-                        __result = false;
-                        return false;
-                    }
-                    Debug.LogErrorFormat("Can't find Pickupable component on prefab for TechType.{0}", techType);
-                    __result = true;
-                    return false;
-                }
-                Debug.LogErrorFormat("Can't find prefab for TechType.{0}", techType);
-                __result = true;
-                return false;
-            }
-        }
-
-
+       /*/
     }
 }

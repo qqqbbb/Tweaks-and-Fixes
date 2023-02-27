@@ -3,13 +3,18 @@ using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{//need check if exosuit has claw
-    [HarmonyPatch(typeof(BreakableResource), nameof(BreakableResource.OnHandClick))]
+{
+    
+    [HarmonyPatch(typeof(BreakableResource), "OnHandClick")]
     public static class OnHandClickPatch
     {
         public static bool Prefix()
         {
-            if (!Main.config.noBreakingWithHand || Player.main.inExosuit)
+            if (!Main.config.noBreakingWithHand)
+                return true;
+
+            Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
+            if (exosuit && exosuit.HasClaw())
                 return true;
 
             PlayerTool tool = Inventory.main.GetHeldTool();
@@ -26,7 +31,7 @@ namespace Tweaks_Fixes
         }
     }
 
-    [HarmonyPatch(typeof(BreakableResource), nameof(BreakableResource.OnHandHover))]
+    [HarmonyPatch(typeof(BreakableResource), "OnHandHover")]
     public static class OnHandHoverPatch
     {
         public static bool Prefix(BreakableResource __instance)
@@ -39,13 +44,18 @@ namespace Tweaks_Fixes
             //}
             //if (__instance.GetComponent<LiveMixin>() != null)
             //    AddDebug("BreakableResource LiveMixin");
-             if (!Main.config.noBreakingWithHand || Player.main.inExosuit)
+             if (!Main.config.noBreakingWithHand)
                 return true;
+
+             Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
+             if (exosuit && exosuit.HasClaw())
+                 return true;
 
             Knife knife = Inventory.main.GetHeldTool() as Knife;
             if (knife)
             {
-                HandReticle.main.SetInteractText(__instance.breakText);
+                //HandReticle.main.SetInteractText(__instance.breakText);
+                HandReticle.main.SetText(HandReticle.TextType.Hand, __instance.breakText, true, GameInput.Button.LeftHand);
                 //if (GameInput.GetButtonDown(GameInput.Button.RightHand))
                 //{
                 //    __instance.BreakIntoResources();
@@ -53,8 +63,8 @@ namespace Tweaks_Fixes
                 //}
             }
             else
-                HandReticle.main.SetInteractTextRaw(Main.config.translatableStrings[15], null);
-
+                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[15]);
+            //HandReticle.main.SetInteractTextRaw(Main.config.translatableStrings[15], null);
             return false;
         }
     }
@@ -68,7 +78,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("AllowedToPickUp")]
         public static bool AllowedToPickUpPrefix(Pickupable __instance, ref bool __result)
         {
-            //AddDebug("Can Collect " + CanCollect(__instance, __instance.GetTechType()));
+
             if (!Main.config.noBreakingWithHand)
                 return true;
 
@@ -84,6 +94,7 @@ namespace Tweaks_Fixes
                     __result = false;
                 }
             }
+            //AddDebug("Pickupable AllowedToPickUp " + __result);
             return false;
         }
         [HarmonyPostfix]
@@ -91,15 +102,20 @@ namespace Tweaks_Fixes
         public static void PickupableOnHandHover(Pickupable __instance)
         {
             if (cantPickUp)
-                HandReticle.main.SetInteractTextRaw(Main.config.translatableStrings[16], null);
-            //AddDebug("Can Collect " + CanCollect(__instance, __instance.GetTechType()));
+                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[16]);
+            //HandReticle.main.SetInteractTextRaw(Main.config.translatableStrings[16], null);
+            //AddDebug("cantPickUp " + cantPickUp);
         }
 
-        [HarmonyPatch("OnHandClick")]
         [HarmonyPrefix]
+        [HarmonyPatch("OnHandClick")]
         public static bool PickupableOnHandClick(Pickupable __instance)
         {
-            if (!Main.config.noBreakingWithHand || Player.main.inExosuit)
+            if (!Main.config.noBreakingWithHand)
+                return true;
+
+            Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
+            if (exosuit && exosuit.HasClaw())
                 return true;
 
             if (!Main.config.notPickupableResources.Contains(__instance.GetTechType()))
@@ -114,7 +130,7 @@ namespace Tweaks_Fixes
                 Knife knife = Inventory.main.GetHeldTool() as Knife;
                 if (knife)
                 {
-                    Main.guiHand.usedToolThisFrame = true;
+                    Player.main.guiHand.usedToolThisFrame = true;
                     knife.OnToolActionStart();
                     rb.isKinematic = false;
                     //return false;
@@ -125,6 +141,6 @@ namespace Tweaks_Fixes
         }
     }
 
-
+    
 
 }

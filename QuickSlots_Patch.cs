@@ -69,10 +69,12 @@ namespace Tweaks_Fixes
             //GetEquippedTools();
         }
 
-        [HarmonyPatch(typeof(Inventory), "OnAddItem")]
-        internal class Inventory_OnAddItem_Patch
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_OnAddItem_Patch
         { // this called during loading and tools returned are wrong
-            public static void Postfix(Inventory __instance, InventoryItem item)
+            [HarmonyPostfix]
+            [HarmonyPatch( "OnAddItem")]
+            public static void OnAddItemPostfix(Inventory __instance, InventoryItem item)
             {
                 if (item != null && item.isBindable)
                 {
@@ -81,12 +83,9 @@ namespace Tweaks_Fixes
                     //AddDebug("Inventory OnAddItem ");
                 }
             }
-        }
-
-        [HarmonyPatch(typeof(Inventory), "OnRemoveItem")]
-        internal class Inventory_OnRemoveItem_Patch
-        {
-            public static void Postfix(Inventory __instance, InventoryItem item)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnRemoveItem")]
+            public static void OnRemoveItemPostfix(Inventory __instance, InventoryItem item)
             {
                 if (item != null && item.isBindable)
                 {
@@ -97,31 +96,19 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(PDA), "Close")]
-        internal class PDA_Close_Patch
+        [HarmonyPatch(typeof(QuickSlots))]
+        class QuickSlots_Bind_Patch
         {
-            public static void Postfix(PDA __instance)
-            {
-                //GetEquippedTools();
-                invChanged = false;
-                //AddDebug("PDA Close ");
-            }
-        }
-
-        [HarmonyPatch(typeof(QuickSlots), "Bind")]
-        internal class QuickSlots_Bind_Patch
-        {
-            public static void Postfix(QuickSlots __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Bind")]
+            public static void BindPostfix(QuickSlots __instance)
             {
                 GetEquippedTools();
                 //AddDebug(" Bind ");
             }
-        }
-
-        [HarmonyPatch(typeof(QuickSlots), "SlotNext")]
-        internal class QuickSlots_SlotNext_Patch
-        {
-            public static bool Prefix(QuickSlots __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("SlotNext")]
+            public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 //AddDebug("SlotNext");
                 if (Input.GetKey(Main.config.quickslotKey))
@@ -137,7 +124,7 @@ namespace Tweaks_Fixes
                 {
                     Pickupable p = Inventory.main.GetHeld();
                     if (!p)
-                        //if (!p && Player.main.currentSub)
+                    //if (!p && Player.main.currentSub)
                     {
                         //AddDebug("currentSub " + Player.main.currentSub.lightControl.skies.Length);
                         //foreach (LightingController.MultiStatesSky mss in Player.main.currentSub.lightControl.skies)
@@ -176,11 +163,11 @@ namespace Tweaks_Fixes
 
                         foreach (Light l in lights)
                         {
-                            if (l.intensity < origIntensity)   
+                            if (l.intensity < origIntensity)
                             {
                                 l.intensity += Tools_Patch.lightIntensityStep[tt];
                                 //AddDebug("Light Intensity Up " + l.intensity);
-                                Main.config.lightIntensity[CraftData.GetTechType(p.gameObject)] = l.intensity;
+                                Main.config.lightIntensity[tt] = l.intensity;
                             }
                             if (flare)
                             {
@@ -194,12 +181,9 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-        }
-
-        [HarmonyPatch(typeof(QuickSlots), "SlotPrevious")]
-        internal class QuickSlots_SlotPrevious_Patch
-        {
-            public static bool Prefix(QuickSlots __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("SlotPrevious")]
+            public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
                 if (Input.GetKey(Main.config.quickslotKey))
                 {
@@ -216,7 +200,7 @@ namespace Tweaks_Fixes
                     if (!p)
                         return true;
                     else
-                    { 
+                    {
                         Light[] lights = p.GetComponentsInChildren<Light>();
                         //AddDebug("lights.Length  " + lights.Length);
                         if (lights.Length == 0)
@@ -242,11 +226,12 @@ namespace Tweaks_Fixes
                         Flare flare = p.GetComponent<Flare>();
                         if (flare && flare.flareActivateTime == 0)
                             return true;
+
                         foreach (Light l in lights)
                         {
-                            l.intensity -= Tools_Patch.lightIntensityStep[tt];;
+                            l.intensity -= Tools_Patch.lightIntensityStep[tt]; ;
                             //AddDebug("Light Intensity Down " + l.intensity);
-                            Main.config.lightIntensity[CraftData.GetTechType(p.gameObject)] = l.intensity;
+                            Main.config.lightIntensity[tt] = l.intensity;
                             if (flare)
                             {
                                 Flare_Patch.intensityChanged = true;
@@ -259,7 +244,10 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
+
         }
+
+
 
     }
 }

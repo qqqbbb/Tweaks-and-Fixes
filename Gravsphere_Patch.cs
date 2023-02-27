@@ -7,10 +7,11 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {   // not tested with more than 1 grav trap
-    [HarmonyPatch(typeof(GasPod))]
+
+    //[HarmonyPatch(typeof(GasPod))]
     class GasPod_Patch
     {
-        [HarmonyPatch(nameof(GasPod.OnDrop))]
+        //[HarmonyPatch(nameof(GasPod.OnDrop))]
         public static void Prefix(GasPod __instance)
         {
             if (Gravsphere_Patch.gasPods.Contains(__instance))
@@ -21,7 +22,7 @@ namespace Tweaks_Fixes
             }
         }
     }
- 
+
     [HarmonyPatch(typeof(Gravsphere))]
     public class Gravsphere_Patch
     {
@@ -31,81 +32,79 @@ namespace Tweaks_Fixes
         //static public HashSet<Pickupable> gravSphereFish = new HashSet<Pickupable>();
         static public HashSet<TechType> gravTrappable = new HashSet<TechType>();
 
-        [HarmonyPostfix] [HarmonyPatch(nameof(Gravsphere.IsValidTarget))]
-        public static void OnPickedUp(Gravsphere __instance, GameObject obj, ref bool __result)
-        {
-            if (__result)
-                return;
+        
+       [HarmonyPostfix] [HarmonyPatch(nameof(Gravsphere.IsValidTarget))]
+       public static void IsValidTarget(Gravsphere __instance, GameObject obj, ref bool __result)
+       {
+           if (__result)
+               return;
 
-            TechType t = CraftData.GetTechType(obj);
+           TechType t = CraftData.GetTechType(obj);
+           if (t != TechType.None && gravTrappable.Contains(t))
+               __result = true;
+       }
 
-            if (t != TechType.None && gravTrappable.Contains(t))
-            {
-                __result = true;
-            }
-        }
+       [HarmonyPostfix] [HarmonyPatch(nameof(Gravsphere.AddAttractable))]
+       public static void AddAttractable(Gravsphere __instance, Rigidbody r)
+       {
+           gravSphere = __instance;
+           GasPod gp = r.gameObject.GetComponent<GasPod>();
+           if (gp)
+           {
+               gp.grabbedByPropCannon = true;
+               gasPods.Add(gp);
+           }
+           else
+           {
+               Pickupable p = r.GetComponent<Pickupable>();
+               //AddDebug("AddAttractable ");
+               if (p)
+               {
+                   gravSphereFish.Add(p);
+               }
 
-        [HarmonyPostfix] [HarmonyPatch(nameof(Gravsphere.AddAttractable))]
-        public static void AddAttractable(Gravsphere __instance, Rigidbody r)
-        {
-            gravSphere = __instance;
-            GasPod gp = r.gameObject.GetComponent<GasPod>();
-            if (gp)
-            {
-                gp.grabbedByPropCannon = true;
-                gasPods.Add(gp);
-            }
-            else
-            {
-                Pickupable p = r.GetComponent<Pickupable>();
-                //AddDebug("AddAttractable ");
-                if (p)
-                {
-                    gravSphereFish.Add(p);
-                }
+           }
+       }
 
-            }
-        }
+       [HarmonyPostfix] [HarmonyPatch(nameof(Gravsphere.ClearAll))]
+       public static void ClearAll(Gravsphere __instance)
+       {
+           //AddDebug("ClearAll ");
+           foreach (GasPod gp in gasPods)
+           {
+               gp.grabbedByPropCannon = false;
+           }
+           gasPods = new HashSet<GasPod>();
+           gravSphereFish = new HashSet<Pickupable>();
+       }
 
-        [HarmonyPostfix] [HarmonyPatch(nameof(Gravsphere.ClearAll))]
-        public static void ClearAll(Gravsphere __instance)
-        {
-            //AddDebug("ClearAll ");
-            foreach (GasPod gp in gasPods)
-            {
-                gp.grabbedByPropCannon = false;
-            }
-            gasPods = new HashSet<GasPod>();
-            gravSphereFish = new HashSet<Pickupable>();
-        }
+       [HarmonyPrefix] [HarmonyPatch(nameof(Gravsphere.OnTriggerEnter))]
+       public static bool OnTriggerEnter(Gravsphere __instance, Collider collider)
+       { 
+           InventoryItem item = Inventory.main.quickSlots.heldItem;
+           if (item != null && item.item.transform.root.gameObject == collider.transform.root.gameObject)
+           {
+               //AddDebug("OnTriggerEnter heldItem ");
+               return false;
+           }
+           return true;
+       }
 
-        [HarmonyPrefix] [HarmonyPatch(nameof(Gravsphere.OnTriggerEnter))]
-        public static bool OnTriggerEnter(Gravsphere __instance, Collider collider)
-        { 
-            InventoryItem item = Inventory.main.quickSlots.heldItem;
-            if (item != null && item.item.transform.root.gameObject == collider.transform.root.gameObject)
-            {
-                //AddDebug("OnTriggerEnter heldItem ");
-                return false;
-            }
-            return true;
-        }
-
-        [HarmonyPatch(typeof(Pickupable), "Pickup")]
-        internal class Pickupable_Pickup_Patch
-        {
-            public static void Postfix(Pickupable __instance)
-            {
-                if (gravSphereFish.Contains(__instance))
-                {
-                    int num = gravSphere.attractableList.IndexOf(__instance.GetComponent<Rigidbody>());
-                    if (num == -1)
-                        return;
-                    //AddDebug("Pick up gravSphere");
-                    gravSphere.removeList.Add(num);
-                }
-            }
-        }
+       [HarmonyPatch(typeof(Pickupable), "Pickup")]
+       class Pickupable_Pickup_Patch
+       {
+           public static void Postfix(Pickupable __instance)
+           {
+               if (gravSphereFish.Contains(__instance))
+               {
+                   int num = gravSphere.attractableList.IndexOf(__instance.GetComponent<Rigidbody>());
+                   if (num == -1)
+                       return;
+                   //AddDebug("Pick up gravSphere");
+                   gravSphere.removeList.Add(num);
+               }
+           }
+       }  
 
     }
 }

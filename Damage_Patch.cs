@@ -10,11 +10,11 @@ namespace Tweaks_Fixes
     class Damage_Patch
     {
         public static float healTempDamageTime = 0;
-        static float poisonDamageInterval = 1f;
+        static float poisonDamageInterval = .8f;
         static float poisonDamage = .5f;
         public static List<LiveMixin> tempDamageLMs = new List<LiveMixin>();
-
         static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
+   
         static void SetBloodColor(GameObject go)
         {   // GenericCreatureHit(Clone)
             // RGBA(0.784, 1.000, 0.157, 0.392)
@@ -42,6 +42,7 @@ namespace Tweaks_Fixes
             }
         }
 
+        
         [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_patch
         {
@@ -68,12 +69,13 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("OnCollisionEnter")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnCollisionEnter")]
             public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
                     return false;
+
                 float damageMult = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
                 //AddDebug(" collision " + collision.gameObject.name);
                 float colMag = collision.relativeVelocity.magnitude;
@@ -123,13 +125,12 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
+        
         [HarmonyPatch(typeof(VFXDestroyAfterSeconds), "OnEnable")]
         class VFXDestroyAfterSeconds_OnEnable_Patch
         {
-            public static void Prefix(VFXDestroyAfterSeconds __instance)
+            public static void Postfix(VFXDestroyAfterSeconds __instance)
             {// particles from GenericCreatureHit play on awake
-                //AddDebug("GenericCreatureHit OnEnable " + __instance.gameObject.name);
                 if (__instance.gameObject.name == "GenericCreatureHit(Clone)")
                 {
                     //AddDebug("GenericCreatureHit OnEnable");
@@ -138,7 +139,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(VFXSurfaceTypeManager), "Play", new Type[] { typeof(VFXSurfaceTypes), typeof(VFXEventTypes), typeof(Vector3), typeof(Quaternion), typeof(Transform) })]
         class VFXSurfaceTypeManager_Play_Patch
         {
@@ -149,7 +150,7 @@ namespace Tweaks_Fixes
                 GameObject fxprefab = __instance.GetFXprefab(surfaceType, eventType);
                 if (fxprefab != null)
                 {
-                    GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(fxprefab, position, orientation);
+                    GameObject gameObject = UnityEngine.Object.Instantiate(fxprefab, position, orientation);
                     if (eventType == VFXEventTypes.exoDrill)
                     {
                         gameObject.transform.parent = null;
@@ -174,7 +175,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
+        
         [HarmonyPatch(typeof(Knife), "OnToolUseAnim")]
         class Knife_OnToolUseAnim_Patch
         {
@@ -197,7 +198,7 @@ namespace Tweaks_Fixes
                         if (liveMixin)
                         {
                             bool wasAlive = liveMixin.IsAlive();
-                            liveMixin.TakeDamage(__instance.damage, position, __instance.damageType, Player.main.gameObject);
+                            liveMixin.TakeDamage(__instance.damage, position, __instance.damageType, Player.main.gameObject); // my
                             __instance.GiveResourceOnDamage(closestObj, liveMixin.IsAlive(), wasAlive);
                         }
                         Utils.PlayFMODAsset(__instance.attackSound, __instance.transform);
@@ -222,7 +223,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
+        
         [HarmonyPatch(typeof(LiveMixin))]
         class LiveMixin_Patch
         {
@@ -250,9 +251,124 @@ namespace Tweaks_Fixes
             [HarmonyPatch("TakeDamage")]
             static bool TakeDamagePrefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position = default(Vector3), DamageType type = DamageType.Normal, GameObject dealer = null)
             {
+                bool killed = false;
+                bool isBase = __instance.GetComponent<BaseCell>() != null;
+                bool invincible = GameModeUtils.IsInvisible() && __instance.invincibleInCreative | isBase;
+                if (__instance.health > 0f && !__instance.invincible && !invincible)
+                {
+                    float damage = 0f;
+                    if (!__instance.shielded)
+                    {
+                        if (dealer == Player.mainObject)
+                        {
+                            if (type == DamageType.Heat && __instance.GetComponent<LavaLizard>())
+                                type = DamageType.Normal;
+                        }
+                        damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
+                    }
+                    //if (__instance.gameObject == Player.mainObject)
+                    //    AddDebug("TakeDamage " + type + " " + damage);
+
+                    if (type != DamageType.Poison && type != DamageType.Cold)
+                        __instance.health = Mathf.Max(0f, __instance.health - damage);
+                    else 
+                    {
+                        if (Main.config.newPoisonSystem && __instance.gameObject == Player.mainObject)
+                        { // Survival.onHealTempDamage wont run
+                            if (dealer == __instance.gameObject && position == Vector3.one)
+                            {// from HealTempDamagePrefix
+                                //AddDebug("Take Poison Damage " + damage);
+                                __instance.health = Mathf.Max(0f, __instance.health - damage);
+                            }
+                            else
+                            {
+                                //AddDebug("TakeDamage tempDamage " + __instance.tempDamage);
+                                __instance.tempDamage += damage;
+                                __instance.SyncUpdatingState();
+                            }
+                        }
+                        else
+                        {
+                            //AddDebug("old Poison System ");
+                            __instance.health = Mathf.Max(0f, __instance.health - damage);
+                            __instance.tempDamage += damage;
+                            //AddDebug(__instance.name + " tempDamage " + __instance.tempDamage);
+                            __instance.SyncUpdatingState();
+                        }
+                    }
+                    if (__instance.damageInfo != null)
+                    {
+                        __instance.damageInfo.Clear();
+                        __instance.damageInfo.originalDamage = originalDamage;
+                        __instance.damageInfo.damage = damage;
+                        __instance.damageInfo.position = position == new Vector3() ? __instance.transform.position : position;
+                        __instance.damageInfo.type = type;
+                        __instance.damageInfo.dealer = dealer;
+                        __instance.NotifyAllAttachedDamageReceivers(__instance.damageInfo);
+                    }
+                    if (__instance.shielded)
+                    {
+                        __result = killed;
+                        return false;
+                    }
+                    if (__instance.damageClip && __instance.damageInfo != null && damage > 0f && (damage >= __instance.minDamageForSound && type != DamageType.Radiation))
+                        Utils.PlayEnvSound(__instance.damageClip, __instance.damageInfo.position);
+
+                    if (__instance.loopingDamageEffect && !__instance.loopingDamageEffectObj && __instance.GetHealthFraction() < __instance.loopEffectBelowPercent)
+                    {
+                        __instance.loopingDamageEffectObj = UWE.Utils.InstantiateWrap(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
+                        __instance.loopingDamageEffectObj.transform.parent = __instance.transform;
+                    }
+                    if (Time.time > __instance.timeLastElecDamageEffect + 2.5f && type == DamageType.Electrical && __instance.electricalDamageEffect != null)
+                    {
+                        FixedBounds fixedBounds = __instance.gameObject.GetComponent<FixedBounds>();
+                        Bounds bounds = fixedBounds == null ? UWE.Utils.GetEncapsulatedAABB(__instance.gameObject) : fixedBounds.bounds;
+                        GameObject gameObject = UWE.Utils.InstantiateWrap(__instance.electricalDamageEffect, bounds.center, Quaternion.identity);
+                        gameObject.transform.parent = __instance.transform;
+                        gameObject.transform.localScale = bounds.size * 0.65f;
+                        __instance.timeLastElecDamageEffect = Time.time;
+                    }
+                    else if (Main.loadingDone && Time.time > __instance.timeLastDamageEffect + 1f && damage > 0f && dealer != Player.main.gameObject && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter || type == DamageType.Drill)
+                    { // dont spawn damage particles if knifed by player
+                        VFXSurface vfxSurface = __instance.GetComponentInChildren<VFXSurface>();
+                        if (vfxSurface)
+                        {
+                            //AddDebug("Spawn vfxSurface Prefab ");
+                            //Vector3 euler = MainCameraControl.main.transform.eulerAngles + new Vector3(300f, 90f, 0f);
+                            ParticleSystem particleSystem = VFXSurfaceTypeManager.main.Play(vfxSurface, VFXEventTypes.knife, position, Quaternion.identity, Player.main.transform);
+                            __instance.timeLastDamageEffect = Time.time;
+                        }
+                        else if (__instance.damageEffect)
+                        {
+                            //AddDebug("Spawn damageEffect Prefab " + __instance.damageEffect.name);
+                            //GameObject go = Utils.SpawnPrefabAt(__instance.damageEffect, __instance.transform, __instance.damageInfo.position);
+                            //setBloodColor = true;
+                            //if (__instance.GetComponent<Creature>())
+                            //    SetBloodColor(go);
+
+                            __instance.timeLastDamageEffect = Time.time;
+                        }
+                    }
+                    if (__instance.health <= 0f || !Main.config.newPoisonSystem && __instance.health - __instance.tempDamage <= 0f)
+                    {
+                        killed = true;
+                        if (!__instance.IsCinematicActive() || __instance.ShouldKillInCinematic())
+                            __instance.Kill(type);
+                        else
+                        {
+                            __instance.cinematicModeActive = true;
+                            __instance.SyncUpdatingState();
+                        }
+                    }
+                }
+                return killed;
+            }
+
+            static bool TakeDamagePrefixOld(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position = default(Vector3), DamageType type = DamageType.Normal, GameObject dealer = null)
+            {
                 //if (dealer)
                 //    AddDebug("dealer " + dealer.name);
-                //Main.Log("TakeDamage " + __instance.name + ' ' + type);
+                //AddDebug("TakeDamage " + __instance.name + " type " + type);
                 bool killed = false;
                 bool creativeMode = GameModeUtils.IsInvisible() && __instance.invincibleInCreative;
                 if (__instance.health > 0f && !__instance.invincible && !creativeMode)
@@ -266,10 +382,8 @@ namespace Tweaks_Fixes
                                 type = DamageType.Normal;
                         }
                         damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
-                        //if (dealer == Player.mainObject)
-                        //    AddDebug("TakeDamage originalDamage " + originalDamage + " damage " + damage);
                     }
-                    if (type != DamageType.Poison && type != DamageType.Cold)
+                    if (type != DamageType.Poison)
                         __instance.health = Mathf.Max(0f, __instance.health - damage);
                     else 
                     {
@@ -318,7 +432,6 @@ namespace Tweaks_Fixes
                         __instance.loopingDamageEffectObj = UnityEngine.Object.Instantiate<GameObject>(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
                         __instance.loopingDamageEffectObj.transform.parent = __instance.transform;
                     }
-                    //GameObject damageEffect = __instance.damageEffect;
                     if (Time.time > __instance.timeLastElecDamageEffect + 2.5f && type == DamageType.Electrical && __instance.electricalDamageEffect != null)
                     {
                         FixedBounds fixedBounds = __instance.gameObject.GetComponent<FixedBounds>();
@@ -362,8 +475,51 @@ namespace Tweaks_Fixes
                             __instance.SyncUpdatingState();
                         }
                     }
+                    if (__instance.health <= 0f && __instance.Equals(Player.main.liveMixin) && Player.main.IsInSubmarine() && Player.main.isPiloting)
+                    { // fix: player does not die when health reduced to 0
+                        //AddDebug("player dies");
+                        Player.main.ExitPilotingMode();
+                    }
                 }
                 __result = killed;
+                return false;
+            }
+              
+            [HarmonyPrefix]
+            [HarmonyPatch("HealTempDamage")]
+            static bool HealTempDamagePrefix(LiveMixin __instance, float timePassed)
+            {
+                if (!Main.config.newPoisonSystem || __instance.gameObject != Player.mainObject)
+                    return true;
+         
+                if (__instance.tempDamage > 0 && healTempDamageTime < Time.time)
+                {
+                    int foodMin = Main.config.newHungerSystem ? -99 : 1;
+                    float damage = 0f;
+                    Survival survival = Main.survival;
+                    if (survival.food > foodMin)
+                        survival.food -= poisonDamage;
+                    else
+                        damage += poisonDamage;
+
+                    if (survival.water > foodMin)
+                        survival.water -= poisonDamage;
+                    else
+                        damage += poisonDamage;
+
+                    damage = (damage + poisonDamage) * poisonDamageInterval;
+                    __instance.TakeDamage(damage , Vector3.one, DamageType.Poison, __instance.gameObject);
+                    //AddDebug("HealTempDamage Player TakeDamage " + damage );
+                    __instance.tempDamage -= poisonDamage;
+                    //AddDebug("HealTempDamage tempDamage " + __instance.tempDamage);
+                    if (__instance.tempDamage > 0)
+                        healTempDamageTime = Time.time + poisonDamageInterval;
+                    else
+                        __instance.tempDamage = 0;
+
+                    if (__instance.tempDamage == 0)
+                        __instance.SyncUpdatingState();
+                }
                 return false;
             }
 
@@ -386,149 +542,111 @@ namespace Tweaks_Fixes
                     AddDebug(__instance.name + " TakeDamage Postfix " + originalDamage + " " + type);
                 }
             }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("HealTempDamage")]
-            static bool HealTempDamagePrefix(LiveMixin __instance, float timePassed)
-            {
-                if (Main.config.newPoisonSystem)
-                {
-                    if (__instance.tempDamage > 0 && healTempDamageTime < Time.time)
-                    {
-                        bool damaged = false;
-                        if (__instance.gameObject == Player.mainObject)
-                        {
-                            //AddDebug("HealTempDamage tempDamage " + __instance.tempDamage);
-                            int foodMin = Main.config.newHungerSystem ? -99 : 1;
-                            float damage = 0f;
-                            Survival survival = Main.survival;
-                            if (survival.food > foodMin)
-                                survival.food -= poisonDamage;
-                            else
-                                damage += poisonDamage;
-
-                            if (survival.water > foodMin)
-                                survival.water -= poisonDamage;
-                            else
-                                damage += poisonDamage;
-
-                            //if (damage > 0)
-                                __instance.TakeDamage(damage + poisonDamage, __instance.transform.position, DamageType.Poison, __instance.gameObject);
-                            damaged = true;
-                        }
-                        //if (__instance.gameObject == Player.mainObject)
-                        //    AddDebug("HealTempDamage tempDamage " + __instance.tempDamage);
-                        if (!damaged)
-                            __instance.TakeDamage(poisonDamage, __instance.transform.position, DamageType.Poison, __instance.gameObject);
-
-                        __instance.tempDamage -= poisonDamage;
-                        if (__instance.tempDamage > 0)
-                            healTempDamageTime = Time.time + poisonDamageInterval;
-                        else if (__instance.tempDamage < 0)
-                            __instance.tempDamage = 0;
-
-                        if (__instance.tempDamage == 0)
-                            __instance.SyncUpdatingState();
-                    }
-                    return false;
-                }
-                return true;
-            }
         }
 
+        //[HarmonyPatch(typeof(Survival), "OnHealTempDamage")]
+        static void Prefix(Survival __instance, float damage)
+        {
+            float food = Mathf.Clamp(__instance.food - damage * 0.25f, 0f, 200f);
+            AddDebug("Survival OnHealTempDamage " + food);
+        }
+
+        //[HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
+        class DamageSystem_CalculateDamage_Prefix_Patch
+        {
+            public static void Prefix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
+            {
+                AddDebug(target.name + " damage Prefix " + damage);
+            }
+        }
+           
         [HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
         class DamageSystem_CalculateDamage_Patch
         {
             public static void Postfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
             {
-                if (__result > 0f)
+                //AddDebug(target.name + " damage " + damage + ' ' + __result);
+                if (__result <= 0f)
+                    return;
+
+                Vehicle vehicle = target.GetComponent<Vehicle>();
+                if (target == Player.mainObject)
                 {
-                    Vehicle vehicle = target.GetComponent<Vehicle>();
-                    if (target == Player.mainObject)
-                    {
-                        //AddDebug("Player takes damage");
-                        __result *= Main.config.playerDamageMult;
-                        if (__result == 0f)
-                            return;
+                    __result *= Main.config.playerDamageMult;
+                    //AddDebug("Player takes damage " + __result.ToString("0.0"));
+                    if (__result == 0f)
+                        return;
 
-                        if (Main.config.dropHeldTool)
+                    if (Main.config.dropHeldTool)
+                    {
+                        if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
                         {
-                            if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
+                            int rnd = Main.rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
+                            if (rnd < damage)
                             {
-                                int rnd = Main.rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
-                                if (rnd < damage)
-                                {
-                                    //AddDebug("DropHeldItem");
-                                    Inventory.main.DropHeldItem(true);
-                                }
+                                //AddDebug("DropHeldItem");
+                                Inventory.main.DropHeldItem(true);
                             }
                         }
-                        //if (Main.config.newPoisonSystem && type == DamageType.Poison)
-                        //{
-                        //}
                     }
-                    else if (vehicle)
+                    //if (Main.config.newPoisonSystem && type == DamageType.Poison)
+                    //{
+                    //}
+                }
+                else if (vehicle)
+                {
+                    //AddDebug("Vehicle takes damage");
+                    if (type == DamageType.Normal || type == DamageType.Pressure || type == DamageType.Collide || type ==  DamageType.Explosive || type ==  DamageType.Puncture)
                     {
-                        //AddDebug("Vehicle takes damage");
-                        if (type == DamageType.Normal || type == DamageType.Pressure || type == DamageType.Collide || type ==  DamageType.Explosive || type ==  DamageType.Puncture)
+                        int armorUpgrades = 0;
+                        for (int i = 0; i < vehicle.slotIDs.Length; ++i)
                         {
-                            int armorUpgrades = 0;
-                            for (int i = 0; i < vehicle.slotIDs.Length; ++i)
-                            {
-                                TechType tt = vehicle.modules.GetTechTypeInSlot(vehicle.slotIDs[i]);
-                                if (tt == TechType.VehicleArmorPlating)
-                                    armorUpgrades++;
-                            }
-                            float armorMult = 1f;
-                            if (armorUpgrades == 1)
-                                armorMult = .7f;
-                            else if (armorUpgrades == 2)
-                                armorMult = .5f;
-                            else if (armorUpgrades == 3)
-                                armorMult = .4f;
-
-                            __result *= armorMult ;
+                            TechType tt = vehicle.modules.GetTechTypeInSlot(vehicle.slotIDs[i]);
+                            if (tt == TechType.VehicleArmorPlating)
+                                armorUpgrades++;
                         }
-                        __result *= Main.config.vehicleDamageMult;
-                    }
-                    else if (target.GetComponent<SubControl>())
-                    {
-                        //AddDebug("sub takes damage");
-                        __result *= Main.config.vehicleDamageMult;
-                    }
-                    else
-                    {
-                        //if (damageMult.Count > 0)
-                        {
-                            TechType tt = CraftData.GetTechType(target);
-                            TechTag techTag = target.EnsureComponent<TechTag>();
-                            techTag.type = tt;
-                            if (damageMult.ContainsKey(tt))
-                                __result *= damageMult[tt];
+                        float armorMult = 1f;
+                        if (armorUpgrades == 1)
+                            armorMult = .7f;
+                        else if (armorUpgrades == 2)
+                            armorMult = .5f;
+                        else if (armorUpgrades == 3)
+                            armorMult = .4f;
 
-                            if (tt == TechType.AcidMushroom || tt == TechType.WhiteMushroom)
-                            {
-                                if (type == DamageType.Acid)
-                                    __result = 0f;
-                            }
+                        __result *= armorMult ;
+                    }
+                    __result *= Main.config.vehicleDamageMult;
+                }
+                else if (target.GetComponent<SubControl>())
+                {
+                    //AddDebug("sub takes damage");
+                    __result *= Main.config.vehicleDamageMult;
+                }
+                else
+                {
+                    //if (damageMult.Count > 0)
+                    {
+                        TechType tt = CraftData.GetTechType(target);
+                        //TechTag techTag = target.EnsureComponent<TechTag>();
+                        //techTag.type = tt;
+                        if (damageMult.ContainsKey(tt))
+                            __result *= damageMult[tt];
+
+                        if (tt == TechType.AcidMushroom || tt == TechType.WhiteMushroom)
+                        {
+                            if (type == DamageType.Acid)
+                                __result = 0f;
                         }
                     }
                 }
-                //else
-                //{
-                //    if (target != Player.mainObject && dealer == Player.mainObject)
-                //    {
-
-                //    }
-                //}
             }
         }
-
+        
         [HarmonyPatch(typeof(DamageOnPickup))]
         class DamageOnPickup_Patch
         {
-            [HarmonyPatch("OnEnable")]
             [HarmonyPostfix]
+            [HarmonyPatch("OnEnable")]
             static void OnEnablePostfix(DamageOnPickup __instance)
             {
                 Plantable plantable = __instance.GetComponent<Plantable>();
@@ -538,8 +656,8 @@ namespace Tweaks_Fixes
                         __instance.damageAmount += __instance.damageAmount * .5f;
                 }
             }
-            [HarmonyPatch("OnPickedUp")]
             [HarmonyPrefix]
+            [HarmonyPatch("OnPickedUp")]
             static bool OnPickedUpPrefix(DamageOnPickup __instance, Pickupable pickupable)
             {
                 Plantable plantable = __instance.GetComponent<Plantable>();
@@ -549,6 +667,7 @@ namespace Tweaks_Fixes
                     {
                         if (Main.config.shroomDamageChance == 0f)
                             return false;
+
                         int rnd = Main.rndm.Next(0, 100);
                         if (Main.config.shroomDamageChance > rnd)
                         {
@@ -590,5 +709,6 @@ namespace Tweaks_Fixes
             }
         }
 
+        
     }
 }

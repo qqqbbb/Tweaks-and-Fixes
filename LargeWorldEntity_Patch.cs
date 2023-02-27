@@ -17,6 +17,7 @@ namespace Tweaks_Fixes
             //AddDebug("AlwaysUseHiPolyMesh " + go.name);
             if (techType == TechType.Boomerang)// dont disable FP model
                 go = go.transform.Find("model").gameObject;
+
             LODGroup lod = go.GetComponentInChildren<LODGroup>();
             if (lod == null)
                 return;
@@ -33,11 +34,24 @@ namespace Tweaks_Fixes
             Rigidbody rb = go.GetComponent<Rigidbody>();
             if (rb)
                 UnityEngine.Object.Destroy(rb);
+
             WorldForces wf = go.GetComponent<WorldForces>();
             if (wf)
                 UnityEngine.Object.Destroy(wf);
         }
-        
+
+        public static void DisableWavingShader(LargeWorldEntity __instance)
+        {
+            foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
+            {
+                foreach (Material m in mr.materials)
+                {
+                    //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
+                    m.DisableKeyword("UWE_WAVING");
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(LargeWorldEntity))]
         class LargeWorldEntity_Awake_Patch
         {
@@ -46,19 +60,20 @@ namespace Tweaks_Fixes
             public static void AwakePostfix(LargeWorldEntity __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
-                //    Main.Log("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
                 if (tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
                     int z = (int)__instance.transform.position.z;
                     if (x == 47 && y == -34 && z == -6)
-                    { 
+                    {
                         __instance.transform.position = new Vector3(__instance.transform.position.x, __instance.transform.position.y, -6.815f);
                     }
                     else if (x == -20 && y == -28 && z == -381)
-                    { 
+                    {
                         __instance.transform.position = new Vector3(__instance.transform.position.x, -28.62f, __instance.transform.position.z);
                     }
                 }
@@ -68,9 +83,10 @@ namespace Tweaks_Fixes
                         return; // has just grown in planter  
                     else if (__instance.GetComponent<GrownPlant>())
                         return; // spawned in planter
-                    //AddDebug(" fix  MembrainTree " + __instance.name);
-                    SkinnedMeshRenderer[] renderers = __instance.GetComponentsInChildren<SkinnedMeshRenderer>();
-                    renderers[0].transform.Rotate(90f, 0f, 0f);
+                                //AddDebug(" fix  MembrainTree " + __instance.name);
+
+                    AlwaysUseHiPolyMesh(__instance.gameObject);
+                    //model / Coral_reef_membrain_tree_01_25
                 }
                 else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
                     AlwaysUseHiPolyMesh(__instance.gameObject);
@@ -82,19 +98,16 @@ namespace Tweaks_Fixes
                     AlwaysUseHiPolyMesh(__instance.gameObject, TechType.LargeFloater);
                 else if (tt == TechType.BulboTree || tt == TechType.PurpleVasePlant || tt == TechType.OrangePetalsPlant || tt == TechType.PinkMushroom || tt == TechType.PurpleRattle)
                 {
-                    MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
-                    foreach (MeshRenderer mr in mrs)
-                    {
-                        foreach (Material m in mr.materials)
-                        {
-                            //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
-                            m.DisableKeyword("UWE_WAVING");
-                        }
-                    }
+                    DisableWavingShader(__instance);
                     if (tt == TechType.BulboTree)
+                    { 
+                        AlwaysUseHiPolyMesh(__instance.gameObject);
                         MakeImmuneToCannon(__instance.gameObject);
+                    }
+                    else if (tt == TechType.PurpleVasePlant)
+                        AlwaysUseHiPolyMesh(__instance.gameObject);
                 }
-                else if (tt == TechType.FarmingTray || tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree)
+                else if (tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree)
                 {
                     MakeImmuneToCannon(__instance.gameObject);
                 }
@@ -103,7 +116,6 @@ namespace Tweaks_Fixes
                 else if (tt == TechType.BloodRoot || tt == TechType.BloodVine || tt == TechType.Creepvine)
                 {
                     PickPrefab[] pickPrefabs = __instance.gameObject.GetComponentsInChildren<PickPrefab>(true);
-
                     if (pickPrefabs.Length > 0)
                     {
                         FruitPlant fp = __instance.gameObject.EnsureComponent<FruitPlant>();
@@ -125,6 +137,9 @@ namespace Tweaks_Fixes
                 }
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
+                    if (tt == TechType.CrashHome)
+                        MakeImmuneToCannon(__instance.gameObject);
+
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
                     int z = (int)__instance.transform.position.z;
@@ -145,6 +160,7 @@ namespace Tweaks_Fixes
                     //    AlwaysUseHiPolyMesh(__instance.gameObject);
                     else if (__instance.name == "Land_tree_01(Clone)")
                     {
+                        AlwaysUseHiPolyMesh(__instance.gameObject);
                         MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
                         foreach (MeshRenderer mr in mrs)
                         {
@@ -158,7 +174,10 @@ namespace Tweaks_Fixes
                         //if (floaters.Length == 0)
                         //if (__instance.transform.position.y < 1f && __instance.GetComponent<FloatersTarget>() == null)
                         {
-                            //AddDebug(__instance.name + " CellLevel " + __instance.cellLevel);
+                            int x = (int)__instance.transform.position.x;
+                            int y = (int)__instance.transform.position.y;
+                            int z = (int)__instance.transform.position.z;
+                            //AddDebug(__instance.name + " CellLevel " + __instance.cellLevel + " " + x + " " + y + " " + z);
                             //Main.Log(__instance.name + "  " + __instance.transform.position);
                             //Main.Log(__instance.name + " classId " + __instance.GetComponent<PrefabIdentifier>().classId);
                             __instance.cellLevel = LargeWorldEntity.CellLevel.Near;
@@ -194,12 +213,15 @@ namespace Tweaks_Fixes
                 }
 
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("StartFading")]
+
+
+            //[HarmonyPrefix]
+            //[HarmonyPatch("StartFading")]
             public static bool StartFadingPrefix(LargeWorldEntity __instance)
             {
                 if (!Main.loadingDone)
                     return false;
+
                 else if (Tools_Patch.releasingGrabbedObject)
                 {
                     Tools_Patch.releasingGrabbedObject = false;

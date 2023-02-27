@@ -8,7 +8,7 @@ namespace Tweaks_Fixes
     class Databox_Light_Patch
     {
         public static List<GameObject> databoxLights = new List<GameObject>();
-
+        
         public static GameObject GetClosestToPlayer()
         {
             GameObject closest = null;
@@ -62,6 +62,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        
     }
 }

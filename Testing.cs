@@ -1,15 +1,11 @@
 ﻿
 using HarmonyLib;
-using QModManager.API.ModLoading;
 using System.Reflection;
 using System;
 using SMLHelper.V2.Handlers;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMOD;
-using FMOD.Studio;
-using FMODUnity;
 using System.Text;
 using static ErrorMessage;
 
@@ -20,13 +16,13 @@ namespace Tweaks_Fixes
         //static HashSet<TechType> creatures = new HashSet<TechType>();
         //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
 
-         //[HarmonyPatch(typeof(Player), "Update")]
+        //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                //Main.Message("mainCamera forward" + Player.main.camRoot.mainCamera.transform.forward);
-                //AddDebug("timePassedAsFloat " + (int)DayNightCycle.main.timePassedAsFloat);
+                //AddDebug("WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
+                //AddDebug("stalkerLoseTooth " + Main.config.stalkerLoseTooth * .01f);
                 //AddDebug("Time.time " + (int)Time.time);
                 //AddDebug("isUnderwaterForSwimming " + __instance.isUnderwaterForSwimming.value);
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
@@ -50,7 +46,7 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     
-                    //AddDebug(" loadingDone " + Main.loadingDone);
+                    //AddDebug(" WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
                     //AddDebug("  " + Player.main.GetBiomeString());
                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    Main.survival.water++; 
@@ -75,7 +71,7 @@ namespace Tweaks_Fixes
                     //Vector3 vel = Player.main.currentMountedVehicle.useRigidbody.velocity;
                     //bool moving = vel.x > 1f || vel.y > 1f || vel.z > 1f;
                     //AddDebug("moving " + moving);
-                    GameObject target = Main.guiHand.activeTarget;
+                    GameObject target = Player.main.guiHand.activeTarget;
                     //GameObject target = null;
                     if (!target)
                         Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
@@ -184,96 +180,6 @@ namespace Tweaks_Fixes
                 AddDebug("AddAndPlaySound " + key);
                 AddDebug("EntryData " + __result.key);
                 //return false;
-            }
-        }
-
-        //[HarmonyPatch(typeof(GUIHand), "UpdateActiveTarget")]
-        class GUIHand_UpdateActiveTarget_Patch
-        {
-            public static bool Prefix(GUIHand __instance)
-            {
-                PlayerTool tool = __instance.GetTool();
-                if (tool)
-                {
-                    if (tool.GetComponent<PropulsionCannon>() && tool.GetComponent<PropulsionCannon>().IsGrabbingObject())
-                    {
-                        __instance.activeTarget = tool.GetComponent<PropulsionCannon>().GetNearbyGrabbedObject();
-                        __instance.suppressTooltip = true;
-                        return false;
-                    }
-                    else if (tool.DoesOverrideHand())
-                    {
-                        __instance.activeTarget = null;
-                        __instance.activeHitDistance = 0f;
-                        return false;
-                    }
-                }
-                //AddDebug("UpdateActiveTarget " );
-                GameObject target = null;
-                if (!Targeting.GetTarget(Player.main.gameObject, 2f, out target, out __instance.activeHitDistance))
-                {
-                    __instance.activeTarget = null;
-                    __instance.activeHitDistance = 0f;
-                    return false;
-                }
-                //if (__instance.activeTarget == target)
-                //    return false;
-                //else
-                    __instance.activeTarget = target;
-
-                //AddDebug("UpdateActiveTarget 1");
-                if (__instance.activeTarget && __instance.activeTarget.layer == LayerID.NotUseable)
-                {
-                    __instance.activeTarget = null;
-                    return false;
-                }
-                else
-                {
-                    TechType tt = CraftData.GetTechType(__instance.activeTarget);
-                    AddDebug("TechType " + tt);
-                    //if (PDAScanner.complete.Contains(tt))
-                    //{
-                    //    AddDebug("PDAScanner.complete " + tt);
-                    //}
-                    IHandTarget handTarget = null;
-                    for (Transform transform = __instance.activeTarget.transform; transform != null; transform = transform.parent)
-                    {
-                        handTarget = transform.GetComponent<IHandTarget>();
-                        if (handTarget != null)
-                        {
-                            AddDebug("handTarget " + tt);
-                            __instance.activeTarget = transform.gameObject;
-                            return false;
-                        }
-                    }
-                    if (handTarget == null)
-                    {
-                        switch (CraftData.GetHarvestTypeFromTech(tt))
-                        {
-                            case HarvestType.None:
-                                __instance.activeTarget = null;
-                                break;
-                            case HarvestType.Pick:
-                                if (Utils.FindAncestorWithComponent<Pickupable>(__instance.activeTarget) == null)
-                                {
-                                    LargeWorldEntity lwe = Utils.FindAncestorWithComponent<LargeWorldEntity>(__instance.activeTarget);
-                                    lwe.gameObject.AddComponent<Pickupable>();
-                                    lwe.gameObject.AddComponent<WorldForces>().useRigidbody = lwe.GetComponent<Rigidbody>();
-                                    break;
-                                }
-                                break;
-                        }
-                        if (PDAScanner.complete.Contains(tt))
-                        {
-                            AddDebug("PDAScanner.complete " + tt);
-                            //__instance.activeTarget = target;
-                        }
-                    }
-                }
-                if (IntroVignette.isIntroActive)
-                    __instance.activeTarget = __instance.FilterIntroTarget(__instance.activeTarget);
-
-                return false;
             }
         }
 

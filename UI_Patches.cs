@@ -48,7 +48,7 @@ namespace Tweaks_Fixes
                 //Main.config.translatableStrings = new List<string> (Main.config.translatableStrings);
                 //Main.config.translatableStrings.Add("Need knife to break it");
                 //Main.config.translatableStrings.Add("Need knife to break it free");
-                Main.config.translatableStrings = new List<string>{ "Burnt out ", "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map", "Push ", "Need knife to break it", "Need knife to break it free", "Toggle lights", ". Press and hold ", " to charge the shot", " Change torpedo ", " Hold ", " and press ", " to change torpedo ", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot." };
+                Main.config.translatableStrings = new List<string>{ "Burnt out ", "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map", "Push ", "Need a knife to break it", "Need a knife to break it free", "Toggle lights", ". Press and hold ", " to charge the shot", " Change torpedo ", " Hold ", " and press ", " to change torpedo ", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot." };
                 Main.config.Save();
             }
             //foreach (string s in Main.config.translatableStrings)
@@ -60,14 +60,14 @@ namespace Tweaks_Fixes
             Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
             propCannonString = LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool);
             Exosuit_Patch.armNamesChanged = true;
-            dropString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")";
+            dropString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringButton1 + ")";
             eatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
             lightFlareString = Main.config.translatableStrings[12] + " (" + altToolButton + ")";
-            throwFlareString = Main.config.translatableStrings[10] + " (" + TooltipFactory.stringRightHand + ")";
-            lightAndThrowFlareString = Main.config.translatableStrings[11] + " (" + TooltipFactory.stringRightHand + ")";
-            beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringRightHand + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
-            beaconPickString = "(" + TooltipFactory.stringLeftHand + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
-            smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + altToolButton + ")";
+            throwFlareString = Main.config.translatableStrings[10] + " (" + TooltipFactory.stringButton1 + ")";
+            lightAndThrowFlareString = Main.config.translatableStrings[11] + " (" + TooltipFactory.stringButton1 + ")";
+            beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringButton1 + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
+            beaconPickString = "(" + TooltipFactory.stringButton0 + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
+            smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + altToolButton + ")\n";
             //seaglideString = Main.config.translatableStrings[2] + " (" + TooltipFactory.stringRightHand + ")  " + Main.config.translatableStrings[13] + " (" + altToolButton + ")";
             seaglideString = Main.config.translatableStrings[13] + " (" + altToolButton + ")";
             changeTorpedoButton = Main.config.translatableStrings[20] + "(" + altToolButton + ")";
@@ -76,7 +76,7 @@ namespace Tweaks_Fixes
             slot2Button = "(" + uGUI.FormatButton(GameInput.Button.Slot2) + ")";
             slot1Plus2Button = slot1Button + slot2Button;
             //Main.Log("changeTorpedoButton GetStrings " + UI_Patches.changeTorpedoButton);
-            stasisRifleString = Main.config.translatableStrings[18].Substring(1) + "(" + TooltipFactory.stringRightHand + ")" + Main.config.translatableStrings[19];
+            stasisRifleString = Main.config.translatableStrings[18].Substring(1) + "(" + TooltipFactory.stringButton1 + ")" + Main.config.translatableStrings[19];
             scannerString = LanguageCache.GetButtonFormat("ScannerSelfScanFormat", GameInput.Button.AltTool);
             exosuitExitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + ' ' + Main.config.translatableStrings[17] + " (" + deconstructButton + ")";
             Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
@@ -96,7 +96,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(Trashcan), "OnEnable")]
         class Trashcan_OnEnable_Patch
         {
@@ -114,7 +114,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(uGUI_ItemsContainer), "OnAddItem")]
         class uGUI_ItemsContainer_OnAddItem_Patch
         {
@@ -132,7 +132,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(BaseBioReactor), "Start")]
         class BaseBioReactor_Start_Patch
         {
@@ -160,7 +160,7 @@ namespace Tweaks_Fixes
                     waterPlanters.Add(__instance.storageContainer.container);
             }
         }
-
+        
         [HarmonyPatch(typeof(uGUI_InventoryTab))]
         class uGUI_InventoryTab_Patch
         {
@@ -251,17 +251,10 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
         { 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("Start")]
-            public static void StartPrefix(GUIHand __instance)
-            {
-
-            }
-
             //[HarmonyPatch(nameof(GUIHand.OnUpdate))]
             //[HarmonyPrefix]
             public static bool OnUpdatePrefix(GUIHand __instance)
@@ -272,7 +265,7 @@ namespace Tweaks_Fixes
                 UniqueIdentifier ui = __instance.activeTarget.GetComponentInParent<UniqueIdentifier>();
                 if (ui && Plants_Patch.enteredColliders.ContainsKey(ui.gameObject) && Plants_Patch.enteredColliders[ui.gameObject] > 0)
                 {
-                    HandReticle.main.SetInteractTextRaw(string.Empty, string.Empty);
+                    //HandReticle.main.SetInteractTextRaw(string.Empty, string.Empty);
                     return false;
                 }
                 return true;
@@ -294,6 +287,7 @@ namespace Tweaks_Fixes
                 if (tool)
                 {
                     Flare flare = tool as Flare;
+                    InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
                     if (flare && !Main.flareRepairLoaded)
                     {
                         bool lit = flare.flareActivateTime > 0;
@@ -315,12 +309,12 @@ namespace Tweaks_Fixes
                         if (!lit && GameInput.GetButtonDown(GameInput.Button.AltTool))
                             Flare_Patch.LightFlare(flare);
 
-                        HandReticle.main.SetUseTextRaw(text, null);
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
                     }
                     Beacon beacon = tool as Beacon;
                     if (beacon)
                     {
-                        HandReticle.main.SetUseTextRaw(beaconToolString, null);
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, beaconToolString);
                         if (beacon.beaconLabel && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                         {
                             uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
@@ -344,7 +338,8 @@ namespace Tweaks_Fixes
                         sb.Append(" (");
                         sb.Append(deconstructButton);
                         sb.Append(")");
-                        HandReticle.main.SetUseTextRaw(sb.ToString(), null);
+                        //HandReticle.main.SetUseTextRaw(sb.ToString(), null);
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, sb.ToString());
                         //if (GameInput.GetButtonDown(GameInput.Button.LeftHand))
                         //    sc.OnHandClick(__instance);
                         if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
@@ -367,13 +362,14 @@ namespace Tweaks_Fixes
                             if (GameInput.GetButtonDown(GameInput.Button.AltTool))
                             {
                                 Inventory playerInv = Inventory.main;
-                                playerInv.UseItem(playerInv.quickSlots.heldItem);
+                                //playerInv.UseItem(playerInv.quickSlots.heldItem);
+                                Inventory.main.ExecuteItemAction(ItemAction.Eat, heldItem);
                             }
                         }
-                        HandReticle.main.SetUseTextRaw(sb.ToString(), null);
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, sb.ToString());
                     }
                 }
-                else if(!Main.baseLightSwitchLoaded && !Main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
+                else if(!Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
                 {
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
@@ -382,7 +378,7 @@ namespace Tweaks_Fixes
                         sb.Append(" (");
                         sb.Append(deconstructButton);
                         sb.Append(")");
-                        HandReticle.main.SetUseTextRaw(null, sb.ToString());
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, sb.ToString());
                         if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                             Base_Patch.ToggleBaseLight(subRoot);
                     }
@@ -409,12 +405,13 @@ namespace Tweaks_Fixes
                             name = Language.main.Get(pickupable.overrideTechType);
 
                         name = Language.main.GetFormat("DeadFormat", name);
-                        HandReticle.main.SetInteractText(name);
+                        //HandReticle.main.SetInteractText(name);
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, name, false, GameInput.Button.LeftHand);
                     }
                     else
                     {
                         name = Language.main.GetFormat<string>("DeadFormat", name);
-                        HandReticle.main.SetInteractTextRaw(name, string.Empty);
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, name, true);
                     }
                 }
                 Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
@@ -423,11 +420,12 @@ namespace Tweaks_Fixes
                     //AddDebug("activeTarget Flare");
                     StringBuilder sb = new StringBuilder(Main.config.translatableStrings[0]);
                     sb.Append(Language.main.Get(targetTT));
-                    HandReticle.main.SetInteractTextRaw(sb.ToString(), string.Empty);
+                    //HandReticle.main.SetInteractTextRaw(sb.ToString(), string.Empty);
+                    HandReticle.main.SetText(HandReticle.TextType.Hand, sb.ToString(), false);
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(uGUI_MainMenu), "Update")]
         class uGUI_MainMenu_Update_Patch
         {
@@ -445,12 +443,11 @@ namespace Tweaks_Fixes
                 if (Input.GetKeyDown(KeyCode.Escape))
                 {
                     __instance.ShowPrimaryOptions(true);
-                    //__instance.rightSide.OpenGroup("Home");
                     __instance.rightSide.OpenGroup("SavedGames");
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(uGUI_PDA), "Update")]
         class uGUI_PDA_Update_Patch
         {
@@ -485,15 +482,15 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(PlayerWorldArrows), "CreateWorldArrows")]
-        internal class PlayerWorldArrows_CreateWorldArrows_Patch
+        class PlayerWorldArrows_CreateWorldArrows_Patch
         {
-            internal static bool Prefix(PlayerWorldArrows __instance)
+            static bool Prefix(PlayerWorldArrows __instance)
             {
                 //AddDebug("CreateWorldArrows");
                 return !Main.config.disableHints;
             }
         }
-
+        
         [HarmonyPatch(typeof(TooltipFactory))]
         class TooltipFactory_Patch
         {
@@ -504,6 +501,7 @@ namespace Tweaks_Fixes
                 if (string.IsNullOrEmpty(altToolButton))
                 {
                     //AddDebug("TooltipFactory Initialize ");
+                    //Main.logger.LogMessage("TooltipFactory Initialize " );
                     GetStrings();
                 }
             }
@@ -575,19 +573,23 @@ namespace Tweaks_Fixes
 
             }
         }
-
-        [HarmonyPatch(typeof(Language), "FormatString")]
+        
+        [HarmonyPatch(typeof(Language), "FormatString", new Type[] { typeof(string), typeof(object[]) })]
         class Language_FormatString_Patch
         {
-            static void Postfix(string text, ref string __result, object[] args)
+            static void Postfix(string format, ref string __result, object[] args)
             {
-                //AddDebug("FormatString " + text);
-                //AddDebug("FormatString " + __result);
-                if (!Main.languageCheck || !fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(float)  )
-                    return;
+                //AddDebug("FormatString " + format);
+                //AddDebug("!Main.languageCheck " + !Main.languageCheck);
                 //AddDebug("FormatString GetType" + args[0].GetType());
-                float value = (float)args[0];
-                if (value > 0f && text.Contains("FOOD:") || text.Contains("H₂O:"))
+                //if (format.Contains("FOOD:") || format.Contains("H₂O:"))
+                //    AddDebug("FormatString " + __result);
+
+                if (!Main.languageCheck || !fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(Int32)  )
+                    return;
+
+                int value = (int)args[0];
+                if (value > 0f && format.Contains("FOOD:") || format.Contains("H₂O:"))
                 {
                     string[] tokens = __result.Split(':');
                     string min = Main.config.translatableStrings[8];
@@ -621,13 +623,14 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
-        [HarmonyPatch(typeof(Inventory), "ExecuteItemAction")]
+        
+        [HarmonyPatch(typeof(Inventory), "ExecuteItemAction", new Type[] {typeof(ItemAction), typeof(InventoryItem)})]
         class Inventory_ExecuteItemAction_Patch
         {
             public static bool Prefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
-                //AddDebug("AltUseItem " + item.item.GetTechType());
+                //AddDebug("ExecuteItemAction AltUseItem " + item.item.GetTechType());
+                //AddDebug("ExecuteItemAction action " + action);
                 //ItemAction itemAction = __instance.GetAltUseItemAction(item);
                 IItemsContainer oppositeContainer = __instance.GetOppositeContainer(item);
                 if (Main.advancedInventoryLoaded || action != ItemAction.Switch || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
@@ -658,48 +661,33 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(uGUI_MainMenu), "OnRightSideOpened")]
-        class uGUI_MainMenu_OnRightSideOpened_Patch
-        {
-            public static void Postfix(uGUI_MainMenu __instance, GameObject root)
-            {
-                //AddDebug("OnRightSideOpened " + __instance.GetCurrentSubMenu());
-                //__instance.subMenu = root.GetComponentInChildren<uGUI_INavigableIconGrid>();
-                //__instance.subMenu.
-                //if (Input.GetKey(KeyCode.LeftShift))
-                //{
-                //if (Input.GetAxis("Mouse ScrollWheel") > 0f)
-                //    __instance.OpenTab(__instance.GetNextTab());
-                //else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
-                //    __instance.OpenTab(__instance.GetPreviousTab());
-                //}
-            }
-        }
-
         [HarmonyPatch(typeof(uGUI_HealthBar), "LateUpdate")]
         class uGUI_HealthBar_LateUpdate_Patch
         {
             public static bool Prefix(uGUI_HealthBar __instance)
             {
+                if (!Main.config.alwaysShowHealthNunbers)
+                    return true;
+
                 int showNumbers = __instance.showNumbers ? 1 : 0;
                 __instance.showNumbers = false;
-                Player main = Player.main;
-                if (main != null)
+                Player player = Player.main;
+                if (player != null)
                 {
-                    LiveMixin lm = main.GetComponent<LiveMixin>();
-                    if (lm != null)
+                    LiveMixin liveMixin = player.GetComponent<LiveMixin>();
+                    if (liveMixin != null)
                     {
                         if (!__instance.subscribed)
                         {
                             __instance.subscribed = true;
-                            lm.onHealDamage.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnHealDamage));
+                            liveMixin.onHealDamage.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnHealDamage));
                         }
-                        float health = lm.health - lm.tempDamage;
-                        if (Main.config.newPoisonSystem)
-                            health = lm.health;
-                        float maxHealth = lm.maxHealth;
-                        __instance.SetValue(health, maxHealth);
-                        float time = 1f - Mathf.Clamp01(health / __instance.pulseReferenceCapacity);
+                        //float has = liveMixin.health - liveMixin.tempDamage;
+                        float has = Main.config.newPoisonSystem ? liveMixin.health : liveMixin.health - liveMixin.tempDamage;
+
+                        float maxHealth = liveMixin.maxHealth;
+                        __instance.SetValue(has, maxHealth);
+                        float time = 1f - Mathf.Clamp01(has / __instance.pulseReferenceCapacity);
                         __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
                         if (__instance.pulseDelay < 0f)
                             __instance.pulseDelay = 0f;
@@ -708,48 +696,29 @@ namespace Tweaks_Fixes
                             __instance.pulseTime = 0f;
                         float num2 = __instance.pulseDelay + __instance.pulseTime;
                         if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                            __instance.pulseAnimationState.normalizedTime = 0f;
+                            __instance.statePulse.normalizedTime = 0f;
                         __instance.pulseTween.duration = num2;
                     }
-                    PDA pda = main.GetPDA();
-                    if (Main.config.alwaysShowHealthNunbers || pda && pda.isInUse)
+                    PDA pda = player.GetPDA();
+                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
                         __instance.showNumbers = true;
                 }
-                if ((TrackedReference)__instance.pulseAnimationState != (TrackedReference)null && __instance.pulseAnimationState.enabled)
+                if (__instance.statePulse.enabled)
                 {
                     RectTransform icon = __instance.icon;
                     icon.localScale = icon.localScale + __instance.punchScale;
                 }
                 else
                     __instance.icon.localScale = __instance.punchScale;
+
                 int num3 = __instance.showNumbers ? 1 : 0;
                 if (showNumbers != num3)
                     __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                double time1 = Time.time;
-                float dT = 0.02f;
-                double lastFixedUpdateTime = __instance.lastFixedUpdateTime;
-                float f = (float)(time1 - lastFixedUpdateTime);
-                int num4 = Mathf.FloorToInt(f);
-                if (num4 > 20)
-                {
-                    num4 = 1;
-                    dT = f;
-                }
-                __instance.lastFixedUpdateTime += num4 * dT;
-                for (int index = 0; index < num4; ++index)
-                {
-                    double rotationCurrent1 = __instance.rotationCurrent;
-                    float target = __instance.showNumbers ? 180f : 0f;
-                    MathExtensions.Spring(ref __instance.rotationVelocity, ref __instance.rotationCurrent, target, __instance.rotationSpringCoef, dT, __instance.rotationVelocityDamp, __instance.rotationVelocityMax);
-                    if (Mathf.Abs(target - __instance.rotationCurrent) < 1f && Mathf.Abs(__instance.rotationVelocity) < 1f)
-                    {
-                        __instance.rotationVelocity = 0f;
-                        __instance.rotationCurrent = target;
-                    }
-                    double rotationCurrent2 = __instance.rotationCurrent;
-                    if (rotationCurrent1 != rotationCurrent2)
-                        __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
-                }
+
+                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
+                    return false;
+
+                __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
 
                 return false;
             }
@@ -760,20 +729,23 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(uGUI_FoodBar __instance)
             {
-                int showNumbers = __instance.showNumbers ? 1 : 0;
+                if (!Main.config.alwaysShowHealthNunbers)
+                    return true;
+
+                int num1 = __instance.showNumbers ? 1 : 0;
                 __instance.showNumbers = false;
                 Player main = Player.main;
                 if (main != null)
                 {
-                    Survival survival = main.GetComponent<Survival>();
-                    if (survival != null)
+                    Survival component = main.GetComponent<Survival>();
+                    if (component != null)
                     {
                         if (!__instance.subscribed)
                         {
                             __instance.subscribed = true;
-                            survival.onEat.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnEat));
+                            component.onEat.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnEat));
                         }
-                        float food = survival.food;
+                        float food = component.food;
                         float capacity = 100f;
                         __instance.SetValue(food, capacity);
                         float time = 1f - Mathf.Clamp01(food / __instance.pulseReferenceCapacity);
@@ -792,83 +764,7 @@ namespace Tweaks_Fixes
                     if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
                         __instance.showNumbers = true;
                 }
-                if ((TrackedReference)__instance.pulseAnimationState != (TrackedReference)null && __instance.pulseAnimation.enabled)
-                {
-                    RectTransform icon = __instance.icon;
-                    icon.localScale = icon.localScale + __instance.punchScale;
-                }
-                else
-                    __instance.icon.localScale = __instance.punchScale;
-                int num3 = __instance.showNumbers ? 1 : 0;
-                if (showNumbers != num3)
-                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                double time1 = Time.time;
-                float dT = 0.02f;
-                double lastFixedUpdateTime = __instance.lastFixedUpdateTime;
-                float f = (float)(time1 - lastFixedUpdateTime);
-                int num4 = Mathf.FloorToInt(f);
-                if (num4 > 20)
-                {
-                    num4 = 1;
-                    dT = f;
-                }
-                __instance.lastFixedUpdateTime += num4 * dT;
-                for (int index = 0; index < num4; ++index)
-                {
-                    double rotationCurrent1 = __instance.rotationCurrent;
-                    float target = __instance.showNumbers ? 180f : 0.0f;
-                    MathExtensions.Spring(ref __instance.rotationVelocity, ref __instance.rotationCurrent, target, __instance.rotationSpringCoef, dT, __instance.rotationVelocityDamp, __instance.rotationVelocityMax);
-                    if (Mathf.Abs(target - __instance.rotationCurrent) < 1f && Mathf.Abs(__instance.rotationVelocity) < 1f)
-                    {
-                        __instance.rotationVelocity = 0f;
-                        __instance.rotationCurrent = target;
-                    }
-                    double rotationCurrent2 = __instance.rotationCurrent;
-                    if (rotationCurrent1 != rotationCurrent2)
-                        __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
-                }
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_WaterBar), "LateUpdate")]
-        class uGUI_WaterBar_LateUpdate_Patch
-        {
-            public static bool Prefix(uGUI_WaterBar __instance)
-            {
-                int num1 = __instance.showNumbers ? 1 : 0;
-                __instance.showNumbers = false;
-                Player main = Player.main;
-                if (main != null)
-                {
-                    Survival survival = main.GetComponent<Survival>();
-                    if (survival != null)
-                    {
-                        if (!__instance.subscribed)
-                        {
-                            __instance.subscribed = true;
-                            survival.onDrink.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnDrink));
-                        }
-                        float water = survival.water;
-                        float capacity = 100f;
-                        __instance.SetValue(water, capacity);
-                        float time = 1f - Mathf.Clamp01(water / __instance.pulseReferenceCapacity);
-                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
-                        if (__instance.pulseDelay < 0f)
-                            __instance.pulseDelay = 0f;
-                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
-                        if (__instance.pulseTime < 0f)
-                            __instance.pulseTime = 0f;
-                        float num2 = __instance.pulseDelay + __instance.pulseTime;
-                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                            __instance.pulseAnimationState.normalizedTime = 0f;
-                        __instance.pulseTween.duration = num2;
-                    }
-                    PDA pda = main.GetPDA();
-                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
-                        __instance.showNumbers = true;
-                }
-                if ((TrackedReference)__instance.pulseAnimationState != (TrackedReference)null && __instance.pulseAnimationState.enabled)
+                if (__instance.pulseAnimationState != null && __instance.pulseAnimation.enabled)
                 {
                     RectTransform icon = __instance.icon;
                     icon.localScale = icon.localScale + __instance.punchScale;
@@ -878,35 +774,74 @@ namespace Tweaks_Fixes
                 int num3 = __instance.showNumbers ? 1 : 0;
                 if (num1 != num3)
                     __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                double time1 = Time.time;
-                float dT = 0.02f;
-                double lastFixedUpdateTime = __instance.lastFixedUpdateTime;
-                float f = (float)(time1 - lastFixedUpdateTime);
-                int num4 = Mathf.FloorToInt(f);
-                if (num4 > 20)
-                {
-                    num4 = 1;
-                    dT = f;
-                }
-                __instance.lastFixedUpdateTime += num4 * dT;
-                for (int index = 0; index < num4; ++index)
-                {
-                    double rotationCurrent1 = __instance.rotationCurrent;
-                    float target = __instance.showNumbers ? 180f : 0f;
-                    MathExtensions.Spring(ref __instance.rotationVelocity, ref __instance.rotationCurrent, target, __instance.rotationSpringCoef, dT, __instance.rotationVelocityDamp, __instance.rotationVelocityMax);
-                    if (Mathf.Abs(target - __instance.rotationCurrent) < 1f && Mathf.Abs(__instance.rotationVelocity) < 1f)
-                    {
-                        __instance.rotationVelocity = 0f;
-                        __instance.rotationCurrent = target;
-                    }
-                    double rotationCurrent2 = __instance.rotationCurrent;
-                    if (rotationCurrent1 != rotationCurrent2)
-                        __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
-                }
+                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
+                    return false;
+
+                __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
+
                 return false;
             }
         }
 
+        [HarmonyPatch(typeof(uGUI_WaterBar), "LateUpdate")]
+        class uGUI_WaterBar_LateUpdate_Patch
+        {
+            public static bool Prefix(uGUI_WaterBar __instance)
+            {
+                if (!Main.config.alwaysShowHealthNunbers)
+                    return true;
+
+                int num1 = __instance.showNumbers ? 1 : 0;
+                __instance.showNumbers = false;
+                Player main = Player.main;
+                if (main != null)
+                {
+                    Survival component = main.GetComponent<Survival>();
+                    if (component != null)
+                    {
+                        if (!__instance.subscribed)
+                        {
+                            __instance.subscribed = true;
+                            component.onDrink.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnDrink));
+                        }
+                        float water = component.water;
+                        float capacity = 100f;
+                        __instance.SetValue(water, capacity);
+                        float time = 1f - Mathf.Clamp01(water / __instance.pulseReferenceCapacity);
+                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
+                        if (__instance.pulseDelay < 0.0)
+                            __instance.pulseDelay = 0.0f;
+                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
+                        if (__instance.pulseTime < 0.0)
+                            __instance.pulseTime = 0.0f;
+                        float num2 = __instance.pulseDelay + __instance.pulseTime;
+                        if (__instance.pulseTween.duration > 0.0 && num2 <= 0.0)
+                            __instance.pulseAnimationState.normalizedTime = 0.0f;
+                        __instance.pulseTween.duration = num2;
+                    }
+                    PDA pda = main.GetPDA();
+                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
+                        __instance.showNumbers = true;
+                }
+                if (__instance.pulseAnimationState != null && __instance.pulseAnimationState.enabled)
+                {
+                    RectTransform icon = __instance.icon;
+                    icon.localScale = icon.localScale + __instance.punchScale;
+                }
+                else
+                    __instance.icon.localScale = __instance.punchScale;
+                int num3 = __instance.showNumbers ? 1 : 0;
+                if (num1 != num3)
+                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
+                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0.0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
+                    return false;
+
+                __instance.icon.localRotation = Quaternion.Euler(0.0f, __instance.rotationCurrent, 0.0f);
+
+                return false;
+            }
+        }
+        
         [HarmonyPatch(typeof(uGUI_InputGroup))]
         class uGUI_InputGroup_Patch
         {
@@ -933,6 +868,25 @@ namespace Tweaks_Fixes
             {
                 if (!Main.seaglideMapControlsLoaded && __instance is Seaglide)
                     __result = seaglideString;
+            }
+        }
+
+
+        //[HarmonyPatch(typeof(uGUI_MainMenu), "OnRightSideOpened")]
+        class uGUI_MainMenu_OnRightSideOpened_Patch
+        {
+            public static void Postfix(uGUI_MainMenu __instance, GameObject root)
+            {
+                //AddDebug("OnRightSideOpened " + __instance.GetCurrentSubMenu());
+                //__instance.subMenu = root.GetComponentInChildren<uGUI_INavigableIconGrid>();
+                //__instance.subMenu.
+                //if (Input.GetKey(KeyCode.LeftShift))
+                //{
+                //if (Input.GetAxis("Mouse ScrollWheel") > 0f)
+                //    __instance.OpenTab(__instance.GetNextTab());
+                //else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
+                //    __instance.OpenTab(__instance.GetPreviousTab());
+                //}
             }
         }
 

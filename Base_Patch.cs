@@ -12,7 +12,7 @@ namespace Tweaks_Fixes
     {
         static int camerasToRemove = 0;
 
-
+        
         public static void ToggleBaseLight(SubRoot subRoot)
         {
             //bool canToggle = subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
@@ -73,33 +73,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(BaseDeconstructable), "Awake")]
-        class BaseDeconstructable_Awake_Patch
-        {
-            static void Postfix(BaseDeconstructable __instance)
-            { // recipe is None
-                AddDebug("BaseDeconstructable Awake " + __instance.recipe);
-                if (__instance.recipe == TechType.BaseMoonpool)
-                {
-
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(BaseWaterPlane), "Awake")]
-        class BaseWaterPlane_Awake_Patch
-        {
-            static void Postfix(BaseWaterPlane __instance)
-            {
-                if (__instance.transform.parent.name == "BaseMoonpool(Clone)")
-                {
-                    Transform t = __instance.transform.Find("x_BaseWaterPlane");
-                    if (t)
-                        t.localScale = new Vector3(1f, 1f, .98f);
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(MapRoomCamera), "Start")]
         class MapRoomCamera_Start_Patch
         {
@@ -120,7 +93,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(Constructable), "Construct")]
-        internal class Constructable_Construct_Patch
+        class Constructable_Construct_Patch
         {
             public static void Postfix(Constructable __instance)
             {
@@ -143,13 +116,15 @@ namespace Tweaks_Fixes
                 Constructable c = __instance.gameObject.GetComponent<Constructable>();
                 if (!c || !c.constructed)
                     return false;
-                HandReticle.main.SetInteractText(Language.main.GetFormat<int, int, int>("SolarPanelStatus", Mathf.RoundToInt(__instance.GetRechargeScalar() * 100f), Mathf.RoundToInt(__instance.powerSource.GetPower()), Mathf.RoundToInt(__instance.powerSource.GetMaxPower())), false);
+
+                HandReticle.main.SetText(HandReticle.TextType.Hand, Language.main.GetFormat<int, int, int>("SolarPanelStatus", Mathf.RoundToInt(__instance.GetRechargeScalar() * 100f), Mathf.RoundToInt(__instance.powerSource.GetPower()), Mathf.RoundToInt(__instance.powerSource.GetMaxPower())), false);
+                //HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
                 //HandReticle.main.SetIcon(HandReticle.IconType.Hand);
                 return false;
             }
         }
 
-        [HarmonyPatch(typeof(BaseUpgradeConsoleGeometry), "GetVehicleInfo")]
+        //[HarmonyPatch(typeof(BaseUpgradeConsoleGeometry), "GetVehicleInfo")] 
         public class BaseUpgradeConsoleGeometry_GetVehicleInfo_Patch
         {
             static bool Prefix(BaseUpgradeConsoleGeometry __instance, Vehicle vehicle, ref string __result)
@@ -163,41 +138,23 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(StorageContainer), "Open", new Type[] { typeof(Transform) })]
-        class StorageContainer_Open_Patch
-        {// fix bug: when opening standing locker from a distance your PDA does not open
-            public static bool Prefix(StorageContainer __instance, Transform useTransform)
-            {
-                //float dist = (useTransform.position - Player.main.transform.position).magnitude;
-                //AddDebug("Open dist " + dist);
-                PDA pda = Player.main.GetPDA();
-                Inventory.main.SetUsedStorage((IItemsContainer)__instance.container);
-                Transform target = useTransform;
-                PDA.OnClose onCloseCallback = new PDA.OnClose(__instance.OnClosePDA);
-                //double num = __instance.modelSizeRadius + 2.0;
-                if (!pda.Open(PDATab.Inventory, target, onCloseCallback, 4))
-                    return false;
-
-                __instance.open = true;
-                return false;
-            }
-        }
-
         [HarmonyPatch(typeof(FMOD_CustomEmitter), "Awake")]
         class FMOD_CustomEmitter_Awake_Patch
         {
-            static void Postfix(FMOD_CustomEmitter __instance)
+            static bool Prefix(FMOD_CustomEmitter __instance)
             {
                 if (Main.config.silentReactor && __instance.asset && __instance.asset.path == "event:/sub/base/nuke_gen_loop")
                 { 
                     //AddDebug(__instance.name + " FMOD_CustomEmitter Awake ");
-                    __instance.SetAsset(null);
+                    __instance.asset = null;
+                    return false;
                 }
+                return true;
             }
         }
 
 
 
-
+        
     }
 }

@@ -12,7 +12,7 @@ namespace Tweaks_Fixes
     {
         public static List<GameObject> decoysToDestroy = new List<GameObject>();
         //static Dictionary<CyclopsDecoy, decoyData> decoys = new Dictionary<CyclopsDecoy, decoyData>();
-
+        
         public class DestroyOnDisable : MonoBehaviour
         {
             private void OnDisable()
@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
                     lm.data = ScriptableObject.CreateInstance<LiveMixinData>();
                     lm.data.maxHealth = Main.config.decoyHP;
                     lm.data.destroyOnDeath = true;
-                    lm.data.explodeOnDestroy = false;
+                    //lm.data.explodeOnDestroy = false;
                     lm.data.knifeable = false;
                 }
                 if (!__instance.launch && Main.config.decoyRequiresSub)
@@ -84,6 +84,7 @@ namespace Tweaks_Fixes
             {
                 if (!__instance.launch)
                     return false;
+
                 if (Player.main.currentSub)
                     __instance.transform.Translate(new Vector3(0f, __instance.launchSpeed, 0f), Space.World);
                 else
@@ -92,6 +93,7 @@ namespace Tweaks_Fixes
                 __instance.launchSpeed = Mathf.MoveTowards(__instance.launchSpeed, 0f, Time.deltaTime);
                 if (!Mathf.Approximately(__instance.launchSpeed, 0f))
                     return false;
+
                 __instance.launch = false;
                 return false;
             }
@@ -110,6 +112,7 @@ namespace Tweaks_Fixes
                 FMOD_CustomLoopingEmitter cle = __instance.GetComponent<FMOD_CustomLoopingEmitter>();
                 if (cle)
                     UnityEngine.Object.Destroy(cle);
+
                 ParticleSystem[] pss = __instance.GetComponentsInChildren<ParticleSystem>();
                 //foreach (ParticleSystem ps in pss)
                 for (int i = pss.Length - 1; i >= 0; i--)
@@ -165,7 +168,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(CyclopsDecoyManager), "Start")]
         class CyclopsDecoyManager_Start_Patch
         {
@@ -175,7 +177,7 @@ namespace Tweaks_Fixes
                 Vehicle_patch.decoyPrefab = __instance.decoyLauncher.decoyPrefab;
             }
         }
-        
+
         //[HarmonyPatch(typeof(AggressiveWhenSeeTarget), "IsTargetValid", new Type[] { typeof(GameObject) })]
         class AggressiveWhenSeeTarget_IsTargetValid_Patch
         {
@@ -191,6 +193,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        
     }
 }

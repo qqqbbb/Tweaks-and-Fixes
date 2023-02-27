@@ -14,8 +14,24 @@ namespace Tweaks_Fixes
         static FMODAsset openSound;
         static FMODAsset closeSound;
         public static List<Sign> savedSigns = new List<Sign>();
-        public static List<StorageContainer> decoLockers = new List<StorageContainer>();
+        public static List<StorageContainer> labelledLockers = new List<StorageContainer>();
 
+        public struct SavedLabel
+        {
+            public string text;
+            public bool background;
+            public int color;
+            public int scale;
+
+            public SavedLabel(string text_, bool background_, int color_, int scale_)
+            {
+                text = text_;
+                color = color_;
+                scale = scale_;
+                background = background_;
+            }
+        }
+        
         public class LockerDoorOpener: MonoBehaviour
         {
             public float startRotation;
@@ -207,19 +223,26 @@ namespace Tweaks_Fixes
             if (door.GetComponentInChildren<Sign>())
                 yield break;
 
-            //AddDebug("AddLabel  " + locker.name + " " + type);
-            GameObject signPrefab = CraftData.GetPrefabForTechType(TechType.Sign);
-            if (signPrefab == null)
-                yield break;
+            yield return new WaitUntil(() => Main.loadingDone == true);
 
-            GameObject sign = Utils.CreatePrefab(signPrefab);
+            //AddDebug("AddLabel  " + locker.name + " " + type);
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(TechType.Sign, result);
+            GameObject sign = result.Get();
+            //AddDebug("AddLabel sign " + sign.name);
             sign.transform.position = door.transform.position;
             sign.transform.SetParent(door);
-            Transform tr = sign.transform.Find("SignMesh");
-            UnityEngine.Object.Destroy(tr.gameObject);
-            tr = sign.transform.Find("Trigger");
+            //Transform tr = sign.transform.Find("SignMesh");
+            //if (tr == null)
+            //    AddDebug("AddLabel SignMesh null");
+            //UnityEngine.Object.Destroy(tr.gameObject);
+            Transform tr = sign.transform.Find("Trigger");
+            //if (tr == null)
+            //    AddDebug("AddLabel Trigger null");
             UnityEngine.Object.Destroy(tr.gameObject);
             tr = sign.transform.Find("UI/Base/Up");
+            //if (tr == null)
+            //    AddDebug("AddLabel UI/Base/Up null");
             UnityEngine.Object.Destroy(tr.gameObject);
             tr = sign.transform.Find("UI/Base/Down");
             UnityEngine.Object.Destroy(tr.gameObject);
@@ -230,6 +253,9 @@ namespace Tweaks_Fixes
             if (type == 0) // locker
             {
                 LiveMixin lm = locker.GetComponent<LiveMixin>();
+                //if (lm == null)
+                //    AddDebug("AddLabel LiveMixin null");
+
                 UnityEngine.Object.Destroy(lm);
                 sign.transform.localPosition = new Vector3(.32f, -.58f, .26f);
                 sign.transform.localEulerAngles = new Vector3(0f, 90f, 90f);
@@ -250,12 +276,19 @@ namespace Tweaks_Fixes
                 locker.gameObject.AddComponent<DecoLockerMyController>();
             }
             Constructable c = sign.GetComponent<Constructable>();
+            //if (c == null)
+            //    AddDebug("AddLabel Constructable null");
+
             UnityEngine.Object.Destroy(c);
             TechTag tt = sign.GetComponent<TechTag>();
             UnityEngine.Object.Destroy(tt);
             ConstructableBounds cb = sign.GetComponent<ConstructableBounds>();
+            //if (cb == null)
+            //    AddDebug("AddLabel ConstructableBounds null");
             UnityEngine.Object.Destroy(cb);
             PrefabIdentifier pi = sign.GetComponent<PrefabIdentifier>();
+            //if (pi == null)
+            //    AddDebug("AddLabel PrefabIdentifier null");
             UnityEngine.Object.Destroy(pi);
             uGUI_SignInput signInput = sign.GetComponentInChildren<uGUI_SignInput>();
             //AddDebug("AddLabel 11 " + locker.name + " " + type);
@@ -300,7 +333,7 @@ namespace Tweaks_Fixes
             }
             //AddDebug("AddLabel done " + type);
         }
-
+        
         [HarmonyPatch(typeof(DeployableStorage))]
         public class DeployableStorage_Patch
         {
@@ -331,14 +364,17 @@ namespace Tweaks_Fixes
                 Pickupable p = __instance.GetComponent<Pickupable>();
                 if (p && p.inventoryItem == null)
                 { // fix: when game loads 1st_person_model used instead of 3rd_person_model
-                    // should use FPModel.SetState
-                    Transform tpm = __instance.transform.Find("3rd_person_model");
-                    Transform fpm = __instance.transform.Find("1st_person_model");
-                    if (tpm && fpm)
-                    {
-                        fpm.gameObject.SetActive(false);
-                        tpm.gameObject.SetActive(true);
-                    }
+                    FPModel fPModel = __instance.GetComponent<FPModel>();
+                    if (fPModel)
+                        fPModel.SetState(false);
+                    
+                    //Transform tpm = __instance.transform.Find("3rd_person_model");
+                    //Transform fpm = __instance.transform.Find("1st_person_model");
+                    //if (tpm && fpm)
+                    //{
+                        //fpm.gameObject.SetActive(false);
+                        //tpm.gameObject.SetActive(true);
+                    //}
                 }
                 //Transform label = __instance.transform.Find("LidLabel");
                 //if (label)
@@ -388,8 +424,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(StorageContainer))]
         class StorageContainer_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnConstructedChanged")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnConstructedChanged")]
             static void OnConstructedChangedPostfix(StorageContainer __instance, bool constructed)
             {
                 if (!constructed)
@@ -412,7 +448,6 @@ namespace Tweaks_Fixes
                             //AddDebug("StorageContainer OnConstructedChanged parent " + __instance.transform.parent.name);
                             __instance.transform.position += __instance.transform.forward * .05f;
                         }
-
                         Transform label = __instance.transform.Find("Label");
                         if (label)
                         {
@@ -421,11 +456,12 @@ namespace Tweaks_Fixes
                                 UnityEngine.Object.Destroy(collider);
                         }
                     }
-                    else if (techTag.type == TechType.Locker)
+                    else if (techTag.type == TechType.Locker && !Main.visibleLockerInteriorModLoaded)
                     {
                         Transform parent = __instance.transform.parent;
                         if (parent && parent.name == "DecorativeLockerClosed(Clone)")
                             return;
+
                         Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
                         if (doorRight)// parent is null when built
                         {
@@ -440,7 +476,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix]
             [HarmonyPatch("CreateContainer")]
             static void CreateContainerPostfix(StorageContainer __instance)
-            {
+            { // runs twice on game load
                 //TechTag techTag = __instance.GetComponent<TechTag>();
                 //if (techTag)
                 //    AddDebug(__instance.name + "  CreateContainer  " + techTag.type);
@@ -449,19 +485,59 @@ namespace Tweaks_Fixes
                 //if (__instance.transform.parent)
                 //    AddDebug(__instance.name + "  CreateContainer parent  " + __instance.transform.parent.name);
                 Transform parent = __instance.transform.parent;
-                if (!decoLockers.Contains(__instance) && parent && parent.name == "DecorativeLockerClosed(Clone)")
+                if (!labelledLockers.Contains(__instance) && parent && parent.name == "DecorativeLockerClosed(Clone)")
                 {
                     Transform decoDoor = parent.Find("submarine_locker_03_door_01/locker_04_door");
                     if (decoDoor)
                     {
                         //AddDebug("decoDoor ");
-                        decoLockers.Add(__instance); // runs twice on load anyway
+                        labelledLockers.Add(__instance);
                         CleanDecoLocker(__instance.transform);
                         UWE.CoroutineHost.StartCoroutine(AddLabel(decoDoor, 2, __instance.transform.parent));
                     }
                 }
+                TechTag techTag = __instance.GetComponent<TechTag>();
+                //if (techTag)
+                //    AddDebug(__instance.name + "  OnConstructedChanged  " + techTag.type);
+                //else
+                //    AddDebug(__instance.name + "  OnConstructedChanged  ");
+                //if (__instance.transform.parent)
+                //    AddDebug(__instance.name + "  OnConstructedChanged parent  " + __instance.transform.parent.name);
+                if (techTag)
+                {
+                    if (techTag.type == TechType.SmallLocker)
+                    {
+                        //AddDebug("StorageContainer CreateContainer " + __instance.prefabRoot.name);
+                        //if (Main.loadingDone && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
+                        { // collision does not match mesh. Can see it after fixing cyclops collision. move it so cant see it when outside
+                            //AddDebug("StorageContainer OnConstructedChanged parent " + __instance.transform.parent.name);
+                            //__instance.transform.position += __instance.transform.forward * .05f;
+                        }
+                        Transform label = __instance.transform.Find("Label");
+                        if (label)
+                        {
+                            Collider collider = label.GetComponent<Collider>();
+                            if (collider)
+                                UnityEngine.Object.Destroy(collider);
+                        }
+                    }
+                    else if (techTag.type == TechType.Locker && !Main.visibleLockerInteriorModLoaded)
+                    {
+                        //Transform parent = __instance.transform.parent;
+                        if (parent && parent.name == "DecorativeLockerClosed(Clone)")
+                            return;
+
+                        //AddDebug("StorageContainer CreateContainer " + __instance.prefabRoot.name);
+                        Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
+                        if (!labelledLockers.Contains(__instance) && doorRight)// parent is null when built
+                        {
+                            labelledLockers.Add(__instance);
+                            UWE.CoroutineHost.StartCoroutine(AddLabel(doorRight, 0, __instance.transform));
+                        }
+                    }
+                }
             }
-          
+         
             [HarmonyPostfix]
             [HarmonyPatch("Awake")]
             static void AwakePostfix(StorageContainer __instance)
@@ -471,10 +547,9 @@ namespace Tweaks_Fixes
                 //if (__instance.transform.parent)
                 //    AddDebug("StorageContainer Awake parent " + __instance.transform.parent.name);
 
-                if (techTag && techTag.type == TechType.SmallLocker)
-                {
-
-                }
+                //if (techTag && techTag.type == TechType.SmallLocker)
+                //{
+                //}
                 if (__instance.name == "submarine_locker_01_door")
                 {
                     PrefabIdentifier pi = __instance.GetComponentInParent<PrefabIdentifier>();
@@ -524,6 +599,7 @@ namespace Tweaks_Fixes
                         ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>(true);
                         if (cl)
                             cl.transform.SetParent(door.transform);
+
                         LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                         rotater.startRotation = door.transform.localEulerAngles.z;
                         rotater.endRotation = rotater.startRotation + rotater.openAngle;
@@ -551,7 +627,6 @@ namespace Tweaks_Fixes
                     return;
                 }
                 string name = techTag.type.ToString();
-                
 
                 if(name == "DecorativeLockerClosed")
                 {
@@ -651,23 +726,23 @@ namespace Tweaks_Fixes
             {
                 if (!__instance.enabled)
                     return false;
+
                 Constructable c = __instance.gameObject.GetComponent<Constructable>();
                 if (c && !c.constructed)
                     return false;
 
                 bool decoLocker = false;
                 //AddDebug("StorageContainer OnHandHover " + __instance.name);
-                //AddDebug("StorageContainer OnHandHover parent " + __instance.transform.parent.name);
+                //AddDebug("StorageContainer IsEmpty " + __instance.IsEmpty());
                 TechTag parentTT = __instance.transform.parent.GetComponent<TechTag>();
                 if (parentTT)
                 {
                     //AddDebug("parent TechTag " + parentTT.type.ToString());
-                    if (parentTT.type.ToString() == "DecorativeLockerClosed")
-                        decoLocker = true;
+                    decoLocker = parentTT.type.ToString() == "DecorativeLockerClosed";
                 }
                 StringBuilder stringBuilder = new StringBuilder(Language.main.Get(__instance.hoverText));
                 stringBuilder.Append(" (");
-                stringBuilder.Append(TooltipFactory.stringLeftHand);
+                stringBuilder.Append(TooltipFactory.stringButton0);
                 stringBuilder.Append(")\n");
                 //string text = __instance.hoverText + " (" + TooltipFactory.stringLeftHand + ")\n";
                 //string textEmpty = __instance.IsEmpty() ? "Empty" : string.Empty;
@@ -698,7 +773,7 @@ namespace Tweaks_Fixes
                     //AddDebug("ColoredLabel " + cl.stringEditLabel);
                     stringBuilder.Append(Language.main.Get(cl.stringEditLabel));
                     stringBuilder.Append(" (");
-                    stringBuilder.Append(TooltipFactory.stringRightHand);
+                    stringBuilder.Append(TooltipFactory.stringButton1);
                     stringBuilder.Append(")");
                     //text  += Language.main.Get(cl.stringEditLabel) + " (" + TooltipFactory.stringRightHand+ ")";
                     if (GameInput.GetButtonDown(GameInput.Button.RightHand))
@@ -709,7 +784,7 @@ namespace Tweaks_Fixes
                     //AddDebug("sign");
                     stringBuilder.Append(Language.main.Get("SmallLockerEditLabel"));
                     stringBuilder.Append(" (");
-                    stringBuilder.Append(TooltipFactory.stringRightHand);
+                    stringBuilder.Append(TooltipFactory.stringButton1);
                     stringBuilder.Append(")");
                     //text  += Language.main.Get(cl.stringEditLabel) + " (" + TooltipFactory.stringRightHand+ ")";
                     if (GameInput.GetButtonDown(GameInput.Button.RightHand))
@@ -731,30 +806,32 @@ namespace Tweaks_Fixes
                     if (canPickUp && GameInput.GetButtonDown(GameInput.Button.AltTool))
                         ps.pickupable.OnHandClick(hand);
                 }
-                HandReticle.main.SetInteractTextRaw(stringBuilder.ToString(), textEmpty);
-                //HandReticle.main.SetInteractText(text, __instance.IsEmpty() ? "Empty" : string.Empty);
+                //HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), true, GameInput.Button.RightHand);
+                HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), true);
+                //AddDebug(stringBuilder.ToString());
+                HandReticle.main.SetText(HandReticle.TextType.HandSubscript, empty ? "Empty" : textEmpty, true);
                 HandReticle.main.SetIcon(HandReticle.IconType.Hand);
                 return false;
             }
         }
-
+        
         [HarmonyPatch(typeof(Sign))]
         class Sign_Patch
         {
             [HarmonyPrefix]
             [HarmonyPatch("UpdateCollider")]
             static bool UpdateColliderPrefix(Sign __instance)
-            {
+            { // avoid NRE 
                 if (__instance.boxCollider == null)
                 {
-                    //AddDebug("Sign boxCollider == null"); 
+                    //AddDebug("Sign boxCollider == null");
                     return false;
                 }
                 return true;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("OnProtoDeserialize")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnProtoDeserialize")]
             static bool OnProtoDeserializePrefix(Sign __instance, ProtobufSerializer serializer)
             { // fix NRE that prevents loading text color 
                 //AddDebug(" Sign OnProtoDeserialize " );
@@ -817,7 +894,7 @@ namespace Tweaks_Fixes
         class Constructable_Patch
         {
             [HarmonyPostfix]
-            [HarmonyPatch("Deconstruct")]
+            [HarmonyPatch("DeconstructAsync")]
             static void DeconstructPostfix(Constructable __instance)
             {
                 if ( __instance.constructedAmount == 0f)
@@ -871,21 +948,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        public struct SavedLabel
-        {
-            public string text;
-            public bool background;
-            public int color;
-            public int scale;
-
-            public SavedLabel(string text_, bool background_, int color_, int scale_)
-            {
-                text = text_;
-                color = color_;
-                scale = scale_;
-                background = background_;
-            }
-        }
 
         //[HarmonyPatch(typeof(ColoredLabel))]
         class ColoredLabel_Patch
@@ -948,6 +1010,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        
     }
 }

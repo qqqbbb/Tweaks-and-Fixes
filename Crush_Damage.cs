@@ -12,23 +12,23 @@ namespace Tweaks_Fixes
         public static int extraCrushDepth = 0;
         public static Dictionary<TechType, int> crushDepthEquipment = new Dictionary<TechType, int>();
         public static Dictionary<TechType, float> crushDamageEquipment = new Dictionary<TechType, float>();
+
         
         public static void CrushDamage()
         {
             if (!Player.main.gameObject.activeInHierarchy)
                 return;
 
-            float depth = Ocean.main.GetDepthOf(Player.main.gameObject);
+            float depth = Ocean.GetDepthOf(Player.mainObject);
             float crushDepth = Main.config.crushDepth + extraCrushDepth;
             if (depth < crushDepth || !Player.main.IsSwimming() || !Player.main.liveMixin)
                 return;
 
             float mult = 1f - crushDamageResistance;
             float damage = (depth - crushDepth) * Main.config.crushDamageMult * mult;
-            if (damage < 0f)
-                damage = 0f;
             //AddDebug(" CrushDamageUpdate " + damage);
-            Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
+            if (damage > 0f)
+                Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
         [HarmonyPatch(typeof(Inventory))]
@@ -78,7 +78,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(CrushDamage))]
         class DamageSystem_Patch
         { // player does not have this
@@ -86,10 +86,10 @@ namespace Tweaks_Fixes
             [HarmonyPatch("CrushDamageUpdate")]
             public static bool CrushDamageUpdatePrefix(CrushDamage __instance)
             {
-                if (Main.config.vehicleCrushDamageMult == 0f)
+                if (Main.config.vehicleCrushDamageMult == 0f || !Main.loadingDone)
                     return true;
 
-                if (!__instance.gameObject.activeInHierarchy || !__instance.enabled || !__instance.GetCanTakeCrushDamage())
+                if (!__instance.gameObject.activeInHierarchy || !__instance.enabled || !__instance.GetCanTakeCrushDamage() || __instance.depthCache == null)
                     return false;
 
                 float depth = __instance.depthCache.Get();
@@ -105,24 +105,17 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("UpdateDepthClassification")]
-            public static bool UpdateDepthClassificationPrefix(CrushDamage __instance)
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Start")]
+            public static bool StartPrefix(CrushDamage __instance)
             {
-                if (!__instance.gameObject.activeInHierarchy)
-                    return false;
-                float crushDepth1 = __instance.crushDepth;
-                __instance.crushDepth = __instance.kBaseCrushDepth + __instance.extraCrushDepth;
-                float crushDepth2 = __instance.crushDepth;
-                if (!Main.loadingDone || Mathf.Approximately(crushDepth1, crushDepth2))
-                    return false;
-                ErrorMessage.AddMessage(Language.main.GetFormat<float>("CrushDepthNow", __instance.crushDepth));
+                //AddDebug("CrushDamage  Start " + __instance.name);
 
-                return false;
+                return true;
             }
         }
 
 
-
+        
     }
 }

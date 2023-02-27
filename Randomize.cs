@@ -1,15 +1,12 @@
 ﻿
 using HarmonyLib;
-using QModManager.API.ModLoading;
 using System.Reflection;
 using System;
 using SMLHelper.V2.Handlers;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMOD;
-using FMOD.Studio;
-using FMODUnity;
+
 using System.Text;
 using static ErrorMessage;
 

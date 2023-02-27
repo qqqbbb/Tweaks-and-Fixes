@@ -1,7 +1,5 @@
 ﻿
 using HarmonyLib;
-using QModManager.API.ModLoading;
-using QModManager.API;
 using System.Reflection;
 using System;
 using SMLHelper.V2.Handlers;
@@ -11,17 +9,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
-
+using BepInEx;
+using BepInEx.Logging;
+using BepInEx.Bootstrap;
+//Language !!!
 namespace Tweaks_Fixes
 {
-    [QModCore]
-    public class Main
+    [BepInPlugin(GUID, MODNAME, VERSION)]
+    public class Main : BaseUnityPlugin
     {
-        public static GUIHand guiHand;
-        public static PDA pda;
+        private const string
+            MODNAME = "Tweaks and Fixes",
+            GUID = "qqqbbb.subnautica.tweaksAndFixes",
+            VERSION = "2.0";
+
+        public static ManualLogSource logger;
+        //public static GUIHand guiHand;
         public static Survival survival;
         public static bool canBreathe = false;
-        public static bool loadingDone = false;
+        public static bool loadingDone = false;  // WaitScreen.IsWaiting
         public static System.Random rndm = new System.Random();
         public static bool advancedInventoryLoaded = false;
         public static bool flareRepairLoaded = false;
@@ -31,7 +37,8 @@ namespace Tweaks_Fixes
         public static bool pickupFullCarryallsLoaded = false;
         public static bool seaglideMapControlsLoaded = false;
         public static bool baseLightSwitchLoaded = false;
-        public static bool prawnSuitTorpedoDisplayLoaded = false;
+        public static bool visibleLockerInteriorModLoaded;
+        public static bool prawnSuitTorpedoDisplayLoaded = false; // not updated
         public static bool torpedoImprovementsLoaded = false;
         public static bool refillOxygenTankLoaded = false;
         
@@ -156,24 +163,16 @@ namespace Tweaks_Fixes
             animator.Play(name);
         }
 
-        public static bool IsEatableFishAlive(GameObject go)
+        public static bool IsAlive(GameObject go)
         {
-            Creature creature = go.GetComponent<Creature>();
-            Eatable eatable = go.GetComponent<Eatable>();
             LiveMixin liveMixin = go.GetComponent<LiveMixin>();
-            //if (creature && eatable && liveMixin && liveMixin.IsAlive())
-            //    return true;
-
-            return creature && eatable && liveMixin && liveMixin.IsAlive();
+            return liveMixin && liveMixin.IsAlive();
         }
 
         public static bool IsEatableFish(GameObject go)
         {
             Creature creature = go.GetComponent<Creature>();
             Eatable eatable = go.GetComponent<Eatable>();
-            //if (creature && eatable)
-            //    return true;
-
             return creature && eatable;
         }
 
@@ -192,11 +191,6 @@ namespace Tweaks_Fixes
                 //AddDebug("Drop  " + p.GetTechName());
                 p.Drop();
             }
-        }
-
-        public static T[] FindObjectsOfType<T>() where T : Component
-        {
-            return GameObject.FindObjectOfType(typeof(T)) as T[];
         }
 
         public static ItemsContainer GetOpenContainer()
@@ -229,7 +223,8 @@ namespace Tweaks_Fixes
             Damage_Patch.healTempDamageTime = 0;
             Damage_Patch.tempDamageLMs = new List<LiveMixin>();
             Storage_Patch.savedSigns = new List<Sign>();
-            Storage_Patch.decoLockers = new List<StorageContainer>();
+            Storage_Patch.labelledLockers = new List<StorageContainer>();
+            Battery_Patch.subPowerRelays = new List<PowerRelay>();
             config.Load();
         }
 
@@ -249,29 +244,18 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static void Log(string str, QModManager.Utility.Logger.Level lvl = QModManager.Utility.Logger.Level.Info)
-        {
-            QModManager.Utility.Logger.Log(lvl, str);
-        }
-
-        //[HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
-        internal class IngameMenu_QuitGameAsync_Patch
-        {
-            public static void Postfix(IngameMenu __instance, bool quitToDesktop)
-            {
-                //AddDebug("QuitGameAsync " + quitToDesktop);
-                if (!quitToDesktop)
-                    CleanUp();
-            }
-        }
-
-        [HarmonyPatch(typeof(Language), "Awake")]
+        //[HarmonyPatch(typeof(Language), "Awake")]
         class Language_Awake_Patch
-        {
-            static void Postfix(Language __instance)
+        {// does not run
+            public static void Postfix(Language __instance)
             {
                 languageCheck = __instance.GetCurrentLanguage() == "English" || !config.translatableStrings[0].Equals("Burnt out ");
-                //AddDebug("Language Awake " + languageCheck);
+                AddDebug("Language Awake languageCheck " + languageCheck);
+                AddDebug("Language Awake GetCurrentLanguage " + __instance.GetCurrentLanguage());
+
+                logger.LogMessage("Language Awake " + languageCheck);
+                logger.LogMessage(" Language GetCurrentLanguage() " + __instance.GetCurrentLanguage());
+
                 if (languageCheck)
                 {
                     //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
@@ -281,51 +265,57 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(uGUI_SceneLoading), "End")]
-        internal class uGUI_SceneLoading_End_Patch
-        { // fires after game loads
-            public static void Postfix(uGUI_SceneLoading __instance)
-            {
-                //if (uGUI.main.loading.isLoading)
-                //{
-                //    AddDebug(" is Loading");
-                //    return;
-                //}
-                if (!uGUI.main.hud.active)
-                {
-                    //AddDebug(" hud not active");
-                    return;
-                }
-                //AddDebug(" uGUI_SceneLoading done");
-                //Builder.Initialize();
-                loadingDone = true;
-                foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
-                {
-                    //AddDebug("uGUI_SceneLoading End " + lm.tempDamage);
-                    lm.SyncUpdatingState();
-                }
-
-                if (EscapePod.main)
-                    Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
-
-                try
-                { // for some users throws NullReferenceException
-  //                  at(wrapper managed - to - native) UnityEngine.Transform.set_localScale_Injected(UnityEngine.Transform, UnityEngine.Vector3 &)
-  //at UnityEngine.Transform.set_localScale(UnityEngine.Vector3 value)[0x00000] in < 11d76d5f2da344218c391ad1f20978b4 >:0  //at uGUI_SignInput.UpdateScale()
-                    foreach (Sign sign in Storage_Patch.savedSigns)
-                        sign.OnProtoDeserialize(null);
-                }
-                catch (NullReferenceException)
-                {
-                    //throw;
-                    Log("NullReferenceException in  sign.OnProtoDeserialize  uGUI_SceneLoading_End_Patch");
-                }
-                Storage_Patch.savedSigns = new List<Sign>();
+        [HarmonyPatch(typeof(WaitScreen), "Remove")]
+        class WaitScreen_Remove_Patch
+        { 
+            public static void Postfix(WaitScreen.IWaitItem item)
+            { // __instance is null !
+                if (WaitScreen.main.items.Count == 0)
+                    LoadedGameSetup();
             }
         }
 
+
+        public static void  LoadedGameSetup()
+        {
+            loadingDone = true;
+            foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
+            {
+                //AddDebug("uGUI_SceneLoading End " + lm.tempDamage);
+                lm.SyncUpdatingState();
+            }
+            //AddDebug("LoadedGameSetup activeSlot " + config.activeSlot);
+            if (config.activeSlot != -1)
+                Inventory.main.quickSlots.SelectImmediate(config.activeSlot);
+
+            //if (EscapePod.main)
+            //    Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
+
+            //try
+            { // for some users throws NullReferenceException
+              //                  at(wrapper managed - to - native) UnityEngine.Transform.set_localScale_Injected(UnityEngine.Transform, UnityEngine.Vector3 &)
+              //at UnityEngine.Transform.set_localScale(UnityEngine.Vector3 value)[0x00000] in < 11d76d5f2da344218c391ad1f20978b4 >:0  //at uGUI_SignInput.UpdateScale()
+              // foreach (Sign sign in Storage_Patch.savedSigns)
+                //sign.OnProtoDeserialize(null);
+            }
+            //catch (NullReferenceException)
+            {
+                //throw;
+                //Log("NullReferenceException in  sign.OnProtoDeserialize  uGUI_SceneLoading_End_Patch");
+            }
+            languageCheck = Language.main.GetCurrentLanguage() == "English" || !config.translatableStrings[0].Equals("Burnt out ");
+            if (languageCheck)
+            {
+                //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
+                LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[24]);
+                LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, config.translatableStrings[25]);
+            }
+            Storage_Patch.savedSigns = new List<Sign>();
+        }
+        
+
         [HarmonyPatch(typeof(SaveLoadManager))]
-        internal class SaveLoadManager_Patch
+        class SaveLoadManager_Patch
         {
             [HarmonyPostfix]
             [HarmonyPatch( "ClearSlotAsync")]
@@ -356,34 +346,32 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(IngameMenu), "SaveGame")]
-        internal class IngameMenu_SaveGame_Patch
+        class IngameMenu_SaveGame_Patch
         {
             public static void Prefix(IngameMenu __instance)
             {
                 //AddDebug("SaveGame ");
                 config.Save();
                 for (int i = Decoy_Patch.decoysToDestroy.Count - 1; i >= 0; i--)
-                    UnityEngine.Object.Destroy(Decoy_Patch.decoysToDestroy[i]);
+                    Destroy(Decoy_Patch.decoysToDestroy[i]);
                 //AddDebug("decoysToDestroy.Count " + Decoy_Patch.decoysToDestroy.Count);
             }
         }
 
         static void SaveData()
         {
-            //AddDebug("SaveData ");
+            //AddDebug("SaveData " + Inventory.main.quickSlots.activeSlot);
             //Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
-            if (Player.main.mode == Player.Mode.Normal)
-                config.playerCamRot = MainCameraControl.main.viewModel.localRotation.eulerAngles.y;
-            else
-                config.playerCamRot = -1f;
-
             config.activeSlot = Inventory.main.quickSlots.activeSlot;
             //config.crushDepth -= Crush_Damage.extraCrushDepth;
-            config.Save();
             //config.crushDepth += Crush_Damage.extraCrushDepth;
+            for (int i = Decoy_Patch.decoysToDestroy.Count - 1; i >= 0; i--)
+                Destroy(Decoy_Patch.decoysToDestroy[i]);
+
+            config.Save();
         }
 
-        [HarmonyPatch(typeof(WorldForcesManager), "FixedUpdate")]
+        //[HarmonyPatch(typeof(WorldForcesManager), "FixedUpdate")]
         class WorldForcesManager_Patch
         {
             static bool Prefix(WorldForcesManager __instance)
@@ -395,12 +383,8 @@ namespace Tweaks_Fixes
             }
         }
 
-        [QModPatch]
-        public static void Load()
+        public static void Setup()
         {
-            config.Load();
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(18.71f, -26.35f, -155.85f)));
@@ -411,25 +395,57 @@ namespace Tweaks_Fixes
             new Spawnables.Stone().Patch();
         }
 
-        [QModPostPatch]
-        public static void PostPatch()
+        private void Awake()
         {
-            //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
-            //dayNightSpeedLoaded = iqMod != null;
-            //if (Language.main == null)
-            //    Log("Language.main == null"); 
-            prawnSuitTorpedoDisplayLoaded = QModServices.Main.ModPresent("PrawnSuitTorpedoDisplay");
-            baseLightSwitchLoaded = QModServices.Main.ModPresent("BaseLightSwitch");
-            seaglideMapControlsLoaded = QModServices.Main.ModPresent("SeaglideMapControls");
-            pickupFullCarryallsLoaded = QModServices.Main.ModPresent("PickupFullCarryalls");
-            advancedInventoryLoaded = QModServices.Main.ModPresent("AdvancedInventory");
-            flareRepairLoaded = QModServices.Main.ModPresent("Rm_FlareRepair");
-            cyclopsDockingLoaded = QModServices.Main.ModPresent("CyclopsDockingMod");
-            vehicleLightsImprovedLoaded = QModServices.Main.ModPresent("Rm_VehicleLightsImproved");
-            torpedoImprovementsLoaded = QModServices.Main.ModPresent("TorpedoImprovements");
-            refillOxygenTankLoaded = QModServices.Main.ModPresent("OxygenTank");
+            logger = Logger;
+        }
 
-            //Main.Log("vehicleLightsImprovedLoaded " + vehicleLightsImprovedLoaded);
+        private void Start()
+        {
+            //BepInEx.Logging.Logger.CreateLogSource("Tweaks and fixes: ").Log(LogLevel.Error, " Awake ");
+            //AddDebug("Mono Start ");
+            //Logger.LogInfo("Mono Start");
+            //config.Load();
+            Harmony harmony = new Harmony(GUID);
+            harmony.PatchAll();
+            Setup();
+            ParseFromConfig();
+            GetLoadedMods();
+        }
+
+        public static void GetLoadedMods()
+        {
+            foreach (var plugin in Chainloader.PluginInfos)
+            {
+                var metadata = plugin.Value.Metadata;
+                logger.LogInfo("loaded Mod " + metadata.GUID);
+                if (metadata.GUID.Equals("lockerMod"))
+                    visibleLockerInteriorModLoaded = true;
+                else if (metadata.GUID.Equals("PrawnSuitTorpedoDisplay"))
+                    prawnSuitTorpedoDisplayLoaded = true;
+                else if (metadata.GUID.Equals("BaseLightSwitch"))
+                    baseLightSwitchLoaded = true;
+                else if (metadata.GUID.Equals("SeaglideMapControls"))
+                    seaglideMapControlsLoaded = true;
+                else if (metadata.GUID.Equals("PickupFullCarryalls"))
+                    pickupFullCarryallsLoaded = true;
+                else if (metadata.GUID.Equals("AdvancedInventory"))
+                    advancedInventoryLoaded = true;
+                else if (metadata.GUID.Equals("Rm_FlareRepair"))
+                    flareRepairLoaded = true;
+                else if (metadata.GUID.Equals("CyclopsDockingMod"))
+                    cyclopsDockingLoaded = true;
+                else if (metadata.GUID.Equals("Rm_VehicleLightsImproved"))
+                    vehicleLightsImprovedLoaded = true;
+                else if (metadata.GUID.Equals("TorpedoImprovements"))
+                    torpedoImprovementsLoaded = true;
+                else if (metadata.GUID.Equals("OxygenTank"))
+                    refillOxygenTankLoaded = true;
+            }
+        }
+         
+        public static void ParseFromConfig()
+        {
             foreach (var item in config.crushDepthEquipment)
             {
                 TechTypeExtensions.FromString(item.Key, out TechType tt, true);

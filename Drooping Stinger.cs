@@ -4,6 +4,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
+    
     [HarmonyPatch(typeof(HangingStinger), "Start")]
     class HangingStinger_Start_Patch
     {
@@ -14,7 +15,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("HangingStinger");
                 liveMixin.data.destroyOnDeath = true;
-                liveMixin.data.explodeOnDestroy = false;
+                //liveMixin.data.explodeOnDestroy = false;
                 //CapsuleCollider col = __instance.GetComponentInChildren<CapsuleCollider>();
                 //col.gameObject.EnsureComponent<HangingStingerCollision>();
                 //__instance.gameObject.EnsureComponent<HangingStingerCollision>();
@@ -28,7 +29,7 @@ namespace Tweaks_Fixes
     }
 
     //[HarmonyPatch(typeof(DealDamageOnImpact), "OnCollisionEnter")]
-    internal class DealDamageOnImpact_OnCollisionEnter_Patch
+    class DealDamageOnImpact_OnCollisionEnter_Patch
     {
         public static void Postfix(DealDamageOnImpact __instance, Collision collision)
         {
@@ -55,7 +56,7 @@ namespace Tweaks_Fixes
                 //AddDebug("OnCollisionEnter " + other.gameObject.name);
                 //CapsuleCollider col = __instance.GetComponentInChildren<CapsuleCollider>();
                 //col.isTrigger = true;
-                LiveMixin lm = __instance.GetComponent< LiveMixin>();
+                LiveMixin lm = __instance.GetComponent<LiveMixin>();
                 //AddDebug("OnCollisionEnter " + collision.gameObject.name + " " + lm.maxHealth);
                 lm.TakeDamage(1111f, __instance.transform.position, DamageType.Collide, other.gameObject);
             }
@@ -63,6 +64,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance._venomAmount < 1f || other.gameObject.GetComponentInChildren<LiveMixin>() == null)
                     return false;
+
                 DamageOverTime damageOverTime = other.gameObject.AddComponent<DamageOverTime>();
                 damageOverTime.doer = __instance.gameObject;
                 damageOverTime.totalDamage = 30f;
@@ -106,21 +108,6 @@ namespace Tweaks_Fixes
         }
     }
 
-    //[HarmonyPatch(typeof(ExploderObject), "ExplodeGameObject")]
-    class ExploderObject_Kill_Patch
-    {
-        public static void Postfix(ExploderObject __instance, GameObject go)
-        {
-            //if (__instance.GetComponent<HangingStinger>())
-            //{
-                AddDebug("ExplodeGameObject " + go.name);
-            //AddDebug("Damage " + originalDamage);
-            //AddDebug("health " + __instance.health);
-            //}   UnityEngine.Object.Destroy(o, time);
-        }
-    }
-
-
     //[HarmonyPatch(typeof(LiveMixin), "CleanUp")]
     class LiveMixin_CleanUp_Patch
     {
@@ -133,5 +120,6 @@ namespace Tweaks_Fixes
             //AddDebug("health " + __instance.health);
             //}   UnityEngine.Object.Destroy(o, time);
         }
-    }
+        
+}
 }

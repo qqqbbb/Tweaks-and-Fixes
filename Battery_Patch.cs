@@ -9,13 +9,14 @@ namespace Tweaks_Fixes
 {
     class Battery_Patch
     {
-
+        public static List<PowerRelay> subPowerRelays = new List<PowerRelay>();
+     
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
         {
             static void Prefix(EnergyMixin __instance, ref float amount)
             {
-                //AddDebug("ConsumeEnergy");
+                //AddDebug("tool Consume Energy");
                 amount *= Main.config.toolEnergyConsMult;
             }
         }
@@ -25,22 +26,38 @@ namespace Tweaks_Fixes
         {
             static void Prefix(Vehicle __instance, ref float energyCost)
             {
-                //AddDebug("ConsumeEnergy");
+                //AddDebug("Vehicle Consume Energy");
                 energyCost *= Main.config.vehicleEnergyConsMult;
             }
         }
 
-        [HarmonyPatch(typeof(PowerSystem), nameof(PowerSystem.ConsumeEnergy))]
+
+        [HarmonyPatch(typeof(PowerRelay), "Start")]
+        class PowerRelay_Start_Patch
+        {
+            static void Postfix(PowerRelay __instance)
+            {
+                if (__instance.GetComponent<SubControl>())
+                {
+                    subPowerRelays.Add(__instance);
+                }
+            }
+        }
+                
+        [HarmonyPatch(typeof(PowerSystem), "ConsumeEnergy")]
         class PowerSystem_ConsumeEnergy_Patch
         {
             static void Prefix(ref float amount, IPowerInterface powerInterface)
             {
                 PowerRelay pr = powerInterface as PowerRelay;
-                if (pr && pr.GetComponent<SubControl>())
-                    amount *= Main.config.vehicleEnergyConsMult;
-                else
+                if (pr && subPowerRelays.Contains(pr))
                 {
-                    //AddDebug("ConsumeEnergy ");
+                    //AddDebug("Sub Consume Energy ");
+                    amount *= Main.config.vehicleEnergyConsMult;
+                }
+                else
+                { 
+                    //AddDebug("base Consume Energy ");
                     amount *= Main.config.baseEnergyConsMult;
                 }
             }
@@ -91,6 +108,6 @@ namespace Tweaks_Fixes
         }
 
 
-
+        
     }
 }

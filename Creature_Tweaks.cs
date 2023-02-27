@@ -8,60 +8,47 @@ namespace Tweaks_Fixes
     class Creature_Tweaks
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
-
-        [HarmonyPatch(typeof(CreatureEgg), "Awake")]
-        class CreatureEgg_Awake_Patch
-        {
-            public static void Postfix(CreatureEgg __instance)
-            {
-                __instance.explodeOnHatch = false;
-                LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
-                if (liveMixin && liveMixin.data)
-                {
-                    liveMixin.data.destroyOnDeath = true;
-                    liveMixin.data.explodeOnDestroy = false;
-                }
-            }
-        }
-
+        
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
-            private static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
+            public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
                 //int health = (int)__instance.creature.liveMixin?.health; 
-                //Main.Message("creaturesDontFlee " + Main.config.creaturesDontFlee);
-                //if (Main.config.predatorsDontFlee)
-                {
-                    LiveMixin liveMixin = __instance.creature.liveMixin;
-                    AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
-                    if (liveMixin && awst && liveMixin.IsAlive())
-                    { //  && damageInfo.dealer == Player.main
-                        //if (damageInfo.dealer)
-                        //  Main.Message("damage dealer " + damageInfo.dealer.name);
-                        int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
-                        //int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
-                        int rnd = Main.rndm.Next(1, maxHealth);
-                        //float aggrMult = Mathf.Clamp(Main.config.aggrMult, 0f, 2f);
-                        int health = Mathf.RoundToInt(liveMixin.health * Main.config.aggrMult);
-                        //if (health > halfMaxHealth || rnd < health)
-                        if (health > rnd)
-                        {
-                            damageInfo.damage = 0f;
-                            //Main.Message("health " + liveMixin.health + " rnd100 " + rnd100);
-                        }
-                        if (Main.config.aggrMult == 3f)
-                            damageInfo.damage = 0f;
-
+                LiveMixin liveMixin = __instance.creature.liveMixin;
+                AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
+                if (Main.config.fleeOnDamage && liveMixin && awst && liveMixin.IsAlive())
+                { 
+                    int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
+                    //int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
+                    int rnd = Main.rndm.Next(1, maxHealth);
+                    //float aggrMult = Mathf.Clamp(Main.config.aggrMult, 0f, 2f);
+                    int health = Mathf.RoundToInt(liveMixin.health * Main.config.aggrMult);
+                    //if (health > halfMaxHealth || rnd < health)
+                    __instance.lastDamagePosition = damageInfo.position;
+                    if (health > rnd || Main.config.aggrMult == 3f)
+                    {
+                        damageInfo.damage = 0f;
                         return false;
                     }
+                    __instance.timeToFlee = Time.time + __instance.fleeDuration;
+                    __instance.creature.Scared.Add(1f);
+                    __instance.creature.TryStartAction(__instance);
+                    return false;
                 }
                 return true;
             }
             public static void Postfix(FleeOnDamage __instance, DamageInfo damageInfo)
-            { // game code makes them always flee to 0 0 0 
-                //AddDebug(__instance.name + " FleeOnDamage OnTakeDamage " + damageInfo.damage);
+            { // game code makes them flee to 0 0 0 
+                //if (__instance.moveTo.Equals(Vector3.zero))
+                //if (damageInfo.dealer == Player.mainObject)
+                {
+                    //AddDebug(__instance.name + " FleeOnDamage lastDamagePosition " + __instance.lastDamagePosition);
+                    //AddDebug(__instance.name + " FleeOnDamage minFleeDistance " + __instance.minFleeDistance);
+                    //AddDebug(__instance.name + " FleeOnDamage damageThreshold " + __instance.damageThreshold);
+                }
                 __instance.moveTo = __instance.swimBehaviour.originalTargetPosition * damageInfo.damage;
+
                 //__instance.timeToFlee = Time.time;
                 //if (damageInfo.type == DamageType.Heat)
                 //{
@@ -84,31 +71,32 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(Stalker), "CheckLoseTooth")]
         public static class Stalker_CheckLoseTooth_Patch
         {
             public static bool Prefix(Stalker __instance, GameObject target)
-            { // In vanilla only scrap metal has HardnessMixin.  0.5
+            { // only scrap metal has HardnessMixin  0.5
                 float rndm = Random.value;
-                if (Main.config.stalkerLoseTooth >= rndm && HardnessMixin.GetHardness(target) > rndm)
+                float stalkerLoseTooth = Main.config.stalkerLoseTooth * .01f;
+                if (stalkerLoseTooth >= rndm && HardnessMixin.GetHardness(target) > rndm)
                     __instance.LoseTooth();
 
                 return false;
             }
         }
-                
+        
         [HarmonyPatch(typeof(Creature))]
         public static class Creature_Patch
         {
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             public static void StartPostfix(Creature __instance)
-            {
+            {               
                 VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 vFXSurface.surfaceType = VFXSurfaceTypes.organic;
                 if (__instance is Spadefish || __instance is Jumper)
-                {
+                { // make them not damage seamoth
                     //AddDebug("Spadefish");
                     __instance.GetComponent<Rigidbody>().mass = 4f;
                 }
@@ -138,8 +126,8 @@ namespace Tweaks_Fixes
                 //}
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnKill")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnKill")]
             public static void OnKillPostfix(Creature __instance)
             {
                 //AddDebug("respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
@@ -160,9 +148,8 @@ namespace Tweaks_Fixes
                     //collectShiny?.DropShinyTarget();
                 }
             }
-
         }
-
+        
         [HarmonyPatch(typeof(CreatureDeath))]
         class CreatureDeath_Patch
         {
@@ -212,8 +199,8 @@ namespace Tweaks_Fixes
             {
                 //AddDebug(__instance.name + " OnKill");
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("OnKill")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnKill")]
             static void OnKillPostfix(CreatureDeath __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -227,8 +214,8 @@ namespace Tweaks_Fixes
                 renderers[0].enabled = false;
             }
         }
-
-        [HarmonyPatch(typeof(SeaTreaderSounds), nameof(SeaTreaderSounds.OnStep))]
+        
+        [HarmonyPatch(typeof(SeaTreaderSounds), "OnStep")]
         class SeaTreaderSounds_OnStep_patch
         { 
             public static bool Prefix(SeaTreaderSounds __instance, Transform legTr, AnimationEvent animationEvent)
@@ -238,6 +225,7 @@ namespace Tweaks_Fixes
 
                 if (animationEvent.animatorClipInfo.clip == __instance.walkinAnimClip && !__instance.treader.IsWalking())
                     return false;
+
                 if (__instance.stepEffect != null)
                     Utils.SpawnPrefabAt(__instance.stepEffect, null, legTr.position);
                 if (__instance.stepSound != null)
@@ -246,8 +234,8 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
-        [HarmonyPatch(typeof(SeaTreaderSounds), nameof(SeaTreaderSounds.OnStomp))]
+        
+        [HarmonyPatch(typeof(SeaTreaderSounds), "OnStomp")]
         class SeaTreaderSounds_OnStomp_patch
         { 
             public static bool Prefix(SeaTreaderSounds __instance)
@@ -256,6 +244,7 @@ namespace Tweaks_Fixes
                 { 
                     if (Time.time < __instance.lastStompAttackTime + 0.2f)
                         return false;
+
                     __instance.lastStompAttackTime = Time.time;
                     if (__instance.stompEffect != null)
                         Utils.SpawnPrefabAt(__instance.stompEffect, null, __instance.frontLeg.position);
@@ -267,7 +256,7 @@ namespace Tweaks_Fixes
                 return true;
             }
         }
-
+        
         [HarmonyPatch(typeof(ReefbackLife), "OnEnable")]
         class ReefbackLife_OnEnable_patch
         {
@@ -292,7 +281,7 @@ namespace Tweaks_Fixes
             public static void Postfix(Pickupable __instance, ref bool __result)
             {
                 //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (Main.config.noFishCatching && Main.IsEatableFishAlive(__instance.gameObject))
+                if (Main.config.noFishCatching && Main.IsEatableFish(__instance.gameObject) && Main.IsAlive(__instance.gameObject))
                 {
                     __result = false;
                     if (Player.main._currentWaterPark)
@@ -301,7 +290,6 @@ namespace Tweaks_Fixes
                         //AddDebug("WaterPark ");
                         return;
                     }
-
                     PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
                     if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
                     {
@@ -322,11 +310,11 @@ namespace Tweaks_Fixes
 
             }
         }
-
+        
         [HarmonyPatch(typeof(SwimBehaviour))]
         class SwimBehaviour_SwimToInternal_patch
         {
-            [HarmonyPatch(nameof(SwimBehaviour.SwimToInternal))]
+            [HarmonyPatch("SwimToInternal")]
             public static void Prefix(SwimBehaviour __instance, ref float velocity, ref Vector3 targetPosition)
             {
                 if (Main.IsEatableFish(__instance.gameObject))
@@ -342,10 +330,15 @@ namespace Tweaks_Fixes
                         //AddDebug("Fix reefback y pos");
                         targetPosition.y = -15f;
                     }
+                    else if (tt == TechType.Gasopod && targetPosition.y > -1f)
+                    { 
+                        targetPosition.y = Main.rndm.Next(-11, -1);
+                        //AddDebug("Gasopod Swim To " + targetPosition.y);
+                    }
                 }
             }
         }
-
+        
         [HarmonyPatch(typeof(CollectShiny))]
         class CollectShiny_Patch
         {
@@ -369,7 +362,6 @@ namespace Tweaks_Fixes
                         //AddDebug("player holding shiny " + gameObject.name);
                         return false;
                     }
-
                     Vector3 direction = gameObject.transform.position - __instance.transform.position;
                     float maxDistance = direction.magnitude - 0.5f;
                     if (maxDistance > 0f && Physics.Raycast(__instance.transform.position, direction, maxDistance, Voxeland.GetTerrainLayerMask()))
@@ -377,23 +369,28 @@ namespace Tweaks_Fixes
                 }
                 if (__instance.shinyTarget == gameObject || gameObject == null ||gameObject.GetComponent<Rigidbody>() == null || gameObject.GetComponent<Pickupable>() == null )
                     return false;
+
                 if (__instance.shinyTarget != null)
                 {
                     if ((gameObject.transform.position - __instance.transform.position).magnitude <= (__instance.shinyTarget.transform.position - __instance.transform.position).magnitude)
                         return false;
+
                     __instance.DropShinyTarget();
                     __instance.shinyTarget = gameObject;
                 }
                 else
                     __instance.shinyTarget = gameObject;
+
                 return false;
             }
+        
             [HarmonyPrefix]
             [HarmonyPatch("TryPickupShinyTarget")]
             public static bool TryPickupShinyTargetPrefix(CollectShiny __instance)
             {
                 if (__instance.shinyTarget == null || !__instance.shinyTarget.activeInHierarchy)
                     return false;
+
                 if (__instance.shinyTarget.GetComponentInParent<Player>() != null)
                 {
                     //AddDebug("player holds shiny");
@@ -422,55 +419,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
-        [HarmonyPatch(typeof(FPModel), "OnEquip")]
-        class FPModel_OnEquip_Patch
-        {
-            static void Postfix(FPModel __instance)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (tt != TechType.Oculus)
-                    return;
-                LiveMixin lm = __instance.GetComponent<LiveMixin>();
-                if (lm && lm.IsAlive())
-                {
-                    //AddDebug("Oculus FPModel OnEquip");
-                    __instance.transform.localPosition = new Vector3(0, -.05f, .04f);
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(FleeOnDamage), "Evaluate")]
-        class FleeOnDamage_Evaluate_Patch
-        {
-            public static void Postfix(FleeOnDamage __instance, Creature creature)
-            {
-                TechType techType = CraftData.GetTechType(__instance.gameObject);
-                string name = Language.main.Get(techType);
-                //Creature_Loot_Drop.Creature_Loot Crloot = __instance.GetComponent<Creature_Loot_Drop.Creature_Loot>();
-                //if (Crloot)
-                //{
-                //Main.Message("Stalker DropShinyTarget");
-                //if (Time.time < __instance.timeToFlee)
-                //{
-                //Main.Message(name + " FleeOnDamage GetEvaluatePriority " + __instance.GetEvaluatePriority());
-                //}
-                //else
-                //    Main.Message(name + " FleeOnDamage Evaluate " + 0);
-                //}
-            }
-        }
-
-        //[HarmonyPatch(typeof(FleeOnDamage), "StopPerform")]
-        class FleeOnDamage_StopPerform_Patch
-        {
-            public static void Postfix(FleeOnDamage __instance, Creature creature)
-            {
-
-                TechType techType = CraftData.GetTechType(__instance.gameObject);
-                string name = Language.main.Get(techType);
-                //Main.Message(name + " Stop Perform ");
-            }
-        }
+        
+        
     }
 }

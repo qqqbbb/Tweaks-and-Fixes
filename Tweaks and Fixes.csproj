@@ -35,11 +35,11 @@
     <Reference Include="Assembly-CSharp-firstpass_publicized">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\Assembly-CSharp-firstpass_publicized.dll</HintPath>
     </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\core\BepInEx.dll</HintPath>
+    </Reference>
     <Reference Include="DayNightSpeed">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\QMods\DayNightSpeed\DayNightSpeed.dll</HintPath>
-    </Reference>
-    <Reference Include="QModInstaller">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\QModManager\QModInstaller.dll</HintPath>
     </Reference>
     <Reference Include="0Harmony">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\core\0Harmony.dll</HintPath>
@@ -47,8 +47,19 @@
     <Reference Include="Assembly-CSharp_publicized">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\Assembly-CSharp_publicized.dll</HintPath>
     </Reference>
+    <Reference Include="FMODUnity, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\FMODUnity.dll</HintPath>
+    </Reference>
+    <Reference Include="SMLHelper, Version=2.12.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\Modding Helper\SMLHelper.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
@@ -58,9 +69,6 @@
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="SMLHelper">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\QMods\SMLHelper\SMLHelper.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -89,6 +97,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="Translation.cs" />
+    <Compile Include="Cyclops_Collision.cs" />
+    <Compile Include="Game_Speed_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Base_Patch.cs" />
     <Compile Include="Randomize.cs" />
@@ -119,19 +130,18 @@
     <Compile Include="Player_Movement.cs" />
     <Compile Include="Player_Patches.cs" />
     <Compile Include="QuickSlots_Patch.cs" />
-    <Compile Include="Sealed_Door_Patch.cs" />
     <Compile Include="Cyclops_Patch.cs" />
     <Compile Include="Testing.cs" />
     <Compile Include="UI_Patches.cs" />
     <Compile Include="Vehicle_Patch.cs" />
-    <Compile Include="Wreck_Bulkdoor_Fix.cs" />
+    <Compile Include="Wreck_Patch.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\QMods\$(TargetName)\$(TargetFileName)"
+    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
 	</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

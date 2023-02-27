@@ -10,10 +10,154 @@ namespace Tweaks_Fixes
 {
     class Oxygen_Patch
     {
-        static GameObject bubble;
-        public static float extraBreathPeriod = 0f;
-        public static float bubbleEndTime = 0f;
+        //static GameObject bubble;
+        //public static float extraBreathPeriod = 0f;
+        //public static float bubbleEndTime = 0f;
 
+        public static void OnBrainCoralKill(CoralBlendWhite coralBlendWhite)
+        {
+            coralBlendWhite.killed = true;
+            coralBlendWhite.timeOfDeath = Time.time;
+            coralBlendWhite.RegisterForDeathUpdate();
+            Animator animator = coralBlendWhite.GetComponentInChildren<Animator>();
+            if (animator)
+                //animator.enabled = false;
+                UnityEngine.Object.Destroy(animator);
+
+            AnimatorLink animatorLink = coralBlendWhite.GetComponentInChildren<AnimatorLink>();
+            if (animatorLink)
+                UnityEngine.Object.Destroy(animatorLink);
+
+            IntermittentInstantiate intermittentInstantiate = coralBlendWhite.GetComponent<IntermittentInstantiate>();
+            if (intermittentInstantiate)
+                UnityEngine.Object.Destroy(intermittentInstantiate);
+        }
+         
+        [HarmonyPatch(typeof(CoralBlendWhite))]
+        class CoralBlendWhite_OnEnable_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnEnable")]
+            public static void OnEnablePostfix(CoralBlendWhite __instance)
+            {
+                //AddDebug("CoralBlendWhite OnEnable killed " + __instance.killed);
+                //AddDebug("CoralBlendWhite OnEnable done " + __instance.done);
+                LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
+                if (liveMixin && liveMixin.data)
+                {
+                    liveMixin.data.destroyOnDeath = false;
+                    //AddDebug("IsAlive " + liveMixin.IsAlive());
+                    if (!liveMixin.IsAlive())
+                        OnBrainCoralKill(__instance);
+                }
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnKill")]
+            public static void OnKillPostfix(CoralBlendWhite __instance)
+            {
+                //AddDebug("CoralBlendWhite OnEnable killed " + __instance.killed);
+                //AddDebug("CoralBlendWhite OnEnable done " + __instance.done);
+                Animator animator = __instance.GetComponentInChildren<Animator>();
+                if (animator)
+                    OnBrainCoralKill(__instance);
+            }
+        }
+
+
+        [HarmonyPatch(typeof(IntermittentInstantiate), "OnEnable")]
+        class IntermittentInstantiate_OnEnable_Patch
+        {
+            public static void Postfix(IntermittentInstantiate __instance)
+            {
+                if (__instance.GetComponent<BrainCoral>())
+                {
+                    __instance.baseIntervalTime /= __instance.numToInstantiate;
+                    __instance.randomIntervalTime /= __instance.numToInstantiate;
+                    __instance.numToInstantiate = 1;
+                    //extraBreathPeriod = __instance.baseIntervalTime + __instance.randomIntervalTime;
+                    //AddDebug("extraBreathPeriodDefault " + extraBreathPeriodDefault);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Player))]
+        class Player_GetOxygenPerBreath_Patch
+        { // vanilla script returns wrong value at depth 200-100
+            [HarmonyPrefix]
+            [HarmonyPatch("GetOxygenPerBreath")]
+            static bool GetOxygenPerBreathPrefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
+            {
+                if (GameModeUtils.RequiresOxygen())
+                    __result = Main.config.oxygenPerBreath;
+                else
+                    __result = 0f;
+
+                //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
+                //AddDebug("GetOxygenPerBreath  " + __result);
+
+                return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("GetBreathPeriod")]
+            static bool GetBreathPeriodPrefix(Player __instance, ref float __result)
+            {
+                //AddDebug("depthLevel " + (int)__instance.depthLevel);
+                //AddDebug("depthOf " + (int)Ocean.main.GetDepthOf(__instance.gameObject);
+                if (!Main.config.realOxygenCons)
+                    return true;
+
+                if (__instance.currentSub || __instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
+                {
+                    //AddDebug("safe ox consump " );
+                    __result = 3f;
+                    return false;
+                }
+                float depth = Mathf.Abs(__instance.depthLevel);
+                float mult = 1.5f / Main.config.crushDepth;
+                __result = 3f - depth * mult;
+                // __result is negative when depth is 2x deeper than crushDepth
+                __result = Mathf.Clamp(__result, 0.1f, 3f);
+                return false;
+            }
+        }
+
+
+        //[HarmonyPatch(typeof(OxygenManager), "RemoveOxygen")]
+        class OxygenManager_RemoveOxygen_Patch
+        {
+            public static void Prefix(OxygenManager __instance, ref float amountToRemove)
+            {
+                //amountToRemove *= Main.config.oxygenMult;
+                //if (extraBreathPeriod > 0)
+                //{
+                //extraBreathPeriod -= extraBreathPeriod;
+                //extraBreathPeriod -= extraBreathPeriod;
+                //Mathf.Clamp(extraBreathPeriod, 0f, extraBreathPeriod);
+                //AddDebug("RemoveOxygen extra " );
+                //}
+                //AddDebug("RemoveOxygen " + amountToRemove);
+            }
+        }
+        //[HarmonyPatch(typeof(OxygenManager), "Update")]
+        class OxygenManager_Update_Patch
+        {
+            public static void Prefix(OxygenManager __instance)
+            {
+                //amountToRemove *= Main.config.oxygenMult;
+                if (__instance.GetComponent<Player>())
+                {
+                    //AddDebug("Player OxygenManager ");
+                }
+                else
+                {
+                    //AddDebug("Oxygen Available " + __instance.GetOxygenAvailable());
+                    //AddDebug("Oxygen Capacity " + __instance.GetOxygenCapacity());
+                }
+
+            }
+        }
+
+        /*
         public class OxygenArea_Mono : MonoBehaviour
         {
             void OnTriggerExit(Collider other)
@@ -68,57 +212,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(IntermittentInstantiate), "OnEnable")]
-        class IntermittentInstantiate_OnEnable_Patch
-        {
-            public static void Postfix(IntermittentInstantiate __instance)
-            {
-                if (__instance.GetComponent<BrainCoral>())
-                {
-                    __instance.baseIntervalTime /= __instance.numToInstantiate;
-                    __instance.randomIntervalTime /= __instance.numToInstantiate;
-                    __instance.numToInstantiate = 1;
-                    extraBreathPeriod = __instance.baseIntervalTime + __instance.randomIntervalTime;
-                    //AddDebug("extraBreathPeriodDefault " + extraBreathPeriodDefault);
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(OxygenManager), "RemoveOxygen")]
-        class OxygenManager_RemoveOxygen_Patch
-        {
-            public static void Prefix(OxygenManager __instance, ref float amountToRemove)
-            {
-                //amountToRemove *= Main.config.oxygenMult;
-                //if (extraBreathPeriod > 0)
-                //{
-                //extraBreathPeriod -= extraBreathPeriod;
-                //extraBreathPeriod -= extraBreathPeriod;
-                //Mathf.Clamp(extraBreathPeriod, 0f, extraBreathPeriod);
-                //AddDebug("RemoveOxygen extra " );
-                //}
-                //AddDebug("RemoveOxygen " + amountToRemove);
-            }
-        }
-        //[HarmonyPatch(typeof(OxygenManager), "Update")]
-        class OxygenManager_Update_Patch
-        {
-            public static void Prefix(OxygenManager __instance)
-            {
-                //amountToRemove *= Main.config.oxygenMult;
-                if (__instance.GetComponent<Player>())
-                {
-                    //AddDebug("Player OxygenManager ");
-                }
-                else
-                {
-                    //AddDebug("Oxygen Available " + __instance.GetOxygenAvailable());
-                    //AddDebug("Oxygen Capacity " + __instance.GetOxygenCapacity());
-                }
-
-            }
-        }
-
         [HarmonyPatch(typeof(OxygenArea), "OnTriggerStay")]
         class OxygenArea_OnTriggerStay_Patch
         { // OnTriggerExit does not fire when you pick up pipe
@@ -158,49 +251,6 @@ namespace Tweaks_Fixes
                     }
                     __result = Main.canBreathe;
                 }
-            }
-        }
-
-        [HarmonyPatch(typeof(Player), "GetOxygenPerBreath")]
-        internal class Player_GetOxygenPerBreath_Patch
-        { // vanilla script returns wrong value at depth 200-100
-            internal static bool Prefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
-            {
-                if (GameModeUtils.RequiresOxygen())
-                    __result = Main.config.oxygenPerBreath;
-                else
-                    __result = 0f;
-
-                //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
-                //AddDebug("GetOxygenPerBreath  " + __result);
-
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Player), "GetBreathPeriod")]
-        internal class Player_GetBreathPeriod_Patch
-        {
-            internal static bool Prefix(Player __instance, ref float __result)
-            {
-                //AddDebug("depthLevel " + (int)__instance.depthLevel);
-                //AddDebug("depthOf " + (int)Ocean.main.GetDepthOf(__instance.gameObject);
-                if (!Main.config.realOxygenCons)
-                    return true;
-
-                if (__instance.currentSub || __instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
-                {
-                    //AddDebug("safe ox consump " );
-                    __result = 3f;
-                    return false;
-                }
-                float depth = Mathf.Abs(__instance.depthLevel);
-                float mult = 1.5f / Main.config.crushDepth;
-                __result = 3f - depth * mult;
-                // __result is negative when depth is 2x deeper than crushDepth
-                __result = Mathf.Clamp(__result, 0.1f, 3f); 
-
-                return false;
             }
         }
 
@@ -251,6 +301,6 @@ namespace Tweaks_Fixes
 
             }
         }
-
+        /*/
     }
 }

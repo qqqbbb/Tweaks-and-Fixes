@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
     { 
         static ConditionRules conditionRules;
         static int ruleToRemove;
-
+        /*
         static void showPDA(PDA pda)
         {// FOV 60 .165f
             //AddDebug("showPDA " + MainCamera.camera.fieldOfView + "  " + MiscSettings.fieldOfView);
@@ -377,6 +377,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        /*/
     }
 }
