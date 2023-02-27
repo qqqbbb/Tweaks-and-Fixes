@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
             }
             return false;
         }
-
+        
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Start_Patch
         {
@@ -91,8 +91,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(AggressiveWhenSeeTarget))]
         class AggressiveWhenSeeTarget_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("GetAggressionTarget")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("GetAggressionTarget")]
             public static bool GetAggressionTargetPrefix(AggressiveWhenSeeTarget __instance, ref GameObject __result)
             {
                 if (__instance.targetType != EcoTargetType.Shark || Main.config.aggrMult <= 1 || Main.config.predatorExclusion.Contains(__instance.myTechType))
@@ -114,8 +114,8 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("IsTargetValid", new Type[] { typeof(GameObject) })]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("IsTargetValid", new Type[] { typeof(GameObject) })]
             public static bool IsTargetValidPrefix(GameObject target, AggressiveWhenSeeTarget __instance, ref bool __result)
             {
                 if (__instance.targetType != EcoTargetType.Shark)
@@ -222,6 +222,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ScanForAggressionTarget")]
             public static bool ScanForAggressionTargetPrefix(AggressiveWhenSeeTarget __instance)
             {
+                //TechType techType = CraftData.GetTechType(__instance.gameObject);
                 if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy || !__instance.enabled || Main.config.predatorExclusion.Contains(__instance.myTechType))
                     return false;
 
@@ -696,6 +697,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        
     }
 }

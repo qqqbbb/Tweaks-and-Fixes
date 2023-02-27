@@ -266,7 +266,7 @@ namespace Tweaks_Fixes
             { "highcapacitytank" },
         };
         public float medKitHPperSecond = 50f;
-        public HashSet<TechType> predatorExclusion = new HashSet<TechType> {TechType.Crash, TechType.Mesmer };
+        public HashSet<TechType> predatorExclusion = new HashSet<TechType> {};
 
         static void UpdateBaseLight()
         {

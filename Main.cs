@@ -279,6 +279,9 @@ namespace Tweaks_Fixes
         public static void  LoadedGameSetup()
         {
             loadingDone = true;
+            config.predatorExclusion.Remove(TechType.Crash);
+            config.predatorExclusion.Remove(TechType.Mesmer);
+
             foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
             {
                 //AddDebug("uGUI_SceneLoading End " + lm.tempDamage);

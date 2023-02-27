@@ -113,7 +113,7 @@ namespace Tweaks_Fixes
       }
 
       [HarmonyPatch(typeof(UnderwaterMotor), "AlterMaxSpeed")]
-      class AlterMaxSpeedPatch
+        class AlterMaxSpeedPatch
       {
           public static bool Prefix(UnderwaterMotor __instance, ref float inMaxSpeed, ref float __result)
           {
@@ -153,26 +153,23 @@ namespace Tweaks_Fixes
 
           public static void Postfix(float inMaxSpeed, ref float __result)
           {
-              __result *= Main.config.playerSpeedMult;
-              //AddDebug("AlterMaxSpeed " + __result);
-              PlayerTool tool = Inventory.main.GetHeldTool();
-              if (tool)
-              {
-                  Seaglide seaglide = tool as Seaglide;
-                  if (seaglide && seaglide.activeState)
-                  {
-                      if (!Main.config.playerMoveTweaks)
-                          __result *= 2f;
-                  }
-                  else
-                  {
+             __result *= Main.config.playerSpeedMult;
+                //AddDebug("AlterMaxSpeed " + __result);
+
+                if (Main.config.playerMoveTweaks)
+                {
+                    PlayerTool tool = Inventory.main.GetHeldTool();
+                    //Seaglide seaglide = tool as Seaglide;
+                    //if (seaglide && seaglide.activeState)
+                    if (!tool)
+                    {
                       //AddDebug("tool");
-                      if (Main.config.playerMoveTweaks)
                           __result *= 0.7f;
                   }
-              }
-              if (Main.config.playerMoveTweaks && Main.config.invMultWater > 0f)
-                  __result *= GetInvMult();
+                    if (Main.config.invMultWater > 0f)
+                        __result *= GetInvMult();
+                }
+
               //__instance.movementSpeed = __instance.playerController.velocity.magnitude / 5f;
               //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;
               //ms = Player.main.rigidBody.velocity.magnitude;
