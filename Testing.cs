@@ -28,6 +28,7 @@ namespace Tweaks_Fixes
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 if (Input.GetKeyDown(KeyCode.B))
                 {
+                    //Main.GetLoadedMods();
                     //AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
                     //if (Player.main.IsInBase())
                     //    AddDebug("IsInBase");

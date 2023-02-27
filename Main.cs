@@ -30,16 +30,16 @@ namespace Tweaks_Fixes
         public static bool loadingDone = false;  // WaitScreen.IsWaiting
         public static System.Random rndm = new System.Random();
         public static bool advancedInventoryLoaded = false;
-        public static bool flareRepairLoaded = false;
+        public static bool flareRepairLoaded = false; // not updated
         public static bool cyclopsDockingLoaded = false;
-        public static bool vehicleLightsImprovedLoaded = false;
+        public static bool vehicleLightsImprovedLoaded = false; // not updated
         public static bool languageCheck = false;
         public static bool pickupFullCarryallsLoaded = false;
-        public static bool seaglideMapControlsLoaded = false;
+        public static bool seaglideMapControlsLoaded = false;  // not updated
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded;
         public static bool prawnSuitTorpedoDisplayLoaded = false; // not updated
-        public static bool torpedoImprovementsLoaded = false;
+        public static bool torpedoImprovementsLoaded = false; // not updated
         public static bool refillOxygenTankLoaded = false;
         
 
@@ -415,31 +415,33 @@ namespace Tweaks_Fixes
 
         public static void GetLoadedMods()
         {
+            //logger.LogInfo("Chainloader.PluginInfos Count " + Chainloader.PluginInfos.Count);
+            //AddDebug("Chainloader.PluginInfos Count " + Chainloader.PluginInfos.Count);
             foreach (var plugin in Chainloader.PluginInfos)
             {
                 var metadata = plugin.Value.Metadata;
-                logger.LogInfo("loaded Mod " + metadata.GUID);
-                if (metadata.GUID.Equals("lockerMod"))
+                //logger.LogInfo("loaded Mod " + metadata.GUID);
+                if (metadata.GUID.Equals("VisibleLockerInterior"))
                     visibleLockerInteriorModLoaded = true;
                 else if (metadata.GUID.Equals("PrawnSuitTorpedoDisplay"))
                     prawnSuitTorpedoDisplayLoaded = true;
-                else if (metadata.GUID.Equals("BaseLightSwitch"))
+                else if (metadata.GUID.Equals("com.ahk1221.baselightswitch"))
                     baseLightSwitchLoaded = true;
                 else if (metadata.GUID.Equals("SeaglideMapControls"))
                     seaglideMapControlsLoaded = true;
                 else if (metadata.GUID.Equals("PickupFullCarryalls"))
                     pickupFullCarryallsLoaded = true;
-                else if (metadata.GUID.Equals("AdvancedInventory"))
+                else if (metadata.GUID.Equals("sn.advancedinventory.mod"))
                     advancedInventoryLoaded = true;
                 else if (metadata.GUID.Equals("Rm_FlareRepair"))
                     flareRepairLoaded = true;
-                else if (metadata.GUID.Equals("CyclopsDockingMod"))
+                else if (metadata.GUID.Equals("com.osubmarin.cyclopsdockingmod"))
                     cyclopsDockingLoaded = true;
                 else if (metadata.GUID.Equals("Rm_VehicleLightsImproved"))
                     vehicleLightsImprovedLoaded = true;
                 else if (metadata.GUID.Equals("TorpedoImprovements"))
                     torpedoImprovementsLoaded = true;
-                else if (metadata.GUID.Equals("OxygenTank"))
+                else if (metadata.GUID.Equals("sn.oxygentank.mod"))
                     refillOxygenTankLoaded = true;
             }
         }
