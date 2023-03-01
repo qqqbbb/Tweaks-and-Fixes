@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "2.0";
+            VERSION = "2.03";
 
         public static ManualLogSource logger;
         //public static GUIHand guiHand;
@@ -288,24 +288,12 @@ namespace Tweaks_Fixes
                 lm.SyncUpdatingState();
             }
             //AddDebug("LoadedGameSetup activeSlot " + config.activeSlot);
-            if (config.activeSlot != -1)
+            if (config.activeSlot != -1 && Player.main.mode == Player.Mode.Normal )
                 Inventory.main.quickSlots.SelectImmediate(config.activeSlot);
 
             //if (EscapePod.main)
             //    Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
 
-            //try
-            { // for some users throws NullReferenceException
-              //                  at(wrapper managed - to - native) UnityEngine.Transform.set_localScale_Injected(UnityEngine.Transform, UnityEngine.Vector3 &)
-              //at UnityEngine.Transform.set_localScale(UnityEngine.Vector3 value)[0x00000] in < 11d76d5f2da344218c391ad1f20978b4 >:0  //at uGUI_SignInput.UpdateScale()
-              // foreach (Sign sign in Storage_Patch.savedSigns)
-                //sign.OnProtoDeserialize(null);
-            }
-            //catch (NullReferenceException)
-            {
-                //throw;
-                //Log("NullReferenceException in  sign.OnProtoDeserialize  uGUI_SceneLoading_End_Patch");
-            }
             languageCheck = Language.main.GetCurrentLanguage() == "English" || !config.translatableStrings[0].Equals("Burnt out ");
             if (languageCheck)
             {

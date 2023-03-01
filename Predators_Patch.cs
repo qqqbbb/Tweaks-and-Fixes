@@ -25,6 +25,7 @@ namespace Tweaks_Fixes
             return false;
         }
         
+        
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Start_Patch
         {
@@ -229,6 +230,11 @@ namespace Tweaks_Fixes
                 if (__instance.targetType != EcoTargetType.Shark)
                     return true;
 
+                //if (__instance.myTechType == TechType.Mesmer)
+                {
+                    //AddDebug("ScanForAggressionTarget Mesmer");
+                }
+                
                 if (Main.config.aggrMult <= 1 && __instance.creature && __instance.creature.Hunger.Value < __instance.hungerThreshold)
                     return true;
 

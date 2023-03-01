@@ -12,10 +12,9 @@ namespace Tweaks_Fixes
         static bool textInput = false;
         static bool fishTooltip = false;
         static bool chargerOpen = false;
-        static List <TechType> landPlantSeeds = new List<TechType> { TechType.BulboTreePiece, TechType.PurpleVegetable, TechType.FernPalmSeed, TechType.OrangePetalsPlantSeed, TechType.HangingFruit, TechType.MelonSeed, TechType.PurpleVasePlantSeed, TechType.PinkMushroomSpore, TechType.PurpleRattleSpore, TechType.PinkFlowerSeed };
-        static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.AcidMushroomSpore, TechType.BloodOil, TechType.BluePalmSeed, TechType.KooshChunk, TechType.PurpleBranchesSeed, TechType.WhiteMushroomSpore, TechType.EyesPlantSeed, TechType.RedRollPlantSeed, TechType.GabeSFeatherSeed, TechType.JellyPlantSeed, TechType.RedGreenTentacleSeed, TechType.SnakeMushroomSpore, TechType.MembrainTreeSeed, TechType.SmallFanSeed, TechType.RedBushSeed, TechType.RedConePlantSeed, TechType.RedBasketPlantSeed, TechType.SeaCrownSeed, TechType.ShellGrassSeed, TechType.SpottedLeavesPlantSeed, TechType.SpikePlantSeed, TechType.PurpleFanSeed, TechType.PurpleStalkSeed, TechType.PurpleTentacleSeed };
-        static HashSet<ItemsContainer> landPlanters = new HashSet<ItemsContainer>();
-        static HashSet<ItemsContainer> waterPlanters = new HashSet<ItemsContainer>();
+        //static List <TechType> landPlantSeeds = new List<TechType> { TechType.BulboTreePiece, TechType.PurpleVegetable, TechType.FernPalmSeed, TechType.OrangePetalsPlantSeed, TechType.HangingFruit, TechType.MelonSeed, TechType.PurpleVasePlantSeed, TechType.PinkMushroomSpore, TechType.PurpleRattleSpore, TechType.PinkFlowerSeed };
+        //static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.AcidMushroomSpore, TechType.BloodOil, TechType.BluePalmSeed, TechType.KooshChunk, TechType.PurpleBranchesSeed, TechType.WhiteMushroomSpore, TechType.EyesPlantSeed, TechType.RedRollPlantSeed, TechType.GabeSFeatherSeed, TechType.JellyPlantSeed, TechType.RedGreenTentacleSeed, TechType.SnakeMushroomSpore, TechType.MembrainTreeSeed, TechType.SmallFanSeed, TechType.RedBushSeed, TechType.RedConePlantSeed, TechType.RedBasketPlantSeed, TechType.SeaCrownSeed, TechType.ShellGrassSeed, TechType.SpottedLeavesPlantSeed, TechType.SpikePlantSeed, TechType.PurpleFanSeed, TechType.PurpleStalkSeed, TechType.PurpleTentacleSeed };
+        static Dictionary<ItemsContainer, Planter> planters = new Dictionary<ItemsContainer, Planter>();
         static public string beaconToolString = string.Empty;
         static public string beaconPickString = string.Empty;
         static public string dropString = string.Empty;
@@ -153,11 +152,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Planter __instance)
             {
-                ItemsContainerType type = __instance.GetContainerType();
-                if (type == ItemsContainerType.LandPlants)
-                    landPlanters.Add(__instance.storageContainer.container);
-                else if (type == ItemsContainerType.WaterPlants)
-                    waterPlanters.Add(__instance.storageContainer.container);
+                planters[__instance.storageContainer.container] = __instance;
             }
         }
         
@@ -184,21 +179,12 @@ namespace Tweaks_Fixes
                 if (container != null)
                 {
                     //AddDebug(" container ");
-                    if (landPlanters.Contains(container))
+                    if (planters.ContainsKey(container))
                     {
+                        Planter planter = planters[container];
                         foreach (var pair in __instance.inventory.items)
                         {
-                            if (!landPlantSeeds.Contains(pair.Key.item.GetTechType()))
-                                pair.Value.SetChroma(0f);
-                        }
-                        return;
-                    }
-                    else if (waterPlanters.Contains(container))
-                    {
-                        //AddDebug(" waterPlanter ");
-                        foreach (var pair in __instance.inventory.items)
-                        {
-                            if (!waterPlantSeeds.Contains(pair.Key.item.GetTechType()))
+                            if (!planter.IsAllowedToAdd(pair.Key.item, false))
                                 pair.Value.SetChroma(0f);
                         }
                         return;

@@ -15,6 +15,40 @@ namespace Tweaks_Fixes
     {
         //static HashSet<TechType> creatures = new HashSet<TechType>();
         //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
+       
+        //[HarmonyPatch(typeof(Planter), "IsAllowedToAdd")]
+        class Planter_IsAllowedToAdd_Patch
+        {
+            static void Postfix(Planter __instance, bool __result, Pickupable pickupable)
+            {
+                if (pickupable == null)
+                {
+                    AddDebug("Planter IsAllowedToAdd pickupable == null ");
+                    return;
+                }
+                Plantable plantable = pickupable.GetComponent<Plantable>();
+                if (plantable == null)
+                {
+                    return;
+                }
+                //AddDebug("Planter " + __instance.GetContainerType() + " " );
+                AddDebug("plantable size " + plantable.size);
+                AddDebug("GetFreeSlotID small " + __instance.GetFreeSlotID());
+                AddDebug("GetFreeSlotID big " + __instance.GetFreeSlotID(true));
+                //if (__instance.GetFreeSlotID((uint)plantable.size > 0U) < 0)
+                //    return ;
+                AddDebug("Planter IsAllowedToAdd " + pickupable.GetTechName() + " " + __result);
+            }
+        }
+
+        //[HarmonyPatch(typeof(ItemsContainer), "IItemsContainer.AllowedToAdd")]
+        class ItemsContainer_AllowedToAdd_Patch
+        {
+            static void Postfix(ItemsContainer __instance, Pickupable pickupable, bool __result)
+            {
+                AddDebug("ItemsContainer AllowedToAdd " + pickupable.GetTechName() + " " + __result);
+            }
+        }
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
@@ -28,7 +62,7 @@ namespace Tweaks_Fixes
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 if (Input.GetKeyDown(KeyCode.B))
                 {
-                    //Main.GetLoadedMods();
+                    //AddDebug("activeSlot " + Inventory.main.quickSlots.activeSlot);
                     //AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
                     //if (Player.main.IsInBase())
                     //    AddDebug("IsInBase");
