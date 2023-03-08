@@ -261,15 +261,16 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
             {
+                if (!Main.config.newUIstrings)
+                    return;
+
                 PlayerTool tool = __instance.GetTool();
- 
                 //if (uGUI._main.userInput)
                 //    AddDebug("userInput " + uGUI._main.userInput.canvasGroup.interactable);
                 //if (uGUI._main.itemSelector)
                 //    AddDebug("itemSelector " + uGUI._main.itemSelector);
                 //if (uGUI._main.craftingMenu)
                 //    AddDebug("craftingMenu " + uGUI._main.craftingMenu.selected);
-
                 if (tool)
                 {
                     Flare flare = tool as Flare;
@@ -510,6 +511,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
             {
+                if (!Main.config.newUIstrings)
+                    return;
+
                 if (Main.languageCheck)
                 {
                     Flare flare = obj.GetComponent<Flare>();
@@ -529,6 +533,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPostfix(StringBuilder sb, TechType techType, GameObject obj)
             {
+                if (!Main.config.newUIstrings)
+                    return;
+
                 if (Main.languageCheck)
                 {
                     if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
@@ -565,6 +572,8 @@ namespace Tweaks_Fixes
         {
             static void Postfix(string format, ref string __result, object[] args)
             {
+                if (!Main.config.newUIstrings)
+                    return;
                 //AddDebug("FormatString " + format);
                 //AddDebug("!Main.languageCheck " + !Main.languageCheck);
                 //AddDebug("FormatString GetType" + args[0].GetType());
@@ -852,6 +861,9 @@ namespace Tweaks_Fixes
         {
             static void Postfix(PlayerTool __instance, ref string __result)
             {
+                if (!Main.config.newUIstrings)
+                    return;
+
                 if (!Main.seaglideMapControlsLoaded && __instance is Seaglide)
                     __result = seaglideString;
             }

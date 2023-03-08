@@ -51,6 +51,9 @@ namespace Tweaks_Fixes
              if (exosuit && exosuit.HasClaw())
                  return true;
 
+            if (!Main.config.newUIstrings)
+                return false;
+
             Knife knife = Inventory.main.GetHeldTool() as Knife;
             if (knife)
             {
@@ -101,7 +104,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandHover")]
         public static void PickupableOnHandHover(Pickupable __instance)
         {
-            if (cantPickUp)
+            if (cantPickUp && Main.config.newUIstrings)
                 HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[16]);
             //HandReticle.main.SetInteractTextRaw(Main.config.translatableStrings[16], null);
             //AddDebug("cantPickUp " + cantPickUp);

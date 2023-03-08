@@ -8,11 +8,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
-using static ErrorMessage;
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Bootstrap;
-//Language !!!
+using static ErrorMessage;
+
 namespace Tweaks_Fixes
 {
     [BepInPlugin(GUID, MODNAME, VERSION)]
@@ -40,7 +40,7 @@ namespace Tweaks_Fixes
         public static bool visibleLockerInteriorModLoaded;
         public static bool prawnSuitTorpedoDisplayLoaded = false; // not updated
         public static bool torpedoImprovementsLoaded = false; // not updated
-        public static bool refillOxygenTankLoaded = false;
+        //public static bool refillOxygenTankLoaded = false;
         
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
@@ -432,8 +432,8 @@ namespace Tweaks_Fixes
                     vehicleLightsImprovedLoaded = true;
                 else if (metadata.GUID.Equals("TorpedoImprovements"))
                     torpedoImprovementsLoaded = true;
-                else if (metadata.GUID.Equals("sn.oxygentank.mod"))
-                    refillOxygenTankLoaded = true;
+                //else if (metadata.GUID.Equals("sn.oxygentank.mod"))
+                //    refillOxygenTankLoaded = true;
             }
         }
          

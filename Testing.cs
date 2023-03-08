@@ -13,9 +13,10 @@ namespace Tweaks_Fixes
 { // debris 80 -35 100      200 -70 -680
     class Testing
     {
+        public static Rigidbody rbToTest = null;
         //static HashSet<TechType> creatures = new HashSet<TechType>();
         //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
-       
+
         //[HarmonyPatch(typeof(Planter), "IsAllowedToAdd")]
         class Planter_IsAllowedToAdd_Patch
         {
@@ -41,12 +42,31 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(ItemsContainer), "IItemsContainer.AllowedToAdd")]
-        class ItemsContainer_AllowedToAdd_Patch
+        //[HarmonyPatch(typeof(LargeWorldEntity), "OnEnable")]
+        class LargeWorldEntity_OnEnable_Patch
         {
-            static void Postfix(ItemsContainer __instance, Pickupable pickupable, bool __result)
+            static void Postfix(LargeWorldEntity __instance)
             {
-                AddDebug("ItemsContainer AllowedToAdd " + pickupable.GetTechName() + " " + __result);
+
+                if (!__instance.name.StartsWith("FloatingStone"))
+                    return;
+
+                Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                if (rb == null)
+                    return;
+
+                rb.isKinematic = true;
+                //Vector3 dist = __instance.transform.position - MainCamera.camera.transform.position;
+                //AddDebug("FloatingStone OnEnable sqrMagnitude " + dist.sqrMagnitude);
+            }
+        }
+
+        //[HarmonyPatch(typeof(LEDLight), "OnReload")]
+        class LEDLight_OnReload_Patch
+        {
+            static void Postfix(LEDLight __instance)
+            {
+                AddDebug("LEDLight OnReload ");
             }
         }
 
@@ -122,18 +142,25 @@ namespace Tweaks_Fixes
                     if (target)
                     {
                         //Debug(target);
-                        //PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
-                        //if (pi)
-                        //    target = pi.gameObject;
+                        LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+                        if (lwe)
+                            target = lwe.gameObject;
                         //LiveMixin lm = pi.GetComponent<LiveMixin>();
                         //if (lm)
                         //{
                         //    AddDebug("max HP " + lm.data.maxHealth);
                         //    AddDebug(" HP " + lm.health);
                         //}
-                        AddDebug(" " + target.gameObject.name);
-                        if (target.transform.parent)
-                            AddDebug("parent  " + target.transform.parent.name);
+                        Rigidbody rb = target.GetComponent<Rigidbody>();
+                        if (rb)
+                        {
+                            //AddDebug(" isKinematic " + rb.isKinematic);
+                            rbToTest = rb;
+                            //rb.isKinematic = !rb.isKinematic;
+                        }
+                        AddDebug(" " + target.gameObject.name + " " + lwe.cellLevel);
+                        //if (target.transform.parent)
+                        //    AddDebug("parent  " + target.transform.parent.name);
                         AddDebug("TechType  " + CraftData.GetTechType(target));
                         //if (target.GetComponent<InfectedMixin>())
                         //{

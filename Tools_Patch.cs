@@ -83,6 +83,11 @@ namespace Tweaks_Fixes
                     //AddDebug(" attackDist  " + knife.attackDist);
                     //AddDebug(" damage  " + knife.damage);
                 }
+                LEDLight ledLight = __instance as LEDLight;
+                if (ledLight)
+                {
+                    ledLight.SetLightsActive(Main.config.LEDLightWorksInHand);
+                }
             }
 
             [HarmonyPostfix]

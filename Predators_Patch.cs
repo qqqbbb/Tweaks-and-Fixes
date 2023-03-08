@@ -144,7 +144,7 @@ namespace Tweaks_Fixes
                     { // prevent leviathan attacking player on land
                         if (Player.main.depthLevel > -1f)
                         {
-                            AddDebug(" prevent leviathan attacking player on land");
+                            //AddDebug(" prevent leviathan attacking player on land");
                             __result = false;
                             return false;
                         }
@@ -504,8 +504,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(AttachToVehicle))]
         class AttachToVehicle_Evaluate_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("Start")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Start")]
             public static void StartPrefix(AttachToVehicle __instance)
             {
                 AddDebug("AttachToVehicle Start " + __instance.name);

@@ -53,8 +53,6 @@ namespace Tweaks_Fixes
             {
                 //float doorKey = __instance.gameObject.transform.position.x + __instance.gameObject.transform.position.y;
                 int Key = Mathf.RoundToInt(__instance.gameObject.transform.position.x + __instance.gameObject.transform.position.y + __instance.gameObject.transform.position.z);
-
-                //Main.Log("doorKey " + doorKey);
                 string slot = SaveLoadManager.main.currentSlot;
                 if (Main.config.openedWreckDoors.ContainsKey(slot) && Main.config.openedWreckDoors[slot].ContainsKey(Key))
                 {

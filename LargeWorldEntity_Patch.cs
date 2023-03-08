@@ -10,6 +10,7 @@ namespace Tweaks_Fixes
 {
     class LargeWorldEntity_Patch
     { // biomes to remove light BloodKelp_Trench
+        //public static Rigidbody rbToTest = null;
         public static HashSet<TechType> removeLight = new HashSet<TechType> { };
 
         public static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
@@ -27,6 +28,21 @@ namespace Tweaks_Fixes
             //AddDebug(go.name + " AlwaysUseHiPolyMesh " + renderers.Length);
             for (int i = 1; i < renderers.Length; i++)
                 renderers[i].enabled = false;
+        }
+
+        public static void AddLOD(GameObject go)
+        {
+            AddDebug("AddLOD " + go.name);
+            LODGroup lod = go.AddComponent<LODGroup>();
+            if (lod == null)
+                return;
+
+            lod.enabled = true;
+            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
+            //lod.
+            //AddDebug(go.name + " AlwaysUseHiPolyMesh " + renderers.Length);
+            //for (int i = 1; i < renderers.Length; i++)
+            //    renderers[i].enabled = false;
         }
 
         static void MakeImmuneToCannon(GameObject go)
@@ -61,8 +77,9 @@ namespace Tweaks_Fixes
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
-                //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
-                //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
+                    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
+
                 if (tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
                     int x = (int)__instance.transform.position.x;
@@ -168,20 +185,17 @@ namespace Tweaks_Fixes
                                 m.DisableKeyword("MARMO_EMISSION");
                         }
                     }
-                    else if (__instance.transform.position.y < 1f && __instance.name.StartsWith("FloatingStone") && !__instance.name.EndsWith("Floaters(Clone)"))
-                    { // make boulders that block cave entrances not fall down when world chunk unloads
-                        //Floater[] floaters = __instance.GetAllComponentsInChildren<Floater>();
-                        //if (floaters.Length == 0)
-                        //if (__instance.transform.position.y < 1f && __instance.GetComponent<FloatersTarget>() == null)
-                        {
-                            int x = (int)__instance.transform.position.x;
-                            int y = (int)__instance.transform.position.y;
-                            int z = (int)__instance.transform.position.z;
-                            //AddDebug(__instance.name + " CellLevel " + __instance.cellLevel + " " + x + " " + y + " " + z);
-                            //Main.Log(__instance.name + "  " + __instance.transform.position);
-                            //Main.Log(__instance.name + " classId " + __instance.GetComponent<PrefabIdentifier>().classId);
-                            __instance.cellLevel = LargeWorldEntity.CellLevel.Near;
-                        }
+
+                    //else if (__instance.name == "Crab_snake_mushrooms_06_05(Clone)")
+                    //{
+                    //    AddDebug("snake_mushrooms fadeTime " + __instance.fadeTime);
+                    //    AddDebug("snake_mushrooms cellLevel " + __instance.cellLevel);
+
+                    //    __instance.cellLevel = LargeWorldEntity.CellLevel.VeryFar;
+                    //}
+                    //else if (__instance.name == "FloatingStone_Beach_02(Clone)")
+                    {
+
                     }
                 }
                 else if (tt.ToString() == "TF_Stone")
@@ -214,6 +228,49 @@ namespace Tweaks_Fixes
 
             }
 
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(LargeWorldEntity __instance)
+            {
+                //if (__instance.transform.position.y < 1f && __instance.name.StartsWith("FloatingStone") && !__instance.name.EndsWith("Floaters(Clone)"))
+                if (__instance.name.StartsWith("FloatingStone"))
+                {
+                  //Floater[] floaters = __instance.GetAllComponentsInChildren<Floater>();
+                  //if (floaters.Length == 0)
+                  //if (__instance.transform.position.y < 1f && __instance.GetComponent<FloatersTarget>() == null)
+                    {
+                        Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                        if (rb)
+                        {
+                            //AddDebug("LWE Start " + __instance.name + " CellLevel " + __instance.cellLevel);
+                            rb.isKinematic = true;
+                        }
+                        //else
+                        //    AddDebug(__instance.name + " CellLevel " + __instance.cellLevel + " " + x + " " + y + " " + z + " ");
+                        //Main.Log(__instance.name + "  " + __instance.transform.position);
+                        //Main.Log(__instance.name + " classId " + __instance.GetComponent<PrefabIdentifier>().classId);
+                        //__instance.cellLevel = LargeWorldEntity.CellLevel.Near;
+                    }
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("UpdateCell")]
+            static void UpdateCellPostfix(LargeWorldEntity __instance, LargeWorldStreamer streamer)
+            { // make boulders that block cave entrances not fall down when world chunk unloads
+                if (!__instance.name.StartsWith("FloatingStone"))
+                    return;
+
+                Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                if (rb == null)
+                    return;
+
+                float dist = Vector3.Distance(__instance.transform.position, MainCamera.camera.transform.position);
+                //if (rb && Testing.rbToTest == rb)
+                //    AddDebug("FloatingStone UpdateCell isKinematic " + rb.isKinematic + " " + dist);
+
+                rb.isKinematic = dist > Main.config.detectCollisionsDist;
+            }
 
             //[HarmonyPrefix]
             //[HarmonyPatch("StartFading")]
