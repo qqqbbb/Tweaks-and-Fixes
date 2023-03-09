@@ -30,21 +30,6 @@ namespace Tweaks_Fixes
                 renderers[i].enabled = false;
         }
 
-        public static void AddLOD(GameObject go)
-        {
-            AddDebug("AddLOD " + go.name);
-            LODGroup lod = go.AddComponent<LODGroup>();
-            if (lod == null)
-                return;
-
-            lod.enabled = true;
-            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
-            //lod.
-            //AddDebug(go.name + " AlwaysUseHiPolyMesh " + renderers.Length);
-            //for (int i = 1; i < renderers.Length; i++)
-            //    renderers[i].enabled = false;
-        }
-
         static void MakeImmuneToCannon(GameObject go)
         {
             Rigidbody rb = go.GetComponent<Rigidbody>();
@@ -232,30 +217,30 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             public static void StartPostfix(LargeWorldEntity __instance)
             {
-                //if (__instance.transform.position.y < 1f && __instance.name.StartsWith("FloatingStone") && !__instance.name.EndsWith("Floaters(Clone)"))
-                if (__instance.name.StartsWith("FloatingStone"))
+                if (__instance.transform.position.y < 1f && __instance.name.StartsWith("FloatingStone") && !__instance.name.EndsWith("Floaters(Clone)"))
+                //if (__instance.name.StartsWith("FloatingStone"))
                 {
                   //Floater[] floaters = __instance.GetAllComponentsInChildren<Floater>();
                   //if (floaters.Length == 0)
                   //if (__instance.transform.position.y < 1f && __instance.GetComponent<FloatersTarget>() == null)
                     {
-                        Rigidbody rb = __instance.GetComponent<Rigidbody>();
-                        if (rb)
+                        //Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                        //if (rb)
                         {
                             //AddDebug("LWE Start " + __instance.name + " CellLevel " + __instance.cellLevel);
-                            rb.isKinematic = true;
+                            //rb.isKinematic = true;
                         }
                         //else
                         //    AddDebug(__instance.name + " CellLevel " + __instance.cellLevel + " " + x + " " + y + " " + z + " ");
                         //Main.Log(__instance.name + "  " + __instance.transform.position);
                         //Main.Log(__instance.name + " classId " + __instance.GetComponent<PrefabIdentifier>().classId);
-                        //__instance.cellLevel = LargeWorldEntity.CellLevel.Near;
+                        __instance.cellLevel = LargeWorldEntity.CellLevel.Near;
                     }
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("UpdateCell")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("UpdateCell")]
             static void UpdateCellPostfix(LargeWorldEntity __instance, LargeWorldStreamer streamer)
             { // make boulders that block cave entrances not fall down when world chunk unloads
                 if (!__instance.name.StartsWith("FloatingStone"))

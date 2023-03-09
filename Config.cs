@@ -310,6 +310,7 @@ namespace Tweaks_Fixes
         public bool LEDLightWorksInHand = true;
         public int detectCollisionsDist = 50;
         public bool newUIstrings = true;
+        public bool newStorageUI = true;
         //[Slider("growingPlantUpdateInterval", 0, 10, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "")]
         public int growingPlantUpdateInterval = 0;
         // also edit UI_Patches.GetStrings when editing this

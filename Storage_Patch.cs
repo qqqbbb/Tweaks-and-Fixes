@@ -341,6 +341,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(DeployableStorage __instance)
             {
+                if (!Main.config.newStorageUI)
+                    return;
                 //AddDebug("DeployableStorage Awake");
                 //PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>(true);
                 LiveMixin lm = __instance.GetComponent<LiveMixin>();
@@ -477,6 +479,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("CreateContainer")]
             static void CreateContainerPostfix(StorageContainer __instance)
             { // runs twice on game load
+                if (!Main.config.newStorageUI)
+                    return;
                 //TechTag techTag = __instance.GetComponent<TechTag>();
                 //if (techTag)
                 //    AddDebug(__instance.name + "  CreateContainer  " + techTag.type);
@@ -542,11 +546,12 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(StorageContainer __instance)
             {
-                TechTag techTag = __instance.GetComponent<TechTag>();
+                if (!Main.config.newStorageUI)
+                    return;
+                //TechTag techTag = __instance.GetComponent<TechTag>();
                 //AddDebug("StorageContainer Awake " + __instance.prefabRoot.name);
                 //if (__instance.transform.parent)
                 //    AddDebug("StorageContainer Awake parent " + __instance.transform.parent.name);
-
                 //if (techTag && techTag.type == TechType.SmallLocker)
                 //{
                 //}
@@ -572,6 +577,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Open", new Type[] { typeof(Transform) })]
             static void OpenPostfix(StorageContainer __instance, Transform useTransform)
             {
+                if (!Main.config.newStorageUI)
+                    return;
+
                 TechTag techTag = __instance.GetComponent<TechTag>();
                 if (techTag == null)
                     techTag = __instance.transform.parent.GetComponent<TechTag>();
@@ -672,6 +680,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnClose")]
             static void OnClosePostfix(StorageContainer __instance)
             {
+                if (!Main.config.newStorageUI)
+                    return;
+
                 TechTag techTag = __instance.GetComponent<TechTag>();
                 if (techTag == null)
                     techTag = __instance.transform.parent.GetComponent<TechTag>();
@@ -724,6 +735,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch( "OnHandHover")]
             static bool OnHandHoverPrefix(StorageContainer __instance, GUIHand hand)
             {
+                if (!Main.config.newStorageUI)
+                    return true;
+
                 if (!__instance.enabled)
                     return false;
 
@@ -858,6 +872,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnDeselect")]
             static void OnDeselectPostfix(uGUI_SignInput __instance)
             {
+                if (!Main.config.newStorageUI)
+                    return;
                 //AddDebug("uGUI_SignInput OnDeselect " + __instance.stringDefaultLabel);
                 if (__instance.stringDefaultLabel == "SmallLockerDefaultLabel")
                 {
@@ -897,6 +913,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("DeconstructAsync")]
             static void DeconstructPostfix(Constructable __instance)
             {
+                if (!Main.config.newStorageUI)
+                    return;
+
                 if ( __instance.constructedAmount == 0f)
                 {
                     if (__instance.techType == TechType.Locker || __instance.techType.ToString() == "DecorativeLockerClosed")

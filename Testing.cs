@@ -154,11 +154,11 @@ namespace Tweaks_Fixes
                         Rigidbody rb = target.GetComponent<Rigidbody>();
                         if (rb)
                         {
-                            //AddDebug(" isKinematic " + rb.isKinematic);
+                            AddDebug(" isKinematic " + rb.isKinematic);
                             rbToTest = rb;
                             //rb.isKinematic = !rb.isKinematic;
                         }
-                        AddDebug(" " + target.gameObject.name + " " + lwe.cellLevel);
+                        AddDebug(" " + target.gameObject.name );
                         //if (target.transform.parent)
                         //    AddDebug("parent  " + target.transform.parent.name);
                         AddDebug("TechType  " + CraftData.GetTechType(target));

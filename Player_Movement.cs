@@ -114,7 +114,7 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(UnderwaterMotor), "AlterMaxSpeed")]
         class AlterMaxSpeedPatch
-        {
+        { // BZ speed: 4.5, tool 3.75, seaglide 7.12
             public static bool Prefix(UnderwaterMotor __instance, ref float inMaxSpeed, ref float __result)
             {
                 //inMaxSpeed *= Main.config.playerSpeedMult;
@@ -126,7 +126,7 @@ namespace Tweaks_Fixes
                 __result = inMaxSpeed;
                 TechType suit = equipment.GetTechTypeInSlot("Body");
                 if (suit != TechType.None)
-                    __result *= 0.9f;
+                    __result *= 0.95f;
                 //AddDebug("motorMode " + Player.main.motorMode);
                 //if (Player.main.motorMode != Player.MotorMode.Seaglide)
                 //    Utils.AdjustSpeedScalarFromWeakness(ref __result);
@@ -153,24 +153,26 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            public static void Postfix(float inMaxSpeed, ref float __result)
+            public static void Postfix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
             {
                 __result *= Main.config.playerSpeedMult;
                 //AddDebug("AlterMaxSpeed " + __result);
-
                 if (Main.config.playerMoveTweaks)
                 {
+                    __result *= 0.7f;
                     PlayerTool tool = Inventory.main.GetHeldTool();
                     //Seaglide seaglide = tool as Seaglide;
                     //if (seaglide && seaglide.activeState)
-                    if (!tool)
+                    //AddDebug("AlterMaxSpeed playerMoveTweaks " + __result);
+                    if (tool)
                     {
-                        //AddDebug("tool");
                         __result *= 0.7f;
+                        //AddDebug("AlterMaxSpeed playerMoveTweaks tool " + __result);
                     }
                     if (Main.config.invMultWater > 0f)
                         __result *= GetInvMult();
                 }
+                //__instance.currentPlayerSpeedMultipler = Mathf.MoveTowards(__instance.currentPlayerSpeedMultipler, __instance.playerSpeedModifier, 0.3f * Time.deltaTime);
                 //__instance.movementSpeed = __instance.playerController.velocity.magnitude / 5f;
                 //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;
                 //ms = Player.main.rigidBody.velocity.magnitude;
