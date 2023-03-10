@@ -42,22 +42,32 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(LargeWorldEntity), "OnEnable")]
-        class LargeWorldEntity_OnEnable_Patch
+        //[HarmonyPatch(typeof(VoxelandGrassBuilder), "CreateUnityMeshes")]
+        class VoxelandGrassBuilder_CreateUnityMeshes_Patch
         {
-            static void Postfix(LargeWorldEntity __instance)
+            static bool Prefix(VoxelandGrassBuilder __instance, IVoxelandChunk2 chunk, TerrainPoolManager terrainPoolManager)
             {
+                AddDebug("VoxelandGrassBuilder CreateUnityMeshes ");
+                for (int index = 0; index < __instance.builtMeshes.Count; ++index)
+                {
+                    TerrainChunkPiece grassObj = __instance.GetGrassObj(chunk, terrainPoolManager);
+                    chunk.grassFilters.Add(grassObj.meshFilter);
+                    chunk.grassRenders.Add(grassObj.meshRenderer);
+                    chunk.chunkPieces.Add(grassObj);
+                    MeshFilter grassFilter = chunk.grassFilters[index];
+                    grassFilter.gameObject.SetActive(true);
+                    MeshRenderer grassRender = chunk.grassRenders[index];
+                    VoxelandBlockType type = __instance.types[index];
+                    grassFilter.sharedMesh = terrainPoolManager.GetMeshForPiece(grassObj);
+                    Material grassMaterial = type.grassMaterial;
+                    grassRender.sharedMaterial = grassMaterial;
+                    UWE.MeshBuffer builtMesh = __instance.builtMeshes[index];
+                    builtMesh.Upload(grassFilter.sharedMesh);
+                    builtMesh.Return();
+                }
+                __instance.state = VoxelandGrassBuilder.State.Init;
 
-                if (!__instance.name.StartsWith("FloatingStone"))
-                    return;
-
-                Rigidbody rb = __instance.GetComponent<Rigidbody>();
-                if (rb == null)
-                    return;
-
-                rb.isKinematic = true;
-                //Vector3 dist = __instance.transform.position - MainCamera.camera.transform.position;
-                //AddDebug("FloatingStone OnEnable sqrMagnitude " + dist.sqrMagnitude);
+                return false;
             }
         }
 
@@ -100,7 +110,6 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    
                     //AddDebug(" WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
                     //AddDebug("  " + Player.main.GetBiomeString());
                     //if (Input.GetKey(KeyCode.LeftShift))
@@ -141,27 +150,33 @@ namespace Tweaks_Fixes
                     //}
                     if (target)
                     {
-                        //Debug(target);
                         LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
                         if (lwe)
+                        {
                             target = lwe.gameObject;
+                            AddDebug(" cellLevel " + lwe.cellLevel);
+                        }
+                        AddDebug(target.gameObject.name );
+                        TechType techType = CraftData.GetTechType(target);
+                        if (techType != TechType.None)
+                            AddDebug("TechType  " + techType);
                         //LiveMixin lm = pi.GetComponent<LiveMixin>();
                         //if (lm)
                         //{
                         //    AddDebug("max HP " + lm.data.maxHealth);
                         //    AddDebug(" HP " + lm.health);
                         //}
-                        Rigidbody rb = target.GetComponent<Rigidbody>();
-                        if (rb)
+                        //Rigidbody rb = target.GetComponent<Rigidbody>();
+                        //if (rb)
                         {
-                            AddDebug(" isKinematic " + rb.isKinematic);
-                            rbToTest = rb;
+                            //AddDebug(" isKinematic " + rb.isKinematic);
+                            //rbToTest = rb;
                             //rb.isKinematic = !rb.isKinematic;
                         }
-                        AddDebug(" " + target.gameObject.name );
+                        //AddDebug(" " + target.gameObject.name );
                         //if (target.transform.parent)
                         //    AddDebug("parent  " + target.transform.parent.name);
-                        AddDebug("TechType  " + CraftData.GetTechType(target));
+
                         //if (target.GetComponent<InfectedMixin>())
                         //{
                         //    AddDebug("infectedAmount  " + target.GetComponent<InfectedMixin>().infectedAmount);

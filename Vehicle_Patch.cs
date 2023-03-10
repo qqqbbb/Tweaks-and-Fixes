@@ -291,9 +291,10 @@ namespace Tweaks_Fixes
             else
                 input = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
 
+            //AddDebug("ApplyPhysicsMoveSeamoth input " + input);
             input.Normalize();
             float z = input.z > 0 ? input.z * __instance.forwardForce : input.z * __instance.backwardForce;
-            Vector3 acceleration = new Vector3(Mathf.Abs(input.x) * __instance.sidewardForce, Mathf.Abs(input.y * __instance.verticalForce), z);
+            Vector3 acceleration = new Vector3(input.x * __instance.sidewardForce, input.y * __instance.verticalForce, z);
             //Vector3 acceleration = __instance.transform.rotation * (((Mathf.Abs(input.x) * __instance.sidewardForce + z) + Mathf.Abs(input.y * __instance.verticalForce)) * input) * Time.deltaTime;
             acceleration = __instance.transform.rotation * acceleration * Time.deltaTime;
             for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
@@ -574,9 +575,8 @@ namespace Tweaks_Fixes
             {
                 __instance.sidewardForce = __instance.forwardForce * .5f;
                 __instance.verticalForce = __instance.forwardForce * .5f;
-                __instance.backwardForce = 0f;
+                __instance.backwardForce = __instance.backwardForce * .5f;
             }
-
         }
 
         [HarmonyPostfix]
@@ -588,45 +588,6 @@ namespace Tweaks_Fixes
             exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringButton1;
             //seamothName = Language.main.Get(TechType.Seamoth);
             seamothName = __instance.GetName();
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch("UpdateSounds")]
-        public static bool UpdateSoundsPrefix(SeaMoth __instance)
-        {
-            if (!Main.config.seamothMoveTweaks)
-                return true;
-
-            Vector3 input = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-            input = new Vector3(input.x, input.y, input.z > 0f ? input.z : 0f);
-            if (__instance.CanPilot() && input.magnitude > 0f && __instance.GetPilotingMode())
-            {
-                __instance.engineSound.AccelerateInput();
-                if (FMODUWE.IsInvalidParameterId(__instance.fmodIndexSpeed))
-                    __instance.fmodIndexSpeed = __instance.ambienceSound.GetParameterIndex("speed");
-
-                if (__instance.ambienceSound && __instance.ambienceSound.GetIsPlaying())
-                    __instance.ambienceSound.SetParameterValue(__instance.fmodIndexSpeed, __instance.useRigidbody.velocity.magnitude);
-            }
-            bool flag = false;
-            int index = 0;
-            for (int length = __instance.quickSlotCharge.Length; index < length; ++index)
-            {
-                if (__instance.quickSlotCharge[index] > 0f)
-                {
-                    flag = true;
-                    break;
-                }
-            }
-            if (__instance.pulseChargeSound.GetIsStartingOrPlaying() == flag)
-                return false;
-
-            if (flag)
-                __instance.pulseChargeSound.StartEvent();
-            else
-                __instance.pulseChargeSound.Stop();
-
-            return false;
         }
 
         [HarmonyPostfix]

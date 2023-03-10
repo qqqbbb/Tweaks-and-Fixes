@@ -6,7 +6,7 @@ using FMOD.Studio;
 using System.Text;
 using RootMotion.FinalIK;
 using UWE;
-using static ErrorMessage;
+//using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
                     __result = false;
                     return false;
                 }
-                AddDebug("PDA Open");
+                //AddDebug("PDA Open");
                 uGUI.main.quickSlots.SetTarget(null);
                 __instance.prevQuickSlot = Inventory.main.quickSlots.activeSlot;
                 //int num1 = Inventory.main.ReturnHeld() ? 1 : 0;

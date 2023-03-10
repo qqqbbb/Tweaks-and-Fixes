@@ -15,6 +15,8 @@ namespace Tweaks_Fixes
 
         public static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
         {
+            if (!Main.config.tweaksAffectingGPU)
+                return;
             //AddDebug("AlwaysUseHiPolyMesh " + go.name);
             if (techType == TechType.Boomerang)// dont disable FP model
                 go = go.transform.Find("model").gameObject;
@@ -30,6 +32,14 @@ namespace Tweaks_Fixes
                 renderers[i].enabled = false;
         }
 
+        public static void SetCellLevel(LargeWorldEntity lwe, LargeWorldEntity.CellLevel cellLevel)
+        {
+            if (!Main.config.tweaksAffectingGPU && cellLevel > lwe.cellLevel)
+                return;
+
+            lwe.cellLevel = cellLevel;
+        }
+           
         static void MakeImmuneToCannon(GameObject go)
         {
             Rigidbody rb = go.GetComponent<Rigidbody>();
@@ -62,8 +72,8 @@ namespace Tweaks_Fixes
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
-                if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
-                    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
+                //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
 
                 if (tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
@@ -148,6 +158,14 @@ namespace Tweaks_Fixes
                     if ((x == 280 && y == -40 && z == -195) || (x == 272 && y == -41 && z == -199))
                         __instance.transform.Rotate(90, 0, 0);
                 }
+                else if (tt == TechType.PurpleBranches)
+                { // tall purple plant in shroom cave
+                    SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                }
+                else if (tt == TechType.SnakeMushroom)
+                {
+                    SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                }
                 else if (tt == TechType.None)
                 {
                     if (__instance.GetComponent<StoreInformationIdentifier>() && Main.config.biomesRemoveLight.Contains(Player.main.GetBiomeString()))
@@ -171,16 +189,24 @@ namespace Tweaks_Fixes
                         }
                     }
 
-                    //else if (__instance.name == "Crab_snake_mushrooms_06_05(Clone)")
-                    //{
-                    //    AddDebug("snake_mushrooms fadeTime " + __instance.fadeTime);
-                    //    AddDebug("snake_mushrooms cellLevel " + __instance.cellLevel);
-
-                    //    __instance.cellLevel = LargeWorldEntity.CellLevel.VeryFar;
-                    //}
-                    //else if (__instance.name == "FloatingStone_Beach_02(Clone)")
-                    {
-
+                    else if (__instance.name.StartsWith("Crab_snake_mushrooms"))
+                    { // small shrooms
+                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                    }
+                    else if (__instance.name == "coral_reef_Stalactites_cluster_01(Clone)")
+                    { // Stalactites in shroom cave
+                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                        AlwaysUseHiPolyMesh(__instance.gameObject);
+                    }
+                    else if (__instance.name.StartsWith("coral_reef_Stalactite"))
+                    { // Stalactites in shroom cave
+                        //AddDebug(__instance.name + " cellLevel " + __instance.cellLevel);
+                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                    }
+                    //else if (__instance.name.StartsWith("Coral_reef_plant_middle_12"))
+                    { // purple plant in shroom cave
+                        //AddDebug(__instance.name + " StartsWith cellLevel " + __instance.cellLevel);
+                        //__instance.cellLevel = LargeWorldEntity.CellLevel.Far;
                     }
                 }
                 else if (tt.ToString() == "TF_Stone")
@@ -234,7 +260,7 @@ namespace Tweaks_Fixes
                         //    AddDebug(__instance.name + " CellLevel " + __instance.cellLevel + " " + x + " " + y + " " + z + " ");
                         //Main.Log(__instance.name + "  " + __instance.transform.position);
                         //Main.Log(__instance.name + " classId " + __instance.GetComponent<PrefabIdentifier>().classId);
-                        __instance.cellLevel = LargeWorldEntity.CellLevel.Near;
+                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Near);
                     }
                 }
             }
