@@ -22,7 +22,7 @@ namespace Tweaks_Fixes
         public float vehicleDamageMult = 1f;
         //[Slider("Damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "When anything but the player or vehicles takes damage, it will be multiplied by this.")]
         //public float damageMult = 1f;
-        [Slider("Predator aggression multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's 3 predators attack you on sight and never flee.")]
+        [Slider("Predator aggression multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's 3 predators attack you on sight and never flee. If after changing this nothing ha")]
         public float aggrMult = 1f;
         [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
         public float oxygenPerBreath = 3f;
@@ -45,7 +45,7 @@ namespace Tweaks_Fixes
         public float invMultWater = 0f;
         [Slider("Inventory weight multiplier on land", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultLand = 0f;
-        [Toggle("Seamoth movement tweaks", Tooltip = "Seamoth does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and sideways speed is halved and  it can not move backward. Game has to be reloaded after changing this.")]
+        [Toggle("Seamoth movement tweaks", Tooltip = "Seamoth does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and sideways speed is halved. Its backward speed is reduced to 25%. Game has to be reloaded after changing this.")]
         public bool seamothMoveTweaks = false;
         [Toggle("Prawn suit movement tweaks", Tooltip = "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power than walking. Game has to be reloaded after changing this.")]
         public bool exosuitMoveTweaks = false;
@@ -312,6 +312,7 @@ namespace Tweaks_Fixes
         public bool newUIstrings = true;
         public bool newStorageUI = true;
         public bool tweaksAffectingGPU = true;
+        public bool disableUseText = false;
         //[Slider("growingPlantUpdateInterval", 0, 10, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "")]
         public int growingPlantUpdateInterval = 0;
         // also edit UI_Patches.GetStrings when editing this

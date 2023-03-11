@@ -12,8 +12,8 @@ namespace Tweaks_Fixes
 {
     class PDA_Patch
     { 
-        static ConditionRules conditionRules;
-        static int ruleToRemove;
+        //static ConditionRules conditionRules;
+        //static int ruleToRemove;
 
         [HarmonyPatch(typeof(PDA))]
         class PDA_Open_Patch

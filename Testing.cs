@@ -13,41 +13,15 @@ namespace Tweaks_Fixes
 { // debris 80 -35 100      200 -70 -680
     class Testing
     {
-        public static Rigidbody rbToTest = null;
+        //public static Rigidbody rbToTest = null;
         //static HashSet<TechType> creatures = new HashSet<TechType>();
         //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
-
-        //[HarmonyPatch(typeof(Planter), "IsAllowedToAdd")]
-        class Planter_IsAllowedToAdd_Patch
-        {
-            static void Postfix(Planter __instance, bool __result, Pickupable pickupable)
-            {
-                if (pickupable == null)
-                {
-                    AddDebug("Planter IsAllowedToAdd pickupable == null ");
-                    return;
-                }
-                Plantable plantable = pickupable.GetComponent<Plantable>();
-                if (plantable == null)
-                {
-                    return;
-                }
-                //AddDebug("Planter " + __instance.GetContainerType() + " " );
-                AddDebug("plantable size " + plantable.size);
-                AddDebug("GetFreeSlotID small " + __instance.GetFreeSlotID());
-                AddDebug("GetFreeSlotID big " + __instance.GetFreeSlotID(true));
-                //if (__instance.GetFreeSlotID((uint)plantable.size > 0U) < 0)
-                //    return ;
-                AddDebug("Planter IsAllowedToAdd " + pickupable.GetTechName() + " " + __result);
-            }
-        }
 
         //[HarmonyPatch(typeof(VoxelandGrassBuilder), "CreateUnityMeshes")]
         class VoxelandGrassBuilder_CreateUnityMeshes_Patch
         {
             static bool Prefix(VoxelandGrassBuilder __instance, IVoxelandChunk2 chunk, TerrainPoolManager terrainPoolManager)
             {
-                AddDebug("VoxelandGrassBuilder CreateUnityMeshes ");
                 for (int index = 0; index < __instance.builtMeshes.Count; ++index)
                 {
                     TerrainChunkPiece grassObj = __instance.GetGrassObj(chunk, terrainPoolManager);
@@ -61,24 +35,24 @@ namespace Tweaks_Fixes
                     grassFilter.sharedMesh = terrainPoolManager.GetMeshForPiece(grassObj);
                     Material grassMaterial = type.grassMaterial;
                     grassRender.sharedMaterial = grassMaterial;
-                    UWE.MeshBuffer builtMesh = __instance.builtMeshes[index];
-                    builtMesh.Upload(grassFilter.sharedMesh);
-                    builtMesh.Return();
+                    //if (type.hasGrassAbove)
+                        //Main.logger.LogDebug("material  " + grassRender.material.name + " VoxelandBlockType " + type.name + " grassMeshName " + type.grassMeshName + " layer " + type.layer + " filled " + type.filled);
+                    //AddDebug("grassRender.material  " + grassRender.material.name);
+                    //Main.logger.LogDebug("grassRender " + grassRender.material.name);
+                    //coral_reef_grass_10_gr    coral_reef_grass_11_02_gr   coral_reef_grass_07_gr
+                    //if (grassRender.material.name == "Coral_reef_red_seaweed_03 (Instance)" || grassRender.material.name == "Coral_reef_red_seaweed_01 (Instance)")
+                    {
+                        //AddDebug("!!!");
+                        UWE.MeshBuffer builtMesh = __instance.builtMeshes[index];
+                        builtMesh.Upload(grassFilter.sharedMesh);
+                        builtMesh.Return();
+                    }
                 }
                 __instance.state = VoxelandGrassBuilder.State.Init;
-
                 return false;
             }
         }
 
-        //[HarmonyPatch(typeof(LEDLight), "OnReload")]
-        class LEDLight_OnReload_Patch
-        {
-            static void Postfix(LEDLight __instance)
-            {
-                AddDebug("LEDLight OnReload ");
-            }
-        }
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch

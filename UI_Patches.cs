@@ -869,6 +869,19 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(HandReticle), "SetTextRaw")]
+        class HandReticle_SetTextRaw_Patch
+        {
+            static bool Prefix(HandReticle __instance, HandReticle.TextType type, string text)
+            {
+                //AddDebug("SetTextRaw " + type + " " + text);
+                if (Main.config.disableUseText && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
 
         //[HarmonyPatch(typeof(uGUI_MainMenu), "OnRightSideOpened")]
         class uGUI_MainMenu_OnRightSideOpened_Patch

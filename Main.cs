@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "2.03";
+            VERSION = "2.07";
 
         public static ManualLogSource logger;
         //public static GUIHand guiHand;

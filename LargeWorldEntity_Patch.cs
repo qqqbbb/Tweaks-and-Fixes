@@ -10,7 +10,6 @@ namespace Tweaks_Fixes
 {
     class LargeWorldEntity_Patch
     { // biomes to remove light BloodKelp_Trench
-        //public static Rigidbody rbToTest = null;
         public static HashSet<TechType> removeLight = new HashSet<TechType> { };
 
         public static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
@@ -163,6 +162,10 @@ namespace Tweaks_Fixes
                     SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
                 else if (tt == TechType.SnakeMushroom)
+                {
+                    SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                }
+                else if (tt == TechType.FloatingStone)
                 {
                     SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
