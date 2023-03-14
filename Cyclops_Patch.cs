@@ -49,14 +49,18 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CyclopsHelmHUDManager))]
         class CyclopsHelmHUDManager_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Update")]
+            [HarmonyPostfix]
+            [HarmonyPatch("Update")]
             public static void UpdatePostfix(CyclopsHelmHUDManager __instance)
             {
+                if (!__instance.LOD.IsFull())
+                    return;
                 //if (Player.main.currentSub && Player.main.currentSub == __instance.subRoot)
                 {
                     bool powerOn = __instance.subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
-                    __instance.hudActive = powerOn && Player.main.currentSub && Player.main.currentSub == __instance.subRoot;
+                    //AddDebug("powerOn " + powerOn);
+                    //__instance.hudActive = powerOn && Player.main.currentSub && Player.main.currentSub == __instance.subRoot;
+                    __instance.hudActive = powerOn;
                     if (__instance.motorMode.engineOn) // hide speed selector when engine off
                         __instance.engineToggleAnimator.SetTrigger("EngineOn");
                     else
@@ -75,7 +79,7 @@ namespace Tweaks_Fixes
                 Vehicle_patch.currentVehicleTT = TechType.Cyclops;
                 Vehicle_patch.currentLights = __instance.transform.parent.Find("Floodlights").GetComponentsInChildren<Light>(true);
                 //AddDebug("StartPiloting  " + rb.mass);
-                //AddDebug(" " + __instance.transform.parent.name);
+                //AddDebug(" " + __instance.transform.parent.name); 
                 //__instance.canvasGroup.alpha = 0f;
             }
 
@@ -84,6 +88,8 @@ namespace Tweaks_Fixes
             public static void StopPilotingPostfix(CyclopsHelmHUDManager __instance)
             {
                 Vehicle_patch.currentLights[0] = null;
+                //__instance.hudActive = true;
+                //__instance.hornObject.SetActive(true);
                 //AddDebug("StopPiloting  ");
             }
         }
@@ -97,6 +103,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.isCyclops)
                 {
+                    //AddDebug("PowerStatus " + __instance.powerRelay.GetPowerStatus());
                     WorldForces wf = __instance.GetComponent<WorldForces>();
                     if (wf) // prevent it from jumping out of water when surfacing
                         wf.aboveWaterGravity = 30f;
@@ -455,6 +462,18 @@ namespace Tweaks_Fixes
         public class CyclopsLightingPanel_Patch
         {
             [HarmonyPrefix]
+            [HarmonyPatch("SubConstructionComplete")]
+            public static bool SubConstructionCompletePrefix(CyclopsLightingPanel __instance)
+            { // fix: lights are on even if sub has no batteries
+                //AddDebug("CyclopsLightingPanel SubConstructionComplete " + __instance.floodlightsOn);
+                //AddDebug("CyclopsLightingPanel Powered " + __instance.CheckIsPowered());
+                bool powered = __instance.CheckIsPowered();
+                __instance.floodlightsOn = powered;
+                __instance.SetExternalLighting(powered);
+                __instance.UpdateLightingButtons();
+                return false;
+            }
+            [HarmonyPrefix]
             [HarmonyPatch("Update")]
             public static bool UpdatePrefix(CyclopsLightingPanel __instance)
             {
@@ -560,15 +579,25 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CyclopsDestructionEvent), "SwapToDamagedModels")]
+        [HarmonyPatch(typeof(CyclopsDestructionEvent))]
         class CyclopsDestructionEvent_SwapToDamagedModels_Patch
         {
-            static bool Prefix(CyclopsDestructionEvent __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("DestroyCyclops")]
+            static void DestroyCyclopsPrefix(CyclopsDestructionEvent __instance)
+            { // fix bug: when cyclops gets destroyed with player in it player respawns in it
+                __instance.subLiveMixin.Kill();
+                //AddDebug("CyclopsDestructionEvent DestroyCyclops IsAlive " + __instance.subLiveMixin.IsAlive());
+            }
+           
+            [HarmonyPrefix]
+            [HarmonyPatch("SwapToDamagedModels")]
+            static bool SwapToDamagedModelsPrefix(CyclopsDestructionEvent __instance)
             {
                 for (int index = 0; index < __instance.intact.Length; ++index)
                 {
                     GameObject go = __instance.intact[index];
-                    if (go) // need this line 
+                    if (go) // NPE without this line 
                         go.SetActive(false);
                 }
                 for (int index = 0; index < __instance.destroyed.Length; ++index)
@@ -583,17 +612,13 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(CyclopsEngineSpinManager), "PollCyclopsMotorMode")]
-        class CyclopsEngineSpinManager_PollCyclopsMotorMode_Patch
+        [HarmonyPatch(typeof(CyclopsProximitySensors), "OnPlayerModeChange")]
+        class CyclopsProximitySensors_OnPlayerModeChange_Patch
         {
-            public static void Postfix(CyclopsEngineSpinManager __instance)
+            public static bool Prefix(CyclopsProximitySensors __instance)
             {
-                AddDebug("cyclopsMotorMode " + __instance.cyclopsMotorMode.cyclopsMotorMode);
-                AddDebug("spinSpeed " + __instance.spinSpeed);
-                //foreach (var item in __instance.spinSpeeds)
-                //{
-                //    AddDebug("spinSpeeds " + item);
-                //}
+                //Main.config.disableCyclopsProximitySensor = true;
+                return !Main.config.disableCyclopsProximitySensor;
             }
         }
 

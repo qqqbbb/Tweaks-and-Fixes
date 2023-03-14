@@ -128,7 +128,7 @@ namespace Tweaks_Fixes
             TaskResult<GameObject> result = new TaskResult<GameObject>();
             yield return CraftData.InstantiateFromPrefabAsync(TechType.Coffee, result);
             GameObject coffee = result.Get();
-            AddDebug("SpawnCoffee coffee " + coffee.name);
+            //AddDebug("SpawnCoffee coffee " + coffee.name);
             ShiftCollider(__instance);
             coffee.GetComponent<Rigidbody>().isKinematic = true;
             coffee.transform.localScale = new Vector3(.7f, .7f, .7f);

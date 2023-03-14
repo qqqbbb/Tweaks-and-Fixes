@@ -43,10 +43,42 @@ namespace Tweaks_Fixes
                 AddDebug("Test end ");
             }
 
+            //[HarmonyPrefix]
+            //[HarmonyPatch("MovePlayerToRespawnPoint")]
+            static void MovePlayerToRespawnPointPostfix(Player __instance)
+            {
+                AddDebug("MovePlayerToRespawnPoint lastValidSub " + __instance.lastValidSub);
+                if (__instance.lastValidSub)
+                {
+                    AddDebug("MovePlayerToRespawnPoint CheckSubValid " + __instance.CheckSubValid(__instance.lastValidSub));
+                }
+            }
+
+            //[HarmonyPrefix]
+            //[HarmonyPatch("CheckSubValid")]
+            static bool CheckSubValidPrefix(Player __instance, SubRoot sub, ref bool __result)
+            {
+                //AddDebug("CheckSubValid lastValidSub " + __instance.lastValidSub);
+                bool valid = false;
+                if (sub != null)
+                {
+                    bool isAlive = true;
+                    LiveMixin liveMixin = sub.GetComponent<LiveMixin>();
+                    if (liveMixin != null)
+                        isAlive = liveMixin.IsAlive();
+                    AddDebug("CheckSubValid IsAlive " + isAlive);
+                    AddDebug("CheckSubValid GetLeakAmount " + sub.GetLeakAmount());
+                    valid = isAlive && sub.GetLeakAmount() <= 0.2;
+                }
+                __result = valid;
+                return false;
+            }
+
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             static void StartPostfix(Player __instance)
             {
+                //__instance.StartCoroutine(Test());
                 Main.survival = __instance.GetComponent<Survival>();
                 if (Main.config.cantScanExosuitClawArm)
                     DisableExosuitClawArmScan();

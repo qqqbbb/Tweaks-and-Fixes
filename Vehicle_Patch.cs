@@ -1311,8 +1311,9 @@ namespace Tweaks_Fixes
                 {
                     if (Physics.Raycast(new Ray(__instance.transform.position, Vector3.down), out RaycastHit hitInfo, 10f))
                     {
-                        WorldStreaming.ClipmapChunk cmc = hitInfo.collider.transform.parent.GetComponent<WorldStreaming.ClipmapChunk>();
-                        if (cmc)
+                        //AddDebug("Raycast hit " + hitInfo.collider.name);
+                        TerrainChunkPieceCollider tcpc = hitInfo.collider.GetComponent<TerrainChunkPieceCollider>();
+                        if (tcpc)
                         {
                             __instance.fxcontrol.Play(1);
                             //AddDebug("jump from terrain ");
@@ -1340,8 +1341,8 @@ namespace Tweaks_Fixes
             {
                 if (Physics.Raycast(new Ray(__instance.transform.position, Vector3.down), out RaycastHit hitInfo, 10f))
                 {
-                    WorldStreaming.ClipmapChunk cmc = hitInfo.collider.transform.parent.GetComponent<WorldStreaming.ClipmapChunk>();
-                    if (cmc)
+                    TerrainChunkPieceCollider tcpc = hitInfo.collider.GetComponent<TerrainChunkPieceCollider>();
+                    if (tcpc)
                     {
                         __instance.fxcontrol.Play(2);
                         //AddDebug("land on terrain ");

@@ -313,6 +313,9 @@ namespace Tweaks_Fixes
         public bool newStorageUI = true;
         public bool tweaksAffectingGPU = true;
         public bool disableUseText = false;
+        public bool craftWithoutBattery = false;
+        public bool disableCyclopsProximitySensor = false;
+        public float creepVineSeedFood = 10f;
         //[Slider("growingPlantUpdateInterval", 0, 10, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "")]
         public int growingPlantUpdateInterval = 0;
         // also edit UI_Patches.GetStrings when editing this

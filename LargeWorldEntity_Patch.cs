@@ -169,6 +169,12 @@ namespace Tweaks_Fixes
                 {
                     SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
+                else if (tt == TechType.CreepvineSeedCluster)
+                {
+                    float creepVineSeedFood = Main.config.creepVineSeedFood;
+                    if (creepVineSeedFood > 0)
+                        Main.MakeEatable(__instance.gameObject, creepVineSeedFood, creepVineSeedFood, false);
+                }
                 else if (tt == TechType.None)
                 {
                     if (__instance.GetComponent<StoreInformationIdentifier>() && Main.config.biomesRemoveLight.Contains(Player.main.GetBiomeString()))
@@ -241,6 +247,7 @@ namespace Tweaks_Fixes
                 }
 
             }
+
 
             [HarmonyPostfix]
             [HarmonyPatch("Start")]

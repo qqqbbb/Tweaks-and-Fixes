@@ -9,7 +9,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     class Predators_Patch
-    {         //300 -90 60
+    {         
         static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
         static Dictionary<AttackCyclops, AggressiveWhenSeeTarget> attackCyclopsAWST = new Dictionary<AttackCyclops, AggressiveWhenSeeTarget>();
         //public static HashSet<string> testMeleeAttack = new HashSet<string>();
@@ -111,7 +111,7 @@ namespace Tweaks_Fixes
                 return;
             //Debug.DrawLine(aggressionTarget.transform.position, awst.transform.position, Color.white);
             awst.creature.Aggression.Add(amount);
-            AddDebug(awst.myTechType + " " + aggressionTarget.name + " aggr " + amount);
+            //AddDebug(awst.myTechType + " " + aggressionTarget.name + " aggr " + amount);
             awst.lastTarget.SetTarget(aggressionTarget);
             if (awst.sightedSound == null || awst.sightedSound.GetIsPlaying())
                 return;
@@ -461,7 +461,7 @@ namespace Tweaks_Fixes
                     //target = closestDecoy.gameObject;
                     Vector3 position = closestDecoy.transform.position;
                     //float aggrMult = Main.config.aggrMult < 1 ? 1 : Main.config.aggrMult;
-                    float aggrDist = 150f * Main.config.aggrMult;
+                    float aggrDist = cyclopsAttackDist * Main.config.aggrMult;
                     if (Vector3.Distance(position, __instance.transform.position) < aggrDist && Vector3.Distance(position, __instance.creature.leashPosition) < __instance.maxDistToLeash)
                     {
                         __instance.aggressiveToNoise.Add(__instance.aggressPerSecond * 0.5f);
@@ -535,6 +535,38 @@ namespace Tweaks_Fixes
                 else
                     __result = Vector3.Distance(target.GetPosition(), __instance.transform.position) < cyclopsAttackDist * Main.config.aggrMult;
             }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("UpdateAttackPoint")]
+            public static void UpdateAttackPointPrefix(AttackCyclops __instance)
+            {
+                //AddDebug("UpdateAttackPoint");
+                __instance.targetAttackPoint = Vector3.zero;
+                if (__instance.currentTargetIsDecoy || __instance.currentTarget == null)
+                    return;
+                //__instance.targetAttackPoint.z = Mathf.Clamp(__instance.currentTarget.transform.InverseTransformPoint(__instance.transform.position).z, -26f, 26f);
+                __instance.targetAttackPoint.z = Mathf.Clamp(__instance.currentTarget.transform.InverseTransformPoint(__instance.transform.position).z, -26f, 26f);
+                //AddDebug("UpdateAttackPoint " + __instance.targetAttackPoint);
+                //__instance.targetAttackPoint = Vector3.Lerp(__instance.targetAttackPoint, __instance.transform.position, .01f);
+                //AddDebug("UpdateAttackPoint fixed " + __instance.targetAttackPoint);
+                //return false;
+            }
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnMeleeAttack")]
+            public static void OnMeleeAttackPrefix(AttackCyclops __instance, GameObject target)
+            {
+                //AddDebug("OnMeleeAttack");
+                if (target == __instance.currentTarget)
+                    __instance.StopAttack();
+
+                //return false;
+            }
+            //[HarmonyPostfix]
+            //[HarmonyPatch("StopAttack")]
+            public static void StopAttackPrefix(AttackCyclops __instance)
+            {
+                //AddDebug("StopAttack");
+            }
         }
 
         [HarmonyPatch(typeof(AttachToVehicle))]
@@ -602,10 +634,28 @@ namespace Tweaks_Fixes
         class MeleeAttack_Patch
         {
             [HarmonyPrefix]
+            [HarmonyPatch("CanDealDamageTo")]
+            public static bool CanDealDamageToPrefix(MeleeAttack __instance, GameObject target, ref bool __result)
+            { // fix bug: reaper pushes cyclops instead of attacking
+                bool cyclops = target.GetComponent<SubControl>();
+                if (cyclops && __instance.canBiteCyclops)
+                {
+                    //AddDebug("CanDealDamageTo cyclops !!!");
+                    __result = true;
+                    return false;
+                }
+                return true;
+            }
+              
+            [HarmonyPrefix]
             [HarmonyPatch("CanBite")]
             public static bool CanBitePrefix(MeleeAttack __instance, GameObject target, ref bool __result)
             {
                 //TechType targetTT = CraftData.GetTechType(target);
+                //AddDebug(__instance.name + " CanBite Aggression " + (__instance.creature.Aggression.Value < __instance.biteAggressionThreshold));
+                //AddDebug(__instance.name + " CanBite timeLastBite " + (Time.time < __instance.timeLastBite));
+                //AddDebug(__instance.name + " CanBite IsFriendlyTo " + __instance.creature.IsFriendlyTo(target));
+                //AddDebug(__instance.name + " CanBite CanDealDamageTo " + __instance.CanDealDamageTo(target));
                 if (__instance.frozen || __instance.creature.Aggression.Value < __instance.biteAggressionThreshold || Time.time < __instance.timeLastBite + __instance.biteInterval || __instance.creature.IsFriendlyTo(target) || !__instance.CanDealDamageTo(target))
                 {
                     __result = false;
@@ -620,6 +670,7 @@ namespace Tweaks_Fixes
                 SubRoot subRoot = target.GetComponent<SubRoot>();
                 if (subRoot && subRoot.isCyclops)
                 {
+                    //AddDebug("MeleeAttack CanBite canBiteCyclops " + __instance.canBiteCyclops);
                     if (Main.config.aggrMult == 0f || !__instance.canBiteCyclops)
                     {
                         __result = false;
@@ -635,7 +686,7 @@ namespace Tweaks_Fixes
                     //AddDebug("inSub " + inSub);
                     if (inSub)
                     {
-                        //AddDebug("inSub __result " + __result);
+                        //AddDebug("MeleeAttack CanBite inSub canBiteCyclops " + __instance.canBiteCyclops);
                         __result = __instance.canBiteCyclops;
                         return false;
                     }
@@ -697,6 +748,15 @@ namespace Tweaks_Fixes
                 return false;
             }
 
+            //[HarmonyPostfix]
+            //[HarmonyPatch("CanBite")]
+            public static void CanBitePostfix(MeleeAttack __instance, GameObject target, bool __result)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //TechType tt1 = CraftData.GetTechType(target);
+                //if (tt1 == TechType.Cyclops)
+                    //AddDebug(tt + " MeleeAttack CanBite " + target.name + " " + __result);
+            }
             /*
             //[HarmonyPostfix]
             //[HarmonyPatch("OnEnable")]
@@ -707,15 +767,7 @@ namespace Tweaks_Fixes
                 //testMeleeAttack.Add(tt + " canBitePlayer " + __instance.canBitePlayer + " canBiteVehicle " + __instance.canBiteVehicle + " canBiteCyclops " + __instance.canBiteCyclops);
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("CanBite")]
-            public static void CanBitePostfix(MeleeAttack __instance, GameObject target, bool __result)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                TechType tt1 = CraftData.GetTechType(target);
-                if (tt1 == TechType.Seamoth)
-                    AddDebug(tt + " MeleeAttack CanBite " + tt1 + " " + __result);
-            }
+
         
             */
         }

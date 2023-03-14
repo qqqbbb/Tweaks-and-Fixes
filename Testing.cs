@@ -10,49 +10,61 @@ using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{ // debris 80 -35 100      200 -70 -680
+{
     class Testing
     {
         //public static Rigidbody rbToTest = null;
         //static HashSet<TechType> creatures = new HashSet<TechType>();
         //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
+        static bool done = false;
 
-        //[HarmonyPatch(typeof(VoxelandGrassBuilder), "CreateUnityMeshes")]
-        class VoxelandGrassBuilder_CreateUnityMeshes_Patch
+        //[HarmonyPatch(typeof(MeleeAttack), "OnTouch")]
+        class MeleeAttack_OnTouch_Patch
         {
-            static bool Prefix(VoxelandGrassBuilder __instance, IVoxelandChunk2 chunk, TerrainPoolManager terrainPoolManager)
+            static void Prefix(MeleeAttack __instance, Collider collider)
             {
-                for (int index = 0; index < __instance.builtMeshes.Count; ++index)
+                if (!__instance.enabled)
+                    return;
+                GameObject target = __instance.GetTarget(collider);
+                if (__instance.ignoreSameKind && CreatureData.GetCreatureType(__instance.gameObject) == CreatureData.GetCreatureType(target) || !__instance.liveMixin.IsAlive())
+                    return;
+                Player player = target.GetComponent<Player>();
+                if (player != null && __instance.canBeFed && player.CanBeAttacked())
                 {
-                    TerrainChunkPiece grassObj = __instance.GetGrassObj(chunk, terrainPoolManager);
-                    chunk.grassFilters.Add(grassObj.meshFilter);
-                    chunk.grassRenders.Add(grassObj.meshRenderer);
-                    chunk.chunkPieces.Add(grassObj);
-                    MeshFilter grassFilter = chunk.grassFilters[index];
-                    grassFilter.gameObject.SetActive(true);
-                    MeshRenderer grassRender = chunk.grassRenders[index];
-                    VoxelandBlockType type = __instance.types[index];
-                    grassFilter.sharedMesh = terrainPoolManager.GetMeshForPiece(grassObj);
-                    Material grassMaterial = type.grassMaterial;
-                    grassRender.sharedMaterial = grassMaterial;
-                    //if (type.hasGrassAbove)
-                        //Main.logger.LogDebug("material  " + grassRender.material.name + " VoxelandBlockType " + type.name + " grassMeshName " + type.grassMeshName + " layer " + type.layer + " filled " + type.filled);
-                    //AddDebug("grassRender.material  " + grassRender.material.name);
-                    //Main.logger.LogDebug("grassRender " + grassRender.material.name);
-                    //coral_reef_grass_10_gr    coral_reef_grass_11_02_gr   coral_reef_grass_07_gr
-                    //if (grassRender.material.name == "Coral_reef_red_seaweed_03 (Instance)" || grassRender.material.name == "Coral_reef_red_seaweed_01 (Instance)")
+                    GameObject heldObject = Inventory.main.GetHeldObject();
+                    if (heldObject != null && __instance.TryEat(heldObject, true))
                     {
-                        //AddDebug("!!!");
-                        UWE.MeshBuffer builtMesh = __instance.builtMeshes[index];
-                        builtMesh.Upload(grassFilter.sharedMesh);
-                        builtMesh.Return();
+                        if (__instance.attackSound != null)
+                            Utils.PlayEnvSound(__instance.attackSound, __instance.mouth.transform.position);
+                        __instance.gameObject.SendMessage("OnMeleeAttack", heldObject, SendMessageOptions.DontRequireReceiver);
+                        return;
                     }
                 }
-                __instance.state = VoxelandGrassBuilder.State.Init;
-                return false;
+                AddDebug(__instance.name + " MeleeAttack OnTouch CanBite " + __instance.CanBite(target));
+                if (!__instance.CanBite(target))
+                    return;
+
+                __instance.timeLastBite = Time.time;
+                LiveMixin liveMixin = target.GetComponent<LiveMixin>();
+                if (liveMixin != null && liveMixin.IsAlive())
+                {
+                    liveMixin.TakeDamage(__instance.GetBiteDamage(target), dealer: __instance.gameObject);
+                    liveMixin.NotifyCreatureDeathsOfCreatureAttack();
+                }
+                Vector3 position = collider.ClosestPointOnBounds(__instance.mouth.transform.position);
+                if (__instance.damageFX != null)
+                    UnityEngine.Object.Instantiate<GameObject>(__instance.damageFX, position, __instance.damageFX.transform.rotation);
+                if (__instance.attackSound != null)
+                    Utils.PlayEnvSound(__instance.attackSound, position);
+
+                __instance.creature.Aggression.Add(-__instance.biteAggressionDecrement);
+                if (liveMixin != null && !liveMixin.IsAlive())
+                    __instance.TryEat(liveMixin.gameObject);
+
+                __instance.gameObject.SendMessage("OnMeleeAttack", target, SendMessageOptions.DontRequireReceiver);
+                AddDebug(__instance.name + " MeleeAttack OnTouch SendMessage");
             }
         }
-
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
@@ -199,6 +211,50 @@ namespace Tweaks_Fixes
                     AddDebug("go == null " + raycastHit.collider.gameObject.name);
                 else
                     AddDebug(go.name);
+            }
+        }
+
+
+        //[HarmonyPatch(typeof(VoxelandGrassBuilder), "CreateUnityMeshes")]
+        class VoxelandGrassBuilder_CreateUnityMeshes_Patch
+        {
+            static bool Prefix(VoxelandGrassBuilder __instance, IVoxelandChunk2 chunk, TerrainPoolManager terrainPoolManager)
+            {
+                for (int index = 0; index < __instance.builtMeshes.Count; ++index)
+                {
+                    TerrainChunkPiece grassObj = __instance.GetGrassObj(chunk, terrainPoolManager);
+                    chunk.grassFilters.Add(grassObj.meshFilter);
+                    chunk.grassRenders.Add(grassObj.meshRenderer);
+                    chunk.chunkPieces.Add(grassObj);
+                    MeshFilter grassFilter = chunk.grassFilters[index];
+                    grassFilter.gameObject.SetActive(true);
+                    MeshRenderer grassRender = chunk.grassRenders[index];
+                    VoxelandBlockType type = __instance.types[index];
+                    grassFilter.sharedMesh = terrainPoolManager.GetMeshForPiece(grassObj);
+                    Material grassMaterial = type.grassMaterial;
+                    grassRender.sharedMaterial = grassMaterial;
+
+                    if (!done)
+                    {
+                        Component[] components = grassObj.GetComponents<Component>();
+                        done = true;
+                        foreach (Component c in components)
+                            Main.logger.LogDebug("grass Component " + c);
+                    }
+                    //Main.logger.LogDebug("material  " + grassRender.material.name + " VoxelandBlockType " + type.name + " grassMeshName " + type.grassMeshName + " layer " + type.layer + " filled " + type.filled);
+                    //AddDebug("grassRender.material  " + grassRender.material.name);
+                    //Main.logger.LogDebug("grassRender " + grassRender.material.name);
+                    //coral_reef_grass_10_gr    coral_reef_grass_11_02_gr   coral_reef_grass_07_gr
+                    //if (grassRender.material.name == "Coral_reef_red_seaweed_03 (Instance)" || grassRender.material.name == "Coral_reef_red_seaweed_01 (Instance)")
+                    {
+                        //AddDebug("!!!");
+                        UWE.MeshBuffer builtMesh = __instance.builtMeshes[index];
+                        builtMesh.Upload(grassFilter.sharedMesh);
+                        builtMesh.Return();
+                    }
+                }
+                __instance.state = VoxelandGrassBuilder.State.Init;
+                return false;
             }
         }
 

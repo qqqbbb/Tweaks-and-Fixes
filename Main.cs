@@ -244,6 +244,14 @@ namespace Tweaks_Fixes
             }
         }
 
+        public static void MakeEatable(GameObject go, float food, float water, bool despawns)
+        {
+            Eatable eatable = go.EnsureComponent<Eatable>();
+            eatable.foodValue = food;
+            eatable.waterValue = water;
+            eatable.despawns = despawns;
+        }
+
         //[HarmonyPatch(typeof(Language), "Awake")]
         class Language_Awake_Patch
         {// does not run
@@ -378,6 +386,7 @@ namespace Tweaks_Fixes
         {
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
+            CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(18.71f, -26.35f, -155.85f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));

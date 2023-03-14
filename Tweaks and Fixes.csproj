@@ -141,7 +141,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
+    <PostBuildEvent>mkdir "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\$(TargetName)"
+copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
 	</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

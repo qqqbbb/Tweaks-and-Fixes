@@ -16,7 +16,20 @@ namespace Tweaks_Fixes
         static ToggleLights seaglideToggleLights = null;
         public static Dictionary<Creature, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<Creature, Dictionary<TechType, int>>();
 
-        
+        [HarmonyPatch(typeof(EnergyMixin), "OnCraftEnd")]
+        public class NoBattery
+        {
+            private static void Prefix(EnergyMixin __instance, TechType techType)
+            { // applies to tools and vehicles
+                //AddDebug("EnergyMixin OnCraftEnd " + techType);
+                //Main.config.craftWithoutBattery = true;
+                if (!Main.config.craftWithoutBattery || techType == TechType.MapRoomCamera)
+                    return;
+
+                __instance.defaultBattery = TechType.None;
+            }
+        }
+
         [HarmonyPatch(typeof(FlashLight), "Start")]
         public class FlashLight_Start_Patch
         {
