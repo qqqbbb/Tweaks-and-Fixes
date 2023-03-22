@@ -18,15 +18,15 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("SetState")]
             public static void SetStatePostfix(BulkheadDoor __instance, bool open)
             { // initiallyOpen not saved
-                AddDebug("SetState " + open);
+                //AddDebug("SetState " + open);
                 __instance.SetInitialyOpen(open);
             }
             //[HarmonyPostfix]
             //[HarmonyPatch("OnHandHover")]
             public static void OnHandHoverPostfix(BulkheadDoor __instance)
             {
-                AddDebug("opened " + __instance.opened);
-                AddDebug("initiallyOpen " + __instance.initiallyOpen);
+                //AddDebug("opened " + __instance.opened);
+                //AddDebug("initiallyOpen " + __instance.initiallyOpen);
             }
             [HarmonyPostfix]
             [HarmonyPatch("OnHandClick")]

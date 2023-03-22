@@ -73,28 +73,6 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("Update")]
-            public static bool UpdatePrefix(GrowingPlant __instance)
-            {
-                if (Main.config.growingPlantUpdateInterval == 0f)
-                    return true;
-
-                if (growUpdateTime + Main.config.growingPlantUpdateInterval > Time.time)
-                    return false;
-
-                //AddDebug("GrowingPlant Update");
-                growUpdateTime = (int)Time.time;
-                float progress = __instance.GetProgress();
-                __instance.SetScale(__instance.growingTransform, progress);
-                __instance.SetPosition(__instance.growingTransform);
-                if (progress < 1f)
-                    return false;
-
-                __instance.SpawnGrownModel();
-                return false;
-            }
-
             //[HarmonyPostfix]
             //[HarmonyPatch("SpawnGrownModel")]
             public static void SpawnGrownModelPostfix(GrowingPlant __instance)

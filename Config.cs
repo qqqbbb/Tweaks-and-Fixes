@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
     public class Config : ConfigFile
     {
         [Slider("Day/night cycle speed multiplier", 0f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
-        public float gameSpeed = 1f;
+        public float dayCycleSpeed = 1f;
         [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
         public float playerSpeedMult = 1f;
         [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
@@ -51,6 +51,8 @@ namespace Tweaks_Fixes
         public bool exosuitMoveTweaks = false;
         [Toggle("Cyclops movement tweaks", Tooltip = "Cyclops does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and backward speed is halved.")]
         public bool cyclopsMoveTweaks = false;
+        [Slider("Cyclops engine room fire chance percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Cyclops engine room fire chance percent when the engine overheats.")]
+        public int cyclopsFireChance = 100;
         [Slider("Crush depth", 50, 500, DefaultValue = 200, Step = 10, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
         public int crushDepth = 200;
         [Slider("Crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.")]
@@ -101,6 +103,10 @@ namespace Tweaks_Fixes
         public bool noFishCatching = false;
         [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
         public bool noBreakingWithHand = false;
+        [Toggle("Player damage impact screen effects", Tooltip = "This toggles cracks on your swimming mask when you take damage.")]
+        public bool damageImpactEffect = true;
+        [Toggle("Player damage shader screen effects", Tooltip = "This toggles shader screen effects when you take damage.")]
+        public bool damageScreenFX = true;
         [Toggle("Drop tool in your hands when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
         public bool dropHeldTool = false;
         [Toggle("Stalkers grab tools from player's hands when playing", Tooltip = "Stalkers can grab only things that are in the mod config's 'stalkerPlayThings' list.")]
@@ -130,7 +136,7 @@ namespace Tweaks_Fixes
         public bool cantScanExosuitClawArm = false;
         [Toggle("Camera bobbing", Tooltip = "Camera bobbing when swimming.")]
         public bool cameraBobbing = true;
-        [Toggle("Free camera drones for scanner room", Tooltip = "If disabled scanner room will be built without camera drones.")]
+        //[Toggle("Free camera drones for scanner room", Tooltip = "If disabled scanner room will be built without camera drones.")]
         public bool mapRoomFreeCameras = true;
         //[Slider("flare light intensity", 0.1f, 1f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "You have to reequip your flare after changing this.")]
         //public float flareIntensity = .5f;
@@ -152,7 +158,7 @@ namespace Tweaks_Fixes
         public bool escapePodPowerTweak = false;
         [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries and power cells you craft will be set to this.")]
         public int craftedBatteryCharge = 100;
-        [Slider("Mushroom damage chance", 0, 100, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed.")]
+        [Slider("Mushroom damage chance percent", 0, 100, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed.")]
         public int shroomDamageChance = 0;
         [Choice("Drop items when you die", Tooltip = "")]
         public DropItemsOnDeath dropItemsOnDeath;
@@ -299,7 +305,7 @@ namespace Tweaks_Fixes
         static void UpdateGameSpeed()
         {
             if (DayNightCycle.main)
-                DayNightCycle.main._dayNightSpeed = Main.config.gameSpeed;
+                DayNightCycle.main._dayNightSpeed = Main.config.dayCycleSpeed;
         }
         public bool fixMelons = true;
         public bool randomPlantRotation = true;
@@ -317,7 +323,11 @@ namespace Tweaks_Fixes
         public bool disableCyclopsProximitySensor = false;
         public float creepVineSeedFood = 10f;
         //[Slider("growingPlantUpdateInterval", 0, 10, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "")]
-        public int growingPlantUpdateInterval = 0;
+        //public int growingPlantUpdateInterval = 0;
+        public bool builderPlacingWhenFinishedBuilding = true;
+        public bool crushDamageScreenEffect = true;
+
+
         // also edit UI_Patches.GetStrings when editing this
         public List<string> translatableStrings = new List<string> //  translate config enums 
         { "Burnt out ", //  0   flare

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -92,20 +93,39 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Constructable), "Construct")]
+        [HarmonyPatch(typeof(Constructable))]
         class Constructable_Construct_Patch
         {
-            public static void Postfix(Constructable __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("NotifyConstructedChanged")]
+            public static void Postfix(Constructable __instance, bool constructed)
             {
-                if (__instance.constructedAmount >= 1f)
-                {
-                    //AddDebug(" constructed " + __instance.techType);
-                    if (Main.config.mapRoomFreeCameras == false && __instance.techType == TechType.BaseMapRoom)
-                        camerasToRemove = 2;
-                    else
-                        camerasToRemove = 0;
-                }
+                if (!constructed || !Main.loadingDone)
+                    return;
+
+                //AddDebug(" NotifyConstructedChanged " + __instance.techType);
+                //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
+                if (!Main.config.builderPlacingWhenFinishedBuilding)
+                    Player.main.StartCoroutine(BuilderEnd(2));
+                
+                if (!Main.config.mapRoomFreeCameras && __instance.techType == TechType.BaseMapRoom)
+                    camerasToRemove = 2;
+                else
+                    camerasToRemove = 0;
             }
+        }
+
+        static IEnumerator BuilderEnd(int waitFrames)
+        {
+            //AddDebug("BuilderEnd start ");
+            //yield return new WaitForSeconds(waitTime);
+            while (waitFrames > 0)
+            {
+                waitFrames--;
+                yield return null;
+            }
+            Builder.End();
+            //AddDebug("BuilderEnd end ");
         }
 
         [HarmonyPatch(typeof(SolarPanel), "OnHandHover")]
@@ -158,6 +178,7 @@ namespace Tweaks_Fixes
 
 
 
-        
+
+
     }
 }

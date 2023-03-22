@@ -674,7 +674,8 @@ namespace Tweaks_Fixes
                             int damageMin = (int)(__instance.damageAmount * .5f);
                             int damageMax = (int)(__instance.damageAmount * 1.5f);
                             float damageAmount = Main.rndm.Next(damageMin, damageMax + 1);
-                            Player.main.gameObject.GetComponent<LiveMixin>().TakeDamage(damageAmount, pickupable.gameObject.transform.position, DamageType.Acid);
+                            if (!Player.main.currentMountedVehicle)
+                                Player.main.gameObject.GetComponent<LiveMixin>().TakeDamage(damageAmount, pickupable.gameObject.transform.position, DamageType.Acid);
                         }
                         //AddDebug("DamageOnPickup OnPickedUp " + __instance.damageChance + " damageAmount " + __instance.damageAmount);
                         return false;
@@ -682,8 +683,8 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-            [HarmonyPatch("OnKill")]
             [HarmonyPrefix]
+            [HarmonyPatch("OnKill")]
             static bool OnKillPrefix(DamageOnPickup __instance)
             {
                 Plantable plantable = __instance.GetComponent<Plantable>();
@@ -709,6 +710,27 @@ namespace Tweaks_Fixes
             }
         }
 
-        
+
+        [HarmonyPatch(typeof(DamageFX), "AddHudDamage")]
+        class DamageFX_AddHudDamage_Patch
+        {
+            public static bool Prefix(DamageFX __instance, float damageScalar, Vector3 damageSource, DamageInfo damageInfo)
+            {
+                //Main.config.crushDamageScreenEffect = false;
+                //AddDebug("AddHudDamage " + damageInfo.type);
+                if (!Main.config.crushDamageScreenEffect && damageInfo.type == DamageType.Pressure)
+                    return false;
+
+                if (Main.config.damageImpactEffect)
+                    __instance.CreateImpactEffect(damageScalar, damageSource, damageInfo.type);
+
+                if (Main.config.damageScreenFX)
+                    __instance.PlayScreenFX(damageInfo);
+
+                return false;
+            }
+        }
+
+
     }
 }

@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using UnityEngine;
-using static ErrorMessage;
+//using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -101,7 +101,7 @@ namespace Tweaks_Fixes
         {
             if (__instance.GetComponent<HangingStinger>())
             {
-                AddDebug("Kill");
+                //AddDebug("Kill");
                 //AddDebug("Damage " + originalDamage);
                 //AddDebug("health " + __instance.health);
             }
@@ -115,7 +115,7 @@ namespace Tweaks_Fixes
         {
             //if (__instance.GetComponent<HangingStinger>())
             //{
-            AddDebug("CleanUp " );
+            //AddDebug("CleanUp " );
             //AddDebug("Damage " + originalDamage);
             //AddDebug("health " + __instance.health);
             //}   UnityEngine.Object.Destroy(o, time);

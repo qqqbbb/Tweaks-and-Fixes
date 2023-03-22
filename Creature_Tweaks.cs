@@ -126,6 +126,37 @@ namespace Tweaks_Fixes
                 //}
             }
 
+            //[HarmonyPrefix]
+            //[HarmonyPatch("IsInFieldOfView")]
+            public static bool IsInFieldOfViewPrefix(Creature __instance, GameObject go, ref bool __result)
+            {
+                bool canSee = false;
+                if (go == null)
+                {
+                    __result = false;
+                    return false;
+                }
+                if (Mathf.Approximately(__instance.eyeFOV, -1f))
+                {
+                    //AddDebug(__instance.name + " eyeFOV  = -1");
+                    __result = true;
+                    return false;
+                }
+                Vector3 dir = go.transform.position - __instance.transform.position;
+                Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
+                //if ((Mathf.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(vector3.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(__instance.transform.position, go.transform.position, Voxeland.GetTerrainLayerMask()))
+                //if (go == Player.mainObject)
+                //    AddDebug(__instance.name + " eyeFOV " + __instance.eyeFOV + " dir " + dir.normalized + " rhs " + rhs + " Dot " + Vector3.Dot(dir.normalized, rhs));
+
+                if (Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV && !Physics.Linecast(__instance.transform.position, go.transform.position))
+                    canSee = true;
+
+                //if (go == Player.mainObject && canSee)
+                //    AddDebug(__instance.name + " can see player");
+
+                __result = canSee;
+                return false;
+            }
             //[HarmonyPostfix]
             //[HarmonyPatch("OnKill")]
             public static void OnKillPostfix(Creature __instance)

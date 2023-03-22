@@ -398,7 +398,7 @@ namespace Tweaks_Fixes
                 Transform label = __instance.transform.Find("LidLabel");
                 if (label)
                 {
-                    AddDebug("DeployableStorage OnPickedUp");
+                    //AddDebug("DeployableStorage OnPickedUp");
                     //label.localPosition = new Vector3(0.02f, .031f, -0.04f);
 
                 }
@@ -411,7 +411,7 @@ namespace Tweaks_Fixes
                 Transform label = __instance.transform.Find("LidLabel");
                 if (label)
                 {
-                    AddDebug("DeployableStorage OnDropped");
+                    //AddDebug("DeployableStorage OnDropped");
                     //label.localPosition = new Vector3(0f, .031f, 0f);
                     //Transform lid = __instance.transform.Find("3rd_person_model/floating_storage_cube_tp/Floating_storage_lid_geo");
                     //if (lid)

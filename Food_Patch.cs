@@ -357,7 +357,7 @@ namespace Tweaks_Fixes
           public static void Postfix(uGUI_CraftingMenu __instance)
           {
               //if (sender.action == TreeAction.Craft)
-                  AddDebug(" uGUI_CraftingMenu Craft " );
+                  //AddDebug(" uGUI_CraftingMenu Craft " );
           }
       }
         

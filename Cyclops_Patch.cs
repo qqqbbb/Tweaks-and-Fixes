@@ -45,7 +45,35 @@ namespace Tweaks_Fixes
             //foreach (Collider c in myCols)
             //AddDebug("add collider to collidersInSub");
         }
-        
+
+        static int GetFireCountInEngineRoom(SubFire subFire)
+        {
+            int fireCount = 0;
+            foreach (KeyValuePair<CyclopsRooms, SubFire.RoomFire> roomFire in subFire.roomFires)
+            {
+                if (roomFire.Key != CyclopsRooms.EngineRoom)
+                    continue;
+
+                foreach (Transform spawnNode in roomFire.Value.spawnNodes)
+                {
+                    if (spawnNode.childCount != 0)
+                        ++fireCount;
+                }
+            }
+            //AddDebug("fire Count " + fireCount);
+            return fireCount;
+        }
+        static int GetEngineOverheatMinValue(SubFire subFire)
+        {
+            int overheatValue = GetFireCountInEngineRoom(subFire) * 10;
+
+            //if (subFire.cyclopsMotorMode.engineOn && subFire.cyclopsMotorMode.cyclopsMotorMode == CyclopsMotorMode.CyclopsMotorModes.Flank)
+            //    overheatValue += 10;
+
+            //AddDebug("GetEngineOverheatMinValue " + overheatValue);
+            return overheatValue;
+        }
+
         [HarmonyPatch(typeof(CyclopsHelmHUDManager))]
         class CyclopsHelmHUDManager_Patch
         {
@@ -622,6 +650,69 @@ namespace Tweaks_Fixes
             }
         }
 
-      
+        [HarmonyPatch(typeof(SubFire), "EngineOverheatSimulation")]
+        class SubFire_EngineOverheatSimulation_Patch
+        {
+            static bool Prefix(SubFire __instance)
+            {
+                if (!__instance.gameObject.activeInHierarchy || !__instance.LOD.IsFull())
+                    return false;
+
+                //AddDebug("SubFire activeInHierarchy " + __instance.gameObject.activeInHierarchy);
+                //AddDebug("engineOverheatValue " + __instance.engineOverheatValue);
+                //AddDebug("appliedThrottle " + __instance.subControl.appliedThrottle);
+                //AddDebug("engineOn " + __instance.cyclopsMotorMode.engineOn);
+                if (!__instance.cyclopsMotorMode.engineOn)
+                {
+                    //AddDebug("engine off");
+                    __instance.engineOverheatValue = Mathf.Max(GetEngineOverheatMinValue(__instance), __instance.engineOverheatValue - 10);
+                    return false;
+                }
+                if (__instance.cyclopsMotorMode.cyclopsMotorMode == CyclopsMotorMode.CyclopsMotorModes.Flank)
+                {
+                    if (__instance.subControl.appliedThrottle)
+                        __instance.engineOverheatValue += 10;
+                    else
+                        __instance.engineOverheatValue -= 4;
+                }
+                else if (__instance.cyclopsMotorMode.cyclopsMotorMode == CyclopsMotorMode.CyclopsMotorModes.Standard)
+                {
+                    if (__instance.subControl.appliedThrottle)
+                        __instance.engineOverheatValue -= 3;
+                    else
+                        __instance.engineOverheatValue -= 6;
+                }
+                else if (__instance.cyclopsMotorMode.cyclopsMotorMode == CyclopsMotorMode.CyclopsMotorModes.Slow)
+                {
+                    if (__instance.subControl.appliedThrottle)
+                        __instance.engineOverheatValue -= 6;
+                    else
+                        __instance.engineOverheatValue -= 8;
+                }
+                if (__instance.subControl.appliedThrottle && __instance.cyclopsMotorMode.cyclopsMotorMode == CyclopsMotorMode.CyclopsMotorModes.Flank)
+                {
+                    if (__instance.engineOverheatValue > 75)
+                    {
+                        __instance.subRoot.voiceNotificationManager.PlayVoiceNotification(__instance.subRoot.engineOverheatCriticalNotification);
+                    }
+                    else if (__instance.engineOverheatValue > 50)
+                    {
+                        __instance.subRoot.voiceNotificationManager.PlayVoiceNotification(__instance.subRoot.engineOverheatNotification);
+                    }
+                }
+                int overheatMinValue = GetEngineOverheatMinValue(__instance);
+                __instance.engineOverheatValue = Mathf.Clamp(__instance.engineOverheatValue, overheatMinValue, 100);
+
+                int fireChance = UnityEngine.Random.Range(0, Main.config.cyclopsFireChance);
+                fireChance += 100 - Main.config.cyclopsFireChance;
+                //AddDebug("fireChance " + fireChance);
+                if (__instance.engineOverheatValue > 50 && __instance.engineOverheatValue > fireChance)
+                    __instance.CreateFire(__instance.roomFires[CyclopsRooms.EngineRoom]);
+
+                return false;
+            }
+        }
+
+
     }
 }

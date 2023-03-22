@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -16,62 +17,49 @@ namespace Tweaks_Fixes
         //public static Rigidbody rbToTest = null;
         //static HashSet<TechType> creatures = new HashSet<TechType>();
         //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
-        static bool done = false;
+        //static bool done = false;
 
-        //[HarmonyPatch(typeof(MeleeAttack), "OnTouch")]
-        class MeleeAttack_OnTouch_Patch
+        [HarmonyPatch(typeof(DisplayManager))]
+        class DisplayManager_Patch
         {
-            static void Prefix(MeleeAttack __instance, Collider collider)
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Update")]
+            static void UpdatePostfix(DisplayManager __instance)
             {
-                if (!__instance.enabled)
-                    return;
-                GameObject target = __instance.GetTarget(collider);
-                if (__instance.ignoreSameKind && CreatureData.GetCreatureType(__instance.gameObject) == CreatureData.GetCreatureType(target) || !__instance.liveMixin.IsAlive())
-                    return;
-                Player player = target.GetComponent<Player>();
-                if (player != null && __instance.canBeFed && player.CanBeAttacked())
+                //AddDebug("Screen.currentResolution.width " + Screen.currentResolution.width);
+                //AddDebug("DisplayManager.resolution.width " + __instance.resolution.width);
+                if (Screen.currentResolution.width != 1280)
                 {
-                    GameObject heldObject = Inventory.main.GetHeldObject();
-                    if (heldObject != null && __instance.TryEat(heldObject, true))
-                    {
-                        if (__instance.attackSound != null)
-                            Utils.PlayEnvSound(__instance.attackSound, __instance.mouth.transform.position);
-                        __instance.gameObject.SendMessage("OnMeleeAttack", heldObject, SendMessageOptions.DontRequireReceiver);
-                        return;
-                    }
+                    Screen.SetResolution(1280, 720, true);
+                    //__instance.resolution = Screen.currentResolution;
                 }
-                AddDebug(__instance.name + " MeleeAttack OnTouch CanBite " + __instance.CanBite(target));
-                if (!__instance.CanBite(target))
-                    return;
-
-                __instance.timeLastBite = Time.time;
-                LiveMixin liveMixin = target.GetComponent<LiveMixin>();
-                if (liveMixin != null && liveMixin.IsAlive())
-                {
-                    liveMixin.TakeDamage(__instance.GetBiteDamage(target), dealer: __instance.gameObject);
-                    liveMixin.NotifyCreatureDeathsOfCreatureAttack();
-                }
-                Vector3 position = collider.ClosestPointOnBounds(__instance.mouth.transform.position);
-                if (__instance.damageFX != null)
-                    UnityEngine.Object.Instantiate<GameObject>(__instance.damageFX, position, __instance.damageFX.transform.rotation);
-                if (__instance.attackSound != null)
-                    Utils.PlayEnvSound(__instance.attackSound, position);
-
-                __instance.creature.Aggression.Add(-__instance.biteAggressionDecrement);
-                if (liveMixin != null && !liveMixin.IsAlive())
-                    __instance.TryEat(liveMixin.gameObject);
-
-                __instance.gameObject.SendMessage("OnMeleeAttack", target, SendMessageOptions.DontRequireReceiver);
-                AddDebug(__instance.name + " MeleeAttack OnTouch SendMessage");
             }
+            [HarmonyPrefix]
+            [HarmonyPatch("Initialize")]
+            static void InitializePrefix(DisplayManager __instance)
+            {
+                if (Screen.currentResolution.width != __instance.resolution.width)
+                    AddDebug("Resolution !!! ");
+
+                AddDebug("Initialize Screen.currentResolution " + Screen.currentResolution.width);
+                AddDebug("Initialize DisplayManager.resolution " + __instance.resolution.width);
+                if (Screen.currentResolution.width != 1280)
+                {
+                    //Screen.SetResolution(1280, 720, true);
+                    //__instance.resolution = Screen.currentResolution;
+                }
+            }
+
         }
+
+
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
+                //AddDebug(" Builder.isPlacing " + Builder.isPlacing);
                 //AddDebug("stalkerLoseTooth " + Main.config.stalkerLoseTooth * .01f);
                 //AddDebug("Time.time " + (int)Time.time);
                 //AddDebug("isUnderwaterForSwimming " + __instance.isUnderwaterForSwimming.value);
@@ -96,7 +84,12 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    //AddDebug(" WaitScreen.IsWaiting " + WaitScreen.IsWaiting);
+                    //                bool hit = Physics.Linecast(Player.main.transform.position, Vector3.zero
+                    //                    , Voxeland.GetTerrainLayerMask());
+                    //                AddDebug(" hit from player " + hit);
+                    //                hit = Physics.Linecast(Vector3.zero, Player.main.transform.position
+                    //, Voxeland.GetTerrainLayerMask());
+                    //                AddDebug(" hit to player " + hit);
                     //AddDebug("  " + Player.main.GetBiomeString());
                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    Main.survival.water++; 
@@ -233,14 +226,6 @@ namespace Tweaks_Fixes
                     grassFilter.sharedMesh = terrainPoolManager.GetMeshForPiece(grassObj);
                     Material grassMaterial = type.grassMaterial;
                     grassRender.sharedMaterial = grassMaterial;
-
-                    if (!done)
-                    {
-                        Component[] components = grassObj.GetComponents<Component>();
-                        done = true;
-                        foreach (Component c in components)
-                            Main.logger.LogDebug("grass Component " + c);
-                    }
                     //Main.logger.LogDebug("material  " + grassRender.material.name + " VoxelandBlockType " + type.name + " grassMeshName " + type.grassMeshName + " layer " + type.layer + " filled " + type.filled);
                     //AddDebug("grassRender.material  " + grassRender.material.name);
                     //Main.logger.LogDebug("grassRender " + grassRender.material.name);

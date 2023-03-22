@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
     class Predators_Patch
     {         
         static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
-        static Dictionary<AttackCyclops, AggressiveWhenSeeTarget> attackCyclopsAWST = new Dictionary<AttackCyclops, AggressiveWhenSeeTarget>();
-        //public static HashSet<string> testMeleeAttack = new HashSet<string>();
+        //static Dictionary<AttackCyclops, AggressiveWhenSeeTarget> attackCyclopsAWST = new Dictionary<AttackCyclops, AggressiveWhenSeeTarget>();
         
         public static bool IsLightOn(Vehicle vehicle)
         { 
@@ -88,37 +88,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static void ScanForAggressionTargetNew(AggressiveWhenSeeTarget awst)
-        {
-            if (!awst.gameObject.activeInHierarchy || !awst.enabled || awst.creature != null && awst.creature.Hunger.Value < awst.hungerThreshold || EcoRegionManager.main == null)
-                return;
-
-            GameObject aggressionTarget = awst.GetAggressionTarget();
-            if (aggressionTarget == null)
-                return;
-
-            float num1 = Vector3.Distance(aggressionTarget.transform.position, awst.transform.position);
-            float num2 = DayNightUtils.Evaluate(awst.maxRangeScalar, awst.maxRangeMultiplier);
-            float num3 = awst.distanceAggressionMultiplier.Evaluate((num2 - num1) / num2);
-            float num4 = 1f;
-            if (awst.targetShouldBeInfected)
-            {
-                InfectedMixin component = aggressionTarget.GetComponent<InfectedMixin>();
-                num4 = component != null ? component.infectedAmount : 0.0f;
-            }
-            float amount = (awst.aggressionPerSecond * num3 * num4 * 1f);
-            if (amount <= 0.0)
-                return;
-            //Debug.DrawLine(aggressionTarget.transform.position, awst.transform.position, Color.white);
-            awst.creature.Aggression.Add(amount);
-            //AddDebug(awst.myTechType + " " + aggressionTarget.name + " aggr " + amount);
-            awst.lastTarget.SetTarget(aggressionTarget);
-            if (awst.sightedSound == null || awst.sightedSound.GetIsPlaying())
-                return;
-            //Debug.Log(("Not playing sighted sound, starting " + Time.time));
-            awst.sightedSound.StartEvent();
-        }
-         
         [HarmonyPatch(typeof(AggressiveWhenSeeTarget))]
         class AggressiveWhenSeeTarget_Patch
         {
@@ -260,7 +229,7 @@ namespace Tweaks_Fixes
                 if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy || !__instance.enabled || Main.config.predatorExclusion.Contains(__instance.myTechType))
                     return false;
 
-                if (__instance.targetType != EcoTargetType.Shark)
+                if (__instance.targetType != EcoTargetType.Shark || __instance.myTechType == TechType.Crash)
                     return true;
 
                 //if (__instance.myTechType == TechType.Mesmer)
@@ -270,21 +239,24 @@ namespace Tweaks_Fixes
                     return true;
 
                 if (Main.config.aggrMult == 3 && Player.main.CanBeAttacked() && __instance.creature.GetCanSeeObject(Player.main.gameObject))
-                {
-                    __instance.creature.Aggression.Add(__instance.aggressionPerSecond);
-                    //__instance.lastScarePosition.lastScarePosition = Player.main.gameObject.transform.position;
-                    __instance.lastTarget.SetTarget(Player.main.gameObject);
-                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
-                        __instance.sightedSound.StartEvent();
-                    //AddDebug(__instance.myTechType + " attack player ");
-                    return false;
+                { // creature.GetCanSeeObject ignores terrain when casting ray
+                    //bool cast = Physics.Linecast(__instance.transform.position, Player.main.gameObject.transform.position);
+                    //if (!cast)
+                    {
+                        __instance.creature.Aggression.Add(__instance.aggressionPerSecond);
+                        //__instance.lastScarePosition.lastScarePosition = Player.main.gameObject.transform.position;
+                        __instance.lastTarget.SetTarget(Player.main.gameObject);
+                        if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
+                            __instance.sightedSound.StartEvent();
+                        //AddDebug(__instance.myTechType + " attack player " );
+                        return false;
+                    }
                 }
                 GameObject aggressionTarget = __instance.GetAggressionTarget();
                 if (aggressionTarget != null)
                 {
                     float dist = Vector3.Distance(aggressionTarget.transform.position, __instance.transform.position);
                     float num2 = DayNightUtils.Evaluate(__instance.maxRangeScalar, __instance.maxRangeMultiplier);
-                    //distMult < 0 if target very close
                     float distMult = __instance.distanceAggressionMultiplier.Evaluate((num2 - dist) / num2);
                     //if (distMult < 1f)
                     //    distMult = 1f;
@@ -367,28 +339,22 @@ namespace Tweaks_Fixes
 
             if (Player.main.currentSub && Player.main.currentSub.isCyclops)
                 return true;
-            else
-            {
-                if (attackCyclopsAWST.ContainsKey(attackCyclops) && attackCyclopsAWST[attackCyclops].lastTarget.target == Player.main.gameObject)
-                {
-                    //AddDebug("Lev attacking player");
-                    return false;
-                }
-                CyclopsNoiseManager cyclopsNoiseManager = null;
-                if (Player.main.currentSub && Player.main.currentSub.noiseManager)
-                    cyclopsNoiseManager = Player.main.currentSub.noiseManager;
 
-                if (attackCyclops.forcedNoiseManager)
-                    cyclopsNoiseManager = attackCyclops.forcedNoiseManager;
+            CyclopsNoiseManager cyclopsNoiseManager = null;
+            if (Player.main.currentSub && Player.main.currentSub.noiseManager)
+                cyclopsNoiseManager = Player.main.currentSub.noiseManager;
 
-                if ( Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Yes)
-                    return true;
-                else if (Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Vanilla || Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.No)
-                    return false;
+            if (attackCyclops.forcedNoiseManager)
+                cyclopsNoiseManager = attackCyclops.forcedNoiseManager;
 
-                bool lightOn = cyclopsNoiseManager.lightingPanel.lightingOn || cyclopsNoiseManager.lightingPanel.floodlightsOn;
-                return Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Only_if_lights_on && lightOn;
-            }
+            if ( Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Yes)
+                return true;
+            else if (Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Vanilla || Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.No)
+                return false;
+
+            bool lightOn = cyclopsNoiseManager.lightingPanel.lightingOn || cyclopsNoiseManager.lightingPanel.floodlightsOn;
+            return Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Only_if_lights_on && lightOn;
+            
         }
         
         public static SubRoot GetClosestSub(Vector3 pos)
@@ -412,21 +378,6 @@ namespace Tweaks_Fixes
         {
             static float cyclopsAttackDist = 150f;
 
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
-            public static void StartPostfix(AttackCyclops __instance)
-            {
-                //AddDebug("AttackCyclops " + __instance.name);
-                AggressiveWhenSeeTarget[] awst = __instance.GetAllComponentsInChildren<AggressiveWhenSeeTarget>();
-                foreach (AggressiveWhenSeeTarget a in awst)
-                {
-                    if (a.targetType == EcoTargetType.Shark)
-                    {
-                        attackCyclopsAWST[__instance] = a;
-                        break;
-                    }
-                }
-            }
             [HarmonyPrefix]
             [HarmonyPatch("UpdateAggression")]
             public static bool UpdateAggressionPrefix(AttackCyclops __instance)

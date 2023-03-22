@@ -50,7 +50,7 @@ namespace Tweaks_Fixes
                                       {
                                           if (Main.config.dontSpawnKnownFragments)
                                           {
-                                              AddDebug("DONT LOAD " + techType);
+                                              //AddDebug("DONT LOAD " + techType);
                                               __result = filler;
                                               return false;
                                           }
