@@ -59,6 +59,13 @@ namespace Tweaks_Fixes
             public static void OnDrawPostfix(PlayerTool __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt == TechType.Spadefish)
+                {
+                    //AddDebug("spadefish");
+                    Vector3 pos = __instance.transform.localPosition;
+                    __instance.transform.localPosition = new Vector3(pos.x -= .07f, pos.y += .03f, pos.z += .07f); 
+                    return;
+                }
                 if (Main.config.lightIntensity.ContainsKey(tt))
                 {
                     Light[] lights = __instance.GetComponentsInChildren<Light>(true);
@@ -84,9 +91,7 @@ namespace Tweaks_Fixes
                 }
                 LEDLight ledLight = __instance as LEDLight;
                 if (ledLight)
-                {
                     ledLight.SetLightsActive(Main.config.LEDLightWorksInHand);
-                }
             }
 
             [HarmonyPostfix]

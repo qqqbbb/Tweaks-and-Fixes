@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
+using static VehicleUpgradeConsoleInput;
 
 namespace Tweaks_Fixes
 {
@@ -209,47 +210,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(VFXPassYboundsToMat))]
-        class VFXPassYboundsToMat_Patch
-        {
-            //[HarmonyPrefix]
-            //[HarmonyPatch(nameof(VFXPassYboundsToMat.GetMinAndMaxYpos))]
-            static bool GetMinAndMaxYposPostfix(VFXPassYboundsToMat __instance)
-            { // fix seeds from grown creepvine not moving with it
-                __instance.minYpos = float.PositiveInfinity;
-                __instance.maxYpos = -__instance.minYpos;
-                __instance.renderers = __instance.gameObject.GetComponentsInChildren<Renderer>(true);
-                for (int index = 0; index < __instance.renderers.Length; ++index)
-                {
-                    Bounds bounds = __instance.renderers[index].bounds;
-                    if (bounds.max.y > __instance.maxYpos)
-                    {
-                        bounds = __instance.renderers[index].bounds;
-                        __instance.maxYpos = bounds.max.y;
-                    }
-                    bounds = __instance.renderers[index].bounds;
-                    if (bounds.min.y < __instance.minYpos)
-                    {
-                        bounds = __instance.renderers[index].bounds;
-                        __instance.minYpos = bounds.min.y;
-                    }
-                }
-                float num1 = __instance.minYpos + __instance.minYposScalar * (__instance.maxYpos - __instance.minYpos);
-                float num2 = __instance.maxYpos + ((__instance.maxYposScalar - 1f) * (__instance.maxYpos - __instance.minYpos));
-                __instance.block = new MaterialPropertyBlock();
-                for (int index = 0; index < __instance.renderers.Length; ++index)
-                {
-                    __instance.renderers[index].GetPropertyBlock(__instance.block);
-                    __instance.block.SetFloat(ShaderPropertyID._minYpos, num1);
-                    __instance.block.SetFloat(ShaderPropertyID._maxYpos, num2);
-                    if (__instance.scaleWaving && __instance.transform.localScale != Vector3.one)
-                        __instance.block.SetVector(ShaderPropertyID._ScaleModifier, __instance.transform.localScale - Vector3.one);
-                    __instance.renderers[index].SetPropertyBlock(__instance.block);
-                }
-                return false;
-            }
-        }
-
         [HarmonyPatch(typeof(Planter), "AddItem", new Type[1] { typeof(InventoryItem) })]
         class Planter_AddItem_Patch
         {
@@ -261,8 +221,33 @@ namespace Tweaks_Fixes
                 Plantable p = item.item.GetComponent<Plantable>();
                 if (p && p.plantTechType == TechType.MelonPlant)
                 {
-                    //AddDebug("Planter AddItem fix " + p.plantTechType);
+                    //Planter.PlantSlot slotById = __instance.GetSlotByID(slotID);
+                    //if (slotById == null || slotById.isOccupied)
+                    //    return;
+                    //AddDebug("Planter AddItem InventoryItem " + p.plantTechType);
                     p.size = Plantable.PlantSize.Large;
+                }
+            }
+        }
+
+        //[HarmonyPatch(typeof(Planter), "AddItem", new Type[2] { typeof(Plantable), typeof(int) })]
+        class Planter_AddItem_Patch_
+        {
+            static void Prefix(Planter __instance, Plantable plantable, int slotID)
+            {
+                if (!Main.config.fixMelons)
+                    return;
+
+                //Plantable p = item.item.GetComponent<Plantable>();
+                if (plantable.plantTechType == TechType.MelonPlant)
+                {
+                    Planter.PlantSlot slotById = __instance.GetSlotByID(slotID);
+                    //AddDebug("Planter AddItem MelonPlant size " + slotById.GetType());
+
+                    //if (slotById == null || slotById.isOccupied)
+                    //    return;
+                    AddDebug("Planter AddItem MelonPlant size " + plantable.size);
+                    //p.size = Plantable.PlantSize.Large;
                 }
             }
         }

@@ -9,7 +9,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     class LargeWorldEntity_Patch
-    { // biomes to remove light BloodKelp_Trench
+    {
         public static HashSet<TechType> removeLight = new HashSet<TechType> { };
 
         public static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
@@ -88,63 +88,45 @@ namespace Tweaks_Fixes
                         __instance.transform.position = new Vector3(__instance.transform.position.x, -28.62f, __instance.transform.position.z);
                     }
                 }
-                else if (tt == TechType.MembrainTree)
-                {
-                    if (__instance.transform.parent == null)
-                        return; // has just grown in planter  
-                    else if (__instance.GetComponent<GrownPlant>())
-                        return; // spawned in planter
+                //else if (tt == TechType.MembrainTree)
+                //{
+                    //if (__instance.transform.parent == null)
+                    //    return; // has just grown in planter  
+                    //else if (__instance.GetComponent<GrownPlant>())
+                    //    return; // spawned in planter
                                 //AddDebug(" fix  MembrainTree " + __instance.name);
 
-                    AlwaysUseHiPolyMesh(__instance.gameObject);
+                    //AlwaysUseHiPolyMesh(__instance.gameObject);
                     //model / Coral_reef_membrain_tree_01_25
-                }
-                else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
-                    AlwaysUseHiPolyMesh(__instance.gameObject);
-                else if (tt == TechType.BluePalm && __instance.name == "coral_reef_plant_small_01_03(Clone)")
-                    AlwaysUseHiPolyMesh(__instance.gameObject);
-                else if (tt == TechType.Boomerang)
-                    AlwaysUseHiPolyMesh(__instance.gameObject, TechType.Boomerang);
-                else if (tt == TechType.LargeFloater)
-                    AlwaysUseHiPolyMesh(__instance.gameObject, TechType.LargeFloater);
+                //}
+                //else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
+                //    AlwaysUseHiPolyMesh(__instance.gameObject);
+                //else if (tt == TechType.BluePalm && __instance.name == "coral_reef_plant_small_01_03(Clone)")
+                //    AlwaysUseHiPolyMesh(__instance.gameObject);
+                //else if (tt == TechType.Boomerang)
+                //    AlwaysUseHiPolyMesh(__instance.gameObject, TechType.Boomerang);
+                //else if (tt == TechType.LargeFloater)
+                //    AlwaysUseHiPolyMesh(__instance.gameObject, TechType.LargeFloater);
                 else if (tt == TechType.BulboTree || tt == TechType.PurpleVasePlant || tt == TechType.OrangePetalsPlant || tt == TechType.PinkMushroom || tt == TechType.PurpleRattle)
                 {
                     DisableWavingShader(__instance);
                     if (tt == TechType.BulboTree)
                     { 
-                        AlwaysUseHiPolyMesh(__instance.gameObject);
+                        //AlwaysUseHiPolyMesh(__instance.gameObject);
                         MakeImmuneToCannon(__instance.gameObject);
                     }
-                    else if (tt == TechType.PurpleVasePlant)
-                        AlwaysUseHiPolyMesh(__instance.gameObject);
+                    //else if (tt == TechType.PurpleVasePlant)
+                    //    AlwaysUseHiPolyMesh(__instance.gameObject);
                 }
                 else if (tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree)
                 {
                     MakeImmuneToCannon(__instance.gameObject);
                 }
-                else if (tt == TechType.WhiteMushroom)
-                    AlwaysUseHiPolyMesh(__instance.gameObject);
+                //else if (tt == TechType.WhiteMushroom)
+                //    AlwaysUseHiPolyMesh(__instance.gameObject);
                 else if (tt == TechType.BloodRoot || tt == TechType.BloodVine || tt == TechType.Creepvine)
                 {
-                    PickPrefab[] pickPrefabs = __instance.gameObject.GetComponentsInChildren<PickPrefab>(true);
-                    if (pickPrefabs.Length > 0)
-                    {
-                        FruitPlant fp = __instance.gameObject.EnsureComponent<FruitPlant>();
-                        fp.fruitSpawnEnabled = true;
-                        //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
-                        // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-                        fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
-                        //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
-                        if (fp.fruitSpawnInterval == 0f)
-                            fp.fruitSpawnInterval = 1f;
-                        //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);
-                        fp.fruits = pickPrefabs;
-                        if (tt == TechType.Creepvine)
-                        {
-                            TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
-                            techTag.type = TechType.Creepvine;
-                        }
-                    }
+                    EnsureFruits(__instance);
                 }
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
@@ -165,15 +147,15 @@ namespace Tweaks_Fixes
                 {
                     SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
-                else if (tt == TechType.FloatingStone)
+                else if (tt == TechType.FloatingStone) // ?
                 {
-                    SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                    //SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
                 else if (tt == TechType.CreepvineSeedCluster)
                 {
                     float creepVineSeedFood = Main.config.creepVineSeedFood;
                     if (creepVineSeedFood > 0)
-                        Main.MakeEatable(__instance.gameObject, creepVineSeedFood, creepVineSeedFood, false);
+                        Main.MakeEatable(__instance.gameObject, creepVineSeedFood * .5f, creepVineSeedFood, false);
                 }
                 else if (tt == TechType.None)
                 {
@@ -183,8 +165,8 @@ namespace Tweaks_Fixes
                         if (light && light.enabled && __instance.transform.childCount == 0)
                             light.enabled = false;
                     }
-                    else if (__instance.name == "coral_reef_small_deco_12(Clone)")
-                        AlwaysUseHiPolyMesh(__instance.gameObject);
+                    //else if (__instance.name == "coral_reef_small_deco_12(Clone)")
+                    //    AlwaysUseHiPolyMesh(__instance.gameObject);
                     //else if (__instance.name == "Coral_reef_ball_clusters_01_Light(Clone)")
                     //    AlwaysUseHiPolyMesh(__instance.gameObject);
                     else if (__instance.name == "Land_tree_01(Clone)")
@@ -201,11 +183,6 @@ namespace Tweaks_Fixes
                     else if (__instance.name.StartsWith("Crab_snake_mushrooms"))
                     { // small shrooms
                         SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
-                    }
-                    else if (__instance.name == "coral_reef_Stalactites_cluster_01(Clone)")
-                    { // Stalactites in shroom cave
-                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
-                        AlwaysUseHiPolyMesh(__instance.gameObject);
                     }
                     else if (__instance.name.StartsWith("coral_reef_Stalactite"))
                     { // Stalactites in shroom cave
@@ -226,7 +203,6 @@ namespace Tweaks_Fixes
                     if (x == -63 && y == -16 && z == -223)
                         __instance.gameObject.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
                 }
-
                 if (removeLight.Contains(tt))
                 {
                     MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
@@ -248,6 +224,23 @@ namespace Tweaks_Fixes
 
             }
 
+            private static void EnsureFruits(LargeWorldEntity __instance)
+            {
+                PickPrefab[] pickPrefabs = __instance.gameObject.GetComponentsInChildren<PickPrefab>(true);
+                if (pickPrefabs.Length == 0)
+                    return;
+
+                FruitPlant fp = __instance.gameObject.EnsureComponent<FruitPlant>();
+                fp.fruitSpawnEnabled = true;
+                //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
+                // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
+                fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
+                //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
+                if (fp.fruitSpawnInterval == 0f)
+                    fp.fruitSpawnInterval = 1f;
+                //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);
+                fp.fruits = pickPrefabs;
+            }
 
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
@@ -290,7 +283,7 @@ namespace Tweaks_Fixes
                 //if (rb && Testing.rbToTest == rb)
                 //    AddDebug("FloatingStone UpdateCell isKinematic " + rb.isKinematic + " " + dist);
 
-                rb.isKinematic = dist > Main.config.detectCollisionsDist;
+                //rb.isKinematic = dist > Main.config.detectCollisionsDist;
             }
 
             //[HarmonyPrefix]

@@ -7,7 +7,6 @@ using SMLHelper.V2.Assets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Text;
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Bootstrap;
@@ -21,7 +20,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "2.09";
+            VERSION = "2.10";
 
         public static ManualLogSource logger;
         //public static GUIHand guiHand;
@@ -61,10 +60,31 @@ namespace Tweaks_Fixes
             return gameObject == null && !ReferenceEquals(gameObject, null);
         }
 
+        public static IEnumerator Cook(GameObject go)
+        {
+            TechType cookedData = CraftData.GetCookedData(CraftData.GetTechType(go.gameObject));
+            //AddDebug("CookFish " + go.name + " cookedData " + cookedData);
+            if (cookedData == TechType.None)
+                yield break;
+
+            TaskResult <GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(cookedData, (IOut<GameObject>)result);
+            GameObject cooked = result.Get();
+            cooked.transform.position = go.transform.position;
+            cooked.transform.rotation = go.transform.rotation;
+            cooked.GetComponent<Rigidbody>().mass = go.GetComponent<Rigidbody>().mass;
+            cooked.GetComponent<Rigidbody>().velocity = go.GetComponent<Rigidbody>().velocity;
+            cooked.GetComponent<Rigidbody>().angularDrag = go.GetComponent<Rigidbody>().angularDrag * 3f;
+            Destroy(go);
+            result = null;
+        }
+       
         public static bool IsDestroyed(Component component)
         {
             return component == null && !ReferenceEquals(component, null);
         }
+
+        private bool CloseToPosition(Vector3 pos1, Vector3 pos2, float range) => (pos1 - pos2).sqrMagnitude < range * range;
 
         public static Component CopyComponent(Component original, GameObject destination)
         {
@@ -309,6 +329,12 @@ namespace Tweaks_Fixes
                 LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[24]);
                 LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, config.translatableStrings[25]);
             }
+            foreach (Pickupable p in Food_Patch.cookedFish)
+            {
+                if (p.inventoryItem == null)
+                    Destroy(p.gameObject);
+            }
+            Food_Patch.cookedFish = new HashSet<Pickupable>();
             Storage_Patch.savedSigns = new List<Sign>();
         }
         

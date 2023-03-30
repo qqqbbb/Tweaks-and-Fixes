@@ -105,7 +105,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("silent " + tt);
                     foreach (FMOD_StudioEventEmitter componentsInChild in __instance.GetComponentsInChildren<FMOD_StudioEventEmitter>())
-                        //Object.Destroy(componentsInChild); // crashfish does not attack, null raf exception for crabsnake
+                        //Object.Destroy(componentsInChild); // crashfish does not attack, NRE for crabsnake
                         componentsInChild.enabled = false; // does not work for crashfish, sandshark
                     foreach (FMOD_CustomEmitter componentsInChild in __instance.GetComponentsInChildren<FMOD_CustomEmitter>())
                         //Object.Destroy(componentsInChild);
@@ -157,27 +157,19 @@ namespace Tweaks_Fixes
                 __result = canSee;
                 return false;
             }
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnKill")]
-            public static void OnKillPostfix(Creature __instance)
-            {
-                //AddDebug("respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
-                Animator animator = __instance.GetAnimator();
-                if (animator == null)
-                    return;
-
-                SafeAnimator.SetBool(animator, "attacking", false);
-
-                if (__instance is Stalker)
+            [HarmonyPrefix]
+            [HarmonyPatch("IsInFieldOfView")]
+            public static bool GetCanSeeObjectPrefix(Creature __instance, GameObject go, ref bool __result)
+            { // shoot ray from player to creature so that it hits terrain. Fixes crabsnakes attacking player who is in biome above them when aggression mult is 3
+                __result = false;
+                if (go != null)
                 {
-                    //AnimateByVelocity animByVelocity = __instance.GetComponentInChildren<AnimateByVelocity>();
-                    animator.enabled = false;
-                    //animator.SetFloat(AnimateByVelocity.animSpeed, 0.0f);
-                    //animator.SetFloat(AnimateByVelocity.animPitch, 0.0f);
-                    //animator.SetFloat(AnimateByVelocity.animTilt, 0.0f);
-                    //CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
-                    //collectShiny?.DropShinyTarget();
+                    Vector3 vector3 = go.transform.position - __instance.transform.position;
+                    Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
+                    if ((Mathf.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(vector3.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position, Voxeland.GetTerrainLayerMask()))
+                        __result = true;
                 }
+                return false;
             }
         }
         
@@ -190,38 +182,40 @@ namespace Tweaks_Fixes
             {
                 if (__instance.GetComponent<Pickupable>()) // fish
                 {
+                    __instance.respawn = Main.config.fishRespawn;
+                    __instance.respawnOnlyIfKilledByCreature = !Main.config.fishRespawnIfKilledByPlayer;
                     if (Main.config.fishRespawnTime > 0)
                         __instance.respawnInterval = Main.config.fishRespawnTime * 1200f;
+
+                    return;
+                }
+                //AddDebug(__instance.name + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
+                //AddDebug(__instance.name + " respawn " + __instance.respawn);
+                LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
+                if (!liveMixin)
+                    return;
+
+                if (liveMixin.maxHealth >= 3000f) // Leviathan
+                {
+                    __instance.respawn = Main.config.leviathansRespawn;
+                    __instance.respawnOnlyIfKilledByCreature = !Main.config.leviathansRespawnIfKilledByPlayer;
+                    if (Main.config.leviathanRespawnTime > 0)
+                        __instance.respawnInterval = Main.config.leviathanRespawnTime * 1200f;
                 }
                 else
                 {
-                    LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
-                    if (liveMixin)
-                    {
-                        if (liveMixin.maxHealth >= 3000f) // Leviathan
-                        {
-                            if (Main.config.leviathanRespawnTime > 0)
-                                __instance.respawnInterval = Main.config.leviathanRespawnTime * 1200f;
-
-                            if (Main.config.creatureRespawn == Config.CreatureRespawn.Leviathans_only || Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_and_leviathans)
-                                __instance.respawnOnlyIfKilledByCreature = false;
-                        }
-                        else
-                        {
-                            if (Main.config.creatureRespawnTime > 0)
-                                __instance.respawnInterval = Main.config.creatureRespawnTime * 1200f;
-
-                            if (Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_and_leviathans || Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_only)
-                                __instance.respawnOnlyIfKilledByCreature = false;
-                        }
-                    }
+                    __instance.respawn = Main.config.creaturesRespawn;
+                    __instance.respawnOnlyIfKilledByCreature = !Main.config.creaturesRespawnIfKilledByPlayer;
+                    if (Main.config.creatureRespawnTime > 0)
+                        __instance.respawnInterval = Main.config.creatureRespawnTime * 1200f;
                 }
             }
             [HarmonyPostfix]
             [HarmonyPatch("OnTakeDamage")]
-            static void OnTakeDamagePostfix(CreatureDeath __instance)
+            static void OnTakeDamagePostfix(CreatureDeath __instance, DamageInfo damageInfo)
             {
-                if (!Main.config.heatBladeCooks)
+                //AddDebug(__instance.name + " OnTakeDamage " + damageInfo.dealer.name);
+                if (!Main.config.heatBladeCooks && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
                     __instance.lastDamageWasHeat = false;
             }
             //[HarmonyPrefix]
@@ -246,10 +240,12 @@ namespace Tweaks_Fixes
             }
         }
         
-        [HarmonyPatch(typeof(SeaTreaderSounds), "OnStep")]
-        class SeaTreaderSounds_OnStep_patch
-        { 
-            public static bool Prefix(SeaTreaderSounds __instance, Transform legTr, AnimationEvent animationEvent)
+        [HarmonyPatch(typeof(SeaTreaderSounds))]
+        class SeaTreaderSounds_patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("OnStep")]
+            public static bool OnStepPrefix(SeaTreaderSounds __instance, Transform legTr, AnimationEvent animationEvent)
             {
                 if (Main.config.seaTreaderOutcrop == Config.SeaTreaderOutcrop.Vanilla)
                     return true;
@@ -264,15 +260,13 @@ namespace Tweaks_Fixes
 
                 return false;
             }
-        }
-        
-        [HarmonyPatch(typeof(SeaTreaderSounds), "OnStomp")]
-        class SeaTreaderSounds_OnStomp_patch
-        { 
-            public static bool Prefix(SeaTreaderSounds __instance)
+
+            [HarmonyPrefix]
+            [HarmonyPatch("OnStomp")]
+            public static bool OnStompPrefix(SeaTreaderSounds __instance)
             {
                 if (Main.config.seaTreaderOutcrop == Config.SeaTreaderOutcrop.Never)
-                { 
+                {
                     if (Time.time < __instance.lastStompAttackTime + 0.2f)
                         return false;
 
@@ -342,10 +336,9 @@ namespace Tweaks_Fixes
             }
         }
         
-        [HarmonyPatch(typeof(SwimBehaviour))]
+        [HarmonyPatch(typeof(SwimBehaviour), "SwimToInternal")]
         class SwimBehaviour_SwimToInternal_patch
         {
-            [HarmonyPatch("SwimToInternal")]
             public static void Prefix(SwimBehaviour __instance, ref float velocity, ref Vector3 targetPosition)
             {
                 if (Main.IsEatableFish(__instance.gameObject))
@@ -450,7 +443,10 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-        
-        
+
+
+
+
+
     }
 }

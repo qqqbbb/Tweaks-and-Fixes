@@ -12,7 +12,7 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-        [Slider("Day/night cycle speed multiplier", 0f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
+        [Slider("Day/night cycle speed multiplier", 0.1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher the value the shorter the days are."), OnChange(nameof(UpdateGameSpeed))]
         public float dayCycleSpeed = 1f;
         [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
         public float playerSpeedMult = 1f;
@@ -22,7 +22,7 @@ namespace Tweaks_Fixes
         public float vehicleDamageMult = 1f;
         //[Slider("Damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "When anything but the player or vehicles takes damage, it will be multiplied by this.")]
         //public float damageMult = 1f;
-        [Slider("Predator aggression multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's 3 predators attack you on sight and never flee. If after changing this nothing ha")]
+        [Slider("Predator aggression multiplier", 0f, 2f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's 2 predators attack you on sight and never flee.")]
         public float aggrMult = 1f;
         [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
         public float oxygenPerBreath = 3f;
@@ -51,8 +51,8 @@ namespace Tweaks_Fixes
         public bool exosuitMoveTweaks = false;
         [Toggle("Cyclops movement tweaks", Tooltip = "Cyclops does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and backward speed is halved.")]
         public bool cyclopsMoveTweaks = false;
-        [Slider("Cyclops engine room fire chance percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Cyclops engine room fire chance percent when the engine overheats.")]
-        public int cyclopsFireChance = 100;
+        [Slider("Cyclops engine room fire chance percent", 0, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "Cyclops engine room fire chance percent when the engine overheats. The game checks it every 10 seconds after you get your first overheat warning. And it increases by 10% every 10 seconds if you don't slow down.")]
+        public int cyclopsFireChance = 50;
         [Slider("Crush depth", 50, 500, DefaultValue = 200, Step = 10, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
         public int crushDepth = 200;
         [Slider("Crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.")]
@@ -71,7 +71,7 @@ namespace Tweaks_Fixes
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool newHungerSystem = false;
 
-        [Choice("Eating raw fish", Tooltip = "When it's not vanilla, amount of food you get by eating raw fish changes. Harmless: it's a random number between 0 and fish's food value. Risky: it's a random number between fish's food negative value and fish's food value. Harmful: it's a random number between fish's food negative value and 0.")]
+        [Choice("Eating raw fish", Tooltip = "When it's not vanilla, amount of food you get by eating raw fish changes. Harmless: it's a random number between 0 and fish's food value. Risky: it's a random number between fish's negative food value and fish's food value. Harmful: it's a random number between fish's negative food value and 0.")]
         public EatingRawFish eatRawFish;
         [Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Game has to be reloaded after changing this.")]
         public bool foodTweaks = false;
@@ -121,14 +121,14 @@ namespace Tweaks_Fixes
         //public int brainCoralBubbleInterval = 3;
         //[Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
         //public bool predatorsDontFlee = false;
-        [Choice("Creatures respawn if killed by player", Tooltip = "By default big creatures and leviathans never respawn if killed by player.")]
-        public CreatureRespawn creatureRespawn;
+        //[Choice("Creatures respawn if killed by player", Tooltip = "By default big creatures and leviathans never respawn if killed by player.")]
+        //public CreatureRespawn creatureRespawn;
         //public bool creaturesRespawn = false;
-        [Slider("Fish respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes small fish to respawn after it was killed or caught. If it's 0, default (6 hours) value will be used. Game has to be reloaded after changing this.")]
+        [Slider("Fish respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes small fish to respawn after it was killed or caught. If it's 0, default value of 6 hours will be used. Game has to be reloaded after changing this.")]
         public int fishRespawnTime = 0;
-        [Slider("Big creatures respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a creature that you can't catch to respawn after it was killed. If it's 0, default (12 hours) value will be used. Game has to be reloaded after changing this.")]
+        [Slider("Big creature respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a creature that you can't catch to respawn after it was killed. If it's 0, default value of 12 hours will be used. Game has to be reloaded after changing this.")]
         public int creatureRespawnTime = 0;
-        [Slider("Leviathan respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a leviathan to respawn after it was killed. If it's 0, default (1 day) value will be used. Game has to be reloaded after changing this.")]
+        [Slider("Leviathan respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a leviathan to respawn after it was killed. If it's 0, default value of 1 day will be used. Game has to be reloaded after changing this.")]
         public int leviathanRespawnTime = 0;
         [Toggle("Do not spawn fragments for unlocked blueprints", Tooltip = "")]
         public bool dontSpawnKnownFragments = false;
@@ -150,8 +150,6 @@ namespace Tweaks_Fixes
         public int decoyHP = 0;
         [Toggle("Creature decoy does not work when dropped from inventory", Tooltip = "")]
         public bool decoyRequiresSub = false;
-        //[Toggle("Remove light from open databox", Tooltip = "Disable databox light when you open it so it does not draw your attention next time you see it. Game has to be reloaded after changing this.")]
-        //public bool disableDataboxLight = false;
         [Slider("Life pod power cell max charge", 10, 100, DefaultValue = 25, Step = 1, Format = "{0:F0}", Tooltip = "Max charge for each of its 3 power cells. Game has to be reloaded after changing this.")]
         public int escapePodMaxPower = 25;
         [Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are not charged. Game has to be reloaded after changing this.")]
@@ -278,7 +276,7 @@ namespace Tweaks_Fixes
         {
             //Base_Light.UpdateBaseLight();
         }
-        public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
+        //public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
         public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
@@ -307,14 +305,14 @@ namespace Tweaks_Fixes
             if (DayNightCycle.main)
                 DayNightCycle.main._dayNightSpeed = Main.config.dayCycleSpeed;
         }
-        public bool fixMelons = true;
+        public bool fixMelons = false;
         public bool randomPlantRotation = true;
         public bool silentReactor = false;
         public bool removeFragmentCrate = true;
         public bool fleeOnDamage = true;
         public bool creepvineLights = true;
         public bool LEDLightWorksInHand = true;
-        public int detectCollisionsDist = 50;
+        //public int detectCollisionsDist = 50;
         public bool newUIstrings = true;
         public bool newStorageUI = true;
         public bool tweaksAffectingGPU = true;
@@ -326,6 +324,16 @@ namespace Tweaks_Fixes
         //public int growingPlantUpdateInterval = 0;
         public bool builderPlacingWhenFinishedBuilding = true;
         public bool crushDamageScreenEffect = true;
+        public bool removeCookedFishOnReload = true;
+
+        public bool fishRespawn = true;
+        public bool fishRespawnIfKilledByPlayer = true;
+        public bool creaturesRespawn = true;
+        public bool creaturesRespawnIfKilledByPlayer = false;
+        public bool leviathansRespawn = false;
+        public bool leviathansRespawnIfKilledByPlayer = false;
+
+
 
 
         // also edit UI_Patches.GetStrings when editing this

@@ -9,17 +9,18 @@ using UnityEngine;
 using System.Text;
 using static ErrorMessage;
 using static VFXParticlesPool;
+using DayNightSpeed;
 
 namespace Tweaks_Fixes
 {
     class Testing
     {
-        //public static Rigidbody rbToTest = null;
+        public static GameObject goToTest = null;
         //static HashSet<TechType> creatures = new HashSet<TechType>();
         //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
         //static bool done = false;
 
-        [HarmonyPatch(typeof(DisplayManager))]
+        //[HarmonyPatch(typeof(DisplayManager))]
         class DisplayManager_Patch
         {
             //[HarmonyPostfix]
@@ -43,6 +44,7 @@ namespace Tweaks_Fixes
 
                 AddDebug("Initialize Screen.currentResolution " + Screen.currentResolution.width);
                 AddDebug("Initialize DisplayManager.resolution " + __instance.resolution.width);
+                Main.logger.LogMessage("Resolution should be fixed");
                 if (Screen.currentResolution.width != 1280)
                 {
                     //Screen.SetResolution(1280, 720, true);
@@ -54,12 +56,49 @@ namespace Tweaks_Fixes
 
 
 
+        //[HarmonyPatch(typeof(AttackLastTarget))]
+        class AttackLastTarget_Patch
+        {
+            //[HarmonyPrefix]
+            //[HarmonyPatch(typeof(AttackLastTarget), "OnMeleeAttack")]
+            static void OnMeleeAttackPostfix(AttackLastTarget __instance)
+            {
+                if(__instance.lastTarget && __instance.lastTarget == Player.mainObject)
+                    AddDebug("AttackLastTarget OnMeleeAttack ");
+            }
+            //[HarmonyPrefix]
+            //[HarmonyPatch(typeof(AttackLastTarget), "StopAttack")]
+            static void StopAttackPostfix(AttackLastTarget __instance)
+            {
+                if (__instance.lastTarget && __instance.lastTarget == Player.mainObject)
+                    AddDebug("AttackLastTarget StopAttack ");
+            }
+            //[HarmonyPostfix]
+            //[HarmonyPatch(typeof(AttackLastTarget), "CanAttackTarget")]
+            static void CanAttackTargetPostfix(AttackLastTarget __instance, GameObject target, ref bool __result)
+            {
+                if (target && target == Player.mainObject)
+                    AddDebug("AttackLastTarget CanAttackTarget " + __result);
+            }
+        }
+
+        //[HarmonyPatch(typeof(AggressiveWhenSeePlayer), "GetAggressionTarget")]
+        class CreatureDeath_OnKillAsync_Patch
+        {
+            static void Postfix(AggressiveWhenSeePlayer __instance)
+            {
+                AddDebug(__instance.name + " AggressiveWhenSeePlayer GetAggressionTarget ");
+
+            }
+        }
+
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug(" Builder.isPlacing " + Builder.isPlacing);
+
+                //AddDebug("depthLevel " + Player.main.depthLevel);
                 //AddDebug("stalkerLoseTooth " + Main.config.stalkerLoseTooth * .01f);
                 //AddDebug("Time.time " + (int)Time.time);
                 //AddDebug("isUnderwaterForSwimming " + __instance.isUnderwaterForSwimming.value);
@@ -80,7 +119,8 @@ namespace Tweaks_Fixes
                     int y = Mathf.RoundToInt(Player.main.transform.position.y);
                     int z = Mathf.RoundToInt(Player.main.transform.position.z);
                     AddDebug(x + " " + y + " " + z);
-                    AddDebug("" + Player.main.GetBiomeString());
+                    AddDebug("GetBiomeString " + Player.main.GetBiomeString());
+                    AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(__instance.transform.position));
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
@@ -114,6 +154,7 @@ namespace Tweaks_Fixes
                     //Vector3 vel = Player.main.currentMountedVehicle.useRigidbody.velocity;
                     //bool moving = vel.x > 1f || vel.y > 1f || vel.z > 1f;
                     //AddDebug("moving " + moving);
+                
                     GameObject target = Player.main.guiHand.activeTarget;
                     //GameObject target = null;
                     if (!target)
@@ -133,18 +174,18 @@ namespace Tweaks_Fixes
                         if (lwe)
                         {
                             target = lwe.gameObject;
+                            goToTest = target;
                             AddDebug(" cellLevel " + lwe.cellLevel);
+                            //LiveMixin lm = lwe.GetComponent<LiveMixin>();
+                            //if (lm)
+                            //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
                         }
                         AddDebug(target.gameObject.name );
                         TechType techType = CraftData.GetTechType(target);
                         if (techType != TechType.None)
                             AddDebug("TechType  " + techType);
-                        //LiveMixin lm = pi.GetComponent<LiveMixin>();
-                        //if (lm)
-                        //{
-                        //    AddDebug("max HP " + lm.data.maxHealth);
-                        //    AddDebug(" HP " + lm.health);
-                        //}
+
+                        
                         //Rigidbody rb = target.GetComponent<Rigidbody>();
                         //if (rb)
                         {

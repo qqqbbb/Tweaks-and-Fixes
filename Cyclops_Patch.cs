@@ -129,6 +129,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
             {
+                //AddDebug("SubRoot Start " + __instance.powerRelay.GetPowerStatus());
                 if (__instance.isCyclops)
                 {
                     //AddDebug("PowerStatus " + __instance.powerRelay.GetPowerStatus());
@@ -650,15 +651,35 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SubFire), "EngineOverheatSimulation")]
+        [HarmonyPatch(typeof(SubFire))]
         class SubFire_EngineOverheatSimulation_Patch
         {
-            static bool Prefix(SubFire __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("Start")]
+            static bool StartPrefix(SubFire __instance)
             {
-                if (!__instance.gameObject.activeInHierarchy || !__instance.LOD.IsFull())
+                //AddDebug("SubFire Start  " + __instance.transform.position);
+                // prevent invoke in prefab
+                if (__instance.transform.position == Vector3.zero)
                     return false;
 
-                //AddDebug("SubFire activeInHierarchy " + __instance.gameObject.activeInHierarchy);
+                return true;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("Update")]
+            static bool UpdatePrefix(SubFire __instance)
+            {
+                return Main.loadingDone;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("EngineOverheatSimulation")]
+            static bool EngineOverheatSimulationPrefix(SubFire __instance)
+            {
+                //AddDebug("SubFire EngineOverheatSimulation activeInHierarchy " + __instance.gameObject.activeInHierarchy);
+                //AddDebug("SubFire position " + __instance.transform.position);
+                if (!__instance.gameObject.activeInHierarchy || !__instance.LOD.IsFull())
+                    return false;
+         
                 //AddDebug("engineOverheatValue " + __instance.engineOverheatValue);
                 //AddDebug("appliedThrottle " + __instance.subControl.appliedThrottle);
                 //AddDebug("engineOn " + __instance.cyclopsMotorMode.engineOn);
@@ -703,15 +724,20 @@ namespace Tweaks_Fixes
                 int overheatMinValue = GetEngineOverheatMinValue(__instance);
                 __instance.engineOverheatValue = Mathf.Clamp(__instance.engineOverheatValue, overheatMinValue, 100);
 
-                int fireChance = UnityEngine.Random.Range(0, Main.config.cyclopsFireChance);
-                fireChance += 100 - Main.config.cyclopsFireChance;
-                //AddDebug("fireChance " + fireChance);
-                if (__instance.engineOverheatValue > 50 && __instance.engineOverheatValue > fireChance)
-                    __instance.CreateFire(__instance.roomFires[CyclopsRooms.EngineRoom]);
-
+                if (__instance.engineOverheatValue > 50)
+                {
+                    int fireChance = UnityEngine.Random.Range(0, __instance.engineOverheatValue + 50);
+                    fireChance = Mathf.Clamp(fireChance, 0, 100);
+                    int fireCheck = 100 - Main.config.cyclopsFireChance;
+                    //AddDebug("fireChance " + fireChance);
+                    if (fireChance > fireCheck)
+                        __instance.CreateFire(__instance.roomFires[CyclopsRooms.EngineRoom]);
+                }
                 return false;
             }
         }
+
+
 
 
     }
