@@ -46,7 +46,7 @@ namespace Tweaks_Fixes
         }
     }
 
-    [HarmonyPatch(typeof(HangingStinger), "OnCollisionEnter")]
+    //[HarmonyPatch(typeof(HangingStinger), "OnCollisionEnter")]
     class HangingStinger_OnCollisionEnter_Patch
     {
         public static bool Prefix(HangingStinger __instance, Collision other)

@@ -125,17 +125,13 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
             {
                 //AddDebug("SubRoot Start " + __instance.powerRelay.GetPowerStatus());
                 if (__instance.isCyclops)
                 {
-                    //AddDebug("PowerStatus " + __instance.powerRelay.GetPowerStatus());
-                    WorldForces wf = __instance.GetComponent<WorldForces>();
-                    if (wf) // prevent it from jumping out of water when surfacing
-                        wf.aboveWaterGravity = 30f;
                 }
             }
 
@@ -188,11 +184,20 @@ namespace Tweaks_Fixes
                 //{ 
                 //__instance.BaseVerticalAccel = __instance.BaseForwardAccel * .5f;
                 //}
-                //TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
-                //techTag.type = TechType.Cyclops;
+                TechTag techTag = __instance.gameObject.EnsureComponent<TechTag>();
+                techTag.type = TechType.Cyclops;
+                LargeWorldEntity_Patch.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
+                Transform tr = __instance.transform.Find("CyclopsCollision/helmGroup");
+                if (tr)
+                    LargeWorldEntity_Patch.AddVFXsurfaceComponent(tr.gameObject, VFXSurfaceTypes.glass);
+
+                WorldForces wf = __instance.GetComponent<WorldForces>();
+                if (wf) // prevent it from jumping out of water when surfacing
+                    wf.aboveWaterGravity = 30f;
+
                 numBallastWeight = __instance.gameObject.GetComponentsInChildren<BallastWeight>().Length;
                 //AddDebug("Start numBallastWeight " + numBallastWeight);
-                Transform tr = __instance.transform.Find("Headlights");
+                tr = __instance.transform.Find("Headlights");
                 if (tr) // not used
                     UnityEngine.Object.Destroy(tr.gameObject);
 
@@ -737,6 +742,23 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(CyclopsExternalDamageManager), "UpdateOvershield")]
+        class CyclopsExternalDamageManager_UpdateOvershield_Patch
+        {
+            static bool Prefix(CyclopsExternalDamageManager __instance)
+            {
+                if (Main.config.cyclopsAutoHealHealthPercent == 90)
+                    return true;
+
+                //AddDebug(__instance.name + " CyclopsExternalDamageManager UpdateOvershield " + __instance.overshieldPercentage);
+                if (__instance.subFire.GetFireCount() > 0 || __instance.subLiveMixin.GetHealthFraction() <= Main.config.cyclopsAutoHealHealthPercent * .01f)
+                    return false;
+
+                __instance.subLiveMixin.AddHealth(3f);
+                return false;
+
+            }
+        }
 
 
 

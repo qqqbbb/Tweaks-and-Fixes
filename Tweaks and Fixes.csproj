@@ -38,9 +38,6 @@
     <Reference Include="BepInEx">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
-    <Reference Include="DayNightSpeed">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\QMods\DayNightSpeed\DayNightSpeed.dll</HintPath>
-    </Reference>
     <Reference Include="0Harmony">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
@@ -97,6 +94,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="Physics_Patch.cs" />
+    <Compile Include="Planter_Patch.cs" />
+    <Compile Include="LavaGeyser_Patch.cs" />
+    <Compile Include="Scanner_Patch.cs" />
+    <Compile Include="Sound_Patch.cs" />
     <Compile Include="Translation.cs" />
     <Compile Include="Cyclops_Collision.cs" />
     <Compile Include="Game_Speed_Patch.cs" />
@@ -133,6 +135,7 @@
     <Compile Include="Cyclops_Patch.cs" />
     <Compile Include="Testing.cs" />
     <Compile Include="UI_Patches.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="Vehicle_Patch.cs" />
     <Compile Include="Wreck_Patch.cs" />
   </ItemGroup>

@@ -37,7 +37,9 @@ namespace Tweaks_Fixes
                 new SpawnLocation(new Vector3(348.3f, -25.3f, -205.1f), new Vector3(0f, 266f, 325f)),
                 new SpawnLocation(new Vector3(-637f, -110.5f, -49.2f), new Vector3(355f, 0f, 90f)),
                 new SpawnLocation(new Vector3(-185f, -42f, 138.5f), new Vector3(0f, 270f, 138f)),
-                new SpawnLocation(new Vector3(-63.85f, -16f, -223f), new Vector3(270f, 321f, 0f)),// scale 1.1
+                new SpawnLocation(new Vector3(-63.85f, -16f, -223f), new Vector3(270f, 321f, 0f)), // scale 1.1
+                //new SpawnLocation(new Vector3(168.7f, -69.2f, 53.3f), new Vector3(0f, 20f, 0f)), // scale .6
+                //new SpawnLocation(new Vector3(156f, -78f, 112f), new Vector3(0f, 0f, 0f)), 
             };
         }
 

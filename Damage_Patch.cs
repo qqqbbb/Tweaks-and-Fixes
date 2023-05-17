@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
+using static PlaceTool;
+using static Tweaks_Fixes.Damage_Patch;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -14,7 +17,7 @@ namespace Tweaks_Fixes
         static float poisonDamage = .5f;
         public static List<LiveMixin> tempDamageLMs = new List<LiveMixin>();
         static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
-   
+
         static void SetBloodColor(GameObject go)
         {   // GenericCreatureHit(Clone)
             // RGBA(0.784, 1.000, 0.157, 0.392)
@@ -46,83 +49,195 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_patch
         {
-            static Rigidbody prevColTarget;
-
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             public static void StartPostfix(DealDamageOnImpact __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //AddDebug(" DealDamageOnImpact start " +__instance.gameObject.name);
-                //foreach (GameObject go in __instance.exceptions)
-                //{
-                //AddDebug(tt + " exception " + go.name);
-                //}
+
+                __instance.minDamageInterval = 1f;
                 if (tt == TechType.Gasopod)
                 {
                     UnityEngine.Object.Destroy(__instance);
                 }
                 else if (tt == TechType.Seamoth || tt == TechType.Exosuit || tt == TechType.Cyclops)
                 {
-                    __instance.exceptions.Add(Player.main.gameObject);
-                    //AddDebug(tt + " exception " );
+                    //__instance.allowDamageToPlayer = false;
+                    //AddDebug(__instance.name + " tt " + tt + " " + __instance.speedMinimumForDamage);
                 }
+                //else
+                //{
+                //    AddDebug(" DealDamageOnImpact start " + __instance.gameObject.name + " allowDamageToPlayer " + __instance.allowDamageToPlayer + " mirroredSelfDamage " + __instance.mirroredSelfDamage + " minimumMassForDamage " + __instance.minimumMassForDamage + " speedMinimumForDamage " + __instance.speedMinimumForDamage);
+                //    Main.logger.LogInfo(" DealDamageOnImpact start " + __instance.gameObject.name + " allowDamageToPlayer " + __instance.allowDamageToPlayer + " mirroredSelfDamage " + __instance.mirroredSelfDamage + " minimumMassForDamage " + __instance.minimumMassForDamage + " speedMinimumForDamage " + __instance.speedMinimumForDamage);
+                //}
             }
 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnCollisionEnter")]
+            [HarmonyPrefix]
+            [HarmonyPatch("OnCollisionEnter")]
             public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
+                if (!Main.config.replaceDealDamageOnImpactScript)
+                    return true;
+
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
                     return false;
 
-                float damageMult = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
-                //AddDebug(" collision " + collision.gameObject.name);
-                float colMag = collision.relativeVelocity.magnitude;
-                if (colMag <= __instance.speedMinimumForDamage)
-                    return false;
-                LiveMixin targetLM = __instance.GetLiveMixin(collision.gameObject);
-                Vector3 position = collision.contacts.Length == 0 ? collision.transform.position : collision.contacts[0].point;
-                Rigidbody rb = Utils.FindAncestorWithComponent<Rigidbody>(collision.gameObject);
-                float targetMass = rb != null ? rb.mass : 5000f;
-                float myMass = __instance.GetComponent<Rigidbody>().mass;
-                float colMult = Mathf.Clamp((1f + (myMass - targetMass) * 0.001f), 0f, damageMult);
-                float targetDamage = colMag * colMult;
+                bool terrain = collision.gameObject.GetComponent<TerrainChunkPieceCollider>();
+                GameObject colTarget = collision.gameObject;
+                if (!terrain)
+                    colTarget = Util.GetEntityRoot(collision.gameObject);
 
-                if (targetLM && targetLM.IsAlive() && Time.time > __instance.timeLastDamage + __instance.minDamageInterval)
+                if (collision.gameObject.GetComponentInParent<Player>())
                 {
-                    bool skip = false;
-                    if (prevColTarget == rb && Time.time < __instance.timeLastDamage + 3f)
-                        skip = true;
-                    if (!skip)
+                    if (!__instance.allowDamageToPlayer )
                     {
-                        //AddDebug("myMass " + myMass + " targetDamage " + (int)targetDamage);
-                        targetLM.TakeDamage(targetDamage, position, DamageType.Collide, __instance.gameObject);
-                        __instance.timeLastDamage = Time.time;
-                        prevColTarget = rb;
+                        //AddDebug(__instance.name + " collided with player");
+                        return false;
+                    }
+                    colTarget = Player.mainObject;
+                }
+                //if (colTarget)
+                //    AddDebug(__instance.name + " OnCollisionEnter " + colTarget.name);
+                //else
+                //    AddDebug(__instance.name + " OnCollisionEnter colTarget null ");
+
+                // collision.contacts generates garbage
+                ContactPoint contactPoint = collision.GetContact(0);
+                Vector3 impactPoint = contactPoint.point;
+                float damageMult = Mathf.Max(0f, Vector3.Dot(-contactPoint.normal, __instance.prevVelocity));
+
+                damageMult = Mathf.Clamp(damageMult, 0f, 10f);
+                Rigidbody otherRB = collision.rigidbody;
+                float myMass = __instance.GetComponent<Rigidbody>().mass;
+                float massRatioInv;
+                float massRatio;
+                if (terrain)
+                {
+                    massRatio = .01f;
+                    massRatioInv = 100f;
+                }
+                else
+                {
+                    if (otherRB)
+                    {
+                        massRatio = myMass / otherRB.mass;
+                        massRatioInv = otherRB.mass / myMass;
+                        //AddDebug("myMass " + myMass + " other mass " + otherRB.mass);
+                    }
+                    else
+                    {
+                        Bounds otherBounds = Util.GetAABB(colTarget);
+                        Bounds myBounds = Util.GetAABB(__instance.gameObject);
+                        massRatioInv = otherBounds.size.magnitude / myBounds.size.magnitude;
+                        massRatio = myBounds.size.magnitude / otherBounds.size.magnitude;
+                        //AddDebug("myBounds " + myBounds.size.magnitude + " otherBounds " + otherBounds.size.magnitude);
                     }
                 }
+                TechType myTT = CraftData.GetTechType(__instance.gameObject);
+                TechType otherTT = CraftData.GetTechType(colTarget);
+                bool vehicle = myTT == TechType.Cyclops || myTT == TechType.Seamoth || myTT == TechType.Exosuit;
+                bool otherVehicle = otherTT == TechType.Cyclops || otherTT == TechType.Seamoth || otherTT == TechType.Exosuit;
+                //DealDamageOnImpact otherDDOI = colTarget.GetComponent<DealDamageOnImpact>();
 
-                if (!__instance.mirroredSelfDamage || colMag < __instance.speedMinimumForSelfDamage)
+                bool canDealDamage = true;
+                //if (otherDDOI && damageMult < otherDDOI.speedMinimumForDamage)
+                //    canDealDamage = false;
+                if (myTT == TechType.Seamoth && damageMult < Main.config.seamothDealDamageMinSpeed)
+                    canDealDamage = false;
+                else if (myTT == TechType.Exosuit && damageMult < Main.config.exosuitDealDamageMinSpeed)
+                    canDealDamage = false;
+                else if (myTT == TechType.Cyclops && damageMult < Main.config.cyclopsDealDamageMinSpeed)
+                    canDealDamage = false;
+
+                if (damageMult > 0 && canDealDamage && Time.time > __instance.timeLastDamage + 1f)
+                {
+                    LiveMixin otherLM = __instance.GetLiveMixin(colTarget);
+                    if (otherLM && otherLM.health > 0)
+                    {
+                        //AddDebug(otherLM.name + " max HP " + otherLM.maxHealth + " HP " + (int)otherLM.health);
+                        VFXSurfaceTypes mySurfaceType = VFXSurfaceTypes.none;
+                        if (vehicle)
+                            mySurfaceType = VFXSurfaceTypes.metal;
+                        else
+                            mySurfaceType = Util.GetObjectSurfaceType(__instance.gameObject);
+
+                        float massRatioClamped = Mathf.Clamp(massRatio, 0, damageMult);
+                        massRatioClamped = Util.NormalizeToRange(massRatioClamped, 0f, 10f, 1f, 2f);
+                        if (mySurfaceType == VFXSurfaceTypes.metal || mySurfaceType == VFXSurfaceTypes.glass || mySurfaceType == VFXSurfaceTypes.rock)
+                            massRatioClamped *= 2f;
+
+                        float damage = damageMult * massRatioClamped;
+                        //AddDebug(__instance.name + " deal damage " + (int)damage);
+                        //AddDebug(__instance.name + " speedMinimumForDamage " + __instance.speedMinimumForDamage);
+                        otherLM.TakeDamage(damage, impactPoint, DamageType.Collide, __instance.gameObject);
+                        __instance.timeLastDamage = Time.time;
+                    }
+                }
+                if (terrain && myTT == TechType.Exosuit)
                     return false;
 
                 LiveMixin myLM = __instance.GetLiveMixin(__instance.gameObject);
-                bool tooSmall = rb && rb.mass <= __instance.minimumMassForDamage;
-
-                if (__instance.mirroredSelfDamageFraction == 0f || !myLM || Time.time <= __instance.timeLastDamagedSelf + 1f || tooSmall)
+                if (damageMult <= 0 || __instance.mirroredSelfDamageFraction == 0f || !myLM || Time.time < __instance.timeLastDamagedSelf + 1f)
                     return false;
-                //AddDebug("minimumMassForDamage " + __instance.minimumMassForDamage + " mass " + rb.mass);
-                //float myDamage = targetDamage * __instance.mirroredSelfDamageFraction;
 
-                float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, damageMult);
-                //AddDebug("mass " + targetMass + " myDamage " + (int)myDamage);
-                //AddDebug(" maxHealth " + myLM.maxHealth + " health " + myLM.health);
-                if (__instance.capMirrorDamage != -1f) // cyclops is immune to collision damage
+                //bool canTakeDamage = true;
+                if (myTT == TechType.Seamoth && damageMult < Main.config.seamothTakeDamageMinSpeed)
+                    return false;
+                else if (myTT == TechType.Exosuit && damageMult < Main.config.exosuitTakeDamageMinSpeed)
+                    return false;
+                else if (myTT == TechType.Cyclops && damageMult < Main.config.cyclopsTakeDamageMinSpeed)
+                    return false;
+
+                if (otherRB)
+                {
+                    if (myTT == TechType.Seamoth && otherRB.mass <= Main.config.seamothTakeDamageMinMass)
+                        return false;
+                    else if (myTT == TechType.Exosuit && otherRB.mass <= Main.config.exosuitTakeDamageMinMass)
+                        return false;
+                    else if (myTT == TechType.Cyclops && otherRB.mass <= Main.config.cyclopsTakeDamageMinMass)
+                        return false;
+                }
+                else if (otherRB == null || terrain)
+                {
+                    if (myTT == TechType.Seamoth && Main.config.seamothTakeDamageMinMass >= 10000)
+                        return false;
+                    else if (myTT == TechType.Exosuit && Main.config.exosuitTakeDamageMinMass >= 10000)
+                        return false;
+                    else if (myTT == TechType.Cyclops && Main.config.cyclopsTakeDamageMinMass >= 10000)
+                        return false;
+                }
+                //float myDamage = colMag * Mathf.Clamp((1f + massRatio * 0.001f), 0f, damageMult);
+                VFXSurfaceTypes surfaceType = Util.GetObjectSurfaceType(colTarget);
+                //AddDebug(colTarget.name + " surface " + surfaceType);
+                float massRatioInvClamped = Mathf.Clamp(massRatioInv, 0, damageMult);
+                massRatioInvClamped = Util.NormalizeToRange(massRatioInvClamped, 0f, 10f, 1f, 2f);
+                if (terrain || surfaceType == VFXSurfaceTypes.glass || surfaceType == VFXSurfaceTypes.metal || surfaceType == VFXSurfaceTypes.rock)
+                    massRatioInvClamped *= 2f;
+
+                float myDamage = damageMult * massRatioInvClamped ;
+                //AddDebug(__instance.name + " maxHealth " + myLM.maxHealth + " health " + (int)myLM.health);
+                if (__instance.capMirrorDamage != -1f)
                     myDamage = Mathf.Min(__instance.capMirrorDamage, myDamage);
-                myLM.TakeDamage(myDamage, position, DamageType.Collide, __instance.gameObject);
-                __instance.timeLastDamagedSelf = Time.time;
 
+                myLM.TakeDamage(myDamage, impactPoint, DamageType.Collide, __instance.gameObject);
+                //AddDebug(__instance.name + " take damage " + (int)myDamage);
+                //AddDebug(__instance.name + " speedMinimumForSelfDamage " + __instance.speedMinimumForSelfDamage);
+                __instance.timeLastDamagedSelf = Time.time;
                 return false;
+            }
+
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnCollisionEnter")]
+            public static void OnCollisionEnterPostfix(DealDamageOnImpact __instance, Collision collision)
+            {
+                //if (__instance.GetComponentInChildren<Player>())
+                //{
+                //    AddDebug("velocity Postfix " + __instance.GetComponent<Rigidbody>().velocity);
+                //}
+                //else
+                    //AddDebug(__instance.name + " OnCollisionEnter" );
+
             }
         }
         
@@ -162,9 +277,8 @@ namespace Tweaks_Fixes
                     {
                         gameObject.transform.parent = parent;
                         if (surfaceType == VFXSurfaceTypes.organic)
-                        {
                             SetBloodColor(gameObject);
-                        }
+                        
                         particleSystem = gameObject.GetComponent<ParticleSystem>();
                         particleSystem.Play();
                     }
@@ -176,52 +290,10 @@ namespace Tweaks_Fixes
             }
         }
         
-        [HarmonyPatch(typeof(Knife), "OnToolUseAnim")]
+        //[HarmonyPatch(typeof(Knife), "OnToolUseAnim")]
         class Knife_OnToolUseAnim_Patch
         {
-            public static bool Prefix(Knife __instance, GUIHand hand)
-            {
-                Vector3 position = new Vector3();
-                GameObject closestObj = null;
-                UWE.Utils.TraceFPSTargetPosition(Player.main.gameObject, __instance.attackDist, ref closestObj, ref position);
-                if (closestObj == null)
-                {
-                    InteractionVolumeUser ivu = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
-                    if (ivu != null && ivu.GetMostRecent() != null)
-                        closestObj = ivu.GetMostRecent().gameObject;
-                }
-                if (closestObj)
-                {
-                    LiveMixin liveMixin = closestObj.FindAncestor<LiveMixin>();
-                    if (Knife.IsValidTarget(liveMixin))
-                    {
-                        if (liveMixin)
-                        {
-                            bool wasAlive = liveMixin.IsAlive();
-                            liveMixin.TakeDamage(__instance.damage, position, __instance.damageType, Player.main.gameObject); // my
-                            __instance.GiveResourceOnDamage(closestObj, liveMixin.IsAlive(), wasAlive);
-                        }
-                        Utils.PlayFMODAsset(__instance.attackSound, __instance.transform);
-                        VFXSurface vfxSurface = closestObj.GetComponent<VFXSurface>();
-                        Vector3 euler = MainCameraControl.main.transform.eulerAngles + new Vector3(300f, 90f, 0f);
-                        //setBloodColor = true;
-                        ParticleSystem particleSystem = VFXSurfaceTypeManager.main.Play(vfxSurface, __instance.vfxEventType, position, Quaternion.Euler(euler), Player.main.transform);
-                        //particleSystem.startColor = new Color(1f, 1f, 1f);
-                        //particleSystem.main.
-                    }
-                    else
-                        closestObj = null;
-                }
-                if (closestObj != null || hand.GetActiveTarget() != null)
-                    return false;
 
-                if (Player.main.IsUnderwater())
-                    Utils.PlayFMODAsset(__instance.underwaterMissSound, __instance.transform);
-                else
-                    Utils.PlayFMODAsset(__instance.surfaceMissSound, __instance.transform);
-
-                return false;
-            }
         }
         
         [HarmonyPatch(typeof(LiveMixin))]
@@ -529,7 +601,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.gameObject == Player.mainObject)
                 {
-                    AddDebug("SyncUpdatingState ");
+                    //AddDebug("SyncUpdatingState ");
                 }
             }
 
@@ -539,7 +611,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.gameObject.GetComponent<SubControl>())
                 {
-                    AddDebug(__instance.name + " TakeDamage Postfix " + originalDamage + " " + type);
+                    //AddDebug(__instance.name + " TakeDamage Postfix " + originalDamage + " " + type);
                 }
             }
         }
@@ -548,7 +620,7 @@ namespace Tweaks_Fixes
         static void Prefix(Survival __instance, float damage)
         {
             float food = Mathf.Clamp(__instance.food - damage * 0.25f, 0f, 200f);
-            AddDebug("Survival OnHealTempDamage " + food);
+            //AddDebug("Survival OnHealTempDamage " + food);
         }
 
         //[HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
@@ -556,7 +628,7 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
             {
-                AddDebug(target.name + " damage Prefix " + damage);
+                //AddDebug(target.name + " damage Prefix " + damage);
             }
         }
            

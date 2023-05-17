@@ -50,6 +50,19 @@ namespace Tweaks_Fixes
                 UnityEngine.Object.Destroy(wf);
         }
 
+        public static void AddVFXsurfaceComponent(GameObject go, VFXSurfaceTypes type)
+        {
+            VFXSurface vFXSurface = go.EnsureComponent<VFXSurface>();
+            vFXSurface.surfaceType = type;
+        }
+    
+        private static void RemoveLivemixin(GameObject go)
+        {
+            LiveMixin lm = go.GetComponent<LiveMixin>();
+            if (lm)
+                UnityEngine.Object.Destroy(lm);
+        }
+
         public static void DisableWavingShader(LargeWorldEntity __instance)
         {
             foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
@@ -124,9 +137,14 @@ namespace Tweaks_Fixes
                 }
                 //else if (tt == TechType.WhiteMushroom)
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
-                else if (tt == TechType.BloodRoot || tt == TechType.BloodVine || tt == TechType.Creepvine)
+                else if (tt == TechType.BloodRoot || tt == TechType.BloodVine)
                 {
-                    EnsureFruits(__instance);
+                    Util.EnsureFruits(__instance.gameObject);
+                }
+                else if (tt == TechType.Creepvine)
+                {
+                    Util.EnsureFruits(__instance.gameObject);
+                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
                 }
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
@@ -155,7 +173,21 @@ namespace Tweaks_Fixes
                 {
                     float creepVineSeedFood = Main.config.creepVineSeedFood;
                     if (creepVineSeedFood > 0)
-                        Main.MakeEatable(__instance.gameObject, creepVineSeedFood * .5f, creepVineSeedFood, false);
+                        Util.MakeEatable(__instance.gameObject, creepVineSeedFood * .5f, creepVineSeedFood, false);
+                }
+                else if (tt == TechType.CoralShellPlate)
+                {
+                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
+                    MakeImmuneToCannon(__instance.gameObject);
+                }
+                else if (tt == TechType.Floater)
+                {
+                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.organic);
+                }
+                else if (tt == TechType.SpikePlant)
+                {
+                    MakeImmuneToCannon(__instance.gameObject);
+                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
                 }
                 else if (tt == TechType.None)
                 {
@@ -172,16 +204,14 @@ namespace Tweaks_Fixes
                     else if (__instance.name == "Land_tree_01(Clone)")
                     {
                         AlwaysUseHiPolyMesh(__instance.gameObject);
-                        MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
-                        foreach (MeshRenderer mr in mrs)
+                        foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
                         {
                             foreach (Material m in mr.materials)
                                 m.DisableKeyword("MARMO_EMISSION");
                         }
                     }
-
                     else if (__instance.name.StartsWith("Crab_snake_mushrooms"))
-                    { // small shrooms
+                    { // small shrooms have no techtype
                         SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                     }
                     else if (__instance.name.StartsWith("coral_reef_Stalactite"))
@@ -189,11 +219,16 @@ namespace Tweaks_Fixes
                         //AddDebug(__instance.name + " cellLevel " + __instance.cellLevel);
                         SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                     }
-                    //else if (__instance.name.StartsWith("Coral_reef_plant_middle_12"))
-                    { // purple plant in shroom cave
-                        //AddDebug(__instance.name + " StartsWith cellLevel " + __instance.cellLevel);
-                        //__instance.cellLevel = LargeWorldEntity.CellLevel.Far;
+                    else if (__instance.name.StartsWith("ExplorableWreck_"))
+                    {
+                        AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
                     }
+                    //else if (__instance.name == "Coral_reef_small_deco_03(Clone)")
+                    //{ // short purple plant
+                    //    BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
+                    //    if (bc)
+                    //        UnityEngine.Object.Destroy(bc);
+                    //}
                 }
                 else if (tt.ToString() == "TF_Stone")
                 {
@@ -202,6 +237,8 @@ namespace Tweaks_Fixes
                     int z = (int)__instance.transform.position.z;
                     if (x == -63 && y == -16 && z == -223)
                         __instance.gameObject.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
+                    //else if (x == 168 && y == -69 && z == 53)
+                    //    __instance.gameObject.transform.localScale = new Vector3(.6f, .6f, .6f);
                 }
                 if (removeLight.Contains(tt))
                 {
@@ -222,24 +259,6 @@ namespace Tweaks_Fixes
                         l.enabled = false;
                 }
 
-            }
-
-            private static void EnsureFruits(LargeWorldEntity __instance)
-            {
-                PickPrefab[] pickPrefabs = __instance.gameObject.GetComponentsInChildren<PickPrefab>(true);
-                if (pickPrefabs.Length == 0)
-                    return;
-
-                FruitPlant fp = __instance.gameObject.EnsureComponent<FruitPlant>();
-                fp.fruitSpawnEnabled = true;
-                //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
-                // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-                fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
-                //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
-                if (fp.fruitSpawnInterval == 0f)
-                    fp.fruitSpawnInterval = 1f;
-                //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);
-                fp.fruits = pickPrefabs;
             }
 
             [HarmonyPostfix]
@@ -286,24 +305,36 @@ namespace Tweaks_Fixes
                 //rb.isKinematic = dist > Main.config.detectCollisionsDist;
             }
 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("StartFading")]
+            [HarmonyPrefix]
+            [HarmonyPatch("StartFading")]
             public static bool StartFadingPrefix(LargeWorldEntity __instance)
             {
                 if (!Main.loadingDone)
                     return false;
 
-                else if (Tools_Patch.releasingGrabbedObject)
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt == TechType.Titanium || tt == TechType.Copper || tt == TechType.Silver || tt == TechType.Gold || tt == TechType.Lead || tt == TechType.Diamond || tt == TechType.Lithium)
                 {
-                    Tools_Patch.releasingGrabbedObject = false;
-                    //AddDebug("StartFading releasingGrabbedObject " + __instance.name);
+                    //AddDebug("StartFading " + __instance.name);
                     return false;
                 }
-                else if (Tools_Patch.repCannonGOs.Contains(__instance.gameObject))
+                if (Creature_Tweaks.pickupShinies.Contains(__instance.gameObject))
+                {
+                    //AddDebug("StartFading pickupShinies " + __instance.name);
+                    return false;
+                }
+                //    AddDebug("StartFading " + __instance.name);
+                //else if (Tools_Patch.releasingGrabbedObject)
+                {
+                    //Tools_Patch.releasingGrabbedObject = false;
+                    //AddDebug("StartFading releasingGrabbedObject " + __instance.name);
+                    //return false;
+                }
+                //else if (Tools_Patch.repCannonGOs.Contains(__instance.gameObject))
                 {
                     //AddDebug("StartFading rep Cannon go " + __instance.name);
-                    Tools_Patch.repCannonGOs.Remove(__instance.gameObject);
-                    return false;
+                    //    Tools_Patch.repCannonGOs.Remove(__instance.gameObject);
+                    //    return false;
                 }
                 return true;
             }

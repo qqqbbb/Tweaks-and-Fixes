@@ -48,7 +48,7 @@ namespace Tweaks_Fixes
                     {
                         //AddDebug("batteries.Count == 2");
                         float charge = Mathf.Lerp(batteries[0].charge, batteries[1].charge, .5f);
-                        charge = Main.NormalizeToRange(charge, 0, batteries[0].capacity, 0, battery._capacity);
+                        charge = Util.NormalizeToRange(charge, 0, batteries[0].capacity, 0, battery._capacity);
                         if (charge < battery._charge)
                             battery._charge = charge;
                     }
@@ -81,7 +81,7 @@ namespace Tweaks_Fixes
                     if (battery)
                         batteries.Add(battery);
 
-                    if (Main.config.foodTweaks && Main.IsEatableFish(item.item.gameObject))
+                    if (Main.config.foodTweaks && Util.IsEatableFish(item.item.gameObject))
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
                         //AddDebug(" OnRemoveItem timeDecayStart " + eatable.timeDecayStart);

@@ -117,7 +117,7 @@ namespace Tweaks_Fixes
                 if ( __instance.targetType != EcoTargetType.Shark || Main.config.aggrMult == 1f)
                     return true;
 
-                if (__instance.creature && __instance.creature.Hunger.Value < __instance.hungerThreshold)
+                if (__instance.creature && __instance.creature.Hunger.Value < __instance.hungerThreshold && Main.config.aggrMult == 1f)
                     return true;
 
                 GameObject aggressionTarget = __instance.GetAggressionTarget();
@@ -141,7 +141,6 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(__instance.myTechType + " target Player " + __instance.creature.Aggression.Value);
                     playerAggrMult = Main.config.aggrMult;
-                    Main.NormalizeTo01range(playerAggrMult, 0, 2);
                 }
                 __instance.creature.Aggression.Add(__instance.aggressionPerSecond * distMult * infection * playerAggrMult);
                 __instance.lastTarget.SetTarget(aggressionTarget);
@@ -152,11 +151,11 @@ namespace Tweaks_Fixes
 
             [HarmonyPrefix]
             [HarmonyPatch("GetAggressionTarget")]
-            public static bool GetAggressionTargetPostfix(AggressiveWhenSeeTarget __instance, ref GameObject __result)
+            public static bool GetAggressionTargetPrefix(AggressiveWhenSeeTarget __instance, ref GameObject __result)
             {
                 if (__instance.targetType == EcoTargetType.Shark && __instance.myTechType != TechType.Crash && __instance.myTechType != TechType.Mesmer && Main.config.aggrMult > 1f && Player.main.CanBeAttacked() && __instance.creature.GetCanSeeObject(Player.mainObject))
                 {
-                    int rnd = UnityEngine.Random.Range(101, 300);
+                    int rnd = UnityEngine.Random.Range(101, 200);
                     if (Main.config.aggrMult * 100f >= rnd)
                     {
                         //AddDebug(__instance.myTechType + " GetAggressionTarget Player ");
@@ -208,10 +207,12 @@ namespace Tweaks_Fixes
             SubRoot closest = null;
             foreach (SubRoot s in cyclops)
             {
-                float dist = Vector3.Distance(s.transform.position, pos);
-                if (dist < closestDist)
+                //float dist = Vector3.Distance(s.transform.position, pos);
+                Vector3 dir = s.transform.position - pos;
+                float distSqr = dir.sqrMagnitude;
+                if (distSqr < closestDist)
                 {
-                    closestDist = dist;
+                    closestDist = distSqr;
                     closest = s;
                 }
             }
@@ -256,10 +257,10 @@ namespace Tweaks_Fixes
                 if (closestDecoy)
                 {
                     //target = closestDecoy.gameObject;
-                    Vector3 position = closestDecoy.transform.position;
+                    Vector3 pos = closestDecoy.transform.position;
                     //float aggrMult = Main.config.aggrMult < 1 ? 1 : Main.config.aggrMult;
                     float aggrDist = cyclopsAttackDist * Main.config.aggrMult;
-                    if (Vector3.Distance(position, __instance.transform.position) < aggrDist && Vector3.Distance(position, __instance.creature.leashPosition) < __instance.maxDistToLeash)
+                    if (Vector3.Distance(pos, __instance.transform.position) < aggrDist && Vector3.Distance(pos, __instance.creature.leashPosition) < __instance.maxDistToLeash)
                     {
                         __instance.aggressiveToNoise.Add(__instance.aggressPerSecond * 0.5f);
                         __instance.SetCurrentTarget(closestDecoy.gameObject, true);

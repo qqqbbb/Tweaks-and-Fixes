@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using static ErrorMessage;
+using UnityEngine.Playables;
 
 namespace Tweaks_Fixes
 {
@@ -125,7 +126,7 @@ namespace Tweaks_Fixes
                     if (p)
                         techType = p.GetTechType();
                 }
-                if (Main.IsEatableFish(useObj))
+                if (Util.IsEatableFish(useObj))
                 {
                     if (food > 0)
                     {
@@ -248,8 +249,13 @@ namespace Tweaks_Fixes
                 //AddDebug("Eatable awake " + __instance.gameObject.name);
                 //Main.Log("Eatable awake " + __instance.gameObject.name + " decomposes "+ __instance.decomposes);
                 //__instance.kDecayRate *= .5f;
-                //string tt = CraftData.GetTechType(__instance.gameObject).AsString();
-                //Main.Log("Eatable awake " + tt );
+                //TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //if (tt == TechType.JellyPlant)
+                //{
+                    //Main.logger.LogMessage("Eatable awake " + tt);
+                //    __instance.decomposes = Main.config.gelSackDecomposes;
+                //    __instance.kDecayRate = .01f;
+                //}
                 //Main.Log("kDecayRate " + __instance.kDecayRate);
                 //Main.Log("waterValue " + __instance.waterValue);
                 //Creature creature = __instance.GetComponent<Creature>();
@@ -260,7 +266,7 @@ namespace Tweaks_Fixes
                 }
                 if (Main.config.foodTweaks)
                 {
-                    if (Main.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
+                    if (Util.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
                         __instance.waterValue = Mathf.Abs(__instance.foodValue) * .5f;
 
                 }
@@ -281,30 +287,23 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Geyser), "OnTriggerStay")]
-        class Geyser_OnTriggerStay_Patch
+        //[HarmonyPatch(typeof(Inventory), "Pickup")]
+        class Inventory_Pickupd_patch
         {
-            static void Postfix(Geyser __instance, Collider other)
+            public static void Postfix(Inventory __instance, Pickupable pickupable)
             {
-                if (!__instance.erupting)
-                    return;
-
-                GameObject go = other.gameObject;
-                //AddDebug("Geyser OnTriggerStay " + go.name);
-                if (Main.IsEatableFish(go) && !Main.IsAlive(go))
-                    Player.main.StartCoroutine(Main.Cook(go));
-            }
-        }
-
-        //[HarmonyPatch(typeof(GhostCrafter), "OnOpenedChanged")]
-        class GhostCrafter_OnOpenedChanged_patch
-        {
-            public static void Postfix(GhostCrafter __instance, bool opened)
-            {
-                //AddDebug(" GhostCrafter OnOpenedChanged " + opened);
-                //Main.Log(" GhostCrafter OnOpenedChanged " + opened);
-                //Main.crafterOpen = opened;
-                //__instance.PlayerIsInRange
+                AddDebug(" Pickup " + pickupable.name);
+                Main.logger.LogMessage("Inventory Pickup " + pickupable.name);
+                TechType tt = CraftData.GetTechType(pickupable.gameObject);
+                if (Main.config.gelSackDecomposes && tt == TechType.JellyPlant)
+                {
+                    Eatable eatable = pickupable.GetComponent<Eatable>();
+                    if (eatable != null)
+                    {
+                        eatable.SetDecomposes(true);
+                        eatable.kDecayRate = .01f;
+                    }
+                }
             }
         }
 
@@ -318,7 +317,7 @@ namespace Tweaks_Fixes
                 { // cooking fish
                   //TechType tt = item.item.GetTechType();
 
-                    if (Main.IsEatableFish(item.item.gameObject))
+                    if (Util.IsEatableFish(item.item.gameObject))
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
                         //AddDebug(" NotifyRemoveItem timeDecayStart " + eatable.timeDecayStart);

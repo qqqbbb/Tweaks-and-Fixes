@@ -20,7 +20,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "2.10";
+            VERSION = "2.12.0";
 
         public static ManualLogSource logger;
         //public static GUIHand guiHand;
@@ -43,187 +43,6 @@ namespace Tweaks_Fixes
         
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
-
-        public static Bounds GetAABB(GameObject go)
-        {
-            FixedBounds fb = go.GetComponent<FixedBounds>();
-            Bounds bounds = fb == null ? UWE.Utils.GetEncapsulatedAABB(go) : fb.bounds;
-            return bounds;
-        }
-
-        public static bool IsDestroyed(GameObject gameObject)
-        {
-            // UnityEngine overloads the == opeator for the GameObject type
-            // and returns null when the object has been destroyed, but 
-            // actually the object is still there but has not been cleaned up yet
-            // if we test both we can determine if the object has been destroyed.
-            return gameObject == null && !ReferenceEquals(gameObject, null);
-        }
-
-        public static IEnumerator Cook(GameObject go)
-        {
-            TechType cookedData = CraftData.GetCookedData(CraftData.GetTechType(go.gameObject));
-            //AddDebug("CookFish " + go.name + " cookedData " + cookedData);
-            if (cookedData == TechType.None)
-                yield break;
-
-            TaskResult <GameObject> result = new TaskResult<GameObject>();
-            yield return CraftData.InstantiateFromPrefabAsync(cookedData, (IOut<GameObject>)result);
-            GameObject cooked = result.Get();
-            cooked.transform.position = go.transform.position;
-            cooked.transform.rotation = go.transform.rotation;
-            cooked.GetComponent<Rigidbody>().mass = go.GetComponent<Rigidbody>().mass;
-            cooked.GetComponent<Rigidbody>().velocity = go.GetComponent<Rigidbody>().velocity;
-            cooked.GetComponent<Rigidbody>().angularDrag = go.GetComponent<Rigidbody>().angularDrag * 3f;
-            Destroy(go);
-            result = null;
-        }
-       
-        public static bool IsDestroyed(Component component)
-        {
-            return component == null && !ReferenceEquals(component, null);
-        }
-
-        private bool CloseToPosition(Vector3 pos1, Vector3 pos2, float range) => (pos1 - pos2).sqrMagnitude < range * range;
-
-        public static Component CopyComponent(Component original, GameObject destination)
-        {
-            System.Type type = original.GetType();
-            Component copy = destination.AddComponent(type);
-            // Copied fields can be restricted with BindingFlags
-            System.Reflection.FieldInfo[] fields = type.GetFields();
-            foreach (System.Reflection.FieldInfo field in fields)
-            {
-                field.SetValue(copy, field.GetValue(original));
-            }
-            return copy;
-        }
-
-        public static T CopyComponent<T>(T original, GameObject destination) where T : Component
-        {
-            Type type = ((object)original).GetType();
-            Component component = destination.AddComponent(type);
-            foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
-                field.SetValue((object)component, field.GetValue((object)original));
-            return component as T;
-        }
-
-        public static string GetGameObjectPath(GameObject obj)
-        {
-            string path = "/" + obj.name;
-            while (obj.transform.parent != null)
-            {
-                obj = obj.transform.parent.gameObject;
-                path = "/" + obj.name + path;
-            }
-            return path;
-        }
-
-        public static float NormalizeTo01range(int value, int min, int max)
-        {
-            float fl;
-            int oldRange = max - min;
-
-            if (oldRange == 0)
-                fl = 0f;
-            else
-                fl = ((float)value - (float)min) / (float)oldRange;
-
-            return fl;
-        }
-
-        public static float NormalizeTo01range(float value, float min, float max)
-        {
-            float fl;
-            float oldRange = max - min;
-
-            if (oldRange == 0)
-                fl = 0f;
-            else
-                fl = ((float)value - (float)min) / (float)oldRange;
-
-            return fl;
-        }
-
-        public static int NormalizeToRange(int value, int oldMin, int oldMax, int newMin, int newMax)
-        {
-            int oldRange = oldMax - oldMin;
-            int newValue;
-
-            if (oldRange == 0)
-                newValue = newMin;
-            else
-            {
-                int newRange = newMax - newMin;
-                newValue = ((value - oldMin) * newRange) / oldRange + newMin;
-            }
-            return newValue;
-        }
-
-        public static float NormalizeToRange(float value, float oldMin, float oldMax, float newMin, float newMax)
-        {
-            float oldRange = oldMax - oldMin;
-            float newValue;
-
-            if (oldRange == 0)
-                newValue = newMin;
-            else
-            {
-                float newRange = newMax - newMin;
-                newValue = ((value - oldMin) * newRange) / oldRange + newMin;
-            }
-            return newValue;
-        }
-
-        static IEnumerator PlayClip(Animator animator, string name, float delay = 0f)
-        {
-            AddDebug("PlayClip start " + delay);
-            yield return new WaitForSeconds(delay);
-            AddDebug("PlayClip " + name);
-            animator.Play(name);
-        }
-
-        public static bool IsAlive(GameObject go)
-        {
-            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
-            return liveMixin && liveMixin.IsAlive();
-        }
-
-        public static bool IsEatableFish(GameObject go)
-        {
-            Creature creature = go.GetComponent<Creature>();
-            Eatable eatable = go.GetComponent<Eatable>();
-            return creature && eatable;
-        }
-
-        public static void DropItems(ItemsContainer container)
-        {
-            List<Pickupable> pickList = new List<Pickupable>();
-            Dictionary<TechType, ItemsContainer.ItemGroup>.Enumerator enumerator = container._items.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                List<InventoryItem> items = enumerator.Current.Value.items;
-                for (int index = 0; index < items.Count; ++index)
-                    pickList.Add(items[index].item);
-            }
-            foreach (Pickupable p in pickList)
-            {
-                //AddDebug("Drop  " + p.GetTechName());
-                p.Drop();
-            }
-        }
-
-        public static ItemsContainer GetOpenContainer()
-        {
-            int storageCount = Inventory.main.usedStorage.Count;
-            if (storageCount > 0)
-            {
-                IItemsContainer itemsContainer = Inventory.main.usedStorage[storageCount - 1];
-                if (itemsContainer is ItemsContainer)
-                    return itemsContainer as ItemsContainer;
-            }
-            return null;
-        }
 
         public static void CleanUp()
         {
@@ -248,61 +67,18 @@ namespace Tweaks_Fixes
             config.Load();
         }
 
-        public static void Message(string str)
-        {
-            int count = main.messages.Count;
-
-            if (count == 0)
-            {
-                AddDebug(str);
-            }
-            else
-            {
-                _Message message = main.messages[main.messages.Count - 1];
-                message.messageText = str;
-                message.entry.text = str;
-            }
-        }
-
-        public static void MakeEatable(GameObject go, float food, float water, bool despawns)
-        {
-            Eatable eatable = go.EnsureComponent<Eatable>();
-            eatable.foodValue = food;
-            eatable.waterValue = water;
-            eatable.despawns = despawns;
-        }
-
-        //[HarmonyPatch(typeof(Language), "Awake")]
-        class Language_Awake_Patch
-        {// does not run
-            public static void Postfix(Language __instance)
-            {
-                languageCheck = __instance.GetCurrentLanguage() == "English" || !config.translatableStrings[0].Equals("Burnt out ");
-                AddDebug("Language Awake languageCheck " + languageCheck);
-                AddDebug("Language Awake GetCurrentLanguage " + __instance.GetCurrentLanguage());
-
-                logger.LogMessage("Language Awake " + languageCheck);
-                logger.LogMessage(" Language GetCurrentLanguage() " + __instance.GetCurrentLanguage());
-
-                if (languageCheck)
-                {
-                    //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
-                    LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[24]);
-                    LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, config.translatableStrings[25]);
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(WaitScreen), "Remove")]
         class WaitScreen_Remove_Patch
         { 
             public static void Postfix(WaitScreen.IWaitItem item)
             { // __instance is null !
                 if (WaitScreen.main.items.Count == 0)
+                {
                     LoadedGameSetup();
+                    logger.LogInfo("loaded game world");
+                }
             }
         }
-
 
         public static void  LoadedGameSetup()
         {
@@ -331,14 +107,13 @@ namespace Tweaks_Fixes
             }
             foreach (Pickupable p in Food_Patch.cookedFish)
             {
-                if (p.inventoryItem == null)
+                if (p != null && p.inventoryItem == null)
                     Destroy(p.gameObject);
             }
             Food_Patch.cookedFish = new HashSet<Pickupable>();
-            Storage_Patch.savedSigns = new List<Sign>();
+            //Storage_Patch.savedSigns = new List<Sign>();
         }
         
-
         [HarmonyPatch(typeof(SaveLoadManager))]
         class SaveLoadManager_Patch
         {
@@ -348,7 +123,6 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("ClearSlotAsync " + slotName);
                 config.escapePodSmokeOut.Remove(slotName);
-                config.radioFixed.Remove(slotName);
                 config.openedWreckDoors.Remove(slotName);
                 config.lockerNames.Remove(slotName);
                 config.baseLights.Remove(slotName);
@@ -396,24 +170,12 @@ namespace Tweaks_Fixes
             config.Save();
         }
 
-        //[HarmonyPatch(typeof(WorldForcesManager), "FixedUpdate")]
-        class WorldForcesManager_Patch
-        {
-            static bool Prefix(WorldForcesManager __instance)
-            { // without this WorldForcesManager.FixedUpdate gives NRE when game loads
-                if (!loadingDone)
-                    return false;
-
-                return true;
-            }
-        }
-
         public static void Setup()
         {
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(18.71f, -26.35f, -155.85f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-185f, -42f, 138.5f)));

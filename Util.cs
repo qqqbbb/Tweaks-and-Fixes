@@ -1,0 +1,331 @@
+﻿using HarmonyLib;
+using System.Reflection;
+using System;
+using SMLHelper.V2.Handlers;
+using SMLHelper.V2.Assets;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using BepInEx;
+using BepInEx.Logging;
+using BepInEx.Bootstrap;
+using static ErrorMessage;
+using Tweaks_Fixes;
+using System.Linq;
+
+namespace Tweaks_Fixes
+{
+    public static class Util
+    {
+        public static bool GetTarget(Vector3 startPos, Vector3 dir, float distance, out RaycastHit hitInfo)
+        {
+            //return Physics.Raycast(startPos, dir, out hitInfo, distance, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore);
+            return Physics.Raycast(startPos, dir, out hitInfo, distance);
+        }
+
+
+        public static IEnumerator Cook(GameObject go)
+        {
+            TechType cookedData = CraftData.GetCookedData(CraftData.GetTechType(go.gameObject));
+            //Main.logger.LogDebug("CookFish " + go.name + " cookedData " + cookedData);
+            if (cookedData == TechType.None)
+                yield break;
+
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(cookedData, (IOut<GameObject>)result);
+            GameObject cooked = result.Get();
+            cooked.transform.position = go.transform.position;
+            cooked.transform.rotation = go.transform.rotation;
+            Rigidbody rb = cooked.GetComponent<Rigidbody>();
+            rb.mass = go.GetComponent<Rigidbody>().mass;
+            rb.velocity = go.GetComponent<Rigidbody>().velocity;
+            rb.angularDrag = 1;
+            rb.drag = 1; // WorldForces.Start overwrites drag 
+            UnityEngine.Object.Destroy(go);
+        }
+
+        public static Component CopyComponent(Component original, GameObject destination)
+        {
+            System.Type type = original.GetType();
+            Component copy = destination.AddComponent(type);
+            // Copied fields can be restricted with BindingFlags
+            System.Reflection.FieldInfo[] fields = type.GetFields();
+            foreach (System.Reflection.FieldInfo field in fields)
+            {
+                field.SetValue(copy, field.GetValue(original));
+            }
+            return copy;
+        }
+
+        public static T CopyComponent<T>(T original, GameObject destination) where T : Component
+        {
+            Type type = ((object)original).GetType();
+            Component component = destination.AddComponent(type);
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                field.SetValue((object)component, field.GetValue((object)original));
+            return component as T;
+        }
+
+        public static void DropItems(ItemsContainer container)
+        {
+            List<Pickupable> pickList = new List<Pickupable>();
+            Dictionary<TechType, ItemsContainer.ItemGroup>.Enumerator enumerator = container._items.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                List<InventoryItem> items = enumerator.Current.Value.items;
+                for (int index = 0; index < items.Count; ++index)
+                    pickList.Add(items[index].item);
+            }
+            foreach (Pickupable p in pickList)
+            {
+                //AddDebug("Drop  " + p.GetTechName());
+                p.Drop();
+            }
+        }
+
+        public static void FreezeObject(GameObject go, bool state)
+        {
+            WorldForces wf = go.GetComponent<WorldForces>();
+            Rigidbody rb = go.GetComponent<Rigidbody>();
+            if (wf && rb)
+            {
+                wf.enabled = !state;
+                rb.isKinematic = state;
+            }
+        }
+
+        public static Bounds GetAABB(GameObject go)
+        {
+            FixedBounds fb = go.GetComponent<FixedBounds>();
+            Bounds bounds = fb == null ? UWE.Utils.GetEncapsulatedAABB(go) : fb.bounds;
+            return bounds;
+        }
+
+        public static string GetGameObjectPath(GameObject obj)
+        {
+            string path = "/" + obj.name;
+            while (obj.transform.parent != null)
+            {
+                obj = obj.transform.parent.gameObject;
+                path = "/" + obj.name + path;
+            }
+            return path;
+        }
+
+        public static ItemsContainer GetOpenContainer()
+        {
+            int storageCount = Inventory.main.usedStorage.Count;
+            if (storageCount > 0)
+            {
+                IItemsContainer itemsContainer = Inventory.main.usedStorage[storageCount - 1];
+                if (itemsContainer is ItemsContainer)
+                    return itemsContainer as ItemsContainer;
+            }
+            return null;
+        }
+
+        public static bool IsDead(GameObject go)
+        {
+            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
+            return liveMixin && !liveMixin.IsAlive();
+        }
+
+        public static bool IsDestroyed(GameObject gameObject)
+        {
+            // UnityEngine overloads the == opeator for the GameObject type
+            // and returns null when the object has been destroyed, but 
+            // actually the object is still there but has not been cleaned up yet
+            // if we test both we can determine if the object has been destroyed.
+            return gameObject == null && !ReferenceEquals(gameObject, null);
+        }
+
+        public static bool IsDestroyed(Component component)
+        {
+            return component == null && !ReferenceEquals(component, null);
+        }
+
+        public static bool IsEatableFish(GameObject go)
+        {
+            Creature creature = go.GetComponent<Creature>();
+            Eatable eatable = go.GetComponent<Eatable>();
+            return creature && eatable;
+        }
+
+        public static void MakeEatable(GameObject go, float food, float water, bool despawns)
+        {
+            Eatable eatable = go.EnsureComponent<Eatable>();
+            eatable.foodValue = food;
+            eatable.waterValue = water;
+            eatable.despawns = despawns;
+        }
+
+        public static void Message(string str)
+        {
+            int count = main.messages.Count;
+
+            if (count == 0)
+            {
+                AddDebug(str);
+            }
+            else
+            {
+                _Message message = main.messages[main.messages.Count - 1];
+                message.messageText = str;
+                message.entry.text = str;
+            }
+        }
+
+        public static float NormalizeTo01range(int value, int min, int max)
+        {
+            float fl;
+            int oldRange = max - min;
+
+            if (oldRange == 0)
+                fl = 0f;
+            else
+                fl = ((float)value - (float)min) / (float)oldRange;
+
+            return fl;
+        }
+
+        public static float NormalizeTo01range(float value, float min, float max)
+        {
+            float fl;
+            float oldRange = max - min;
+
+            if (oldRange == 0)
+                fl = 0f;
+            else
+                fl = ((float)value - (float)min) / (float)oldRange;
+
+            return fl;
+        }
+
+        public static int NormalizeToRange(int value, int oldMin, int oldMax, int newMin, int newMax)
+        {
+            int oldRange = oldMax - oldMin;
+            int newValue;
+
+            if (oldRange == 0)
+                newValue = newMin;
+            else
+            {
+                int newRange = newMax - newMin;
+                newValue = ((value - oldMin) * newRange) / oldRange + newMin;
+            }
+            return newValue;
+        }
+
+        public static float NormalizeToRange(float value, float oldMin, float oldMax, float newMin, float newMax)
+        {
+            float oldRange = oldMax - oldMin;
+            float newValue;
+
+            if (oldRange == 0)
+                newValue = newMin;
+            else
+            {
+                float newRange = newMax - newMin;
+                newValue = ((value - oldMin) * newRange) / oldRange + newMin;
+            }
+            return newValue;
+        }
+
+        static IEnumerator PlayClip(Animator animator, string name, float delay = 0f)
+        {
+            AddDebug("PlayClip start " + delay);
+            yield return new WaitForSeconds(delay);
+            AddDebug("PlayClip " + name);
+            animator.Play(name);
+        }
+
+        static bool CloseToPosition(Vector3 pos1, Vector3 pos2, float range) => (pos1 - pos2).sqrMagnitude < range * range;
+
+        public static void FindObjectClosestToPlayer(float dist)
+        {
+            Transform[] ts = UnityEngine.Object.FindObjectsOfType<Transform>();
+            AddDebug("Transforms found " + ts.Length);
+            List<GameObject> list = new List<GameObject>();
+            foreach (Transform t in ts)
+            {
+                if (t.GetComponentInParent<Player>())
+                    continue;
+
+                Vector3 dir = t.transform.position - Player.mainObject.transform.position;
+                if (dir.magnitude < dist)
+                    list.Add(t.gameObject);
+            }
+            foreach (GameObject go in list)
+            {
+                AddDebug(" " + go.name);
+                Main.logger.LogInfo("FindObjectClosestToPlayer " + go.name);
+            }
+        }
+
+        public static void EnsureFruits(GameObject go)
+        {
+            PickPrefab[] pickPrefabs = go.GetComponentsInChildren<PickPrefab>(true);
+            if (pickPrefabs.Length == 0)
+                return;
+
+            FruitPlant fp = go.EnsureComponent<FruitPlant>();
+            fp.fruitSpawnEnabled = true;
+            //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
+            // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
+            fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
+            //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
+            if (fp.fruitSpawnInterval == 0f)
+                fp.fruitSpawnInterval = 1f;
+            //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);
+            fp.fruits = pickPrefabs;
+        }
+
+        public static VFXSurfaceTypes GetObjectSurfaceType(GameObject obj)
+        {
+            VFXSurfaceTypes result = VFXSurfaceTypes.none;
+            if (obj)
+            {
+                VFXSurface vfxSurface = obj.GetComponent<VFXSurface>();
+                if (vfxSurface)
+                {
+                    result = vfxSurface.surfaceType;
+                    //AddDebug(" VFXSurface " + component.name);
+                    //AddDebug(" VFXSurface parent " + component.transform.parent.name);
+                    //AddDebug(" VFXSurface parent parent " + component.transform.parent.parent.name);
+                }
+                else
+                    vfxSurface = obj.FindAncestor<VFXSurface>();
+
+                if (vfxSurface)
+                    result = vfxSurface.surfaceType;
+            }
+            return result;
+        }
+
+        static IEnumerator PrintMass(TechType techType)
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType, false);
+            yield return request;
+            GameObject go = request.GetResult();
+            if (go)
+            {
+                Rigidbody rb = go.GetComponent<Rigidbody>();
+                if (rb)
+                {
+                    string name = Language.main.Get(techType);
+                    string s = techType + ", " + name + ", mass " + rb.mass;
+                    //massList.Add(s);
+                }
+            }
+        }
+
+        public static GameObject GetEntityRoot(GameObject go)
+        {
+            PrefabIdentifier prefabIdentifier = go.GetComponent<PrefabIdentifier>();
+            if (prefabIdentifier == null)
+                prefabIdentifier = go.GetComponentInParent<PrefabIdentifier>();
+            return prefabIdentifier != null ? prefabIdentifier.gameObject : go;
+        }
+
+    }
+}

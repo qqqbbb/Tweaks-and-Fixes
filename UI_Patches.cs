@@ -38,16 +38,26 @@ namespace Tweaks_Fixes
         static public string slot2Button = string.Empty;
         static public string slot1Plus2Button = string.Empty;
         static public string exosuitExitButton = string.Empty;
+        static public string moveRightButton = string.Empty;
+        static public string moveLeftButton = string.Empty;
+        static public string swivelText = string.Empty;
         
         static void GetStrings()
         {
-            //AddDebug("GetStrings " + Main.config.translatableStrings.Count);
-            if (Main.config.translatableStrings.Count < 26)
+            //AddDebug("GetStrings translatableStrings.Count " + Main.config.translatableStrings.Count);
+            //AddDebug("translatableStrings " + Main.config.translatableStrings[Main.config.translatableStrings.Count - 1]);
+            if (Main.config.translatableStrings.Count < 28)
             {
-                //Main.config.translatableStrings = new List<string> (Main.config.translatableStrings);
-                //Main.config.translatableStrings.Add("Need knife to break it");
-                //Main.config.translatableStrings.Add("Need knife to break it free");
-                Main.config.translatableStrings = new List<string>{ "Burnt out ", "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map", "Push ", "Need a knife to break it", "Need a knife to break it free", "Toggle lights", ". Press and hold ", " to charge the shot", " Change torpedo ", " Hold ", " and press ", " to change torpedo ", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot." };
+                if (Main.config.translatableStrings.Count == 26)
+                {
+                    Main.config.translatableStrings.Add("Swivel left");
+                    Main.config.translatableStrings.Add("Swivel right");
+                    //foreach (var s in oldList)
+                    //    Main.logger.LogInfo("translatableStrings " + s);
+                }
+                else
+                    Main.config.translatableStrings = new List<string>{ "Burnt out ", "Lit ", "Toggle lights", "Increases your safe diving depth by ", " meters.", "Restores ", " health.", "mass ", ": min ", ", max ", "Throw", "Light and throw", "Light", "Toggle map", "Push ", "Need a knife to break it", "Need a knife to break it free", "Toggle lights", ". Press and hold ", " to charge the shot", " Change torpedo ", " Hold ", " and press ", " to change torpedo ", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot.", "Swivel left", "Swivel right" };
+
                 Main.config.Save();
             }
             //foreach (string s in Main.config.translatableStrings)
@@ -56,6 +66,8 @@ namespace Tweaks_Fixes
             cycleNextButton = uGUI.FormatButton(GameInput.Button.CycleNext);
             cyclePrevButton = uGUI.FormatButton(GameInput.Button.CyclePrev);
             deconstructButton = uGUI.FormatButton(GameInput.Button.Deconstruct);
+            moveLeftButton = uGUI.FormatButton(GameInput.Button.MoveLeft);
+            moveRightButton = uGUI.FormatButton(GameInput.Button.MoveRight);
             Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
             propCannonString = LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool);
             Exosuit_Patch.armNamesChanged = true;
@@ -64,6 +76,7 @@ namespace Tweaks_Fixes
             lightFlareString = Main.config.translatableStrings[12] + " (" + altToolButton + ")";
             throwFlareString = Main.config.translatableStrings[10] + " (" + TooltipFactory.stringButton1 + ")";
             lightAndThrowFlareString = Main.config.translatableStrings[11] + " (" + TooltipFactory.stringButton1 + ")";
+            swivelText = Main.config.translatableStrings[26] + " (" + moveLeftButton + ")  " + Main.config.translatableStrings[27] + " (" + moveRightButton + ")";
             beaconToolString = TooltipFactory.stringDrop + " (" + TooltipFactory.stringButton1 + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             beaconPickString = "(" + TooltipFactory.stringButton0 + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + altToolButton + ")\n";
@@ -236,7 +249,6 @@ namespace Tweaks_Fixes
                     pair.Value.SetChroma(1f);
             }
         }
-
         
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
@@ -332,7 +344,7 @@ namespace Tweaks_Fixes
                         if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                             cl.signInput.Select(true);
                     }
-                    if (Main.IsEatableFish(tool.gameObject))
+                    if (Util.IsEatableFish(tool.gameObject))
                     {
                         StringBuilder sb = new StringBuilder();
                         bool canDrop = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
@@ -440,7 +452,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(uGUI_PDA __instance)
             {
-                if (Input.GetKey(KeyCode.LeftShift))
+                if (Main.config.pdaTabSwitchHotkey && Input.GetKey(KeyCode.LeftShift))
                 {
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                         __instance.OpenTab(__instance.GetNextTab());
@@ -526,7 +538,7 @@ namespace Tweaks_Fixes
                             TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[1]);
                     }
                 }
-                fishTooltip = Main.IsEatableFish(obj);
+                fishTooltip = Util.IsEatableFish(obj);
             }
           
             [HarmonyPostfix]

@@ -113,6 +113,69 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Knife))]
         class Knife_Patch
         {
+            [HarmonyPrefix]
+            [HarmonyPatch("OnToolUseAnim")]
+            public static bool OnToolUseAnimPrefix(Knife __instance, GUIHand hand)
+            {
+                Vector3 position = new Vector3();
+                GameObject closestObj = null;
+                UWE.Utils.TraceFPSTargetPosition(Player.main.gameObject, __instance.attackDist, ref closestObj, ref position);
+
+                //if (closestObj)
+                //{
+                    //AddDebug("OnToolUseAnim closestObj " + closestObj.name);
+                    //AddDebug("OnToolUseAnim closestObj parent " + closestObj.transform.parent.name);
+                    //AddDebug("OnToolUseAnim closestObj parent parent " + closestObj.transform.parent.parent.name);
+                //}
+                //else
+                //    AddDebug("OnToolUseAnim closestObj null");
+
+                if (closestObj == null)
+                {
+                    InteractionVolumeUser ivu = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
+                    if (ivu != null && ivu.GetMostRecent() != null)
+                    {
+                        closestObj = ivu.GetMostRecent().gameObject;
+                        //AddDebug("OnToolUseAnim GetMostRecent " + closestObj.name);
+                    }
+                }
+                if (closestObj)
+                {
+                    Utils.PlayFMODAsset(__instance.attackSound, __instance.transform);
+                    VFXSurface vfxSurface = closestObj.GetComponentInParent<VFXSurface>();
+                    //if (vfxSurface)
+                    //    AddDebug("OnToolUseAnim vfxSurface " + vfxSurface.surfaceType);
+                    //else
+                    //    AddDebug("OnToolUseAnim no vfxSurface ");
+                    Vector3 euler = MainCameraControl.main.transform.eulerAngles + new Vector3(300f, 90f, 0f);
+                    ParticleSystem particleSystem = VFXSurfaceTypeManager.main.Play(vfxSurface, __instance.vfxEventType, position, Quaternion.Euler(euler), Player.main.transform);
+
+                    LiveMixin liveMixin = closestObj.GetComponentInParent<LiveMixin>();
+                    bool validTarget = liveMixin == null || Knife.IsValidTarget(liveMixin);
+                    //AddDebug("OnToolUseAnim IsValidTarget " + validTarget);
+                    if (validTarget)
+                    {
+                        if (liveMixin)
+                        {
+                            bool wasAlive = liveMixin.IsAlive();
+                            liveMixin.TakeDamage(__instance.damage, position, __instance.damageType, Player.main.gameObject);
+                            __instance.GiveResourceOnDamage(closestObj, liveMixin.IsAlive(), wasAlive);
+                        }
+                    }
+                    else
+                        closestObj = null;
+                }
+                if (closestObj || hand.GetActiveTarget())
+                    return false;
+
+                if (Player.main.IsUnderwater())
+                    Utils.PlayFMODAsset(__instance.underwaterMissSound, __instance.transform);
+                else
+                    Utils.PlayFMODAsset(__instance.surfaceMissSound, __instance.transform);
+
+                return false;
+            }
+
             [HarmonyPostfix]
             [HarmonyPatch("OnToolUseAnim")]
             public static void OnToolUseAnimPostfix(Knife __instance)
@@ -192,56 +255,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(ScannerTool))]
-        class ScannerTool_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("Update")]// Show power when equipped
-            private static bool UpdatePrefix(ScannerTool __instance)
-            {
-                //PlayerTool playerTool = 
-                //bool isDrawn = (bool)PlayerTool_get_isDrawn.Invoke(__instance, new object[] { });
-                if (__instance.isDrawn)
-                {
-                    //float idleTimer = (float)ScannerTool_idleTimer.GetValue(__instance);
-                    //AddDebug("useText1 " + HandReticle.main.useText1);
-                    //AddDebug("useText2 " + HandReticle.main.useText2);
-                    if (__instance.idleTimer > 0f)
-                    {
-                        __instance.idleTimer = Mathf.Max(0f, __instance.idleTimer - Time.deltaTime);
-                        //string buttonFormat = LanguageCache.GetButtonFormat("ScannerSelfScanFormat", GameInput.Button.AltTool);
-                        //               HandReticle.main.SetUseTextRaw(buttonFormat, null);
-                    }
-                }
-                return false;
-            }
-
-            static bool scanning = false;
-            static bool finishedScan = false;
-
-            [HarmonyPostfix]
-            [HarmonyPatch("Scan")]
-            private static void ScanPostfix(ScannerTool __instance, PDAScanner.Result __result)
-            { // -57 -23 -364
-                //if (__result != PDAScanner.Result.None)
-                //    AddDebug("Scan " + __result.ToString());
-                if (Main.config.removeFragmentCrate && finishedScan && PDAScanner.scanTarget.techType == TechType.StarshipCargoCrate)
-                { // destroy crate
-                    //AddDebug("finished scan " + __result.ToString() + " " + PDAScanner.scanTarget.gameObject.name);
-                    UnityEngine.Object.Destroy(PDAScanner.scanTarget.gameObject);
-                    scanning = false;
-                    finishedScan = false;
-                    return;
-                }
-                if (scanning && __result == PDAScanner.Result.Done || __result == PDAScanner.Result.Researched)
-                    finishedScan = true;
-                else
-                    finishedScan = false;
-
-                scanning = PDAScanner.IsFragment(PDAScanner.scanTarget.techType);
-            }
-        }
-        
         [HarmonyPatch(typeof(MapRoomCamera))]
         class MapRoomCamera_Patch
         {
@@ -337,8 +350,8 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("LateUpdate")]
             private static bool LateUpdatePrefix(StasisSphere __instance)
             {
-                if (!Main.config.stasisRifleTweak)
-                    return true;
+                //if (!Main.config.stasisRifleTweak)
+                //    return true;
 
                 if (!__instance.fieldEnabled)
                     return false;
@@ -419,8 +432,8 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("Freeze")]
             private static bool FreezePrefix(StasisSphere __instance, Collider other, ref Rigidbody target, ref bool __result)
             {
-                if (!Main.config.stasisRifleTweak)
-                    return true;
+                //if (!Main.config.stasisRifleTweak)
+                //    return true;
 
                 //AddDebug("Freeze Collider " + other.name + " bounds.size " + other.bounds.size);
                 target = other.GetComponentInParent<Rigidbody>();

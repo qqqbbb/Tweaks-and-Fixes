@@ -176,7 +176,63 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Bench))]
+        class Bench_Patch
+        {
+            private static float chairRotSpeed = 70f;
 
+            [HarmonyPrefix]
+            [HarmonyPatch("OnUpdate")]
+            static bool Prefix(Bench __instance)
+            {
+                if (__instance.currentPlayer == null)
+                    return false;
+
+                if (__instance.isSitting)
+                {
+                    if (__instance.currentPlayer.GetPDA().isInUse)
+                        return false;
+
+                    if (GameInput.GetButtonDown(GameInput.Button.Exit))
+                        __instance.ExitSittingMode(__instance.currentPlayer);
+
+                    HandReticle.main.SetText(HandReticle.TextType.Use, "StandUp", true, GameInput.Button.Exit);
+                    TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    if (tt == TechType.StarshipChair)
+                    {
+                        HandReticle.main.SetText(HandReticle.TextType.UseSubscript, UI_Patches.swivelText, false);
+                        if (GameInput.GetButtonHeld(GameInput.Button.MoveRight))
+                            __instance.transform.Rotate(Vector3.up * chairRotSpeed * Time.deltaTime);
+                        else if (GameInput.GetButtonHeld(GameInput.Button.MoveLeft))
+                            __instance.transform.Rotate(-Vector3.up * chairRotSpeed * Time.deltaTime);
+                    }
+                }
+                else
+                {
+                    __instance.Subscribe(__instance.currentPlayer, false);
+                    __instance.currentPlayer = null;
+                }
+                return false;
+            }
+
+
+        }
+
+        [HarmonyPatch(typeof(SolarPanel), "Start")]
+        class SolarPanel_Patch
+        {
+            static void Prefix(SolarPanel __instance)
+            {
+                __instance.maxDepth = Main.config.solarPanelMaxDepth;
+                //Main.logger.LogInfo(" SolarPanel Start " + Ocean.GetDepthOf(__instance.gameObject) + " DepthScalar " + __instance.GetDepthScalar() + " SunScalar " + __instance.GetSunScalar());
+                //AddDebug(" SolarPanel Start " + Ocean.GetDepthOf(__instance.gameObject) + " DepthScalar " + __instance.GetDepthScalar() + " SunScalar " + __instance.GetSunScalar());
+                //for (int i = 0; i <= 100; i++)
+                {
+                    //Main.logger.LogInfo(" SolarPanel " + i + " " + __instance.depthCurve.Evaluate(Mathf.Clamp01((100f - (float)i) / 100f)));
+                    //Main.logger.LogInfo(" SolarPanel " + 100 + " " + __instance.depthCurve.Evaluate(Mathf.Clamp01((__instance.maxDepth - Ocean.GetDepthOf(__instance.gameObject)) / __instance.maxDepth)));
+                }
+            }
+        }
 
 
 

@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using static ErrorMessage;
 
@@ -8,65 +9,71 @@ namespace Tweaks_Fixes
     class Creature_Tweaks
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
-        
+
+
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
             public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
-                //int health = (int)__instance.creature.liveMixin?.health; 
+                if (Main.config.CreatureFleeChance == 100 && !Main.config.CreatureFleeChanceBasedOnHealth && Main.config.CreatureFleeUseDamageThreshold)
+                    return true;
+                
+                if (!__instance.enabled)
+                    return false;
+
+                float damage = damageInfo.damage;
+                bool doFlee = false;
                 LiveMixin liveMixin = __instance.creature.liveMixin;
-                AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
-                if (Main.config.fleeOnDamage && liveMixin && awst && liveMixin.IsAlive())
-                { 
+                if (Main.config.CreatureFleeChanceBasedOnHealth && liveMixin && liveMixin.IsAlive())
+                {
                     int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
-                    //int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
-                    int rnd = Main.rndm.Next(1, maxHealth);
-                    //float aggrMult = Mathf.Clamp(Main.config.aggrMult, 0f, 2f);
-                    int health = Mathf.RoundToInt(liveMixin.health * Main.config.aggrMult);
-                    //if (health > halfMaxHealth || rnd < health)
-                    __instance.lastDamagePosition = damageInfo.position;
-                    if (health > rnd || Main.config.aggrMult == 3f)
+                    int rnd1 = Main.rndm.Next(0, maxHealth+1);
+                    int health = Mathf.RoundToInt(liveMixin.health);
+                    //if (__instance.gameObject == Testing.goToTest)
+                        //AddDebug(__instance.name + " max Health " + maxHealth + " Health " + health);
+                    if (health < rnd1)
                     {
-                        damageInfo.damage = 0f;
-                        return false;
+                        //if (__instance.gameObject == Testing.goToTest)
+                        //    AddDebug(__instance.name + " health low ");
+
+                        doFlee = true;
                     }
+                }
+                else
+                {
+                    if (damageInfo.type == DamageType.Electrical)
+                        damage *= 35f;
+                    __instance.accumulatedDamage += damage;
+                    //if (__instance.gameObject == Testing.goToTest)
+                    //    AddDebug(__instance.name + " accumulatedDamage " + __instance.accumulatedDamage + " damageThreshold " + __instance.damageThreshold);
+
+                    __instance.lastDamagePosition = damageInfo.position;
+                    if (Main.config.CreatureFleeUseDamageThreshold && __instance.accumulatedDamage <= __instance.damageThreshold)
+                        return false;
+
+                    int rnd = Main.rndm.Next(1, 101);
+                    if (Main.config.CreatureFleeChance >= rnd)
+                        doFlee = true;
+                }
+                if (doFlee)
+                {
+                    //if (__instance.gameObject == Testing.goToTest)
+                    //    AddDebug(__instance.name + " Flee " + __instance.fleeDuration);
+
                     __instance.timeToFlee = Time.time + __instance.fleeDuration;
                     __instance.creature.Scared.Add(1f);
-                    __instance.creature.TryStartAction(__instance);
-                    return false;
+                    __instance.creature.TryStartAction((CreatureAction)__instance);
                 }
-                return true;
+                return false;
             }
+             
             public static void Postfix(FleeOnDamage __instance, DamageInfo damageInfo)
-            { // game code makes them flee to 0 0 0 
-                //if (__instance.moveTo.Equals(Vector3.zero))
-                //if (damageInfo.dealer == Player.mainObject)
-                {
-                    //AddDebug(__instance.name + " FleeOnDamage lastDamagePosition " + __instance.lastDamagePosition);
-                    //AddDebug(__instance.name + " FleeOnDamage minFleeDistance " + __instance.minFleeDistance);
-                    //AddDebug(__instance.name + " FleeOnDamage damageThreshold " + __instance.damageThreshold);
-                }
-                __instance.moveTo = __instance.swimBehaviour.originalTargetPosition * damageInfo.damage;
-
-                //__instance.timeToFlee = Time.time;
-                //if (damageInfo.type == DamageType.Heat)
-                //{
-                //TechType techType = CraftData.GetTechType(__instance.gameObject);
-                //string name = Language.main.Get(techType);
-                //float magnitude = (__instance.transform.position - Player.main.transform.position).magnitude;
-                //if (damageInfo.damage == 0 && magnitude < 5)
-                //{
-                //    LiveMixin liveMixin = __instance.creature.liveMixin;
-                //AddDebug(name + " maxHealth " + liveMixin.maxHealth + " Health " + liveMixin.health);
-                //}
-                //Main.Message(name + " originalTargetPosition " + __instance.swimBehaviour.originalTargetPosition);
-                //Main.Message(name + " moveTo " + __instance.moveTo);
-                //}
+            {
                 CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
                 if (collectShiny)
                 {
-                    //Main.Message("Stalker DropShinyTarget");
+                    //AddDebug("Stalker DropShinyTarget");
                     collectShiny.DropShinyTarget();
                 }
             }
@@ -77,7 +84,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(Stalker __instance, GameObject target)
             { // only scrap metal has HardnessMixin  0.5
-                float rndm = Random.value;
+                float rndm = UnityEngine.Random.value;
                 float stalkerLoseTooth = Main.config.stalkerLoseTooth * .01f;
                 if (stalkerLoseTooth >= rndm && HardnessMixin.GetHardness(target) > rndm)
                     __instance.LoseTooth();
@@ -111,19 +118,6 @@ namespace Tweaks_Fixes
                         //Object.Destroy(componentsInChild);
                         componentsInChild.enabled = false;
                 }
-
-                //InfectedMixin infectedMixin = __instance.GetComponent<InfectedMixin>();
-                //if (infectedMixin && infectedMixin.infectedAmount == 1f)
-                //{
-                //    AddDebug("Infected " + tt);
-                //    Vector3 pos = __instance.transform.position;
-                //    GameObject beaconPrefab = CraftData.GetPrefabForTechType(TechType.Beacon);
-                //    GameObject prefab = Object.Instantiate(beaconPrefab, pos, Quaternion.identity);
-                //    LargeWorldEntity.Register(prefab);
-                //    Beacon beacon = prefab.GetComponent<Beacon>();
-                //    if (beacon)
-                //        beacon.label = tt.AsString();
-                //}
             }
 
             //[HarmonyPrefix]
@@ -160,7 +154,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix]
             [HarmonyPatch("IsInFieldOfView")]
             public static bool GetCanSeeObjectPrefix(Creature __instance, GameObject go, ref bool __result)
-            { // shoot ray from player to creature so that it hits terrain. Fixes crabsnakes attacking player who is in biome above them when aggression mult is 3
+            { // when casting ray from creature to player terrain may not be loaded. Cast from player instead
                 __result = false;
                 if (go != null)
                 {
@@ -306,7 +300,7 @@ namespace Tweaks_Fixes
             public static void Postfix(Pickupable __instance, ref bool __result)
             {
                 //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (Main.config.noFishCatching && Main.IsEatableFish(__instance.gameObject) && Main.IsAlive(__instance.gameObject))
+                if (Main.config.noFishCatching && Util.IsEatableFish(__instance.gameObject) && Util.IsDead(__instance.gameObject))
                 {
                     __result = false;
                     if (Player.main._currentWaterPark)
@@ -341,7 +335,7 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(SwimBehaviour __instance, ref float velocity, ref Vector3 targetPosition)
             {
-                if (Main.IsEatableFish(__instance.gameObject))
+                if (Util.IsEatableFish(__instance.gameObject))
                 {
                     velocity *= Main.config.fishSpeedMult;
                 }
@@ -362,7 +356,9 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
+        public static HashSet<GameObject> pickupShinies = new HashSet<GameObject>();
+
         [HarmonyPatch(typeof(CollectShiny))]
         class CollectShiny_Patch
         {
@@ -388,10 +384,13 @@ namespace Tweaks_Fixes
                     }
                     Vector3 direction = gameObject.transform.position - __instance.transform.position;
                     float maxDistance = direction.magnitude - 0.5f;
-                    if (maxDistance > 0f && Physics.Raycast(__instance.transform.position, direction, maxDistance, Voxeland.GetTerrainLayerMask()))
+                    Vector3 playerDir = gameObject.transform.position - Player.main.transform.position;
+                    //AddDebug(gameObject.name + " maxDistance " + maxDistance);
+                    //AddDebug("Raycast Player " + gameObject.name + " " + Physics.Raycast(Player.main.transform.position, playerDir, 111, Voxeland.GetTerrainLayerMask()));
+                    if (maxDistance < 0 || Physics.Raycast(__instance.transform.position, direction, maxDistance, Voxeland.GetTerrainLayerMask()))
                         gameObject = null;
                 }
-                if (__instance.shinyTarget == gameObject || gameObject == null ||gameObject.GetComponent<Rigidbody>() == null || gameObject.GetComponent<Pickupable>() == null )
+                if (__instance.shinyTarget == gameObject || gameObject == null || gameObject.GetComponent<Rigidbody>() == null || gameObject.GetComponent<Pickupable>() == null)
                     return false;
 
                 if (__instance.shinyTarget != null)
@@ -407,7 +406,7 @@ namespace Tweaks_Fixes
 
                 return false;
             }
-        
+
             [HarmonyPrefix]
             [HarmonyPatch("TryPickupShinyTarget")]
             public static bool TryPickupShinyTargetPrefix(CollectShiny __instance)
@@ -428,6 +427,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
+                pickupShinies.Add(__instance.shinyTarget);
                 __instance.SendMessage("OnShinyPickUp", __instance.shinyTarget, SendMessageOptions.DontRequireReceiver);
                 __instance.shinyTarget.gameObject.SendMessage("OnShinyPickUp", __instance.gameObject, SendMessageOptions.DontRequireReceiver);
                 UWE.Utils.SetCollidersEnabled(__instance.shinyTarget, false);
@@ -437,14 +437,51 @@ namespace Tweaks_Fixes
                 UWE.Utils.SetIsKinematic(__instance.shinyTarget.GetComponent<Rigidbody>(), true);
                 UWE.Utils.SetEnabled(__instance.shinyTarget.GetComponent<LargeWorldEntity>(), false);
                 __instance.SendMessage("OnShinyPickedUp", __instance.shinyTarget, SendMessageOptions.DontRequireReceiver);
-                __instance.swimBehaviour.SwimTo(__instance.transform.position + Vector3.up * 5f + Random.onUnitSphere, Vector3.up, __instance.swimVelocity);
+                __instance.swimBehaviour.SwimTo(__instance.transform.position + Vector3.up * 5f + UnityEngine.Random.onUnitSphere, Vector3.up, __instance.swimVelocity);
                 __instance.timeNextSwim = Time.time + 1f;
                 BehaviourUpdateUtils.Register(__instance);
                 return false;
             }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("DropShinyTarget", new Type[] { typeof(GameObject) })]
+            public static void DropShinyTargetPrefix(CollectShiny __instance, GameObject target)
+            {
+                if (__instance.shinyTarget && __instance.targetPickedUp)
+                {
+                    pickupShinies.Remove(target);
+                    //AddDebug("DropShinyTarget " + target.name);
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("IsTargetValid")]
+            public static void IsTargetValidPostfix(CollectShiny __instance, ref bool __result, IEcoTarget target)
+            {
+                //__result = (target.GetPosition() - __instance.creature.leashPosition).sqrMagnitude > 64.0;
+                GameObject targetGO = target.GetGameObject();
+                //TechType tt = CraftData.GetTechType(targetGO);
+                //if (tt == TechType.ScrapMetal)
+                //    __result = false;
+                if (pickupShinies.Contains(targetGO))
+                {
+                    //AddDebug("IsTargetValid pickupShinies " + targetGO.name);
+                    __result = false;
+                }
+                //AddDebug("IsTargetValid " + tt + " " + __result);
+            }
+
         }
 
-
+        [HarmonyPatch(typeof(CreatureEgg), "Start")]
+        class CreatureEgg_Start_patch
+        {
+            public static void Postfix(CreatureEgg __instance)
+            {
+                VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                vFXSurface.surfaceType = VFXSurfaceTypes.organic;
+            }
+        }
 
 
 

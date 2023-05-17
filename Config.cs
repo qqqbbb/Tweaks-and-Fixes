@@ -6,6 +6,7 @@ using SMLHelper.V2.Commands;
 using SMLHelper.V2.Handlers;
 using SMLHelper.V2.Interfaces;
 using SMLHelper.V2.Options;
+using System.ComponentModel;
 
 namespace Tweaks_Fixes
 {
@@ -22,7 +23,7 @@ namespace Tweaks_Fixes
         public float vehicleDamageMult = 1f;
         //[Slider("Damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "When anything but the player or vehicles takes damage, it will be multiplied by this.")]
         //public float damageMult = 1f;
-        [Slider("Predator aggression multiplier", 0f, 2f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's 2 predators attack you on sight and never flee.")]
+        [Slider("Predator aggression multiplier", 0f, 2f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's more than 1 predators attack you from greater distance and more often.")]
         public float aggrMult = 1f;
         [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
         public float oxygenPerBreath = 3f;
@@ -34,6 +35,8 @@ namespace Tweaks_Fixes
         public float baseEnergyConsMult = 1f;
         [Slider("First aid kit HP", 10, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored by using first aid kit.")]
         public int medKitHP = 50;
+
+        
         [Slider("Crafting time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Crafting time will be multiplied by this when crafting things with fabricator or modification station.")]
         public float craftTimeMult = 1f;
         [Slider("Building time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Building time will be multiplied by this when using builder tool.")]
@@ -51,8 +54,10 @@ namespace Tweaks_Fixes
         public bool exosuitMoveTweaks = false;
         [Toggle("Cyclops movement tweaks", Tooltip = "Cyclops does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and backward speed is halved.")]
         public bool cyclopsMoveTweaks = false;
-        [Slider("Cyclops engine room fire chance percent", 0, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "Cyclops engine room fire chance percent when the engine overheats. The game checks it every 10 seconds after you get your first overheat warning. And it increases by 10% every 10 seconds if you don't slow down.")]
+        [Slider("Cyclops engine room fire chance percent", 0, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "The game starts checking this after you get your first engine overheat warning. Every 10 seconds chance to catch fire goes up by 10% if you don't slow down.")]
         public int cyclopsFireChance = 50;
+        [Slider("Cyclops auto-repair threshhold", 0, 100, DefaultValue = 90, Step = 1, Format = "{0:F0}", Tooltip = "Cyclops auto-repairs when it's not on fire and its HP percent is above this.")]
+        public int cyclopsAutoHealHealthPercent = 90;
         [Slider("Crush depth", 50, 500, DefaultValue = 200, Step = 10, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
         public int crushDepth = 200;
         [Slider("Crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.")]
@@ -89,16 +94,22 @@ namespace Tweaks_Fixes
         //public bool eatFishOnRelease = false;
         [Slider("Food decay rate multiplier", 0.1f, 3f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "Food decay rate will be multiplied by this.")]
         public float foodDecayRateMult = 1f;
-        [Slider("Catchable fish speed multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of fish that you can catch will be multiplied by this.")]
+        [Slider("Catchable fish speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of fish that you can catch will be multiplied by this.")]
         public float fishSpeedMult = 1f;
-        [Slider("Other creatures speed multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
+        [Slider("Other creatures speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
         public float creatureSpeedMult = 1f;
+
+        [Slider("Creature flee chance percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Creature flee chance percent when it's under attack and its flee damage threshold is reached.")]
+        public int CreatureFleeChance = 100;
+        [Toggle("Creature flee chance percent depends on its health", Tooltip = "Only creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both \"Creature flee chance percent\" and CreatureFleeUseDamageThreshold.")]
+        public bool CreatureFleeChanceBasedOnHealth = false;
+        public bool CreatureFleeUseDamageThreshold = true;
         [Slider("Knife range multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeRangeMult = 1f;
         [Slider("Knife damage multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeDamageMult = 1f;
         //[Toggle("Stasis rifle tweaks", Tooltip = "Only creatures smaller than the stasis orb will be frozen. Player is not immune to stasis orb.")]
-        public bool stasisRifleTweak = false;
+        //public bool stasisRifleTweak = false;
         [Toggle("Can't catch fish with bare hands", Tooltip = "To catch fish you will have to use propulsion cannon or grav trap. Does not apply if you are inside alien containment.")]
         public bool noFishCatching = false;
         [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
@@ -193,7 +204,7 @@ namespace Tweaks_Fixes
         public float knifeRangeDefault = 0f;
         public int activeSlot = -1;
         public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
-        public Dictionary<string, bool> radioFixed = new Dictionary<string, bool>();
+        //public Dictionary<string, bool> radioFixed = new Dictionary<string, bool>();
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
         public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
@@ -278,7 +289,7 @@ namespace Tweaks_Fixes
         }
         //public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
-        public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
+        public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, [Description("Only if lights on")] Only_if_lights_on }
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum SeaTreaderOutcrop { Vanilla, Only_when_stomping_ground, Never }
         public List<string> silentCreatures = new List<string> {  };
@@ -309,7 +320,6 @@ namespace Tweaks_Fixes
         public bool randomPlantRotation = true;
         public bool silentReactor = false;
         public bool removeFragmentCrate = true;
-        public bool fleeOnDamage = true;
         public bool creepvineLights = true;
         public bool LEDLightWorksInHand = true;
         //public int detectCollisionsDist = 50;
@@ -325,15 +335,30 @@ namespace Tweaks_Fixes
         public bool builderPlacingWhenFinishedBuilding = true;
         public bool crushDamageScreenEffect = true;
         public bool removeCookedFishOnReload = true;
-
         public bool fishRespawn = true;
         public bool fishRespawnIfKilledByPlayer = true;
         public bool creaturesRespawn = true;
         public bool creaturesRespawnIfKilledByPlayer = false;
         public bool leviathansRespawn = false;
         public bool leviathansRespawnIfKilledByPlayer = false;
-
-
+        public bool disableGravityForExosuit = false;
+        public float cyclopsDealDamageMinSpeed = 2f;
+        public float cyclopsTakeDamageMinSpeed = 2f;
+        public float cyclopsTakeDamageMinMass = 200f;
+        public float exosuitDealDamageMinSpeed = 7f;
+        public float exosuitTakeDamageMinSpeed = 7f;
+        public float exosuitTakeDamageMinMass = 5f;
+        public float seamothDealDamageMinSpeed = 2f;
+        public float seamothTakeDamageMinSpeed = 4f;
+        public float seamothTakeDamageMinMass = 5f;
+        public bool pdaTabSwitchHotkey = true;
+        public float lavaGeyserEruptionForce = 20f;
+        public float lavaGeyserEruptionInterval = 12f;
+        public bool removeLavaGeyserRockParticles = false;
+        public bool replaceDealDamageOnImpactScript = true;
+        public bool gelSackDecomposes = false;
+        public float solarPanelMaxDepth = 250f;
+        
 
 
         // also edit UI_Patches.GetStrings when editing this
@@ -365,8 +390,10 @@ namespace Tweaks_Fixes
         // 24 Bladderfish ttoltip
         "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.",
         // 25 SeamothElectricalDefense tooltip
-        "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot."
-    };
+        "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot.",
+        "Swivel left", // 26 
+        "Swivel right", // 27 
+        };  // also edit UI_Patches.GetStrings when editing this
 
     }
 

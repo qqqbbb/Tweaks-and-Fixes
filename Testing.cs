@@ -9,16 +9,32 @@ using UnityEngine;
 using System.Text;
 using static ErrorMessage;
 using static VFXParticlesPool;
-using DayNightSpeed;
+using static HandReticle;
+using static UWE.CubeFace;
+using System.Linq;
+using UWE;
+using static TechStringCache;
 
 namespace Tweaks_Fixes
 {
     class Testing
     {
-        public static GameObject goToTest = null;
-        //static HashSet<TechType> creatures = new HashSet<TechType>();
-        //static Dictionary<TechType, int> creatureHealth = new Dictionary<TechType, int>();
-        //static bool done = false;
+
+
+        //[HarmonyPatch(typeof(Utils), nameof(Utils.PlayFMODAsset), new Type[] {typeof(FMODAsset), typeof(Transform), typeof(float) })]
+        class MeshRenderer_Start_patch
+        {
+            public static bool Prefix(FMODAsset asset, Transform t)
+            {
+                if (asset == null)
+                    AddDebug("Utils PlayFMODAsset null ");
+                else
+                    AddDebug("Utils PlayFMODAsset " + asset.name);
+                //return false;
+                //AddDebug("Knife OnToolUseAnim 1");
+                return true;
+            }
+        }
 
         //[HarmonyPatch(typeof(DisplayManager))]
         class DisplayManager_Patch
@@ -35,8 +51,8 @@ namespace Tweaks_Fixes
                     //__instance.resolution = Screen.currentResolution;
                 }
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("Initialize")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Initialize")]
             static void InitializePrefix(DisplayManager __instance)
             {
                 if (Screen.currentResolution.width != __instance.resolution.width)
@@ -47,40 +63,14 @@ namespace Tweaks_Fixes
                 Main.logger.LogMessage("Resolution should be fixed");
                 if (Screen.currentResolution.width != 1280)
                 {
+                    Main.logger.LogMessage("Resolution should be fixed");
+                    AddDebug("Resolution should be fixed");
                     //Screen.SetResolution(1280, 720, true);
                     //__instance.resolution = Screen.currentResolution;
                 }
             }
-
         }
 
-
-
-        //[HarmonyPatch(typeof(AttackLastTarget))]
-        class AttackLastTarget_Patch
-        {
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(AttackLastTarget), "OnMeleeAttack")]
-            static void OnMeleeAttackPostfix(AttackLastTarget __instance)
-            {
-                if(__instance.lastTarget && __instance.lastTarget == Player.mainObject)
-                    AddDebug("AttackLastTarget OnMeleeAttack ");
-            }
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(AttackLastTarget), "StopAttack")]
-            static void StopAttackPostfix(AttackLastTarget __instance)
-            {
-                if (__instance.lastTarget && __instance.lastTarget == Player.mainObject)
-                    AddDebug("AttackLastTarget StopAttack ");
-            }
-            //[HarmonyPostfix]
-            //[HarmonyPatch(typeof(AttackLastTarget), "CanAttackTarget")]
-            static void CanAttackTargetPostfix(AttackLastTarget __instance, GameObject target, ref bool __result)
-            {
-                if (target && target == Player.mainObject)
-                    AddDebug("AttackLastTarget CanAttackTarget " + __result);
-            }
-        }
 
         //[HarmonyPatch(typeof(AggressiveWhenSeePlayer), "GetAggressionTarget")]
         class CreatureDeath_OnKillAsync_Patch
@@ -97,8 +87,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-
-                //AddDebug("depthLevel " + Player.main.depthLevel);
+                //AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
                 //AddDebug("stalkerLoseTooth " + Main.config.stalkerLoseTooth * .01f);
                 //AddDebug("Time.time " + (int)Time.time);
                 //AddDebug("isUnderwaterForSwimming " + __instance.isUnderwaterForSwimming.value);
@@ -124,29 +113,38 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    PrintTerrainSurfaceType();
+                    //FindObjectClosestToPlayer(3);
+                    //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
                     //                bool hit = Physics.Linecast(Player.main.transform.position, Vector3.zero
                     //                    , Voxeland.GetTerrainLayerMask());
                     //                AddDebug(" hit from player " + hit);
                     //                hit = Physics.Linecast(Vector3.zero, Player.main.transform.position
                     //, Voxeland.GetTerrainLayerMask());
                     //                AddDebug(" hit to player " + hit);
-                    //AddDebug("  " + Player.main.GetBiomeString());
+
                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    Main.survival.water++; 
                     //else
                     //    Main.survival.food++;
                 }
+                else if (Input.GetKeyDown(KeyCode.V))
+                {
+                    printTarget();
+                }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
-                    //    //survival.water--;
+                        //    //survival.water--;
                         __instance.liveMixin.health--;
                     else
-                    //    //survival.food--;
+                        //    //survival.food--;
                         __instance.liveMixin.health++;
                 }
-                else if(Input.GetKeyDown(KeyCode.Z))
+                else if (Input.GetKeyDown(KeyCode.Z))
                 {
+
+                    //goToTest = Player.main.guiHand.activeTarget;
                     //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
                     //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
                     //AddDebug("Exosuit " + BehaviourData.GetEcoTargetType(TechType.Exosuit));
@@ -154,61 +152,24 @@ namespace Tweaks_Fixes
                     //Vector3 vel = Player.main.currentMountedVehicle.useRigidbody.velocity;
                     //bool moving = vel.x > 1f || vel.y > 1f || vel.z > 1f;
                     //AddDebug("moving " + moving);
-                
-                    GameObject target = Player.main.guiHand.activeTarget;
-                    //GameObject target = null;
-                    if (!target)
-                        Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
-                    //if (!target)
+
+
+                    //AddDebug(" " + target.gameObject.name );
+                    //if (target.transform.parent)
+                    //    AddDebug("parent  " + target.transform.parent.name);
+
+                    //if (target.GetComponent<InfectedMixin>())
                     //{
-                    //    int numHits = Physics.RaycastNonAlloc(new Ray(MainCamera.camera.transform.position, MainCamera.camera.transform.forward), hits, 2.5f);
-                    //    for (int index = 0; index < numHits; ++index)
-                    //    {
-                    //        AddDebug(hits[index].collider.name + " " + hits[index].collider.transform.position);
-                    //        Main.Log("player target " + hits[index].collider.name + " " + hits[index].collider.transform.position);
-                    //    }
+                    //    AddDebug("infectedAmount  " + target.GetComponent<InfectedMixin>().infectedAmount);
                     //}
-                    if (target)
-                    {
-                        LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
-                        if (lwe)
-                        {
-                            target = lwe.gameObject;
-                            goToTest = target;
-                            AddDebug(" cellLevel " + lwe.cellLevel);
-                            //LiveMixin lm = lwe.GetComponent<LiveMixin>();
-                            //if (lm)
-                            //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
-                        }
-                        AddDebug(target.gameObject.name );
-                        TechType techType = CraftData.GetTechType(target);
-                        if (techType != TechType.None)
-                            AddDebug("TechType  " + techType);
+                    //int x = (int)target.transform.position.x;
+                    //int y = (int)target.transform.position.y;
+                    //int z = (int)target.transform.position.z;
+                    //AddDebug(x + " " + y + " " + z);
+                    //Rigidbody rb = target.GetComponent<Rigidbody>();
+                    //if (rb)
+                    //    AddDebug("Rigidbody " + rb.mass);
 
-                        
-                        //Rigidbody rb = target.GetComponent<Rigidbody>();
-                        //if (rb)
-                        {
-                            //AddDebug(" isKinematic " + rb.isKinematic);
-                            //rbToTest = rb;
-                            //rb.isKinematic = !rb.isKinematic;
-                        }
-                        //AddDebug(" " + target.gameObject.name );
-                        //if (target.transform.parent)
-                        //    AddDebug("parent  " + target.transform.parent.name);
-
-                        //if (target.GetComponent<InfectedMixin>())
-                        //{
-                        //    AddDebug("infectedAmount  " + target.GetComponent<InfectedMixin>().infectedAmount);
-                        //}
-                        //int x = (int)target.transform.position.x;
-                        //int y = (int)target.transform.position.y;
-                        //int z = (int)target.transform.position.z;
-                        //AddDebug(x + " " + y + " " + z);
-                        //Rigidbody rb = target.GetComponent<Rigidbody>();
-                        //if (rb)
-                        //    AddDebug("Rigidbody " + rb.mass);
-                    }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
                     }
@@ -217,6 +178,73 @@ namespace Tweaks_Fixes
                     }
                 }
             }
+        }
+
+        static void PrintTerrainSurfaceType()
+        {
+            VFXSurfaceTypes vfxSurfaceTypes = VFXSurfaceTypes.none;
+            int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
+            RaycastHit hitInfo;
+            if (Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 111f, layerMask) && hitInfo.collider.gameObject.layer == LayerID.TerrainCollider)
+            {
+                vfxSurfaceTypes = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
+                AddDebug("vfxSurfaceTypes " + vfxSurfaceTypes);
+            }
+            else
+                AddDebug("no terrain " );
+        }
+        public static void printTarget()
+        {
+            GameObject target = Player.main.guiHand.activeTarget;
+            RaycastHit hitInfo = new RaycastHit();
+            if (!target)
+                //Util.GetTarget(Player.mainObject.transform.position, MainCamera.camera.transform.forward, 11f, out hitInfo);
+                Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
+            //if (hitInfo.collider)
+            //    target = hitInfo.collider.gameObject;
+
+            if (!target)
+                return;
+
+            VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
+            TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
+            if (tcpc)
+            {
+                vfxSurfaceType = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
+                AddDebug("Terrain vfxSurfaceType  " + vfxSurfaceType);
+                return;
+            }
+            if (target)
+                vfxSurfaceType = Util.GetObjectSurfaceType(target);
+
+            LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+            if (lwe)
+            {
+                //goToTest = lwe.gameObject;
+                target = lwe.gameObject;
+                Rigidbody rb = lwe.GetComponent<Rigidbody>();
+                if (rb)
+                {
+                    AddDebug(" mass " + rb.mass + " drag " + rb.drag + " ang drag " + rb.angularDrag);
+                }
+                //AddDebug("PDAScanner isValid " + PDAScanner.scanTarget.isValid);
+                //AddDebug("PDAScanner CanScan " + PDAScanner.CanScan());
+                //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
+
+                
+                //AddDebug(" cellLevel " + lwe.cellLevel);
+                //AddDebug("vfxSurfaceType  " + vfxSurfaceType);
+                //LiveMixin lm = lwe.GetComponent<LiveMixin>();
+                //if (lm)
+                //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
+            }
+            AddDebug(target.gameObject.name);
+            //AddDebug("parent " + target.transform.parent.gameObject.name);
+            //if (target.transform.parent.parent)
+            //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);
+            TechType techType = CraftData.GetTechType(target);
+            if (techType != TechType.None)
+                AddDebug("TechType  " + techType);
         }
 
         private Vector3 ClipWithTerrain(GameObject go)

@@ -39,12 +39,14 @@ namespace Tweaks_Fixes
                 {
                     HardnessMixin hm = __instance.gameObject.EnsureComponent<HardnessMixin>();
                     hm.hardness = 1f;
-                    EcoTarget et = __instance.gameObject.GetComponent<EcoTarget>();
-                    if (et && et.type == EcoTargetType.Shiny)
-                        return;
-
-                    et = __instance.gameObject.AddComponent<EcoTarget>();
-                    et.type = EcoTargetType.Shiny;
+                    EcoTarget[] ets = __instance.gameObject.GetComponents<EcoTarget>();
+                    foreach (EcoTarget et in ets)
+                    {
+                        if (et && et.type == EcoTargetType.Shiny)
+                            return;
+                    }
+                    EcoTarget ecoTarget = __instance.gameObject.AddComponent<EcoTarget>();
+                    ecoTarget.type = EcoTargetType.Shiny;
                 }
 
             }

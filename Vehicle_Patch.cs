@@ -397,12 +397,12 @@ namespace Tweaks_Fixes
         {
             StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
             if (sc != null && sc.container != null)
-                Main.DropItems(sc.container);
+                Util.DropItems(sc.container);
             else
             {
                 SeamothStorageContainer ssc = __instance.GetComponentInChildren<SeamothStorageContainer>(true);
                 if (ssc != null && ssc.container != null)
-                    Main.DropItems(ssc.container);
+                    Util.DropItems(ssc.container);
             }
         }
 
@@ -461,6 +461,17 @@ namespace Tweaks_Fixes
                 }
             }
             return true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch("OnProtoDeserialize")]
+        static void OnProtoDeserializePostfix(Vehicle __instance)
+        {
+            //AddDebug("Vehicle OnProtoDeserialize ");
+            if (Main.config.disableGravityForExosuit && __instance is Exosuit && Player.main.currentMountedVehicle != __instance)
+            {
+                Util.FreezeObject(__instance.gameObject, true);
+            }
         }
 
         //[HarmonyPostfix]
@@ -567,6 +578,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Start")]
         public static void StartPostfix(SeaMoth __instance)
         {
+            LargeWorldEntity_Patch.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
             seamothName = Language.main.Get(TechType.Seamoth);
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance) && Vehicle_patch.dockedVehicles[__instance] == Vehicle.DockType.Cyclops)
                 __instance.animator.Play("seamoth_cyclops_launchbay_dock");
@@ -946,13 +958,17 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnPilotModeBegin")]
         public static void OnPilotModeBeginPostfix(Exosuit __instance)
         {
+            //AddDebug("OnPilotModeBegin");
             if (!Main.prawnSuitTorpedoDisplayLoaded)
             {
-                //AddDebug("OnPilotModeBegin");
                 torpedoStorageLeft = null;
                 torpedoStorageRight = null;
                 armNamesChanged = true;
                 GetArmNames(__instance);
+            }
+            if (Main.config.disableGravityForExosuit)
+            {
+                Util.FreezeObject(__instance.gameObject, false);
             }
             //__instance.OnUpgradeModuleToggle();
             //exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringRightHand;
@@ -960,18 +976,17 @@ namespace Tweaks_Fixes
             //seamothName = __instance.GetName();
         }
 
-        //[HarmonyPostfix]
-        //[HarmonyPatch("OnPilotModeEnd")]
-        public static void OnPilotModeEndPostfix(SeaMoth __instance)
+        [HarmonyPostfix]
+        [HarmonyPatch("OnPilotModeEnd")]
+        public static void OnPilotModeEndPostfix(Exosuit __instance)
         {
-            if (!Main.prawnSuitTorpedoDisplayLoaded)
+            //AddDebug("OnPilotModeEnd");
+            if (Main.config.disableGravityForExosuit)
             {
-                //AddDebug("OnPilotModeEnd");
-                torpedoStorageLeft = null;
-                torpedoStorageRight = null;
-                armNamesChanged = true;
+                Util.FreezeObject(__instance.gameObject, true);
             }
         }
+
 
         [HarmonyPostfix]
         [HarmonyPatch("Start")]
@@ -1054,7 +1069,7 @@ namespace Tweaks_Fixes
                 bool thrusterOn = input.y > 0f;
                 bool hasPower = __instance.IsPowered() && __instance.liveMixin.IsAlive();
                 __instance.GetEnergyValues(out float charge, out float capacity);
-                __instance.thrustPower = Main.NormalizeTo01range(charge, 0f, capacity);
+                __instance.thrustPower = Util.NormalizeTo01range(charge, 0f, capacity);
                 //Main.Message("thrustPower " + __instance.thrustPower);
                 if (thrusterOn & hasPower)
                 {
@@ -1375,36 +1390,108 @@ namespace Tweaks_Fixes
             //AddDebug("SlotKeyDown rightArmType " + __instance.rightArmType);
             //AddDebug("SlotKeyDown HasMoreThan1TorpedoType " + HasMoreThan1TorpedoType(__instance));
         }
+
     }
 
-    //[HarmonyPatch(typeof(ExosuitGrapplingArm), "FixedUpdate")]
-    class ExosuitGrapplingArm_FixedUpdate_Patch
+    [HarmonyPatch(typeof(ExosuitClawArm))]
+    class ExosuitClawArm_Patch
     {
-        static bool Prefix(ExosuitGrapplingArm __instance)
+        [HarmonyPostfix]
+        [HarmonyPatch("IExosuitArm.GetInteractableRoot")]
+        static void GetInteractableRootPostfix(ExosuitClawArm __instance, GameObject target, ref GameObject __result)
         {
-            //AddDebug("ExosuitTorpedoArm Shoot " + torpedoType.techType + " " + __result);
-            if (__instance.hook.attached)
+            //AddDebug("ExosuitClawArm GetInteractableRoot Postfix target " + target.name);
+            if (__result == null && target.GetComponent<SupplyCrate>())
+                __result = target.gameObject;
+        }
+        [HarmonyPrefix]
+        [HarmonyPatch("TryUse", new Type[] { typeof(float)}, new[] {ArgumentType.Out})]
+        static bool TryUsePrefix(ExosuitClawArm __instance, ref float cooldownDuration, ref bool __result)
+        { // open supply crates
+            if (Time.time - __instance.timeUsed >= __instance.cooldownTime)
             {
-                __instance.grapplingLoopSound.Play();
-                Vector3 vector3_1 = __instance.hook.transform.position - __instance.front.position;
-                Vector3 vector3_2 = Vector3.Normalize(vector3_1);
-                if (vector3_1.magnitude > 1f)
+                Pickupable pickupable = null;
+                PickPrefab pickPrefab = null;
+                SupplyCrate supplyCrate = null;
+                __result = false;
+                bool playAnim = false;
+                GameObject target = __instance.exosuit.GetActiveTarget();
+                if (target)
                 {
-                    if (!__instance.exosuit.IsUnderwater() && __instance.exosuit.transform.position.y + 0.2f >= __instance.grapplingStartPos.y)
-                        vector3_2.y = Mathf.Min(vector3_2.y, 0f);
-                    //__instance.exosuit.GetComponent<Rigidbody>().AddForce(vector3_2 * 15f, ForceMode.Acceleration);
-                    __instance.hook.GetComponent<Rigidbody>().AddForce(-vector3_2 * 400f, ForceMode.Force);
+                    pickupable = target.GetComponent<Pickupable>();
+                    pickPrefab = target.GetComponent<PickPrefab>();
+                    supplyCrate = target.GetComponent<SupplyCrate>();
                 }
-                __instance.rope.SetIsHooked();
+                if (pickupable != null && pickupable.isPickupable)
+                {
+                    if (__instance.exosuit.storageContainer.container.HasRoomFor(pickupable))
+                    {
+                        __instance.animator.SetTrigger("use_tool");
+                        __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
+                        __result = true;
+                        return false;
+                    }
+                    else
+                        ErrorMessage.AddMessage(Language.main.Get("ContainerCantFit"));
+                }
+                else if (pickPrefab)
+                {
+                    __instance.animator.SetTrigger("use_tool");
+                    __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
+                    __result = true;
+                    return false;
+                }
+                else if (supplyCrate)
+                {
+                    if (supplyCrate.sealedComp && supplyCrate.sealedComp.IsSealed())
+                        return false;
+
+                    if (!supplyCrate.open)
+                    {
+                        supplyCrate.ToggleOpenState();
+                        playAnim = true;
+                    }
+                    else if (supplyCrate.open)
+                    {
+                        if (supplyCrate.itemInside)
+                        {
+                            if (__instance.exosuit.storageContainer.container.HasRoomFor(supplyCrate.itemInside))
+                            {
+                                ItemsContainer container = __instance.exosuit.storageContainer.container;
+                                supplyCrate.itemInside.Initialize();
+                                InventoryItem inventoryItem = new InventoryItem(supplyCrate.itemInside);
+                                container.UnsafeAdd(inventoryItem);
+                                Utils.PlayFMODAsset(__instance.pickupSound, __instance.front, 5f);
+                                supplyCrate.itemInside = null;
+                                playAnim = true;
+                            }
+                            else
+                            {
+                                ErrorMessage.AddMessage(Language.main.Get("ContainerCantFit"));
+                                return false;
+                            }
+                        }
+                    }
+                    if (playAnim)
+                    {
+                        __instance.animator.SetTrigger("use_tool");
+                        __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
+                        //supplyCrate.OnHandClick(null);
+                        __result = true;
+                    }
+                    return false;
+                }
+                else
+                {
+                    __instance.animator.SetTrigger("bash");
+                    __instance.cooldownTime = cooldownDuration = __instance.cooldownPunch;
+                    __instance.fxControl.Play(0);
+                    __result = true;
+                    return false;
+                }
             }
-            else if (__instance.hook.flying)
-            {
-                if ((__instance.hook.transform.position - __instance.front.position).magnitude > 35f)
-                    __instance.ResetHook();
-                __instance.grapplingLoopSound.Play();
-            }
-            else
-                __instance.grapplingLoopSound.Stop();
+            cooldownDuration = 0f;
+            __result = false;
             return false;
         }
     }
