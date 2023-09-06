@@ -300,7 +300,7 @@ namespace Tweaks_Fixes
             public static void Postfix(Pickupable __instance, ref bool __result)
             {
                 //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (Main.config.noFishCatching && Util.IsEatableFish(__instance.gameObject) && Util.IsDead(__instance.gameObject))
+                if (Main.config.noFishCatching && Util.IsEatableFish(__instance.gameObject) && !Util.IsDead(__instance.gameObject))
                 {
                     __result = false;
                     if (Player.main._currentWaterPark)

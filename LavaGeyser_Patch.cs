@@ -131,6 +131,7 @@ namespace Tweaks_Fixes
                 if (!__instance.erupting)
                     return;
 
+                GameObject go = Util.GetEntityRoot(other.gameObject);
                 //AddDebug("Geyser OnTriggerStay " + go.name);
                 if (Util.IsEatableFish(go) && Util.IsDead(go))
                 {
@@ -149,8 +150,7 @@ namespace Tweaks_Fixes
                 //Rigidbody rb = other.GetComponentInChildren<Rigidbody>();
                 if (Main.config.lavaGeyserEruptionForce == 0)
                     return;
-
-                GameObject go = Util.GetEntityRoot(other.gameObject);
+            
                 Rigidbody rb = go.GetComponentInChildren<Rigidbody>();
                 if (rb != null)
                 {

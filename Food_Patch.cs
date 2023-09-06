@@ -295,7 +295,7 @@ namespace Tweaks_Fixes
                 AddDebug(" Pickup " + pickupable.name);
                 Main.logger.LogMessage("Inventory Pickup " + pickupable.name);
                 TechType tt = CraftData.GetTechType(pickupable.gameObject);
-                if (Main.config.gelSackDecomposes && tt == TechType.JellyPlant)
+                //if (Main.config.gelSackDecomposes && tt == TechType.JellyPlant)
                 {
                     Eatable eatable = pickupable.GetComponent<Eatable>();
                     if (eatable != null)

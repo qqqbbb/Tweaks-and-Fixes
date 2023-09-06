@@ -356,7 +356,7 @@ namespace Tweaks_Fixes
         public float lavaGeyserEruptionInterval = 12f;
         public bool removeLavaGeyserRockParticles = false;
         public bool replaceDealDamageOnImpactScript = true;
-        public bool gelSackDecomposes = false;
+        //public bool gelSackDecomposes = false;
         public float solarPanelMaxDepth = 250f;
         
 
