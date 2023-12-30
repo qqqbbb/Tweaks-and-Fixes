@@ -2,8 +2,9 @@
 using HarmonyLib;
 using System.Reflection;
 using System;
-using SMLHelper.V2.Handlers;
-using SMLHelper.V2.Assets;
+using Nautilus.Handlers;
+using Nautilus.Assets;
+using Nautilus.Utility;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +12,9 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Bootstrap;
 using static ErrorMessage;
+using Nautilus.Assets.PrefabTemplates;
+using static Tweaks_Fixes.Spawnables;
+using Nautilus.Assets.Gadgets;
 
 namespace Tweaks_Fixes
 {
@@ -20,7 +24,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "2.12.0";
+            VERSION = "3.0.0";
 
         public static ManualLogSource logger;
         //public static GUIHand guiHand;
@@ -172,15 +176,18 @@ namespace Tweaks_Fixes
 
         public static void Setup()
         {
-            IngameMenuHandler.RegisterOnSaveEvent(SaveData);
-            IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
+            SaveUtils.RegisterOnSaveEvent(SaveData);
+            SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-185f, -42f, 138.5f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-63.85f, -16f, -223f)));
-            new Spawnables.Stone().Patch();
+            //new Spawnables.Stone().Patch();
+            //CustomPrefab stone = new CustomPrefab( "TF_Stone", "TF_Stone", "");
+            //stone.SetSpawns(new SpawnLocation(new Vector3(0.67f, -14.11f, -323.3f), new Vector3(0f, 310f, 329f)));
+            //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
         }
 
         private void Awake()

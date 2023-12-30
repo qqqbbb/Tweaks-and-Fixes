@@ -1,11 +1,11 @@
-﻿using SMLHelper.V2.Json;
-using SMLHelper.V2.Options.Attributes;
+﻿using Nautilus.Json;
+using Nautilus.Options.Attributes;
 using System.Collections.Generic;
 using UnityEngine;
-using SMLHelper.V2.Commands;
-using SMLHelper.V2.Handlers;
-using SMLHelper.V2.Interfaces;
-using SMLHelper.V2.Options;
+using Nautilus.Commands;
+using Nautilus.Handlers;
+//using Nautilus.Interfaces;
+using Nautilus.Options;
 using System.ComponentModel;
 
 namespace Tweaks_Fixes

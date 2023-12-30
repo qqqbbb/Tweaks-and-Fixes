@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using System;
-using SMLHelper.V2.Assets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
