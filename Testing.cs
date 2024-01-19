@@ -19,22 +19,7 @@ namespace Tweaks_Fixes
 {
     class Testing
     {
-
-
-        //[HarmonyPatch(typeof(Utils), nameof(Utils.PlayFMODAsset), new Type[] {typeof(FMODAsset), typeof(Transform), typeof(float) })]
-        class MeshRenderer_Start_patch
-        {
-            public static bool Prefix(FMODAsset asset, Transform t)
-            {
-                if (asset == null)
-                    AddDebug("Utils PlayFMODAsset null ");
-                else
-                    AddDebug("Utils PlayFMODAsset " + asset.name);
-                //return false;
-                //AddDebug("Knife OnToolUseAnim 1");
-                return true;
-            }
-        }
+        public static GameObject storedGO = null;
 
         //[HarmonyPatch(typeof(DisplayManager))]
         class DisplayManager_Patch
@@ -55,11 +40,11 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("Initialize")]
             static void InitializePrefix(DisplayManager __instance)
             {
-                if (Screen.currentResolution.width != __instance.resolution.width)
-                    AddDebug("Resolution !!! ");
+                //if (Screen.currentResolution.width != __instance.resolution.width)
+                //    AddDebug("Resolution !!! ");
 
-                AddDebug("Initialize Screen.currentResolution " + Screen.currentResolution.width);
-                AddDebug("Initialize DisplayManager.resolution " + __instance.resolution.width);
+                //AddDebug("Initialize Screen.currentResolution " + Screen.currentResolution.width);
+                //AddDebug("Initialize DisplayManager.resolution " + __instance.resolution.width);
                 Main.logger.LogMessage("Resolution should be fixed");
                 if (Screen.currentResolution.width != 1280)
                 {
@@ -70,7 +55,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
 
         //[HarmonyPatch(typeof(AggressiveWhenSeePlayer), "GetAggressionTarget")]
         class CreatureDeath_OnKillAsync_Patch
@@ -113,6 +97,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    //Main.logger.LogDebug("press C ");
                     PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
@@ -143,8 +128,9 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
+                    //AddDebug(" stasis targets " + Tools_Patch.stasisTargets.Count);
+                    //GameObject goToTest = Player.main.guiHand.activeTarget;
 
-                    //goToTest = Player.main.guiHand.activeTarget;
                     //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
                     //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
                     //AddDebug("Exosuit " + BehaviourData.GetEcoTargetType(TechType.Exosuit));
@@ -152,7 +138,6 @@ namespace Tweaks_Fixes
                     //Vector3 vel = Player.main.currentMountedVehicle.useRigidbody.velocity;
                     //bool moving = vel.x > 1f || vel.y > 1f || vel.z > 1f;
                     //AddDebug("moving " + moving);
-
 
                     //AddDebug(" " + target.gameObject.name );
                     //if (target.transform.parent)
@@ -169,7 +154,6 @@ namespace Tweaks_Fixes
                     //Rigidbody rb = target.GetComponent<Rigidbody>();
                     //if (rb)
                     //    AddDebug("Rigidbody " + rb.mass);
-
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
                     }
@@ -193,6 +177,7 @@ namespace Tweaks_Fixes
             else
                 AddDebug("no terrain " );
         }
+      
         public static void printTarget()
         {
             GameObject target = Player.main.guiHand.activeTarget;

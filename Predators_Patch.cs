@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
     class Predators_Patch
     {
         static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
-        static HashSet<AggressiveWhenSeeTarget> playerAttackers = new HashSet<AggressiveWhenSeeTarget>();
+
 
         public static bool IsLightOn(Vehicle vehicle)
         {
@@ -190,6 +190,9 @@ namespace Tweaks_Fixes
 
             if (attackCyclops.forcedNoiseManager)
                 cyclopsNoiseManager = attackCyclops.forcedNoiseManager;
+
+            if (cyclopsNoiseManager == null)
+                return false;
 
             if (Main.config.emptyVehiclesCanBeAttacked == Config.EmptyVehiclesCanBeAttacked.Yes)
                 return true;

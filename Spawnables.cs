@@ -19,7 +19,7 @@ namespace Tweaks_Fixes
         //    "TF_Stone",
         //"TF_Stone",
         //"");
-
+        /*
         public class Stone : ICustomPrefab
         {
             public static TechType TechTypeID { get; protected set; }
@@ -106,6 +106,6 @@ namespace Tweaks_Fixes
                 throw new NotImplementedException();
             }
         }
-
+        */
     }
 }

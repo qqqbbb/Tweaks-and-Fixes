@@ -1550,12 +1550,12 @@ namespace Tweaks_Fixes
             }
             if (closestObj && __instance.drilling)
             {
-                Drillable ancestor1 = closestObj.FindAncestor<Drillable>();
+                Drillable drillable = closestObj.FindAncestor<Drillable>();
                 __instance.loopHit.Play();
-                if (ancestor1)
+                if (drillable)
                 {
                     GameObject hitObject;
-                    ancestor1.OnDrill(__instance.fxSpawnPoint.position, __instance.exosuit, out hitObject);
+                    drillable.OnDrill(__instance.fxSpawnPoint.position, __instance.exosuit, out hitObject);
                     __instance.drillTarget = hitObject;
                     //if (__instance.fxControl.emitters[0].fxPS == null || __instance.fxControl.emitters[0].fxPS.emission.enabled) 
                     //AddDebug("emission.enabled " + __instance.fxControl.emitters[0].fxPS.emission.enabled);
@@ -1567,22 +1567,23 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    LiveMixin ancestor2 = closestObj.FindAncestor<LiveMixin>();
-                    if (ancestor2)
+                    LiveMixin lm = closestObj.FindAncestor<LiveMixin>();
+                    if (lm)
                     {
-                        ancestor2.IsAlive();
-                        ancestor2.TakeDamage(4f, zero, DamageType.Drill);
+                        lm.IsAlive();
+                        lm.TakeDamage(4f, zero, DamageType.Drill);
                         __instance.drillTarget = closestObj;
                     }
-                    VFXSurface component = closestObj.GetComponent<VFXSurface>();
+                    //AddDebug("target " + closestObj.name);
+                    VFXSurface vfxSurface = closestObj.GetComponent<VFXSurface>();
                     if (__instance.drillFXinstance == null)
-                        __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(component, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
-                    else if (component != null && __instance.prevSurfaceType != component.surfaceType)
+                        __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(vfxSurface, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
+                    else if (vfxSurface != null && __instance.prevSurfaceType != vfxSurface.surfaceType)
                     {
                         __instance.drillFXinstance.GetComponent<VFXLateTimeParticles>().Stop();
                         UnityEngine.Object.Destroy(__instance.drillFXinstance.gameObject, 1.6f);
-                        __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(component, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
-                        __instance.prevSurfaceType = component.surfaceType;
+                        __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(vfxSurface, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
+                        __instance.prevSurfaceType = vfxSurface.surfaceType;
                     }
                     closestObj.SendMessage("BashHit", __instance, SendMessageOptions.DontRequireReceiver);
                 }

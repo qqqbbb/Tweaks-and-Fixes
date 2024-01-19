@@ -97,7 +97,7 @@
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="Physics_Patch.cs" />
     <Compile Include="Planter_Patch.cs" />
-    <Compile Include="LavaGeyser_Patch.cs" />
+    <Compile Include="Geyser_Patch.cs" />
     <Compile Include="Scanner_Patch.cs" />
     <Compile Include="Sound_Patch.cs" />
     <Compile Include="Translation.cs" />

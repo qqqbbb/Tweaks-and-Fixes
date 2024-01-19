@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.0.0";
+            VERSION = "3.01.0";
 
         public static ManualLogSource logger;
         //public static GUIHand guiHand;
@@ -57,6 +57,8 @@ namespace Tweaks_Fixes
             Crush_Damage.extraCrushDepth = 0;
             Cyclops_Patch.ceh = null;
             Cyclops_Patch.collidersInSub = new HashSet<Collider>();
+            Geyser_Patch.eruptionForce = new Dictionary<Geyser, Vector3>();
+            Geyser_Patch.rotationForce = new Dictionary<Geyser, Vector3>();
             Gravsphere_Patch.gasPods = new HashSet<GasPod>();
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
             Decoy_Patch.decoysToDestroy = new List<GameObject>();
@@ -68,6 +70,8 @@ namespace Tweaks_Fixes
             Storage_Patch.savedSigns = new List<Sign>();
             Storage_Patch.labelledLockers = new List<StorageContainer>();
             Battery_Patch.subPowerRelays = new List<PowerRelay>();
+            Coffee_Patch.spawnedCoffeeTime = new Dictionary<Eatable, float>();
+            UI_Patches.planters = new Dictionary<ItemsContainer, Planter>();
             config.Load();
         }
 
@@ -89,6 +93,11 @@ namespace Tweaks_Fixes
             loadingDone = true;
             config.predatorExclusion.Remove(TechType.Crash);
             config.predatorExclusion.Remove(TechType.Mesmer);
+
+            if (config.bloodColor["Red"] != 0.784f || config.bloodColor["Green"] != 1f || config.bloodColor["Blue"] != 0.157f)
+            {
+                Damage_Patch.SetBloodColor();
+            }
 
             foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
             {
@@ -148,26 +157,20 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(IngameMenu), "SaveGame")]
+        //[HarmonyPatch(typeof(IngameMenu), "SaveGame")]
         class IngameMenu_SaveGame_Patch
         {
             public static void Prefix(IngameMenu __instance)
             {
                 //AddDebug("SaveGame ");
-                config.Save();
-                for (int i = Decoy_Patch.decoysToDestroy.Count - 1; i >= 0; i--)
-                    Destroy(Decoy_Patch.decoysToDestroy[i]);
-                //AddDebug("decoysToDestroy.Count " + Decoy_Patch.decoysToDestroy.Count);
+
             }
         }
 
         static void SaveData()
         {
             //AddDebug("SaveData " + Inventory.main.quickSlots.activeSlot);
-            //Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
             config.activeSlot = Inventory.main.quickSlots.activeSlot;
-            //config.crushDepth -= Crush_Damage.extraCrushDepth;
-            //config.crushDepth += Crush_Damage.extraCrushDepth;
             for (int i = Decoy_Patch.decoysToDestroy.Count - 1; i >= 0; i--)
                 Destroy(Decoy_Patch.decoysToDestroy[i]);
 
@@ -176,6 +179,8 @@ namespace Tweaks_Fixes
 
         public static void Setup()
         {
+
+            //FlashingLightsDisclaimer.isFirstRun = false;
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");

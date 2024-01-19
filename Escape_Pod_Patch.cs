@@ -1,10 +1,10 @@
 ﻿
 using UnityEngine;
 using HarmonyLib;
-//using System;
+using System.Collections;
 using System.Collections.Generic;
-//using System.Linq;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -16,38 +16,6 @@ namespace Tweaks_Fixes
     //Operational sky specIntensity 1.5
     class Escape_Pod_Patch
     {
-
-        public static void RepairPod(EscapePod escapePod)
-        {
-            //AddDebug("RepairPod");
-            if (escapePod.vfxSpawner.spawnedObj != null)
-            {
-                ParticleSystem particleSystem = escapePod.vfxSpawner.spawnedObj.GetComponent<ParticleSystem>();
-                if (particleSystem != null)
-                    particleSystem.Stop();
-            }
-            for (int index = 0; index < escapePod.lightingController.skies.Length; ++index)
-            {
-                LightingController.MultiStatesSky sky = escapePod.lightingController.skies[index];
-                sky.sky.AffectedByDayNightCycle = false;
-            }
-            escapePod.animator.SetFloat("lifepod_damage", escapePod.healthScalar);
-            escapePod.damagedSound.Stop();
-            escapePod.damageEffectsShowing = false;
-            escapePod.lightingController.LerpToState(0, 5f);
-            uGUI_EscapePod.main.SetHeader(Language.main.Get("IntroEscapePod4Header"), new Color32((byte)159, (byte)243, (byte)63, byte.MaxValue));
-            uGUI_EscapePod.main.SetContent(Language.main.Get("IntroEscapePod4Content"), new Color32((byte)159, (byte)243, (byte)63, byte.MaxValue));
-            uGUI_EscapePod.main.SetPower(Language.main.Get("IntroEscapePod4Power"), new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue));
-            RegeneratePowerSource[] cells = escapePod.GetAllComponentsInChildren<RegeneratePowerSource>();
-            int maxPower = Main.config.escapePodMaxPower;
-            foreach (RegeneratePowerSource cell in cells)
-            {
-                //AddDebug("RepairPod maxPower " + maxPower);
-                //AddDebug("RegeneratePowerSource " + cell.name);
-                cell.regenerationThreshhold = maxPower;
-                cell.powerSource.maxPower = maxPower;
-            }
-        }
 
         public static bool IsSmokeOut(string slot)
         {
@@ -72,106 +40,47 @@ namespace Tweaks_Fixes
             Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot] = true;
         }
 
+        static IEnumerator SetMaxPower(EscapePod escapePod)
+        {
+            //yield return new WaitForSeconds(waitTime);
+            while (!Main.loadingDone)
+                yield return null;
+            
+            float maxPower = Main.config.escapePodMaxPower;
+            bool damaged = escapePod.damageEffectsShowing || Player.main.isNewBorn;
+            foreach (RegeneratePowerSource cell in escapePod.GetAllComponentsInChildren<RegeneratePowerSource>())
+            {
+                if (Main.config.escapePodPowerTweak && damaged)
+                    cell.powerSource.maxPower = maxPower * .5f;
+                else
+                    cell.powerSource.maxPower = maxPower;
+
+                //AddDebug("SetMaxPower maxPower " + cell.powerSource.maxPower);
+                //AddDebug("SetMaxPower damageEffectsShowing " + escapePod.damageEffectsShowing);
+                //AddDebug("SetMaxPower isNewBorn " + Player.main.isNewBorn);
+                cell.regenerationThreshhold = maxPower;
+                if (cell.powerSource.power > cell.powerSource.maxPower)
+                    cell.powerSource.power = cell.powerSource.maxPower;
+
+                if (Main.config.escapePodPowerTweak && Player.main.isNewBorn)
+                    cell.powerSource.power = 0;
+            }
+            if (damaged && IsSmokeOut(SaveLoadManager.main.currentSlot))
+                LetSmokeOut(escapePod);
+        }
 
         [HarmonyPatch(typeof(EscapePod))]
         class EscapePod_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
             public static void StartPostfix(EscapePod __instance)
             {
-                RegeneratePowerSource[] cells = EscapePod.main.gameObject.GetAllComponentsInChildren<RegeneratePowerSource>();
-                int maxPower = Main.config.escapePodMaxPower;
-                if (cells != null)
+                //RegeneratePowerSource[] cells = EscapePod.main.gameObject.GetAllComponentsInChildren<RegeneratePowerSource>();
+                //if (cells != null)
                 {
                     //AddDebug("EscapePod start cells " + cells.Length);
-                    foreach (RegeneratePowerSource cell in cells)
-                    {
-                        //if (Main.config.escapePodPowerTweak && __instance.damageEffectsShowing)
-                        //    cell.powerSource.maxPower = maxPower * .5f;
-                        //else
-                        //    cell.powerSource.maxPower = maxPower;
-                    }
-                }
-            }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("ShowDamagedEffects")]
-            public static bool DamagePod(EscapePod __instance)
-            {
-                //AddDebug("try DamagePod " + __instance.introCinematic.state);
-                if (__instance.isNewBorn && __instance.introCinematic.state == PlayerCinematicController.State.None)
-                    return false; // dont damage before intro cinematic
-
-                //AddDebug("DamagePod");
-                if (!IsSmokeOut(SaveLoadManager.main.currentSlot))
-                    __instance.vfxSpawner.SpawnManual();
-
-                __instance.damagedSound.Play();
-                __instance.damageEffectsShowing = true;
-                __instance.lightingController.SnapToState(2);
-
-                uGUI_EscapePod.main.SetHeader(Language.main.Get("IntroEscapePod3Header"), (Color)new Color32((byte)243, (byte)201, (byte)63, byte.MaxValue), 2f);
-                uGUI_EscapePod.main.SetContent(Language.main.Get("IntroEscapePod3Content"), (Color)new Color32((byte)233, (byte)63, (byte)27, byte.MaxValue));
-                uGUI_EscapePod.main.SetPower(Language.main.Get("IntroEscapePod3Power"), (Color)new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, byte.MaxValue));
-                RegeneratePowerSource[] cells = __instance.GetAllComponentsInChildren<RegeneratePowerSource>();
-                int maxPower = Main.config.escapePodMaxPower;
-                //AddDebug("DamagePod maxPower " + maxPower);
-                foreach (RegeneratePowerSource cell in cells)
-                {
-                    //AddDebug("maxPower " + maxPower);
-                    cell.regenerationThreshhold = maxPower;
-                    if (Main.config.escapePodPowerTweak)
-                        cell.powerSource.maxPower = maxPower * .5f;
-                    else
-                    {
-                        cell.powerSource.maxPower = maxPower;
-                        cell.powerSource.power = maxPower;
-                    }
-                }
-                return false;
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("ShowDamagedEffects")]
-            public static void ShowDamagedEffectsPostfix(EscapePod __instance)
-            {
-                //AddDebug("EscapePod ShowDamagedEffects");
-                int maxPower = Main.config.escapePodMaxPower;
-                foreach (RegeneratePowerSource cell in __instance.GetAllComponentsInChildren<RegeneratePowerSource>())
-                {
-                    //AddDebug("maxPower " + maxPower);
-                    cell.regenerationThreshhold = maxPower;
-                    if (Main.config.escapePodPowerTweak)
-                        cell.powerSource.maxPower = maxPower * .5f;
-                    else
-                        cell.powerSource.maxPower = maxPower;
-
-                    cell.powerSource.power = maxPower;
-                }
-                if (IsSmokeOut(SaveLoadManager.main.currentSlot))
-                    LetSmokeOut(__instance);
-            }
-
-            //[HarmonyPrefix]
-            //[HarmonyPatch("UpdateDamagedEffects")]
-            public static bool UpdateDamagedEffectsPrefix(EscapePod __instance)
-            {
-                return false;
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("StopIntroCinematic")]
-            public static void StopIntroCinematicPostfix(EscapePod __instance)
-            {
-                //AddDebug("EscapePod StopIntroCinematic");
-                if (Main.config.escapePodPowerTweak)
-                {
-                    foreach (RegeneratePowerSource cell in EscapePod.main.gameObject.GetAllComponentsInChildren<RegeneratePowerSource>())
-                    {
-                        //float chargeable = cell.powerSource.GetMaxPower() - cell.powerSource.GetPower();
-                        //cell.powerSource.power = Main.config.escapePodMaxPower * .15f;
-                        cell.powerSource.power = 0f;
-                    }
+                    Player.main.StartCoroutine(SetMaxPower(__instance));
                 }
             }
 
@@ -191,13 +100,6 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("DamageRadio")]
-            public static void DamageRadioPostfix(EscapePod __instance)
-            {
-                //AddDebug("DamageRadio");
-            }
-
         }
 
         [HarmonyPatch(typeof(EscapePodFirstUseCinematicsController))]
@@ -210,31 +112,6 @@ namespace Tweaks_Fixes
                 //AddDebug("OnTopHatchCinematicEnd ");
                 if (__instance.escapePod.damageEffectsShowing)
                     LetSmokeOut(__instance.escapePod);
-            }
-        }
-
-        //[HarmonyPatch(typeof(EscapePod), "OnProtoDeserialize")]
-        public class EscapePod_OnProtoDeserialize_Patch
-        { // power cells not loaded when OnProtoDeserialize runs
-            public static void Postfix(EscapePod __instance)
-            {
-                //AddDebug("EscapePod damageEffectsShowing " + __instance.damageEffectsShowing);
-                //AddDebug("health " + __instance.liveMixin.health);
-                //AddDebug("OnProtoDeserialize " + __instance.liveMixin.GetHealthFraction()); 
-                Rigidbody rb = __instance.GetComponent<Rigidbody>();
-                rb.constraints = RigidbodyConstraints.None;
-
-                if (GameModeUtils.SpawnsInitialItems()) // creative mode
-                    return;
-
-                if (__instance.liveMixin.GetHealthFraction() < 0.99f)
-                {
-                    EscapePod_Patch.DamagePod(__instance);
-                    if (IsSmokeOut(SaveLoadManager.main.currentSlot))
-                        LetSmokeOut(__instance);
-                }
-                else
-                    RepairPod(__instance);
             }
         }
 
@@ -305,35 +182,5 @@ namespace Tweaks_Fixes
             }
         }
 
-        /*
-    [HarmonyPatch(typeof(Radio))]
-    class Radio_Patch
-    {
-        [HarmonyPostfix]
-        [HarmonyPatch("OnEnable")]
-        public static void OnEnablePostfix(Radio __instance)
-        { // fix: radio repairs itself after reload
-            bool fixed_ = Main.config.radioFixed.ContainsKey(SaveLoadManager.main.currentSlot) &&  Main.config.radioFixed[SaveLoadManager.main.currentSlot];
-            //AddDebug("radio OnEnable " + fixed_);
-            //AddDebug("radio OnEnable health " + __instance.liveMixin.health);
-            if (!fixed_ && __instance.IsFullHealth())
-            {
-                //AddDebug("radio should be damaged ");
-                __instance.liveMixin.TakeDamage(80f);
-            }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch("OnRepair")]
-        public static void OnRepairPostfix(Radio __instance)
-        {
-            //LiveMixin lm = __instance.GetComponent<LiveMixin>();
-            //if (lm)
-            //    AddDebug("radio OnRepair " + lm.health);
-            Main.config.radioFixed[SaveLoadManager.main.currentSlot] = true;
-        }
-    }
-
-    /*/
     }
 }

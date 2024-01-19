@@ -325,5 +325,13 @@ namespace Tweaks_Fixes
             return prefabIdentifier != null ? prefabIdentifier.gameObject : go;
         }
 
+        public static IEnumerable<GameObject> FindAllRootGameObjects()
+        {
+            return Resources.FindObjectsOfTypeAll<Transform>()
+                .Where(t => t.parent == null)
+                .Select(x => x.gameObject);
+        }
+
+
     }
 }

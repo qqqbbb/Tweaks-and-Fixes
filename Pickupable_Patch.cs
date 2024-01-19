@@ -10,7 +10,6 @@ namespace Tweaks_Fixes
 {
     class Pickupable_Patch
     {
-
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> shinies = new HashSet<TechType>();
         public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
@@ -50,7 +49,31 @@ namespace Tweaks_Fixes
                 }
 
             }
-            
+
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Pickup")]
+            public static void PickupPrefix(Pickupable __instance)
+            {
+                AddDebug("Pickup " + __instance.GetTechType());
+
+                if (__instance.GetTechType() == TechType.GasPod)
+                {
+                    GasPod gasPod = __instance.GetComponent<GasPod>();
+                    if (!gasPod)
+                    {
+                        AddDebug("gasPod null ");
+                    }
+                    if (gasPod)
+                    {
+                        AddDebug("gasPod ");
+                        //if (Tools_Patch.gasPodsInStasis.Contains(gasPod))
+                        //{
+                        //    AddDebug("gasPod Remove ");
+                        //    Tools_Patch.gasPodsInStasis.Remove(gasPod);
+                        //}
+                    }
+                }
+            }
             //[HarmonyPrefix]
             //[HarmonyPatch("OnHandHover")]
             public static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)

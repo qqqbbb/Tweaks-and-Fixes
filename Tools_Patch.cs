@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
 using static ErrorMessage;
+using static Nautilus.Assets.CustomModelData;
 
 namespace Tweaks_Fixes
 {
@@ -12,9 +13,12 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
         public static bool releasingGrabbedObject = false;
         public static bool shootingObject = false;
-        public static List<GameObject> repCannonGOs = new List<GameObject>();
+        //public static List<GameObject> repCannonGOs = new List<GameObject>();
         static ToggleLights seaglideToggleLights = null;
         public static Dictionary<Creature, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<Creature, Dictionary<TechType, int>>();
+        public static List<Rigidbody> stasisTargets = new List<Rigidbody>();
+
+        
 
         [HarmonyPatch(typeof(FlashLight), "Start")]
         public class FlashLight_Start_Patch
@@ -335,7 +339,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(StasisSphere))]
+        [HarmonyPatch(typeof(StasisSphere))]
         class StasisSphere_Patch
         {
             private static bool isBigger(StasisSphere stasisSphere, GameObject go)
@@ -464,13 +468,67 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("CancelAll")]
-            private static void CancelAllPrefix(StasisSphere __instance)
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Freeze")]
+            private static void FreezePrefix(StasisSphere __instance)
             {
-                //AddDebug("CancelAll");
-                if (Main.loadingDone)
-                    Player.main.rigidBody.isKinematic = false;
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    AddDebug("targets " + __instance.targets.Count);
+                    foreach (var rb in __instance.targets)
+                    {
+                        Main.logger.LogMessage("targets " + rb.name);
+                    }
+                }
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Freeze")]
+            private static void FreezePostfix(StasisSphere __instance, Collider other)
+            {
+                GameObject go = other.transform.gameObject;
+                //if (!Creature_Tweaks.objectsInStasis.TryGetValue(go, out string s))
+                {
+                    TechType tt = CraftData.GetTechType(go);
+                    if (tt == TechType.GasPod)
+                    {
+                        GasPod gasPod = other.GetComponent<GasPod>();
+                        if (gasPod && !gasPod.detonated)
+                        {
+                            //AddDebug("Freeze  GasPod " );
+                            //Creature_Tweaks.objectsInStasis.Add(go, null);
+                        }
+                    }
+                    //else if (tt == TechType.Gasopod)
+                    //    Creature_Tweaks.objectsInStasis.Add(go, null);
+                }
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Unfreeze")]
+            private static void UnfreezePostfix(StasisSphere __instance, Rigidbody target)
+            {
+                if (target == null)
+                    return;
+
+                //Creature_Tweaks.objectsInStasis.Remove(target.gameObject);
+                //stasisTargets = __instance.targets;
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnDestroy")]
+            private static void OnDestroyPrefix(StasisSphere __instance)
+            {
+                AddDebug("StasisSphere OnDestroy");
+                //if (Main.loadingDone)
+                //    Player.main.rigidBody.isKinematic = false;
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("Awake")]
+            private static void AwakePostfix(StasisSphere __instance)
+            {
+                stasisTargets = __instance.targets;
             }
         }
 
@@ -564,63 +622,6 @@ namespace Tweaks_Fixes
                 return true;
             }
 
-        }
-
-        //[HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
-        class RepulsionCannon_OnToolUseAnim_Patch
-        {
-            static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)
-            {
-                //AddDebug("ShootObject " + rb.name);
-                if (__instance.energyMixin.charge <= 0f)
-                    return false;
-
-                float num1 = Mathf.Clamp01(__instance.energyMixin.charge * .25f);
-                Vector3 forward = MainCamera.camera.transform.forward;
-                Vector3 position = MainCamera.camera.transform.position;
-                int num2 = UWE.Utils.SpherecastIntoSharedBuffer(position, 1f, forward, 35f, ~(1 << LayerMask.NameToLayer("Player")));
-                float num3 = 0f;
-                for (int index1 = 0; index1 < num2; ++index1)
-                {
-                    RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
-                    Vector3 point = raycastHit.point;
-                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) * .02857f);
-                    GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
-                    if (go == null)
-                        go = raycastHit.collider.gameObject;
-
-                    Rigidbody rb = go.GetComponent<Rigidbody>();
-                    if (rb != null)
-                    {
-                        num3 += rb.mass;
-                        bool flag = true;
-                        go.GetComponents<IPropulsionCannonAmmo>(__instance.iammo);
-                        for (int index2 = 0; index2 < __instance.iammo.Count; ++index2)
-                        {
-                            if (!__instance.iammo[index2].GetAllowedToShoot())
-                            {
-                                flag = false;
-                                break;
-                            }
-                        }
-                        __instance.iammo.Clear();
-                        if (flag && !(raycastHit.collider is MeshCollider) && (go.GetComponent<Pickupable>() != null || go.GetComponent<Living>() != null || rb.mass <= 1300f && UWE.Utils.GetAABBVolume(go) <= 400f))
-                        {
-                            float num5 = (1f + rb.mass * 0.005f);
-                            Vector3 velocity = forward * num4 * num1 * 70f / num5;
-                            repCannonGOs.Add(go);
-                            __instance.ShootObject(rb, velocity);
-                        }
-                    }
-                }
-                __instance.energyMixin.ConsumeEnergy(4f);
-                __instance.fxControl.Play();
-                __instance.callBubblesFX = true;
-                Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
-                float num6 = Mathf.Clamp(num3 / 100f, 0f, 15f);
-                Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
-                return false;
-            }
         }
 
         //[HarmonyPatch(typeof(PropulsionCannon))]

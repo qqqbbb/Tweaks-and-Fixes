@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         static bool chargerOpen = false;
         //static List <TechType> landPlantSeeds = new List<TechType> { TechType.BulboTreePiece, TechType.PurpleVegetable, TechType.FernPalmSeed, TechType.OrangePetalsPlantSeed, TechType.HangingFruit, TechType.MelonSeed, TechType.PurpleVasePlantSeed, TechType.PinkMushroomSpore, TechType.PurpleRattleSpore, TechType.PinkFlowerSeed };
         //static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.AcidMushroomSpore, TechType.BloodOil, TechType.BluePalmSeed, TechType.KooshChunk, TechType.PurpleBranchesSeed, TechType.WhiteMushroomSpore, TechType.EyesPlantSeed, TechType.RedRollPlantSeed, TechType.GabeSFeatherSeed, TechType.JellyPlantSeed, TechType.RedGreenTentacleSeed, TechType.SnakeMushroomSpore, TechType.MembrainTreeSeed, TechType.SmallFanSeed, TechType.RedBushSeed, TechType.RedConePlantSeed, TechType.RedBasketPlantSeed, TechType.SeaCrownSeed, TechType.ShellGrassSeed, TechType.SpottedLeavesPlantSeed, TechType.SpikePlantSeed, TechType.PurpleFanSeed, TechType.PurpleStalkSeed, TechType.PurpleTentacleSeed };
-        static Dictionary<ItemsContainer, Planter> planters = new Dictionary<ItemsContainer, Planter>();
+        public static Dictionary<ItemsContainer, Planter> planters = new Dictionary<ItemsContainer, Planter>();
         static public string beaconToolString = string.Empty;
         static public string beaconPickString = string.Empty;
         static public string dropString = string.Empty;
@@ -253,22 +253,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
         { 
-            //[HarmonyPatch(nameof(GUIHand.OnUpdate))]
-            //[HarmonyPrefix]
-            public static bool OnUpdatePrefix(GUIHand __instance)
-            {
-                if (!__instance.activeTarget)
-                    return true;
-
-                UniqueIdentifier ui = __instance.activeTarget.GetComponentInParent<UniqueIdentifier>();
-                if (ui && Plants_Patch.enteredColliders.ContainsKey(ui.gameObject) && Plants_Patch.enteredColliders[ui.gameObject] > 0)
-                {
-                    //HandReticle.main.SetInteractTextRaw(string.Empty, string.Empty);
-                    return false;
-                }
-                return true;
-            }
-
             [HarmonyPostfix]
             [HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
@@ -893,6 +877,24 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
+        }
+
+        [HarmonyPatch(typeof(FlashingLightsDisclaimer), "Start")]
+        public static class FlashingLightsDisclaimerStartPatch
+        {
+            public static bool Prefix(FlashingLightsDisclaimer __instance)
+            {
+                //Main.logger.LogDebug("FlashingLightsDisclaimer Start ");
+                __instance.gameObject.SetActive(false);
+                //FlashingLightsDisclaimer.isFirstRun = false;
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(uGUI_EncyclopediaTab), "DisplayEntry")]
+        public static class uGUI_EncyclopediaTab_Patch
+        {
+            public static void Postfix(uGUI_EncyclopediaTab __instance) => __instance.contentScrollRect.verticalNormalizedPosition = 1f;
         }
 
         //[HarmonyPatch(typeof(uGUI_MainMenu), "OnRightSideOpened")]

@@ -18,34 +18,32 @@ namespace Tweaks_Fixes
         public static List<LiveMixin> tempDamageLMs = new List<LiveMixin>();
         static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
 
-        static void SetBloodColor(GameObject go)
-        {   // GenericCreatureHit(Clone)
-            // RGBA(0.784, 1.000, 0.157, 0.392)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            // RGBA(0.784, 1.000, 0.157, 0.588)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            // RGBA(1.000, 0.925, 0.333, 1.000)
-            // xKnifeHit_Organic(Clone)
-            // RGBA(0.784, 1.000, 0.157, 0.392)
-            // RGBA(0.784, 1.000, 0.157, 0.392)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            // RGBA(0.784, 1.000, 0.157, 0.392)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
-            //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
-            //Main.Log("SetBloodColor " + go.name );
-            foreach (ParticleSystem ps in pss)
+
+        public static void SetBloodColor()
+        {
+            foreach (GameObject go in Util.FindAllRootGameObjects())
             {
-                //ps.startColor = new Color(1f, 0f, 0f);
-                ParticleSystem.MainModule psMain = ps.main;
-                //Main.Log("startColor " + psMain.startColor.color);
-                Color newColor = new Color(Main.config.bloodColor["Red"], Main.config.bloodColor["Green"], Main.config.bloodColor["Blue"], psMain.startColor.color.a);
-                psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
+                if (go.name == "xKnifeHit_Organic" || go.name == "GenericCreatureHit" || go.name == "xExoDrill_Organic")
+                {
+                    ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
+                    //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
+                    //Main.Log("SetBloodColor " + go.name );
+                    foreach (ParticleSystem ps in pss)
+                    {
+                        //ps.startColor = new Color(1f, 0f, 0f);
+                        ParticleSystem.MainModule psMain = ps.main;
+                        //Main.Log("startColor " + psMain.startColor.color);
+                        Color newColor = new Color(Main.config.bloodColor["Red"], Main.config.bloodColor["Green"], Main.config.bloodColor["Blue"], psMain.startColor.color.a);
+                        psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
+                    }
+                }
+                else if (go.name.Contains("MapRoom"))
+                {
+                    Main.logger.LogMessage("MapRoom " + go.name);
+                }
             }
         }
 
-        
         [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_patch
         {
@@ -226,7 +224,6 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-
             //[HarmonyPostfix]
             //[HarmonyPatch("OnCollisionEnter")]
             public static void OnCollisionEnterPostfix(DealDamageOnImpact __instance, Collision collision)
@@ -240,62 +237,7 @@ namespace Tweaks_Fixes
 
             }
         }
-        
-        [HarmonyPatch(typeof(VFXDestroyAfterSeconds), "OnEnable")]
-        class VFXDestroyAfterSeconds_OnEnable_Patch
-        {
-            public static void Postfix(VFXDestroyAfterSeconds __instance)
-            {// particles from GenericCreatureHit play on awake
-                if (__instance.gameObject.name == "GenericCreatureHit(Clone)")
-                {
-                    //AddDebug("GenericCreatureHit OnEnable");
-                    //setBloodColor = true;
-                    SetBloodColor(__instance.gameObject);
-                }
-            }
-        }
-        
-        [HarmonyPatch(typeof(VFXSurfaceTypeManager), "Play", new Type[] { typeof(VFXSurfaceTypes), typeof(VFXEventTypes), typeof(Vector3), typeof(Quaternion), typeof(Transform) })]
-        class VFXSurfaceTypeManager_Play_Patch
-        {
-            static bool Prefix(VFXSurfaceTypeManager __instance, ref ParticleSystem __result, VFXSurfaceTypes surfaceType, VFXEventTypes eventType, Vector3 position, Quaternion orientation, Transform parent)
-            {
-                //ProfilingUtils.BeginSample("VFXSurfaceTypeManager.Play");
-                ParticleSystem particleSystem = null;
-                GameObject fxprefab = __instance.GetFXprefab(surfaceType, eventType);
-                if (fxprefab != null)
-                {
-                    GameObject gameObject = UnityEngine.Object.Instantiate(fxprefab, position, orientation);
-                    if (eventType == VFXEventTypes.exoDrill)
-                    {
-                        gameObject.transform.parent = null;
-                        gameObject.GetComponent<VFXFakeParent>().Parent(parent, Vector3.zero, Vector3.zero);
-                        gameObject.GetComponent<VFXLateTimeParticles>().Play();
-                        particleSystem = gameObject.GetComponent<ParticleSystem>();
-                    }
-                    else
-                    {
-                        gameObject.transform.parent = parent;
-                        if (surfaceType == VFXSurfaceTypes.organic)
-                            SetBloodColor(gameObject);
-                        
-                        particleSystem = gameObject.GetComponent<ParticleSystem>();
-                        particleSystem.Play();
-                    }
-                }
-                //particleSystem.startColor = new Color(1f, 1f, 1f);
-                //ProfilingUtils.EndSample();
-                __result = particleSystem;
-                return false;
-            }
-        }
-        
-        //[HarmonyPatch(typeof(Knife), "OnToolUseAnim")]
-        class Knife_OnToolUseAnim_Patch
-        {
 
-        }
-        
         [HarmonyPatch(typeof(LiveMixin))]
         class LiveMixin_Patch
         {
@@ -436,127 +378,6 @@ namespace Tweaks_Fixes
                 return killed;
             }
 
-            static bool TakeDamagePrefixOld(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position = default(Vector3), DamageType type = DamageType.Normal, GameObject dealer = null)
-            {
-                //if (dealer)
-                //    AddDebug("dealer " + dealer.name);
-                //AddDebug("TakeDamage " + __instance.name + " type " + type);
-                bool killed = false;
-                bool creativeMode = GameModeUtils.IsInvisible() && __instance.invincibleInCreative;
-                if (__instance.health > 0f && !__instance.invincible && !creativeMode)
-                {
-                    float damage = 0f;
-                    if (!__instance.shielded)
-                    {
-                        if (dealer == Player.mainObject)
-                        {
-                            if (type == DamageType.Heat && __instance.GetComponent<LavaLizard>())
-                                type = DamageType.Normal;
-                        }
-                        damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
-                    }
-                    if (type != DamageType.Poison)
-                        __instance.health = Mathf.Max(0f, __instance.health - damage);
-                    else 
-                    {
-                        if (Main.config.newPoisonSystem)
-                        {
-                            //AddDebug(" new Poison System " );
-                            if (dealer != __instance.gameObject)
-                            {
-                                __instance.tempDamage += damage;
-                                __instance.SyncUpdatingState();
-                                //if (__instance.gameObject == Player.mainObject)
-                                //    AddDebug("TakeDamage tempDamage +" + __instance.tempDamage);
-                            }
-                            else
-                                __instance.health = Mathf.Max(0f, __instance.health - damage);
-                        }
-                        else
-                        {
-                            //AddDebug("old Poison System ");
-                            __instance.health = Mathf.Max(0f, __instance.health - damage);
-                            __instance.tempDamage += damage;
-                            //AddDebug(__instance.name + " tempDamage " + __instance.tempDamage);
-                            __instance.SyncUpdatingState();
-                        }
-                    }
-                    if (__instance.damageInfo != null)
-                    {
-                        __instance.damageInfo.Clear();
-                        __instance.damageInfo.originalDamage = originalDamage;
-                        __instance.damageInfo.damage = damage;
-                        __instance.damageInfo.position = position == new Vector3() ? __instance.transform.position : position;
-                        __instance.damageInfo.type = type;
-                        __instance.damageInfo.dealer = dealer;
-                        __instance.NotifyAllAttachedDamageReceivers(__instance.damageInfo);
-                    }
-                    if (__instance.shielded)
-                    {
-                        __result = killed;
-                        return false;
-                    }
-                    if (__instance.damageInfo != null && __instance.damageClip && damage > 0f && (damage >= __instance.minDamageForSound && type != DamageType.Radiation))
-                        Utils.PlayEnvSound(__instance.damageClip, __instance.damageInfo.position);
-                    if (__instance.loopingDamageEffect && !__instance.loopingDamageEffectObj && __instance.GetHealthFraction() < __instance.loopEffectBelowPercent)
-                    {
-                        //__instance.loopingDamageEffectObj = UWE.Utils.InstantiateWrap(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
-                        __instance.loopingDamageEffectObj = UnityEngine.Object.Instantiate<GameObject>(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
-                        __instance.loopingDamageEffectObj.transform.parent = __instance.transform;
-                    }
-                    if (Time.time > __instance.timeLastElecDamageEffect + 2.5f && type == DamageType.Electrical && __instance.electricalDamageEffect != null)
-                    {
-                        FixedBounds fixedBounds = __instance.gameObject.GetComponent<FixedBounds>();
-                        Bounds bounds = fixedBounds == null ? UWE.Utils.GetEncapsulatedAABB(__instance.gameObject) : fixedBounds.bounds;
-                        //GameObject electricalDamageEffect = UWE.Utils.InstantiateWrap(__instance.electricalDamageEffect, bounds.center, Quaternion.identity);
-                        GameObject electricalDamageEffect = UnityEngine.Object.Instantiate<GameObject>(__instance.electricalDamageEffect, bounds.center, Quaternion.identity);
-                        electricalDamageEffect.transform.parent = __instance.transform;
-                        electricalDamageEffect.transform.localScale = bounds.size * 0.65f;
-                        __instance.timeLastElecDamageEffect = Time.time;
-                    }
-                    else if (Main.loadingDone && Time.time > __instance.timeLastDamageEffect + 1f && damage > 0f && dealer != Player.main.gameObject && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter || type == DamageType.Drill)
-                    { // dont spawn damage particles if knifed by player
-                        VFXSurface vfxSurface = __instance.GetComponentInChildren<VFXSurface>();
-                        if (vfxSurface)
-                        {
-                            //AddDebug("Spawn vfxSurface Prefab ");
-                            //Vector3 euler = MainCameraControl.main.transform.eulerAngles + new Vector3(300f, 90f, 0f);
-                            //setBloodColor = true;
-                            ParticleSystem particleSystem = VFXSurfaceTypeManager.main.Play(vfxSurface, VFXEventTypes.knife, position, Quaternion.identity, Player.main.transform);
-                            __instance.timeLastDamageEffect = Time.time;
-                        }
-                        else if (__instance.damageEffect)
-                        {
-                            //AddDebug("Spawn damageEffect Prefab " + __instance.damageEffect.name);
-                            GameObject go = Utils.SpawnPrefabAt(__instance.damageEffect, __instance.transform, __instance.damageInfo.position);
-                            //setBloodColor = true;
-                            if (__instance.GetComponent<Creature>())
-                                SetBloodColor(go);
-
-                            __instance.timeLastDamageEffect = Time.time;
-                        }
-                    }
-                    if (__instance.health <= 0f || !Main.config.newPoisonSystem && __instance.health - __instance.tempDamage <= 0f)
-                    {
-                        killed = true;
-                        if (!__instance.IsCinematicActive())
-                            __instance.Kill(type);
-                        else
-                        {
-                            __instance.cinematicModeActive = true;
-                            __instance.SyncUpdatingState();
-                        }
-                    }
-                    if (__instance.health <= 0f && __instance.Equals(Player.main.liveMixin) && Player.main.IsInSubmarine() && Player.main.isPiloting)
-                    { // fix: player does not die when health reduced to 0
-                        //AddDebug("player dies");
-                        Player.main.ExitPilotingMode();
-                    }
-                }
-                __result = killed;
-                return false;
-            }
-              
             [HarmonyPrefix]
             [HarmonyPatch("HealTempDamage")]
             static bool HealTempDamagePrefix(LiveMixin __instance, float timePassed)

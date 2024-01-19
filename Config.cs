@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-        [Slider("Day/night cycle speed multiplier", 0.1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher the value the shorter the days are."), OnChange(nameof(UpdateGameSpeed))]
+        [Slider("Day/night cycle speed multiplier", 0.1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher the value the shorter days are."), OnChange(nameof(UpdateGameSpeed))]
         public float dayCycleSpeed = 1f;
         [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
         public float playerSpeedMult = 1f;
@@ -71,7 +71,7 @@ namespace Tweaks_Fixes
         //[Choice("Unmanned cyclops can be attacked", Tooltip = "By default unmanned cyclops can not be attacked.")]
         //public EmptyCyclopsCanBeAttacked emptyCyclopsCanBeAttacked;
 
-        [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time in seconds it takes your hunger and thirst to update. This is not the same as the 'hunger/thirst' setting from the 'Day/Night Speed' mod. That setting changes amount of food you lose.")]
+        [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time in seconds it takes your hunger and thirst to update.")]
         public int hungerUpdateInterval = 10;
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool newHungerSystem = false;
@@ -84,8 +84,8 @@ namespace Tweaks_Fixes
         public bool heatBladeCooks = true;
         [Toggle("New poison damage system", Tooltip = "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.")]
         public bool newPoisonSystem = false;
-        [Slider("Fruit growth time", 0, 100, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit, creepvine seeds and blood oil to grow. 'Plants growth' setting from 'Day night speed' mod will affect this. You have to reload your game after changing this.")]
-        public int fruitGrowTime = 1;
+        [Slider("Fruit growth time", 0, 30, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit, creepvine seeds and blood oil to grow. If it's 0 then vanilla code will run. You have to reload your game after changing this.")]
+        public int fruitGrowTime = 0;
         [Toggle("Can't eat underwater", Tooltip = "If enabled you will not be able to eat or drink when swimming underwater.")]
         public bool cantEatUnderwater = false;
         [Toggle("Can't use first aid kit underwater", Tooltip = "If enabled you will not be able to use first aid kit when swimming underwater.")]

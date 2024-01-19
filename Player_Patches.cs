@@ -162,14 +162,14 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
+            [HarmonyPostfix]
             [HarmonyPatch("CanBeAttacked")]
-            public static bool Prefix(Player __instance, ref bool __result)
+            public static void Postfix(Player __instance, ref bool __result)
             {
                 //AddDebug("AggressiveWhenSeeTarget start " + __instance.myTechType + " " + __instance.maxSearchRings);
                 //__result = !__instance.IsInsideWalkable() && !__instance.justSpawned && !GameModeUtils.IsInvisible() && !Player.main.precursorOutOfWater && !PrecursorMoonPoolTrigger.inMoonpool;
-                __result = Main.config.aggrMult > 0f && !__instance.justSpawned && !__instance.IsInsideWalkable() && !GameModeUtils.IsInvisible();
-                return false;
+                if (Main.config.aggrMult == 0f)
+                    __result = false;
             }
         }
 

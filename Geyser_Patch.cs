@@ -10,15 +10,13 @@ using UnityEngine;
 
 namespace Tweaks_Fixes
 {
-    internal class LavaGeyser_Patch
-    {
 
         [HarmonyPatch(typeof(Geyser))]
         class Geyser_Patch
         {
             public static GameObject fishToCook;
-            static Dictionary<Geyser, Vector3> eruptionForce = new Dictionary<Geyser, Vector3>();
-            static Dictionary<Geyser, Vector3> rotationForce = new Dictionary<Geyser, Vector3>();
+            public static Dictionary<Geyser, Vector3> eruptionForce = new Dictionary<Geyser, Vector3>();
+            public static Dictionary<Geyser, Vector3> rotationForce = new Dictionary<Geyser, Vector3>();
 
             [HarmonyPrefix]
             [HarmonyPatch("Start")]
@@ -176,5 +174,5 @@ namespace Tweaks_Fixes
 
 
 
-    }
+    
 }

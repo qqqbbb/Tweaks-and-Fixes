@@ -139,12 +139,14 @@ namespace Tweaks_Fixes
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
                 else if (tt == TechType.BloodRoot || tt == TechType.BloodVine)
                 {
-                    Util.EnsureFruits(__instance.gameObject);
+                    if (Main.config.fruitGrowTime > 0)
+                        Util.EnsureFruits(__instance.gameObject);
                 }
                 else if (tt == TechType.Creepvine)
                 {
-                    Util.EnsureFruits(__instance.gameObject);
                     AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+                    if (Main.config.fruitGrowTime > 0)
+                        Util.EnsureFruits(__instance.gameObject);
                 }
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
@@ -230,16 +232,14 @@ namespace Tweaks_Fixes
                     //        UnityEngine.Object.Destroy(bc);
                     //}
                 }
-                else if (tt.ToString() == "TF_Stone")
-                {
-                    int x = (int)__instance.transform.position.x;
-                    int y = (int)__instance.transform.position.y;
-                    int z = (int)__instance.transform.position.z;
-                    if (x == -63 && y == -16 && z == -223)
-                        __instance.gameObject.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
-                    //else if (x == 168 && y == -69 && z == 53)
-                    //    __instance.gameObject.transform.localScale = new Vector3(.6f, .6f, .6f);
-                }
+                //else if (tt.ToString() == "TF_Stone")
+                //{
+                //    int x = (int)__instance.transform.position.x;
+                //    int y = (int)__instance.transform.position.y;
+                //    int z = (int)__instance.transform.position.z;
+                //    if (x == -63 && y == -16 && z == -223)
+                //        __instance.gameObject.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
+                //}
                 if (removeLight.Contains(tt))
                 {
                     MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
@@ -318,7 +318,7 @@ namespace Tweaks_Fixes
                     //AddDebug("StartFading " + __instance.name);
                     return false;
                 }
-                if (Creature_Tweaks.pickupShinies.Contains(__instance.gameObject))
+                if (Creature_Tweaks.pickupShinies.TryGetValue(__instance.gameObject, out string s))
                 {
                     //AddDebug("StartFading pickupShinies " + __instance.name);
                     return false;

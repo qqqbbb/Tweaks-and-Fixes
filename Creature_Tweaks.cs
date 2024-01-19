@@ -3,15 +3,18 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using static ErrorMessage;
+using System.Runtime.CompilerServices;
 
 namespace Tweaks_Fixes
 {
     class Creature_Tweaks
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
+        public static ConditionalWeakTable<GameObject, string> pickupShinies = new ConditionalWeakTable<GameObject, string>();
+        public static ConditionalWeakTable<GameObject, Rigidbody> objectsRBs = new ConditionalWeakTable<GameObject, Rigidbody>();
 
 
-        [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
+       [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
             public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
@@ -117,6 +120,19 @@ namespace Tweaks_Fixes
                     foreach (FMOD_CustomEmitter componentsInChild in __instance.GetComponentsInChildren<FMOD_CustomEmitter>())
                         //Object.Destroy(componentsInChild);
                         componentsInChild.enabled = false;
+                }
+                if (tt == TechType.Gasopod)
+                {
+                    GasoPod gasoPod = __instance as GasoPod;
+                    if (gasoPod)
+                    {
+                        Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                        if (rb)
+                        {
+                            objectsRBs.Add(__instance.gameObject, rb);
+                            //AddDebug("objectsRBs save gasopod ");
+                        }
+                    }
                 }
             }
 
@@ -357,7 +373,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static HashSet<GameObject> pickupShinies = new HashSet<GameObject>();
+
 
         [HarmonyPatch(typeof(CollectShiny))]
         class CollectShiny_Patch
@@ -427,7 +443,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                pickupShinies.Add(__instance.shinyTarget);
+                pickupShinies.Add(__instance.shinyTarget, null);
                 __instance.SendMessage("OnShinyPickUp", __instance.shinyTarget, SendMessageOptions.DontRequireReceiver);
                 __instance.shinyTarget.gameObject.SendMessage("OnShinyPickUp", __instance.gameObject, SendMessageOptions.DontRequireReceiver);
                 UWE.Utils.SetCollidersEnabled(__instance.shinyTarget, false);
@@ -463,7 +479,7 @@ namespace Tweaks_Fixes
                 //TechType tt = CraftData.GetTechType(targetGO);
                 //if (tt == TechType.ScrapMetal)
                 //    __result = false;
-                if (pickupShinies.Contains(targetGO))
+                if (pickupShinies.TryGetValue(targetGO, out string s))
                 {
                     //AddDebug("IsTargetValid pickupShinies " + targetGO.name);
                     __result = false;
@@ -483,6 +499,62 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(GasoPod), "Update")]
+        class GasoPod_Update_patch
+        {
+            public static bool Prefix(GasoPod __instance)
+            {
+                Rigidbody rb;
+                if (objectsRBs.TryGetValue(__instance.gameObject, out rb))
+                {
+                    //Rigidbody rb = objectsRBs[__instance.gameObject];
+                    if (rb && Tools_Patch.stasisTargets.Contains(rb))
+                    {
+                        //AddDebug("GasoPod in stasis");
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(GasPod))]
+        class GasPod_patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(GasPod __instance)
+            {
+                if (__instance.detonated)
+                    return;
+
+                Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                if (rb)
+                {
+                    //AddDebug("GasoPod start save");
+                    objectsRBs.Add(__instance.gameObject, rb);
+                }
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("Update")]
+            public static bool UpdatePrefix(GasPod __instance)
+            {
+                if (__instance.detonated)
+                    return true;
+
+                Rigidbody rb;
+                if (objectsRBs.TryGetValue(__instance.gameObject, out rb))
+                {
+                    //Rigidbody rb = objectsRBs[__instance.gameObject];
+                    if (rb && Tools_Patch.stasisTargets.Contains(rb))
+                    {
+                        //AddDebug("GasPod in stasis");
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
 
 
     }

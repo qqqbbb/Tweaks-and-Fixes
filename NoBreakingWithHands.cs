@@ -100,6 +100,7 @@ namespace Tweaks_Fixes
             //AddDebug("Pickupable AllowedToPickUp " + __result);
             return false;
         }
+     
         [HarmonyPostfix]
         [HarmonyPatch("OnHandHover")]
         public static void PickupableOnHandHover(Pickupable __instance)
@@ -114,6 +115,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandClick")]
         public static bool PickupableOnHandClick(Pickupable __instance)
         {
+            //AddDebug("OnHandClick " + __instance.GetTechType());
             if (!Main.config.noBreakingWithHand)
                 return true;
 
