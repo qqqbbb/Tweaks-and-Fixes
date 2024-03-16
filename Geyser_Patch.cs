@@ -27,10 +27,10 @@ namespace Tweaks_Fixes
                     if (childTransform.name != "Model")
                         UnityEngine.Object.Destroy(childTransform.gameObject);
                 }
-                GameObject gameObject1 = Utils.SpawnZeroedAt(__instance.warningSmokeParticles, __instance.transform);
-                __instance.warningSmokeEmitter = gameObject1.GetComponent<ParticleSystem>();
-                GameObject gameObject2 = Utils.SpawnZeroedAt(__instance.eruptionParticles, __instance.transform);
-                __instance.eruptionEmitter = gameObject2.GetComponent<ParticleSystem>();
+                GameObject go = Utils.SpawnZeroedAt(__instance.warningSmokeParticles, __instance.transform);
+                __instance.warningSmokeEmitter = go.GetComponent<ParticleSystem>();
+                go = Utils.SpawnZeroedAt(__instance.eruptionParticles, __instance.transform);
+                __instance.eruptionEmitter = go.GetComponent<ParticleSystem>();
                 __instance.warningSmokeEmitter.Play();
                 __instance.eruptionEmitter.Stop();
 
@@ -40,7 +40,8 @@ namespace Tweaks_Fixes
                 //Main.logger.LogDebug("Geyser Start nextEruptTime " + nextEruptTime);
                 if (Geyser.consoleCmdRegged)
                     return false;
-                DevConsole.RegisterConsoleCommand((Component)__instance, "erupt");
+
+                DevConsole.RegisterConsoleCommand(__instance, "erupt");
                 Geyser.consoleCmdRegged = true;
                 return false;
             }
@@ -134,7 +135,7 @@ namespace Tweaks_Fixes
                 if (Util.IsEatableFish(go) && Util.IsDead(go))
                 {
                     if (fishToCook == go)
-                    { // need to wait 1 frame so we dont get 2 cooked fishes when geyser kills fish
+                    { // wait 1 frame so we dont get 2 cooked fishes when geyser kills fish
                         fishToCook = null;
                         //Main.logger.LogDebug("Geyser OnTriggerStay " + go.name);
                         Player.main.StartCoroutine(Util.Cook(go));

@@ -270,6 +270,15 @@ namespace Tweaks_Fixes
                         __instance.waterValue = Mathf.Abs(__instance.foodValue) * .5f;
 
                 }
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (Main.config.eatableFoodValue.ContainsKey(tt))
+                {
+                    __instance.foodValue = Main.config.eatableFoodValue[tt];
+                }
+                if (Main.config.eatableWaterValue.ContainsKey(tt))
+                {
+                    __instance.waterValue = Main.config.eatableWaterValue[tt];
+                }
             }
         }
 
@@ -278,7 +287,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(EcoTarget __instance)
             {
-                if (Main.config.removeCookedFishOnReload && !Main.loadingDone && __instance.type == EcoTargetType.DeadMeat)
+                if (Main.config.removeCookedFishOnReload && !Main.gameLoaded && __instance.type == EcoTargetType.DeadMeat)
                 { // remove cooked fish from lava geysers
                     Pickupable p = __instance.GetComponent<Pickupable>();
                     if (p)// p.inventoryItem is null
@@ -287,22 +296,17 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Inventory), "Pickup")]
-        class Inventory_Pickupd_patch
+        [HarmonyPatch(typeof(Plantable), "OnProtoDeserialize")]
+        class Inventory_OnProtoDeserialize_patch
         {
-            public static void Postfix(Inventory __instance, Pickupable pickupable)
+            public static void Postfix(Plantable __instance)
             {
-                AddDebug(" Pickup " + pickupable.name);
-                Main.logger.LogMessage("Inventory Pickup " + pickupable.name);
-                TechType tt = CraftData.GetTechType(pickupable.gameObject);
-                //if (Main.config.gelSackDecomposes && tt == TechType.JellyPlant)
+                //AddDebug(" OnProtoDeserialize " + __instance.plantTechType);
+                if (!Main.config.canReplantMelon)
                 {
-                    Eatable eatable = pickupable.GetComponent<Eatable>();
-                    if (eatable != null)
-                    {
-                        eatable.SetDecomposes(true);
-                        eatable.kDecayRate = .01f;
-                    }
+                    TechType tt = __instance.plantTechType;
+                    if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)
+                        Destroy(__instance);
                 }
             }
         }

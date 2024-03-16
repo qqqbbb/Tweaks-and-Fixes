@@ -87,7 +87,7 @@ namespace Tweaks_Fixes
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
                 //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
 
-                if (tt == TechType.BigCoralTubes)
+                if(tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
@@ -100,6 +100,11 @@ namespace Tweaks_Fixes
                     {
                         __instance.transform.position = new Vector3(__instance.transform.position.x, -28.62f, __instance.transform.position.z);
                     }
+                    else if (x == 86 && y == -33 && z == -334)
+                    { // let player swim thru it
+                        __instance.transform.position = new Vector3(__instance.transform.position.x, -33.3f, __instance.transform.position.z);
+                    }
+                    //86.651 -33.781 -334.973
                 }
                 //else if (tt == TechType.MembrainTree)
                 //{
@@ -309,7 +314,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("StartFading")]
             public static bool StartFadingPrefix(LargeWorldEntity __instance)
             {
-                if (!Main.loadingDone)
+                if (!Main.gameLoaded)
                     return false;
 
                 TechType tt = CraftData.GetTechType(__instance.gameObject);

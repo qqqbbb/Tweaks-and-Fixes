@@ -32,7 +32,10 @@ namespace Tweaks_Fixes
                 {
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
                     if (rb)
+                    {
+                        //Main.logger.LogMessage(__instance.name + " itemMass " + rb.mass);
                         rb.mass = itemMass[tt];
+                    }
                 }
                 if (shinies.Contains(tt))
                 {
@@ -50,29 +53,22 @@ namespace Tweaks_Fixes
 
             }
 
-            //[HarmonyPrefix]
+            //[HarmonyPostfix]
             //[HarmonyPatch("Pickup")]
-            public static void PickupPrefix(Pickupable __instance)
+            public static void PickupPostfix(Pickupable __instance)
             {
                 AddDebug("Pickup " + __instance.GetTechType());
-
-                if (__instance.GetTechType() == TechType.GasPod)
+                if (!Main.config.canReplantMelon)
                 {
-                    GasPod gasPod = __instance.GetComponent<GasPod>();
-                    if (!gasPod)
+                    TechType tt = __instance.GetTechType();
+                    if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)
                     {
-                        AddDebug("gasPod null ");
-                    }
-                    if (gasPod)
-                    {
-                        AddDebug("gasPod ");
-                        //if (Tools_Patch.gasPodsInStasis.Contains(gasPod))
-                        //{
-                        //    AddDebug("gasPod Remove ");
-                        //    Tools_Patch.gasPodsInStasis.Remove(gasPod);
-                        //}
+                        Plantable p = __instance.GetComponent<Plantable>();
+                        if (p)
+                            UnityEngine.Object.Destroy(p);
                     }
                 }
+
             }
             //[HarmonyPrefix]
             //[HarmonyPatch("OnHandHover")]

@@ -206,10 +206,12 @@ namespace Tweaks_Fixes
 
         public static SubRoot GetClosestSub(Vector3 pos)
         {
-            float closestDist = float.PositiveInfinity;
+            float closestDist = float.MaxValue;
             SubRoot closest = null;
             foreach (SubRoot s in cyclops)
             {
+                if (s == null)
+                    continue;
                 //float dist = Vector3.Distance(s.transform.position, pos);
                 Vector3 dir = s.transform.position - pos;
                 float distSqr = dir.sqrMagnitude;

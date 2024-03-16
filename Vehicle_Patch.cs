@@ -167,9 +167,9 @@ namespace Tweaks_Fixes
             if (SeaMoth_patch.selectedTorpedo != null)
                 torpedoType = SeaMoth_patch.selectedTorpedo;
 
-            if (container.Equals(Exosuit_Patch.torpedoStorageLeft))
+            if (container == Exosuit_Patch.torpedoStorageLeft)
                 torpedoType = Exosuit_Patch.selectedTorpedoLeft;
-            else if (container.Equals(Exosuit_Patch.torpedoStorageRight))
+            else if (container == Exosuit_Patch.torpedoStorageRight)
                 torpedoType = Exosuit_Patch.selectedTorpedoRight;
 
             //AddDebug("TorpedoShot " + torpedoType.techType);
@@ -422,7 +422,7 @@ namespace Tweaks_Fixes
         public static bool ToggleSlotPrefix(int slotID, bool state, Vehicle __instance)
         {
             //AddDebug(" Vehicle ToggleSlot  " + slotID + " " + state);
-            if (!Main.prawnSuitTorpedoDisplayLoaded && __instance is Exosuit && GameInput.GetButtonHeld(GameInput.Button.AltTool))
+            if (!Main.exosuitTorpedoDisplayLoaded && __instance is Exosuit && GameInput.GetButtonHeld(GameInput.Button.AltTool))
             {
                 ItemsContainer container = null;
                 int torpedoSlot = -1;
@@ -794,7 +794,7 @@ namespace Tweaks_Fixes
 
             List<TorpedoType> torpedos = GetTorpedos(exosuit, torpedoStorage);
             TorpedoType selectedTorpedo = null;
-            bool left = torpedoStorage.Equals(torpedoStorageLeft);
+            bool left = torpedoStorage == torpedoStorageLeft;
             //if (slot == 0)
             //    torpedos = GetTorpedos(exosuit, torpedoStorageLeft);
             //else
@@ -906,9 +906,9 @@ namespace Tweaks_Fixes
                     //AddDebug(torpedoType + " " + container.GetCount(torpedoType));
                     if (torpedoStorage.Contains(torpedoType))
                     {
-                        if (torpedoStorage.Equals(torpedoStorageLeft) && selectedTorpedoLeft == null)
+                        if (torpedoStorage == torpedoStorageLeft && selectedTorpedoLeft == null)
                             selectedTorpedoLeft = torpedoTypes[index];
-                        else if (torpedoStorage.Equals(torpedoStorageRight) && selectedTorpedoRight == null)
+                        else if (torpedoStorage == torpedoStorageRight && selectedTorpedoRight == null)
                             selectedTorpedoRight = torpedoTypes[index];
                         //AddDebug(torpedoType + " " + SeaMoth_patch.torpedoStorage.GetCount(torpedoType));
                         return Language.main.Get(torpedoType) + " x" + torpedoStorage.GetCount(torpedoType);
@@ -959,7 +959,7 @@ namespace Tweaks_Fixes
         public static void OnPilotModeBeginPostfix(Exosuit __instance)
         {
             //AddDebug("OnPilotModeBegin");
-            if (!Main.prawnSuitTorpedoDisplayLoaded)
+            if (!Main.exosuitTorpedoDisplayLoaded)
             {
                 torpedoStorageLeft = null;
                 torpedoStorageRight = null;
@@ -1036,6 +1036,7 @@ namespace Tweaks_Fixes
             so.path = "event:/sub/seamoth/impact_solid_soft";
             so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
             collisionSound.hitSoundSlow = so;
+            SetLights(__instance, Main.config.exosuitLights);
             exosuitStarted = true;
         }
 
@@ -1146,12 +1147,12 @@ namespace Tweaks_Fixes
             {
                 bool flag3 = false;
                 bool flag4 = false;
-                if (!Mathf.Approximately(__instance.aimTargetLeft.transform.localPosition.y, 0f))
+                if (!Util.Approximately(__instance.aimTargetLeft.transform.localPosition.y, 0f))
                     __instance.aimTargetLeft.transform.localPosition = new Vector3(__instance.aimTargetLeft.transform.localPosition.x, Mathf.MoveTowards(__instance.aimTargetLeft.transform.localPosition.y, 0f, Time.deltaTime * 50f), __instance.aimTargetLeft.transform.localPosition.z);
                 else
                     flag3 = true;
 
-                if (!Mathf.Approximately(__instance.aimTargetRight.transform.localPosition.y, 0f))
+                if (!Util.Approximately(__instance.aimTargetRight.transform.localPosition.y, 0f))
                     __instance.aimTargetRight.transform.localPosition = new Vector3(__instance.aimTargetRight.transform.localPosition.x, Mathf.MoveTowards(__instance.aimTargetRight.transform.localPosition.y, 0f, Time.deltaTime * 50f), __instance.aimTargetRight.transform.localPosition.z);
                 else
                     flag4 = true;
@@ -1175,15 +1176,39 @@ namespace Tweaks_Fixes
 
             if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.currentMountedVehicle == __instance && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
             {
-                Transform lightsT = __instance.transform.Find("lights_parent");
-                if (lightsT)
+                ToggleLights(__instance);
+            }
+        }
+
+        private static void ToggleLights(Exosuit exosuit)
+        {
+            Transform lightsT = exosuit.transform.Find("lights_parent");
+            if (lightsT)
+            {
+                if (!lightsT.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
                 {
-                    if (!lightsT.gameObject.activeSelf && __instance.energyInterface.hasCharge)
-                        lightsT.gameObject.SetActive(true);
-                    else if (lightsT.gameObject.activeSelf)
-                        lightsT.gameObject.SetActive(false);
-                    //AddDebug("lights " + lightsT.gameObject.activeSelf);
+                    lightsT.gameObject.SetActive(true);
+                    Main.config.exosuitLights = true;
                 }
+                else if (lightsT.gameObject.activeSelf)
+                {
+                    lightsT.gameObject.SetActive(false);
+                    Main.config.exosuitLights = false;
+                }
+                //AddDebug("lights " + lightsT.gameObject.activeSelf);
+            }
+        }
+
+        private static void SetLights(Exosuit exosuit, bool active)
+        {
+            if (active && !exosuit.energyInterface.hasCharge)
+                return;
+
+            Transform lightsT = exosuit.transform.Find("lights_parent");
+            if (lightsT)
+            {
+                lightsT.gameObject.SetActive(active);
+                //AddDebug("SetLights " + active);
             }
         }
 
@@ -1217,7 +1242,7 @@ namespace Tweaks_Fixes
                 }
                 __instance.sb = new StringBuilder(UI_Patches.exosuitExitButton);
                 //AddDebug("__instance.sb Length" + __instance.sb.Length);
-                if (!Main.prawnSuitTorpedoDisplayLoaded)
+                if (!Main.exosuitTorpedoDisplayLoaded)
                 {
                     if (GameInput.lastDevice == GameInput.Device.Keyboard)
                     {
@@ -1371,7 +1396,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("SlotKeyDown")]
         public static void SlotKeyDownPostfix(Exosuit __instance, int slotID)
         {
-            if (Main.prawnSuitTorpedoDisplayLoaded)
+            if (Main.exosuitTorpedoDisplayLoaded)
                 return;
             //AddDebug("Exosuit SlotKeyDown " + slotID);
             //TechType currentModule = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[slotID]);

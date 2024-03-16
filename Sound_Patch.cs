@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(FMOD_CustomEmitter __instance)
             {
                 //AddDebug(" FMOD_CustomEmitter Play " + __instance.asset.name);
-                if (!Main.loadingDone)
+                if (!Main.gameLoaded)
                     return false;
 
                 return true;

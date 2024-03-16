@@ -102,6 +102,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Initialize")]
             public static void InitializePostfix(FruitPlant __instance)
             {
+                if (__instance == null)
+                    return;
+
                 if (Main.config.creepvineLights && CraftData.GetTechType(__instance.gameObject) == TechType.Creepvine)
                 {
                     Light light = __instance.GetComponentInChildren<Light>();
@@ -156,21 +159,21 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(VFXScaleWaving __instance)
             {
-                if (__instance.transform.parent)
+                if (__instance.transform.parent == null)
+                    return true;
+
+                GrowingPlant gp = __instance.transform.parent.GetComponent<GrowingPlant>();
+                if (gp)
                 {
-                    GrowingPlant gp = __instance.transform.parent.GetComponent<GrowingPlant>();
-                    if (gp)
+                    //AddDebug("GrowingPlant VFXScaleWaving " + __instance.name);
+                    __instance.enabled = false;
+                    MeshRenderer[] mrs = gp.GetComponentsInChildren<MeshRenderer>();
+                    foreach (MeshRenderer mr in mrs)
                     {
-                        //AddDebug("GrowingPlant VFXScaleWaving " + __instance.name);
-                        __instance.enabled = false;
-                        MeshRenderer[] mrs = gp.GetComponentsInChildren<MeshRenderer>();
-                        foreach (MeshRenderer mr in mrs)
-                        {
-                            foreach (Material m in mr.materials)
-                                m.DisableKeyword("UWE_WAVING");
-                        }
-                        return false;
+                        foreach (Material m in mr.materials)
+                            m.DisableKeyword("UWE_WAVING");
                     }
+                    return false;
                 }
                 return true;
             }
@@ -217,6 +220,7 @@ namespace Tweaks_Fixes
                 FruitPlant fp = __instance.GetComponentInParent<FruitPlant>();
                 if (!fp)
                     return;
+
                 Light light = fp.GetComponentInChildren<Light>();
                 if (light)
                 {

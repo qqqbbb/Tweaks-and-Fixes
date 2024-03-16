@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Nautilus.Commands;
 using Nautilus.Handlers;
-//using Nautilus.Interfaces;
 using Nautilus.Options;
 using System.ComponentModel;
 
@@ -36,7 +35,7 @@ namespace Tweaks_Fixes
         [Slider("First aid kit HP", 10, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored by using first aid kit.")]
         public int medKitHP = 50;
 
-        
+
         [Slider("Crafting time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Crafting time will be multiplied by this when crafting things with fabricator or modification station.")]
         public float craftTimeMult = 1f;
         [Slider("Building time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Building time will be multiplied by this when using builder tool.")]
@@ -56,7 +55,7 @@ namespace Tweaks_Fixes
         public bool cyclopsMoveTweaks = false;
         [Slider("Cyclops engine room fire chance percent", 0, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "The game starts checking this after you get your first engine overheat warning. Every 10 seconds chance to catch fire goes up by 10% if you don't slow down.")]
         public int cyclopsFireChance = 50;
-        [Slider("Cyclops auto-repair threshhold", 0, 100, DefaultValue = 90, Step = 1, Format = "{0:F0}", Tooltip = "Cyclops auto-repairs when it's not on fire and its HP percent is above this.")]
+        [Slider("Cyclops auto-repair threshold", 0, 100, DefaultValue = 90, Step = 1, Format = "{0:F0}", Tooltip = "Cyclops auto-repairs when it's not on fire and its HP percent is above this.")]
         public int cyclopsAutoHealHealthPercent = 90;
         [Slider("Crush depth", 50, 500, DefaultValue = 200, Step = 10, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
         public int crushDepth = 200;
@@ -104,6 +103,10 @@ namespace Tweaks_Fixes
         [Toggle("Creature flee chance percent depends on its health", Tooltip = "Only creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both \"Creature flee chance percent\" and CreatureFleeUseDamageThreshold.")]
         public bool CreatureFleeChanceBasedOnHealth = false;
         public bool CreatureFleeUseDamageThreshold = true;
+
+        [Toggle("Creatures im alien comtainment can breed", Tooltip = "")]
+        public bool waterparkCreaturesBreed = true;
+
         [Slider("Knife range multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeRangeMult = 1f;
         [Slider("Knife damage multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
@@ -126,7 +129,7 @@ namespace Tweaks_Fixes
         public int stalkerLoseTooth = 50;
         [Toggle("Disable tutorial messages", Tooltip = "Disable messages that tell you to 'eat something', 'break limestone', etc. Game has to be reloaded after changing this.")]
         public bool disableHints = false;
-        [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla oxygen consumption has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
+        [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
         public bool realOxygenCons = false;
         //[Slider("brainCoralBubbleInterval", 1, 20, DefaultValue = 3, Step = 1, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
         //public int brainCoralBubbleInterval = 3;
@@ -165,6 +168,8 @@ namespace Tweaks_Fixes
         public int escapePodMaxPower = 25;
         [Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are not charged. Game has to be reloaded after changing this.")]
         public bool escapePodPowerTweak = false;
+        [Slider("Battery charge multiplier", 0.5f, 2f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Max charge of batteries and power cells will be multiplied by this. Game has to be reloaded after changing this.")]
+        public float batteryChargeMult = 1f;
         [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries and power cells you craft will be set to this.")]
         public int craftedBatteryCharge = 100;
         [Slider("Mushroom damage chance percent", 0, 100, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed.")]
@@ -200,6 +205,12 @@ namespace Tweaks_Fixes
         [Keybind("Move same items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items of the same type.")]
         public KeyCode transferSameItemsKey = KeyCode.LeftShift;
 
+        public bool gameStartWarning = false;
+        public bool cyclopsFloodLights = false;
+        public bool cyclopsLighting = false;
+        public bool exosuitLights = false;
+        public bool seaglideLights = false;
+        public bool seaglideMap = false;
         public int subThrottleIndex = -1;
         public float knifeRangeDefault = 0f;
         public int activeSlot = -1;
@@ -210,7 +221,7 @@ namespace Tweaks_Fixes
         public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
         public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();
         public float medKitHPtoHeal = 0f;
-        public Dictionary<string, int> startingLoot = new Dictionary<string, int> 
+        public Dictionary<string, int> startingLoot = new Dictionary<string, int>
         {
              { "FilteredWater", 2 },
              { "NutrientBlock", 2 },
@@ -226,11 +237,15 @@ namespace Tweaks_Fixes
         };
         public Dictionary<string, float> itemMass = new Dictionary<string, float>
         {
-            { "ScrapMetal", 120 },
+            { "PrecursorKey_Blue", 1.6f },
+            { "PrecursorKey_Orange", 1.6f },
+            { "PrecursorKey_Purple", 1.6f },
+            { "PrecursorKey_Red", 1.6f },
+            { "PrecursorKey_White", 1.6f },
         };
         public HashSet<string> unmovableItems = new HashSet<string>
         {
-            
+
         };
         public Dictionary<string, float> bloodColor = new Dictionary<string, float>
         {
@@ -281,18 +296,18 @@ namespace Tweaks_Fixes
             { "highcapacitytank" },
         };
         public float medKitHPperSecond = 50f;
-        public HashSet<TechType> predatorExclusion = new HashSet<TechType> {};
+        public HashSet<TechType> predatorExclusion = new HashSet<TechType> { };
 
         static void UpdateBaseLight()
         {
             //Base_Light.UpdateBaseLight();
         }
         //public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
-        public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
-        public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, [Description("Only if lights on")] Only_if_lights_on }
+        public enum DropItemsOnDeath { Vanilla, Drop_everything,Do_not_drop_anything }
+        public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum SeaTreaderOutcrop { Vanilla, Only_when_stomping_ground, Never }
-        public List<string> silentCreatures = new List<string> {  };
+        public List<string> silentCreatures = new List<string> { };
         public List<string> removeLight = new List<string> { };
         public List<string> biomesRemoveLight = new List<string> { };
         public List<string> stalkerPlayThings = new List<string> { "ScrapMetal", "MapRoomCamera", "Beacon", "Seaglide", "CyclopsDecoy", "Gravsphere", "SmallStorage", "FireExtinguisher", "DoubleTank", "PlasteelTank", "PrecursorKey_Blue", "PrecursorKey_Orange", "PrecursorKey_Purple", "PrecursorKey_Red", "PrecursorKey_White", "Rebreather", "Tank", "HighCapacityTank", "Flare", "Flashlight", "Builder", "LaserCutter", "LEDLight", "DiveReel", "PropulsionCannon", "Knife", "HeatBlade", "Scanner", "Welder", "RepulsionCannon", "StasisRifle" };
@@ -302,6 +317,8 @@ namespace Tweaks_Fixes
         public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
         //public Dictionary<string, TechType> aliveCreatureLoot = new Dictionary<string, TechType>();
         public Dictionary<string, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<string, Dictionary<TechType, int>> { { "Stalker", new Dictionary<TechType, int> { { TechType.StalkerTooth, 2 } } }, { "Gasopod", new Dictionary<TechType, int> { { TechType.GasPod, 5 } } } };
+        public Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
+        public Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
         //public Dictionary<string, Decoy_Patch.decoyData> decoys = new Dictionary<string, Decoy_Patch.decoyData>();
         //public HashSet<TechType> canAttackPlayer = new HashSet<TechType> { "Shocker, TechType.Biter, TechType.Blighter, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.Crash, TechType.Mesmer, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.Bleeder, TechType.Shuttlebug, TechType.CaveCrawler, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
         //public HashSet<TechType> canAttackVehicle = new HashSet<TechType> { TechType.Shocker, TechType.BoneShark, TechType.Crabsnake, TechType.CrabSquid, TechType.SpineEel, TechType.Sandshark, TechType.Stalker, TechType.Warper, TechType.GhostLeviathan, TechType.GhostLeviathanJuvenile, TechType.ReaperLeviathan, TechType.SeaDragon };
@@ -358,8 +375,8 @@ namespace Tweaks_Fixes
         public bool replaceDealDamageOnImpactScript = true;
         //public bool gelSackDecomposes = false;
         public float solarPanelMaxDepth = 250f;
-        
-
+        public bool stalkerLooseToothSound = true;
+        public bool canReplantMelon = true;
 
         // also edit UI_Patches.GetStrings when editing this
         public List<string> translatableStrings = new List<string> //  translate config enums 

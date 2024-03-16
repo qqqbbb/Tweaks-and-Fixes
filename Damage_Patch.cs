@@ -253,7 +253,7 @@ namespace Tweaks_Fixes
                     //__instance.data.damageEffect = null;
                     __instance.data.deathEffect = null;
                 }
-                if (!Main.loadingDone && __instance.tempDamage > 0)
+                if (!Main.gameLoaded && __instance.tempDamage > 0)
                 { // __instance.tempDamage is -1
                     tempDamageLMs.Add(__instance);
                     //AddDebug("tempDamage " + __instance.tempDamage);
@@ -342,7 +342,7 @@ namespace Tweaks_Fixes
                         gameObject.transform.localScale = bounds.size * 0.65f;
                         __instance.timeLastElecDamageEffect = Time.time;
                     }
-                    else if (Main.loadingDone && Time.time > __instance.timeLastDamageEffect + 1f && damage > 0f && dealer != Player.main.gameObject && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter || type == DamageType.Drill)
+                    else if (Main.gameLoaded && Time.time > __instance.timeLastDamageEffect + 1f && damage > 0f && dealer != Player.main.gameObject && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter || type == DamageType.Drill)
                     { // dont spawn damage particles if knifed by player
                         VFXSurface vfxSurface = __instance.GetComponentInChildren<VFXSurface>();
                         if (vfxSurface)
@@ -467,7 +467,7 @@ namespace Tweaks_Fixes
                 {
                     __result *= Main.config.playerDamageMult;
                     //AddDebug("Player takes damage " + __result.ToString("0.0"));
-                    if (__result == 0f)
+                    if (Util.Approximately(__result, 0f))
                         return;
 
                     if (Main.config.dropHeldTool)
@@ -558,7 +558,7 @@ namespace Tweaks_Fixes
                 {
                     if (plantable.plantTechType == TechType.AcidMushroom || plantable.plantTechType == TechType.WhiteMushroom)
                     {
-                        if (Main.config.shroomDamageChance == 0f)
+                        if (Main.config.shroomDamageChance == 0)
                             return false;
 
                         int rnd = Main.rndm.Next(0, 100);
@@ -585,7 +585,7 @@ namespace Tweaks_Fixes
                 {
                     if (plantable.plantTechType == TechType.AcidMushroom || plantable.plantTechType == TechType.WhiteMushroom)
                     {
-                        if (Main.config.shroomDamageChance == 0f)
+                        if (Main.config.shroomDamageChance == 0)
                             return false;
                         //AddDebug("DamageOnPickup OnKill damageAmount " + __instance.damageAmount);
                         int rnd = Main.rndm.Next(0, 100);

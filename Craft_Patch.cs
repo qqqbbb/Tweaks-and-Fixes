@@ -10,9 +10,8 @@ namespace Tweaks_Fixes
     class Craft_Patch
     {
         static bool crafting = false;
-        static List<Battery> batteries = new List<Battery>();
+        static List<Battery> batteriesUsedForCrafting = new List<Battery>();
         static float timeDecayStart = 0f;
-
 
         [HarmonyPatch(typeof(Crafter), "Craft")]
         class Crafter_Craft_Patch
@@ -21,7 +20,8 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("CrafterLogic Craft " + techType);
                 //crafting = true;
-                duration *= Main.config.craftTimeMult;
+                if (Main.config.craftTimeMult != 1f)
+                    duration *= Main.config.craftTimeMult;
             }
         }
 
@@ -41,20 +41,24 @@ namespace Tweaks_Fixes
                 Battery battery = target.GetComponent<Battery>();
                 if (battery)
                 {
+                    //Main.logger.LogDebug("CrafterLogic NotifyCraftEnd battery capacity " + battery._capacity);
                     //AddDebug("crafterOpen");
+                    if (Main.config.batteryChargeMult != 1f)
+                        battery._capacity *= Main.config.batteryChargeMult;
+
                     float mult = Main.config.craftedBatteryCharge * .01f;
                     battery._charge = battery._capacity * mult;
-                    if (batteries.Count == 2)
+                    if (batteriesUsedForCrafting.Count == 2)
                     {
                         //AddDebug("batteries.Count == 2");
-                        float charge = Mathf.Lerp(batteries[0].charge, batteries[1].charge, .5f);
-                        charge = Util.NormalizeToRange(charge, 0, batteries[0].capacity, 0, battery._capacity);
-                        if (charge < battery._charge)
-                            battery._charge = charge;
+                        float averageCharge = Mathf.Lerp(batteriesUsedForCrafting[0].charge, batteriesUsedForCrafting[1].charge, .5f);
+                        float newCharge = Util.NormalizeToRange(averageCharge, 0, batteriesUsedForCrafting[0].capacity, 0, battery._capacity);
+                        if (newCharge < battery._charge)
+                            battery._charge = newCharge;
                     }
                 }
                 timeDecayStart = 0f;
-                batteries = new List<Battery>();
+                batteriesUsedForCrafting.Clear();
                 crafting = false;
             }
         }
@@ -79,7 +83,7 @@ namespace Tweaks_Fixes
                 {
                     Battery battery = item.item.GetComponent<Battery>();
                     if (battery)
-                        batteries.Add(battery);
+                        batteriesUsedForCrafting.Add(battery);
 
                     if (Main.config.foodTweaks && Util.IsEatableFish(item.item.gameObject))
                     {

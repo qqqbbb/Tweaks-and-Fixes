@@ -5,6 +5,8 @@ using System;
 using Nautilus.Handlers;
 using Nautilus.Assets;
 using Nautilus.Utility;
+using Nautilus.Assets.PrefabTemplates;
+using Nautilus.Assets.Gadgets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,9 +14,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Bootstrap;
 using static ErrorMessage;
-using Nautilus.Assets.PrefabTemplates;
-using static Tweaks_Fixes.Spawnables;
-using Nautilus.Assets.Gadgets;
+using UWE;
 
 namespace Tweaks_Fixes
 {
@@ -24,54 +24,52 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.01.0";
+            VERSION = "3.03.0";
 
         public static ManualLogSource logger;
-        //public static GUIHand guiHand;
         public static Survival survival;
-        public static bool canBreathe = false;
-        public static bool loadingDone = false;  // WaitScreen.IsWaiting
+        public static bool gameLoaded = false;  // WaitScreen.IsWaiting
         public static System.Random rndm = new System.Random();
         public static bool advancedInventoryLoaded = false;
         public static bool flareRepairLoaded = false; // not updated
         public static bool cyclopsDockingLoaded = false;
         public static bool vehicleLightsImprovedLoaded = false; // not updated
-        public static bool languageCheck = false;
-        public static bool pickupFullCarryallsLoaded = false;
+        public static bool pickupFullCarryallsLoaded = false;  // not updated
         public static bool seaglideMapControlsLoaded = false;  // not updated
         public static bool baseLightSwitchLoaded = false;
-        public static bool visibleLockerInteriorModLoaded;
-        public static bool prawnSuitTorpedoDisplayLoaded = false; // not updated
-        public static bool torpedoImprovementsLoaded = false; // not updated
-        //public static bool refillOxygenTankLoaded = false;
-        
+        public static bool visibleLockerInteriorLoaded;
+        public static bool exosuitTorpedoDisplayLoaded = false; // not updated
+        public static bool torpedoImprovementsLoaded = false;
+        public static bool languageCheck = false;
+
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
         public static void CleanUp()
         {
-            loadingDone = false;
-            canBreathe = false;
+            //logger.LogInfo("CleanUp");
+            gameLoaded = false;
             QuickSlots_Patch.invChanged = true;
-            Databox_Light_Patch.databoxLights = new List<GameObject>();
+            Databox_Light_Patch.databoxLights.Clear();
             Crush_Damage.extraCrushDepth = 0;
             Cyclops_Patch.ceh = null;
-            Cyclops_Patch.collidersInSub = new HashSet<Collider>();
-            Geyser_Patch.eruptionForce = new Dictionary<Geyser, Vector3>();
-            Geyser_Patch.rotationForce = new Dictionary<Geyser, Vector3>();
-            Gravsphere_Patch.gasPods = new HashSet<GasPod>();
-            Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
-            Decoy_Patch.decoysToDestroy = new List<GameObject>();
+            Cyclops_Patch.collidersInSub.Clear();
+            Geyser_Patch.eruptionForce.Clear();
+            Geyser_Patch.rotationForce.Clear();
+            Gravsphere_Patch.gasPods.Clear();
+            Gravsphere_Patch.gravSphereFish.Clear();
+            Decoy_Patch.decoysToDestroy.Clear();
             Vehicle_patch.currentLights = new Light[2];
-            Vehicle_patch.dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
+            Vehicle_patch.dockedVehicles.Clear();
             Exosuit_Patch.exosuitStarted = false;
             Damage_Patch.healTempDamageTime = 0;
-            Damage_Patch.tempDamageLMs = new List<LiveMixin>();
-            Storage_Patch.savedSigns = new List<Sign>();
-            Storage_Patch.labelledLockers = new List<StorageContainer>();
-            Battery_Patch.subPowerRelays = new List<PowerRelay>();
-            Coffee_Patch.spawnedCoffeeTime = new Dictionary<Eatable, float>();
-            UI_Patches.planters = new Dictionary<ItemsContainer, Planter>();
+            Damage_Patch.tempDamageLMs.Clear();
+            Storage_Patch.savedSigns.Clear();
+            Storage_Patch.labelledLockers.Clear();
+            Battery_Patch.subPowerRelays.Clear();
+            Coffee_Patch.spawnedCoffeeTime.Clear();
+            UI_Patches.planters.Clear();
+            //Tools_Patch.seaglideLightsLoaded = false;
             config.Load();
         }
 
@@ -82,15 +80,18 @@ namespace Tweaks_Fixes
             { // __instance is null !
                 if (WaitScreen.main.items.Count == 0)
                 {
-                    LoadedGameSetup();
-                    logger.LogInfo("loaded game world");
+                    CoroutineHost.StartCoroutine(LoadedGameSetup());
+                    //logger.LogInfo("loaded game world");
                 }
             }
         }
 
-        public static void  LoadedGameSetup()
+        public static IEnumerator<GameObject> LoadedGameSetup()
         {
-            loadingDone = true;
+            while (WaitScreen.IsWaiting)
+                yield return null;
+
+            gameLoaded = true;
             config.predatorExclusion.Remove(TechType.Crash);
             config.predatorExclusion.Remove(TechType.Mesmer);
 
@@ -105,13 +106,13 @@ namespace Tweaks_Fixes
                 lm.SyncUpdatingState();
             }
             //AddDebug("LoadedGameSetup activeSlot " + config.activeSlot);
-            if (config.activeSlot != -1 && Player.main.mode == Player.Mode.Normal )
+            if (config.activeSlot != -1 && Player.main.mode == Player.Mode.Normal)
                 Inventory.main.quickSlots.SelectImmediate(config.activeSlot);
 
             //if (EscapePod.main)
             //    Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
 
-            languageCheck = Language.main.GetCurrentLanguage() == "English" || !config.translatableStrings[0].Equals("Burnt out ");
+            languageCheck = Language.main.GetCurrentLanguage() == "English" || config.translatableStrings[0] != "Burnt out ";
             if (languageCheck)
             {
                 //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
@@ -123,10 +124,9 @@ namespace Tweaks_Fixes
                 if (p != null && p.inventoryItem == null)
                     Destroy(p.gameObject);
             }
-            Food_Patch.cookedFish = new HashSet<Pickupable>();
-            //Storage_Patch.savedSigns = new List<Sign>();
+            Food_Patch.cookedFish.Clear();
         }
-        
+
         [HarmonyPatch(typeof(SaveLoadManager))]
         class SaveLoadManager_Patch
         {
@@ -179,8 +179,6 @@ namespace Tweaks_Fixes
 
         public static void Setup()
         {
-
-            //FlashingLightsDisclaimer.isFirstRun = false;
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
@@ -221,25 +219,25 @@ namespace Tweaks_Fixes
             {
                 var metadata = plugin.Value.Metadata;
                 //logger.LogInfo("loaded Mod " + metadata.GUID);
-                if (metadata.GUID.Equals("VisibleLockerInterior"))
-                    visibleLockerInteriorModLoaded = true;
-                else if (metadata.GUID.Equals("PrawnSuitTorpedoDisplay"))
-                    prawnSuitTorpedoDisplayLoaded = true;
-                else if (metadata.GUID.Equals("com.ahk1221.baselightswitch"))
+                if (metadata.GUID == "VisibleLockerInterior")
+                    visibleLockerInteriorLoaded = true;
+                //else if (metadata.GUID.Equals("PrawnSuitTorpedoDisplay"))
+                //    exosuitTorpedoDisplayLoaded = true;
+                else if (metadata.GUID == "com.ahk1221.baselightswitch")
                     baseLightSwitchLoaded = true;
-                else if (metadata.GUID.Equals("SeaglideMapControls"))
-                    seaglideMapControlsLoaded = true;
-                else if (metadata.GUID.Equals("PickupFullCarryalls"))
+                //else if (metadata.GUID.Equals("SeaglideMapControls"))
+                //    seaglideMapControlsLoaded = true;
+                else if (metadata.GUID == "PickupableStorageEnhanced")
                     pickupFullCarryallsLoaded = true;
-                else if (metadata.GUID.Equals("sn.advancedinventory.mod"))
+                else if (metadata.GUID == "sn.advancedinventory.mod")
                     advancedInventoryLoaded = true;
-                else if (metadata.GUID.Equals("Rm_FlareRepair"))
-                    flareRepairLoaded = true;
-                else if (metadata.GUID.Equals("com.osubmarin.cyclopsdockingmod"))
+                //else if (metadata.GUID.Equals("Rm_FlareRepair"))
+                //    flareRepairLoaded = true;
+                else if (metadata.GUID == "com.osubmarin.cyclopsdockingmod")
                     cyclopsDockingLoaded = true;
-                else if (metadata.GUID.Equals("Rm_VehicleLightsImproved"))
-                    vehicleLightsImprovedLoaded = true;
-                else if (metadata.GUID.Equals("TorpedoImprovements"))
+                //else if (metadata.GUID.Equals("Rm_VehicleLightsImproved"))
+                //    vehicleLightsImprovedLoaded = true;
+                else if (metadata.GUID == "com.TorpedoImprovements.mod")
                     torpedoImprovementsLoaded = true;
                 //else if (metadata.GUID.Equals("sn.oxygentank.mod"))
                 //    refillOxygenTankLoaded = true;

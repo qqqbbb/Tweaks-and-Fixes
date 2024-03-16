@@ -112,7 +112,7 @@ namespace Tweaks_Fixes
                         Main.config.medKitHPtoHeal = 0;
                 }
 
-                if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.loadingDone)
+                if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.gameLoaded)
                     return;
 
                 if (Food_Patch.hungerUpdateTime > Time.time)
@@ -134,7 +134,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("GetDepthClass");
                 Ocean.DepthClass depthClass = Ocean.DepthClass.Surface;
-                if (!Main.loadingDone)
+                if (!Main.gameLoaded)
                 { // avoid null reference exception when loading game inside cyclops
                   //__result = depthClass;
                   //return false;
@@ -282,7 +282,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(VoiceNotification __instance)
             {
                 //AddDebug("VoiceNotification Play");
-                if (!Main.loadingDone)
+                if (!Main.gameLoaded)
                     return false;
 
                 return true;
@@ -295,7 +295,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(SoundQueue __instance, string sound)
             {
                 //AddDebug(" PlayQueued  " + sound);
-                if (!Main.loadingDone)
+                if (!Main.gameLoaded)
                     return false;
 
                 return true;

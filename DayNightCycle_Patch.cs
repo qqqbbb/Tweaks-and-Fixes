@@ -8,7 +8,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Game_Speed_Patch
+    class DayNightCycle_Patch
     {
         
       [HarmonyPatch(typeof(DayNightCycle), "Awake")]

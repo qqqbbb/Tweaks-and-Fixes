@@ -91,7 +91,7 @@ namespace Tweaks_Fixes
                     __instance.transform.position += __instance.transform.up * __instance.launchSpeed;
 
                 __instance.launchSpeed = Mathf.MoveTowards(__instance.launchSpeed, 0f, Time.deltaTime);
-                if (!Mathf.Approximately(__instance.launchSpeed, 0f))
+                if (!Util.Approximately(__instance.launchSpeed, 0f))
                     return false;
 
                 __instance.launch = false;

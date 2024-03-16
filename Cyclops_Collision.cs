@@ -228,7 +228,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Fabricator __instance)
             {
-                if (Main.config.fixCyclopsCollision && Main.loadingDone && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
+                if (Main.config.fixCyclopsCollision && Main.gameLoaded && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
                 { // collision does not match mesh. Can see it after fixing cyclops collision. move it so cant see it when outside
                   //AddDebug("Fabricator Start parent " + __instance.transform.parent.name);
                     __instance.transform.position += __instance.transform.forward * .11f;

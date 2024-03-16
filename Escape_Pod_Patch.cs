@@ -43,7 +43,7 @@ namespace Tweaks_Fixes
         static IEnumerator SetMaxPower(EscapePod escapePod)
         {
             //yield return new WaitForSeconds(waitTime);
-            while (!Main.loadingDone)
+            while (!Main.gameLoaded)
                 yield return null;
             
             float maxPower = Main.config.escapePodMaxPower;

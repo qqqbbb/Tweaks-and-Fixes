@@ -102,7 +102,7 @@
     <Compile Include="Sound_Patch.cs" />
     <Compile Include="Translation.cs" />
     <Compile Include="Cyclops_Collision.cs" />
-    <Compile Include="Game_Speed_Patch.cs" />
+    <Compile Include="DayNightCycle_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Base_Patch.cs" />
     <Compile Include="Randomize.cs" />

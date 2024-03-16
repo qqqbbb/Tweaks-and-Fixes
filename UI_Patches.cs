@@ -398,7 +398,7 @@ namespace Tweaks_Fixes
                     }
                 }
                 Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
-                if (flareTarget && Main.languageCheck && flareTarget.energyLeft == 0f)
+                if (flareTarget && Main.languageCheck && Util.Approximately(flareTarget.energyLeft, 0f))
                 {
                     //AddDebug("activeTarget Flare");
                     StringBuilder sb = new StringBuilder(Main.config.translatableStrings[0]);
@@ -529,6 +529,15 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPostfix(StringBuilder sb, TechType techType, GameObject obj)
             {
+                if (techType == TechType.Battery)
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_Battery"));
+                else if (techType == TechType.PowerCell)
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PowerCell"));
+                else if (techType == TechType.PrecursorIonBattery)
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonBattery"));
+                else if (techType == TechType.PrecursorIonPowerCell)
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonPowerCell"));
+
                 if (!Main.config.newUIstrings)
                     return;
 
@@ -884,11 +893,19 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(FlashingLightsDisclaimer __instance)
             {
+                if (Main.config.gameStartWarning)
+                    return true;
                 //Main.logger.LogDebug("FlashingLightsDisclaimer Start ");
                 __instance.gameObject.SetActive(false);
                 //FlashingLightsDisclaimer.isFirstRun = false;
                 return false;
             }
+        }
+
+        //[HarmonyPatch(typeof(StartScreen), "TryToShowDisclaimer")]
+        public static class StartScreenPatch
+        {
+            public static bool Prefix(StartScreen __instance) => false;
         }
 
         [HarmonyPatch(typeof(uGUI_EncyclopediaTab), "DisplayEntry")]
@@ -912,6 +929,23 @@ namespace Tweaks_Fixes
                 //else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
                 //    __instance.OpenTab(__instance.GetPreviousTab());
                 //}
+            }
+        }
+
+        [HarmonyPatch(typeof(uGUI_BlueprintsTab), "SetCategoryTitle")]
+        class uGUI_BlueprintsTab_SetCategoryTitle_Patch
+        {
+            public static void Postfix(uGUI_BlueprintsTab __instance, uGUI_BlueprintsTab.CategoryEntry categoryEntry, TechCategory techCategory)
+            {
+                //AddDebug("uGUI_BlueprintsTab SetCategoryTitle " + techCategory);
+                //Main.logger.LogMessage("uGUI_BlueprintsTab SetCategoryTitle " + techCategory);
+                if (categoryEntry == null || categoryEntry.canvas == null || categoryEntry.canvas.gameObject == null)
+                    return;
+
+                if (techCategory == TechCategory.CookedFood || techCategory == TechCategory.CuredFood)
+                {
+                    categoryEntry.canvas.gameObject.SetActive(false);
+                }
             }
         }
 

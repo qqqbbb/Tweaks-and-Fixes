@@ -10,16 +10,15 @@ using System.Text;
 using static ErrorMessage;
 using static VFXParticlesPool;
 using static HandReticle;
-using static UWE.CubeFace;
 using System.Linq;
 using UWE;
-using static TechStringCache;
 
 namespace Tweaks_Fixes
 {
     class Testing
     {
-        public static GameObject storedGO = null;
+        public static GameObject storedGO;
+
 
         //[HarmonyPatch(typeof(DisplayManager))]
         class DisplayManager_Patch
@@ -56,21 +55,24 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(AggressiveWhenSeePlayer), "GetAggressionTarget")]
-        class CreatureDeath_OnKillAsync_Patch
+        //[HarmonyPatch(typeof(InspectOnFirstPickup), "Start")]
+        class InspectOnFirstPickup_Start_Patch
         {
-            static void Postfix(AggressiveWhenSeePlayer __instance)
+            static void Postfix(InspectOnFirstPickup __instance)
             {
-                AddDebug(__instance.name + " AggressiveWhenSeePlayer GetAggressionTarget ");
+                Main.logger.LogMessage(" InspectOnFirstPickup Start " + __instance.name);
+                AddDebug(" InspectOnFirstPickup Start " + __instance.name);
 
             }
         }
 
-        //[HarmonyPatch(typeof(Player), "Update")]
+        [HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
+                //if (Input.GetKey(KeyCode.LeftShift))
+                //    AddDebug("timePassed " + DayNightCycle.main.timePassedAsFloat);
                 //AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
                 //AddDebug("stalkerLoseTooth " + Main.config.stalkerLoseTooth * .01f);
                 //AddDebug("Time.time " + (int)Time.time);
@@ -97,8 +99,9 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                   
                     //Main.logger.LogDebug("press C ");
-                    PrintTerrainSurfaceType();
+                    //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
                     //                bool hit = Physics.Linecast(Player.main.transform.position, Vector3.zero
@@ -128,9 +131,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
-                    //AddDebug(" stasis targets " + Tools_Patch.stasisTargets.Count);
                     //GameObject goToTest = Player.main.guiHand.activeTarget;
-
                     //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
                     //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
                     //AddDebug("Exosuit " + BehaviourData.GetEcoTargetType(TechType.Exosuit));
@@ -177,7 +178,7 @@ namespace Tweaks_Fixes
             else
                 AddDebug("no terrain " );
         }
-      
+
         public static void printTarget()
         {
             GameObject target = Player.main.guiHand.activeTarget;
@@ -191,6 +192,7 @@ namespace Tweaks_Fixes
             if (!target)
                 return;
 
+            target = Util.GetEntityRoot(target);
             VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
             TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
             if (tcpc)
@@ -202,16 +204,15 @@ namespace Tweaks_Fixes
             if (target)
                 vfxSurfaceType = Util.GetObjectSurfaceType(target);
 
-            LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
-            if (lwe)
+            //LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+            //if (lwe)
             {
                 //goToTest = lwe.gameObject;
-                target = lwe.gameObject;
-                Rigidbody rb = lwe.GetComponent<Rigidbody>();
-                if (rb)
-                {
-                    AddDebug(" mass " + rb.mass + " drag " + rb.drag + " ang drag " + rb.angularDrag);
-                }
+                //target = lwe.gameObject;
+                //Rigidbody rb = lwe.GetComponent<Rigidbody>();
+                //if (rb)
+                //    AddDebug(" mass " + rb.mass + " drag " + rb.drag + " ang drag " + rb.angularDrag);
+                
                 //AddDebug("PDAScanner isValid " + PDAScanner.scanTarget.isValid);
                 //AddDebug("PDAScanner CanScan " + PDAScanner.CanScan());
                 //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
@@ -230,6 +231,11 @@ namespace Tweaks_Fixes
             TechType techType = CraftData.GetTechType(target);
             if (techType != TechType.None)
                 AddDebug("TechType  " + techType);
+
+            int x = (int)target.transform.position.x;
+            int y = (int)target.transform.position.y;
+            int z = (int)target.transform.position.z;
+            AddDebug(x + " " + y + " " + z);
         }
 
         private Vector3 ClipWithTerrain(GameObject go)
@@ -390,5 +396,20 @@ namespace Tweaks_Fixes
                 //AddDebug(" Targeting GetTarget  " + result.name);
             }
         }
+
+        //[HarmonyPatch(typeof(CrafterLogic), "progress", MethodType.Getter)]
+        class CrafterLogic_progress_Patch
+        { // patch property getter
+            public static bool Prefix(CrafterLogic __instance, ref float __result)
+            {
+                double timePassed = DayNightCycle.main.timePassed;
+                double num1 = __instance.timeCraftingEnd - __instance.timeCraftingBegin;
+                double timeCraftingBegin = __instance.timeCraftingBegin;
+                double num2 = ((timePassed - timeCraftingBegin) / num1);
+                __result = __instance.timeCraftingEnd <= __instance.timeCraftingBegin ? -1f : Mathf.Clamp01((float)num2);
+                return false;
+            }
+        }
+
     }
 }

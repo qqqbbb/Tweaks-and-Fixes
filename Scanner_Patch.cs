@@ -72,8 +72,11 @@ namespace Tweaks_and_Fixes
                 {
                     PDAScanner.EntryData entryData = PDAScanner.mapping[TechType.MediumKoosh];
                     //Main.logger.LogDebug("PDAScanner Initialize " + entryData);
-                    PDAScanner.mapping.Add(TechType.LargeKoosh, entryData);
-                    PDAScanner.mapping.Add(TechType.SmallKoosh, entryData);
+                    if (!PDAScanner.mapping.ContainsKey(TechType.LargeKoosh))
+                        PDAScanner.mapping.Add(TechType.LargeKoosh, entryData);
+
+                    if (!PDAScanner.mapping.ContainsKey(TechType.SmallKoosh))
+                        PDAScanner.mapping.Add(TechType.SmallKoosh, entryData);
                 }
             }
             [HarmonyPostfix]

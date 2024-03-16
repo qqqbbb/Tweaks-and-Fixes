@@ -527,8 +527,8 @@ namespace Tweaks_Fixes
                     {
                         if (!Main.config.playerMoveTweaks || Main.config.playerMoveTweaks && __instance.movementInputDirection.z > 0f)
                             //maxSpeed *= __instance.sprintModifier;
-
                             __instance.sprinting = true;
+
                         if (timeSprintStart == 0f)
                             timeSprintStart = DayNightCycle.main.timePassedAsFloat;
 

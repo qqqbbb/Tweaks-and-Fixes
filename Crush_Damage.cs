@@ -86,7 +86,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("CrushDamageUpdate")]
             public static bool CrushDamageUpdatePrefix(CrushDamage __instance)
             {
-                if (Main.config.vehicleCrushDamageMult == 0f || !Main.loadingDone)
+                if (Main.config.vehicleCrushDamageMult == 0f || !Main.gameLoaded)
                     return true;
 
                 if (!__instance.gameObject.activeInHierarchy || !__instance.enabled || !__instance.GetCanTakeCrushDamage() || __instance.depthCache == null)

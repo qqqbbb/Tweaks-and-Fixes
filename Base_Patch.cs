@@ -100,7 +100,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("NotifyConstructedChanged")]
             public static void Postfix(Constructable __instance, bool constructed)
             {
-                if (!constructed || !Main.loadingDone)
+                if (!constructed || !Main.gameLoaded)
                     return;
 
                 //AddDebug(" NotifyConstructedChanged " + __instance.techType);

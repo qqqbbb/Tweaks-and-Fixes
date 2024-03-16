@@ -61,7 +61,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(CoffeeVendingMachine __instance)
             {
                 __instance.powerRelay = PowerSource.FindRelay(__instance.transform);
-                if (Main.loadingDone)
+                if (Main.gameLoaded)
                     __instance.idleSound.Play();
 
                 return false;
@@ -73,7 +73,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Eatable __instance)
             { // cyclops physics go insane if there is coffee in cvm when game loads 
-                if (Main.loadingDone || __instance.transform.parent == null)
+                if (Main.gameLoaded || __instance.transform.parent == null)
                     return;
 
                 if (__instance.transform.parent.GetComponent<CoffeeVendingMachine>() && CraftData.GetTechType(__instance.gameObject) == TechType.Coffee)

@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
         public static ConditionalWeakTable<GameObject, string> pickupShinies = new ConditionalWeakTable<GameObject, string>();
         public static ConditionalWeakTable<GameObject, Rigidbody> objectsRBs = new ConditionalWeakTable<GameObject, Rigidbody>();
 
-
+        
        [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
@@ -82,16 +82,38 @@ namespace Tweaks_Fixes
             }
         }
         
-        [HarmonyPatch(typeof(Stalker), "CheckLoseTooth")]
-        public static class Stalker_CheckLoseTooth_Patch
+        [HarmonyPatch(typeof(Stalker))]
+        public static class Stalker_Patch
         {
-            public static bool Prefix(Stalker __instance, GameObject target)
+            [HarmonyPrefix]
+            [HarmonyPatch("CheckLoseTooth")]
+            public static bool CheckLoseToothPrefix(Stalker __instance, GameObject target)
             { // only scrap metal has HardnessMixin  0.5
                 float rndm = UnityEngine.Random.value;
                 float stalkerLoseTooth = Main.config.stalkerLoseTooth * .01f;
                 if (stalkerLoseTooth >= rndm && HardnessMixin.GetHardness(target) > rndm)
                     __instance.LoseTooth();
 
+                return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("LoseTooth")]
+            public static bool LoseToothPrefix(Stalker __instance, ref bool __result)
+            {
+                if (Main.config.stalkerLooseToothSound)
+                    return true;
+
+                GameObject go = UnityEngine.Object.Instantiate(__instance.toothPrefab);
+                go.transform.position = __instance.loseToothDropLocation.transform.position;
+                go.transform.rotation = __instance.loseToothDropLocation.transform.rotation;
+                if (go.activeSelf && __instance.isActiveAndEnabled)
+                {
+                    foreach (Collider componentsInChild in go.GetComponentsInChildren<Collider>())
+                        Physics.IgnoreCollision(__instance.stalkerBodyCollider, componentsInChild);
+                }
+                //Utils.PlayFMODAsset(this.loseToothSound, go.transform);
+                LargeWorldEntity.Register(go);
+                __result = true;
                 return false;
             }
         }
@@ -136,48 +158,25 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("IsInFieldOfView")]
-            public static bool IsInFieldOfViewPrefix(Creature __instance, GameObject go, ref bool __result)
-            {
-                bool canSee = false;
-                if (go == null)
-                {
-                    __result = false;
-                    return false;
-                }
-                if (Mathf.Approximately(__instance.eyeFOV, -1f))
-                {
-                    //AddDebug(__instance.name + " eyeFOV  = -1");
-                    __result = true;
-                    return false;
-                }
-                Vector3 dir = go.transform.position - __instance.transform.position;
-                Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
-                //if ((Mathf.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(vector3.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(__instance.transform.position, go.transform.position, Voxeland.GetTerrainLayerMask()))
-                //if (go == Player.mainObject)
-                //    AddDebug(__instance.name + " eyeFOV " + __instance.eyeFOV + " dir " + dir.normalized + " rhs " + rhs + " Dot " + Vector3.Dot(dir.normalized, rhs));
-
-                if (Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV && !Physics.Linecast(__instance.transform.position, go.transform.position))
-                    canSee = true;
-
-                //if (go == Player.mainObject && canSee)
-                //    AddDebug(__instance.name + " can see player");
-
-                __result = canSee;
-                return false;
-            }
             [HarmonyPrefix]
             [HarmonyPatch("IsInFieldOfView")]
             public static bool GetCanSeeObjectPrefix(Creature __instance, GameObject go, ref bool __result)
-            { // when casting ray from creature to player terrain may not be loaded. Cast from player instead
+            { // ray does not hit terrain if cast from underneath. Cast from player to avoid it.
                 __result = false;
-                if (go != null)
+                if (go == null)
+                    return false;
+
+                Vector3 vector3 = go.transform.position - __instance.transform.position;
+                Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
+                if (Mathf.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(vector3.normalized, rhs) >= __instance.eyeFOV)
                 {
-                    Vector3 vector3 = go.transform.position - __instance.transform.position;
-                    Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
-                    if ((Mathf.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(vector3.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position, Voxeland.GetTerrainLayerMask()))
-                        __result = true;
+                    bool noLoS = false;
+                    if (__instance.techTypeHash == 4791461876223233767) // crashfish
+                        noLoS = Physics.Linecast(__instance.transform.position, go.transform.position, Voxeland.GetTerrainLayerMask());
+                    else
+                        noLoS = Physics.Linecast(go.transform.position, __instance.transform.position, Voxeland.GetTerrainLayerMask());
+
+                    __result = !noLoS;
                 }
                 return false;
             }
@@ -556,6 +555,16 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(WaterParkCreature), "GetCanBreed")]
+        class GWaterParkCreature_GetCanBreed_patch
+        {
+            public static void Postfix(WaterParkCreature __instance, ref bool __result)
+            {
+                if (!Main.config.waterparkCreaturesBreed)
+                    __result = false;
+            }
+        }
+        
 
     }
 }

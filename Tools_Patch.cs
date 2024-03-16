@@ -4,6 +4,9 @@ using UnityEngine;
 using HarmonyLib;
 using static ErrorMessage;
 using static Nautilus.Assets.CustomModelData;
+using static VFXParticlesPool;
+using System.Collections;
+using UWE;
 
 namespace Tweaks_Fixes
 {
@@ -14,11 +17,12 @@ namespace Tweaks_Fixes
         public static bool releasingGrabbedObject = false;
         public static bool shootingObject = false;
         //public static List<GameObject> repCannonGOs = new List<GameObject>();
-        static ToggleLights seaglideToggleLights = null;
+        //static ToggleLights seaglideLights;
+        //static VehicleInterface_MapController seaglideMap;
         public static Dictionary<Creature, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<Creature, Dictionary<TechType, int>>();
         public static List<Rigidbody> stasisTargets = new List<Rigidbody>();
 
-        
+
 
         [HarmonyPatch(typeof(FlashLight), "Start")]
         public class FlashLight_Start_Patch
@@ -532,33 +536,63 @@ namespace Tweaks_Fixes
             }
         }
 
+        public static void SaveSeaglideState(Seaglide seaglide)
+        {
+            //AddDebug("SaveSeaglideState lightsActive " + seaglideLights.lightsActive);
+            var seaglideMap = seaglide.GetComponent<VehicleInterface_MapController>();
+            if (seaglideMap && seaglideMap.miniWorld)
+                Main.config.seaglideMap = seaglideMap.miniWorld.active;
 
+            if (seaglide.toggleLights)
+                Main.config.seaglideLights = seaglide.toggleLights.lightsActive;
+        }
 
-        //[HarmonyPatch(typeof(Seaglide))]
+        public static IEnumerator LoadSeaglideState(Seaglide seaglide)
+        {
+            if (seaglide == null)
+                yield break;
+            
+            if (seaglide.toggleLights == null)
+                yield return null;
+            
+            //AddDebug("LoadSeaglideState Lights" + Main.config.seaglideLights);
+            seaglide.toggleLights.SetLightsActive(Main.config.seaglideLights);
+            var map = seaglide.GetComponent<VehicleInterface_MapController>();
+            if (map == null)
+                yield break;
+
+            if (map.miniWorld == null)
+                yield return null;
+
+            map.miniWorld.active = Main.config.seaglideMap;
+        }
+
+        [HarmonyPatch(typeof(Seaglide))]
         class Seaglide_Patch
         {
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(Seaglide __instance)
+            {// fires after onLightsToggled
+                //Main.logger.LogMessage("Seaglide Start lightsActive " + __instance.toggleLights.lightsActive);
+                CoroutineHost.StartCoroutine(LoadSeaglideState(__instance));
+            }
+
             //[HarmonyPostfix]
             //[HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(Seaglide __instance)
             {
-                if (!Main.seaglideMapControlsLoaded)
-                    seaglideToggleLights = __instance.toggleLights;
+                //AddDebug("Seaglide OnDraw " + Main.config.seaglideLights);
+                //seaglideLights = __instance.toggleLights;
+                //seaglideMap = __instance.GetComponent<VehicleInterface_MapController>();
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnHolster")]
+            [HarmonyPostfix]
+            [HarmonyPatch("OnHolster")]
             public static void OnHolsterPostfix(Seaglide __instance)
-            {
-                seaglideToggleLights = null;
-            }
-
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
-            public static void StartPostfix(Seaglide __instance)
-            {
-                if (!Main.seaglideMapControlsLoaded)
-                    __instance.toggleLights.lightState = 2; // dont show map
-                //Main.Message("lightState " + __instance.toggleLights.lightState);
+            { // fires when saving
+              //AddDebug("Seaglide OnHolster " + __instance.toggleLights.lightsActive);
+                SaveSeaglideState(__instance);
             }
         }
 
@@ -592,36 +626,6 @@ namespace Tweaks_Fixes
                 //        lights[i].enabled = false;
                 //}
             }
-        }
-
-        //[HarmonyPatch(typeof(ToggleLights))]
-        class ToggleLights_Patch
-        {
-            //[HarmonyPrefix]
-            //[HarmonyPatch("CheckLightToggle")]
-            public static bool CheckLightTogglePrefix(ToggleLights __instance)
-            {
-                if (!Main.seaglideMapControlsLoaded && __instance == seaglideToggleLights)
-                {
-                    if (Player.main.pda.isInUse)
-                        return false;
-
-                    //HandReticle.main.SetUseTextRaw(UI_Patches.seaglideString, null);
-                    if (GameInput.GetButtonDown(GameInput.Button.RightHand))
-                        __instance.SetLightsActive(!__instance.lightsActive);
-                    else if (GameInput.GetButtonDown(GameInput.Button.AltTool))
-                    {
-                        if (__instance.lightState == 2)
-                            __instance.lightState = 0;
-                        else
-                            __instance.lightState = 2;
-                    }
-                    //AddDebug("lightState " + __instance.lightState);
-                    return false;
-                }
-                return true;
-            }
-
         }
 
         //[HarmonyPatch(typeof(PropulsionCannon))]

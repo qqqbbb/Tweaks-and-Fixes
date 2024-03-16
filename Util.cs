@@ -332,6 +332,10 @@ namespace Tweaks_Fixes
                 .Select(x => x.gameObject);
         }
 
+        public static bool Approximately(float a, float b, float tolerance = 0.00001f)
+        { // Mathf.Approximately does not work when compare to 0
+            return (Mathf.Abs(a - b) < tolerance);
+        }
 
     }
 }

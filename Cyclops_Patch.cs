@@ -63,6 +63,7 @@ namespace Tweaks_Fixes
             //AddDebug("fire Count " + fireCount);
             return fireCount;
         }
+      
         static int GetEngineOverheatMinValue(SubFire subFire)
         {
             int overheatValue = GetFireCountInEngineRoom(subFire) * 10;
@@ -154,7 +155,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.isCyclops)
                     __instance.interiorSky.affectedByDayNightCycle = Main.config.cyclopsSunlight && !lightingOn;
-                //AddDebug("affectedByDayNightCycle " + __instance.interiorSky.affectedByDayNightCycle);
+                //AddDebug("SubRoot ForceLightingState " + lightingOn);
             }
         }
         
@@ -318,7 +319,7 @@ namespace Tweaks_Fixes
         { // OnTriggerExit does not fire if you use closest ladder so hatch does not close
             static void Postfix(CyclopsEntryHatch __instance, Collider col)
             {
-                if (!col.gameObject.Equals(Player.main.gameObject))
+                if (col.gameObject != Player.main.gameObject)
                     return;
                 ceh = __instance;
                 //AddDebug("OnTriggerEnter " + __instance.hatchOpen);
@@ -343,7 +344,7 @@ namespace Tweaks_Fixes
             }
         }
         
-        //[HarmonyPatch(typeof(CyclopsSilentRunningAbilityButton), "SilentRunningIteration")]
+        [HarmonyPatch(typeof(CyclopsSilentRunningAbilityButton), "SilentRunningIteration")]
         class CyclopsSilentRunningAbilityButton_SilentRunningIteration_Patch
         {
             public static bool Prefix(CyclopsSilentRunningAbilityButton __instance)
@@ -353,9 +354,11 @@ namespace Tweaks_Fixes
                     return false;
 
                 if (__instance.subRoot.powerRelay.ConsumeEnergy(__instance.subRoot.silentRunningPowerCost, out float amountConsumed))
+                {
+                    //AddDebug("sub consume power");
                     return false;
+                }
                 __instance.TurnOffSilentRunning();
-
                 return false;
             }
         }
@@ -495,6 +498,52 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CyclopsLightingPanel))]
         public class CyclopsLightingPanel_Patch
         {
+            static void TurnOnFloodlights(CyclopsLightingPanel clp)
+            {
+                if (clp.cyclopsRoot.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline || clp.cyclopsRoot.silentRunning)
+                    return;
+
+                clp.floodlightsOn = true;
+                clp.SetExternalLighting(true);
+                //FMODUWE.PlayOneShot(this.floodlightsOn ? this.vn_floodlightsOn : this.vn_floodlightsOff, this.transform.position);
+                clp.UpdateLightingButtons();
+            }
+
+            static void TurnOffInternalLighting(CyclopsLightingPanel clp)
+            {
+                clp.lightingOn = false;
+                clp.cyclopsRoot.ForceLightingState(false);
+                //FMODUWE.PlayOneShot(this.lightingOn ? this.vn_lightsOn : this.vn_lightsOff, this.transform.position);
+                clp.UpdateLightingButtons();
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPostfix(CyclopsLightingPanel __instance)
+            {
+                //AddDebug("ToggleFloodlights " + __instance.floodlightsOn);
+                //Main.config.cyclopsFloodtLights = __instance.floodlightsOn;
+                if (Main.config.cyclopsFloodLights)
+                    TurnOnFloodlights(__instance);
+
+                if (!Main.config.cyclopsLighting)
+                    TurnOffInternalLighting(__instance);
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("ToggleFloodlights")]
+            static void ToggleFloodlightsPostfix(CyclopsLightingPanel __instance)
+            {
+                //AddDebug("ToggleFloodlights " + __instance.floodlightsOn);
+                Main.config.cyclopsFloodLights = __instance.floodlightsOn;
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("ToggleInternalLighting")]
+            static void ToggleInternalLightingPostfix(CyclopsLightingPanel __instance)
+            {
+                //AddDebug("ToggleFloodlights " + __instance.floodlightsOn);
+                Main.config.cyclopsLighting = __instance.lightingOn;
+            }
+
             [HarmonyPrefix]
             [HarmonyPatch("SubConstructionComplete")]
             public static bool SubConstructionCompletePrefix(CyclopsLightingPanel __instance)
@@ -674,7 +723,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Update")]
             static bool UpdatePrefix(SubFire __instance)
             {
-                return Main.loadingDone;
+                return Main.gameLoaded;
             }
             [HarmonyPrefix]
             [HarmonyPatch("EngineOverheatSimulation")]
@@ -759,7 +808,6 @@ namespace Tweaks_Fixes
 
             }
         }
-
 
 
     }
