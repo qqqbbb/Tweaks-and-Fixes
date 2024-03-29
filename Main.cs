@@ -15,6 +15,9 @@ using BepInEx.Logging;
 using BepInEx.Bootstrap;
 using static ErrorMessage;
 using UWE;
+using BepInEx.Configuration;
+using System.IO;
+using System.Text;
 
 namespace Tweaks_Fixes
 {
@@ -24,7 +27,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.03.0";
+            VERSION = "3.04.01";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -40,10 +43,13 @@ namespace Tweaks_Fixes
         public static bool visibleLockerInteriorLoaded;
         public static bool exosuitTorpedoDisplayLoaded = false; // not updated
         public static bool torpedoImprovementsLoaded = false;
-        public static bool languageCheck = false;
+        static string configPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
 
 
-        public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
+        public static Config config = OptionsPanelHandler.RegisterModOptions<Config>();
+        
+        public static ConfigFile configB;
+        //public static ConfigToEditManually configMenu { get; } = OptionsPanelHandler.RegisterModOptions<ConfigToEditManually>();
 
         public static void CleanUp()
         {
@@ -52,6 +58,7 @@ namespace Tweaks_Fixes
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights.Clear();
             Crush_Damage.extraCrushDepth = 0;
+            Crush_Damage.crushDamageResistance = 0;
             Cyclops_Patch.ceh = null;
             Cyclops_Patch.collidersInSub.Clear();
             Geyser_Patch.eruptionForce.Clear();
@@ -73,33 +80,168 @@ namespace Tweaks_Fixes
             config.Load();
         }
 
-        [HarmonyPatch(typeof(WaitScreen), "Remove")]
-        class WaitScreen_Remove_Patch
-        { 
-            public static void Postfix(WaitScreen.IWaitItem item)
-            { // __instance is null !
-                if (WaitScreen.main.items.Count == 0)
-                {
-                    CoroutineHost.StartCoroutine(LoadedGameSetup());
-                    //logger.LogInfo("loaded game world");
-                }
-            }
-        }
-
-        public static IEnumerator<GameObject> LoadedGameSetup()
+        public static void CopyConfigSettings()
         {
-            while (WaitScreen.IsWaiting)
-                yield return null;
+            if (config.configSettingsCopied)
+                return;
+            
+            ConfigToEdit.heatBladeCooks.Value = config.heatBladeCooks;
+            ConfigToEdit.dontSpawnKnownFragments.Value = config.dontSpawnKnownFragments;
+            ConfigToEdit.cantScanExosuitClawArm.Value = config.cantScanExosuitClawArm;
+            ConfigToEdit.mapRoomFreeCameras.Value = config.mapRoomFreeCameras;
+            ConfigToEdit.decoyRequiresSub.Value = config.decoyRequiresSub;
+            ConfigToEdit.noKillParticles.Value = config.noKillParticles;
+            ConfigToEdit.cyclopsSunlight.Value = config.cyclopsSunlight;
+            ConfigToEdit.alwaysShowHealthFoodNunbers.Value = config.alwaysShowHealthNunbers;
+            ConfigToEdit.pdaClock.Value = config.pdaClock;
+            //ConfigToEdit.gameStartWarningText.Value = config.gameStartWarning;
+            if (config.startingLoot.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<string, int> entry in config.startingLoot)
+                {
+                    sb.Append(entry.Key);
+                    sb.Append(" ");
+                    sb.Append(entry.Value);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.newGameLoot.Value = sb.ToString();
+            }
+            if (config.crushDepthEquipment.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<string, int> entry in config.crushDepthEquipment)
+                {
+                    sb.Append(entry.Key);
+                    sb.Append(" ");
+                    sb.Append(entry.Value);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.crushDepthEquipment.Value = sb.ToString();
+            }
+            if (config.crushDamageEquipment.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<string, int> entry in config.crushDamageEquipment)
+                {
+                    sb.Append(entry.Key);
+                    sb.Append(" ");
+                    sb.Append(entry.Value);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.crushDamageEquipment.Value = sb.ToString();
+            }
+            if (config.itemMass.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<string, float> entry in config.itemMass)
+                {
+                    sb.Append(entry.Key);
+                    sb.Append(" ");
+                    sb.Append(entry.Value);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.itemMass.Value = sb.ToString();
+            }
+            if (config.unmovableItems.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (string entry in config.unmovableItems)
+                {
+                    sb.Append(entry);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.unmovableItems.Value = sb.ToString();
+            }
+            if (config.bloodColor.ContainsKey("Red") && config.bloodColor.ContainsKey("Green") && config.bloodColor.ContainsKey("Blue"))
+            {
+                ConfigToEdit.bloodColor.Value = new Vector3(config.bloodColor["Red"], config.bloodColor["Green"], config.bloodColor["Blue"]);
+            }
+            if (config.gravTrappable.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (string s in config.gravTrappable)
+                {
+                    sb.Append(s);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.gravTrappable.Value = sb.ToString();
+            }
+            if (config.silentCreatures.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (string s in config.silentCreatures)
+                {
+                    sb.Append(s);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.silentCreatures.Value = sb.ToString();
+            }
+            if (config.stalkerPlayThings.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (string s in config.stalkerPlayThings)
+                {
+                    sb.Append(s);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.stalkerPlayThings.Value = sb.ToString();
+            }
+            if (config.eatableFoodValue.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<TechType, int> entry in config.eatableFoodValue)
+                {
+                    sb.Append(entry.Key);
+                    sb.Append(" ");
+                    sb.Append(entry.Value);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.eatableFoodValue.Value = sb.ToString();
+            }
+            if (config.eatableWaterValue.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<TechType, int> entry in config.eatableWaterValue)
+                {
+                    sb.Append(entry.Key);
+                    sb.Append(" ");
+                    sb.Append(entry.Value);
+                    sb.Append(", ");
+                }
+                sb.Length -= 2; // delete last 2 char
+                ConfigToEdit.eatableWaterValue.Value = sb.ToString();
+            }
+            ConfigToEdit.medKitHPperSecond.Value = config.medKitHPperSecond;
+            ConfigToEdit.fixMelons.Value = config.fixMelons;
+            ConfigToEdit.randomPlantRotation.Value = config.randomPlantRotation;
+            ConfigToEdit.silentReactor.Value = config.silentReactor;
+            ConfigToEdit.removeFragmentCrate.Value = config.removeFragmentCrate;
+            ConfigToEdit.creepvineLights.Value = config.creepvineLights;
+            config.configSettingsCopied = true;
+            configB.Save();
+        }
+         
+        public static void LoadedGameSetup()
+        {
+            if (ConfigToEdit.fixMelons.Value)
+                CraftData.itemSizes[TechType.MelonPlant] = new Vector2int(2, 2);
 
             gameLoaded = true;
-            config.predatorExclusion.Remove(TechType.Crash);
-            config.predatorExclusion.Remove(TechType.Mesmer);
 
-            if (config.bloodColor["Red"] != 0.784f || config.bloodColor["Green"] != 1f || config.bloodColor["Blue"] != 0.157f)
+            if (ConfigToEdit.bloodColor.Value.x != 0.784f || ConfigToEdit.bloodColor.Value.y != 1f || ConfigToEdit.bloodColor.Value.z != 0.157f)
             {
                 Damage_Patch.SetBloodColor();
             }
-
             foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
             {
                 //AddDebug("uGUI_SceneLoading End " + lm.tempDamage);
@@ -112,19 +254,18 @@ namespace Tweaks_Fixes
             //if (EscapePod.main)
             //    Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
 
-            languageCheck = Language.main.GetCurrentLanguage() == "English" || config.translatableStrings[0] != "Burnt out ";
-            if (languageCheck)
-            {
-                //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
-                LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[24]);
-                LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, config.translatableStrings[25]);
-            }
+            //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
+            LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip"));
+            //LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, Language.main.Get("TF_bladderfish_tooltip")); 
+
             foreach (Pickupable p in Food_Patch.cookedFish)
-            {
+            { // remove dead fish from geysers
                 if (p != null && p.inventoryItem == null)
                     Destroy(p.gameObject);
             }
             Food_Patch.cookedFish.Clear();
+            //AddDebug("LoadedGameSetup ");
+            //logger.LogMessage("LoadedGameSetup ");
         }
 
         [HarmonyPatch(typeof(SaveLoadManager))]
@@ -157,19 +298,10 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(IngameMenu), "SaveGame")]
-        class IngameMenu_SaveGame_Patch
-        {
-            public static void Prefix(IngameMenu __instance)
-            {
-                //AddDebug("SaveGame ");
-
-            }
-        }
-
         static void SaveData()
         {
             //AddDebug("SaveData " + Inventory.main.quickSlots.activeSlot);
+            config.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
             config.activeSlot = Inventory.main.quickSlots.activeSlot;
             for (int i = Decoy_Patch.decoysToDestroy.Count - 1; i >= 0; i--)
                 Destroy(Decoy_Patch.decoysToDestroy[i]);
@@ -177,11 +309,24 @@ namespace Tweaks_Fixes
             config.Save();
         }
 
-        public static void Setup()
+        public void Setup()
         {
+            logger = Logger;
+            configB = new ConfigFile(configPath, true);
+            ConfigToEdit.Bind();
+            Harmony harmony = new Harmony(GUID);
+            harmony.PatchAll();
+            SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup);
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
+            LanguageHandler.RegisterLocalizationFolder();
+            //ParseFromConfig();
+            GetLoadedMods();
+            CopyConfigSettings();
+            //Escape_Pod_Patch.ParseNewGameLoot();
+            if (ConfigToEdit.cantScanExosuitClawArm.Value)
+                Player_Patches.DisableExosuitClawArmScan();
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
@@ -195,7 +340,7 @@ namespace Tweaks_Fixes
 
         private void Awake()
         {
-            logger = Logger;
+
         }
 
         private void Start()
@@ -203,12 +348,7 @@ namespace Tweaks_Fixes
             //BepInEx.Logging.Logger.CreateLogSource("Tweaks and fixes: ").Log(LogLevel.Error, " Awake ");
             //AddDebug("Mono Start ");
             //Logger.LogInfo("Mono Start");
-            //config.Load();
-            Harmony harmony = new Harmony(GUID);
-            harmony.PatchAll();
             Setup();
-            ParseFromConfig();
-            GetLoadedMods();
         }
 
         public static void GetLoadedMods()
@@ -246,68 +386,19 @@ namespace Tweaks_Fixes
          
         public static void ParseFromConfig()
         {
-            foreach (var item in config.crushDepthEquipment)
-            {
-                TechTypeExtensions.FromString(item.Key, out TechType tt, true);
-                //Log("crushDepthEquipment str " + item.Key);
-                //Log("crushDepthEquipment TechType " + tt);
-                if (tt != TechType.None)
-                    Crush_Damage.crushDepthEquipment[tt] = item.Value;
-            }
-            foreach (var item in config.crushDamageEquipment)
-            {
-                TechTypeExtensions.FromString(item.Key, out TechType tt, true);
-                if (tt != TechType.None)
-                    Crush_Damage.crushDamageEquipment[tt] = item.Value * .01f;
-            }
-            foreach (var item in config.itemMass)
-            {
-                TechTypeExtensions.FromString(item.Key, out TechType tt, true);
-                //Log("crushDepthEquipment str " + item.Key);
-                //Log("crushDepthEquipment TechType " + tt);
-                if (tt != TechType.None)
-                    Pickupable_Patch.itemMass[tt] = item.Value;
-            }
-            foreach (var name in config.unmovableItems)
-            {
-                TechTypeExtensions.FromString(name, out TechType tt, true);
-                if (tt != TechType.None)
-                {
-                    Pickupable_Patch.unmovableItems.Add(tt);
-                    //Log("unmovableItems " + tt);
-                }
-            }
-            foreach (string name in config.gravTrappable)
-            {
-                TechTypeExtensions.FromString(name, out TechType tt, true);
-                if (tt != TechType.None)
-                    Gravsphere_Patch.gravTrappable.Add(tt);
-            }
-            foreach (string name in config.silentCreatures)
-            {
-                TechTypeExtensions.FromString(name, out TechType tt, true);
-                if (tt != TechType.None)
-                    Creature_Tweaks.silentCreatures.Add(tt);
-            }
-            foreach (string name in config.stalkerPlayThings)
-            {
-                TechTypeExtensions.FromString(name, out TechType tt, true);
-                if (tt != TechType.None)
-                    Pickupable_Patch.shinies.Add(tt);
-            }
-            foreach (string name in config.removeLight)
-            {
-                TechTypeExtensions.FromString(name, out TechType tt, true);
-                //Log("config.removeLight " + tt);
-                if (tt != TechType.None)
-                    LargeWorldEntity_Patch.removeLight.Add(tt);
-            }
-            foreach (var kv in config.damageMult_)
-            {
-                TechTypeExtensions.FromString(kv.Key, out TechType tt, true);
-                if (tt != TechType.None)
-                   Damage_Patch.damageMult.Add(tt, kv.Value);
-            }
+            //foreach (string name in config.removeLight)
+            //{
+            //    TechTypeExtensions.FromString(name, out TechType tt, true);
+            //    //Log("config.removeLight " + tt);
+            //    if (tt != TechType.None)
+            //        LargeWorldEntity_Patch.removeLight.Add(tt);
+            //}
+            //foreach (var kv in config.damageMult_)
+            //{
+            //    TechTypeExtensions.FromString(kv.Key, out TechType tt, true);
+            //    if (tt != TechType.None)
+            //       Damage_Patch.damageMult.Add(tt, kv.Value);
+            //}
         }
     }
 }

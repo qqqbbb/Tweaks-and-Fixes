@@ -31,7 +31,7 @@ namespace Tweaks_Fixes
             static void Postfix(CrafterLogic __instance, GameObject target, TechType techType)
             {
                 //AddDebug("CrafterLogic NotifyCraftEnd timeDecayStart " + timeDecayStart);
-                if (Main.config.foodTweaks && timeDecayStart > 0)
+                if (timeDecayStart > 0)
                 {
                     //AddDebug("CrafterLogic NotifyCraftEnd timeDecayStart" + timeDecayStart);
                     Eatable eatable = target.GetComponent<Eatable>();
@@ -46,8 +46,11 @@ namespace Tweaks_Fixes
                     if (Main.config.batteryChargeMult != 1f)
                         battery._capacity *= Main.config.batteryChargeMult;
 
-                    float mult = Main.config.craftedBatteryCharge * .01f;
-                    battery._charge = battery._capacity * mult;
+                    if (Main.config.craftedBatteryCharge != 1)
+                    {
+                        float mult = Main.config.craftedBatteryCharge * .01f;
+                        battery._charge = battery._capacity * mult;
+                    }
                     if (batteriesUsedForCrafting.Count == 2)
                     {
                         //AddDebug("batteries.Count == 2");
@@ -85,7 +88,7 @@ namespace Tweaks_Fixes
                     if (battery)
                         batteriesUsedForCrafting.Add(battery);
 
-                    if (Main.config.foodTweaks && Util.IsEatableFish(item.item.gameObject))
+                    if (Util.IsEatableFish(item.item.gameObject))
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
                         //AddDebug(" OnRemoveItem timeDecayStart " + eatable.timeDecayStart);
@@ -149,8 +152,7 @@ namespace Tweaks_Fixes
             private static void Prefix(EnergyMixin __instance, TechType techType)
             { // applies to tools and vehicles
                 //AddDebug("EnergyMixin OnCraftEnd " + techType);
-                //Main.config.craftWithoutBattery = true;
-                if (!Main.config.craftWithoutBattery || techType == TechType.MapRoomCamera)
+                if (!ConfigToEdit.craftWithoutBattery.Value || techType == TechType.MapRoomCamera)
                     return;
 
                 __instance.defaultBattery = TechType.None;

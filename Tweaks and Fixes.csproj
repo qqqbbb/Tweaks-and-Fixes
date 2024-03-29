@@ -95,6 +95,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="Start_Warning_Patch.cs" />
+    <Compile Include="ConfigToEdit.cs" />
+    <Compile Include="GameInput_Patch.cs" />
+    <Compile Include="Screen_Resolution_Fix.cs" />
+    <Compile Include="Locker_Door_Opener.cs" />
+    <Compile Include="Inventory_Patch.cs" />
     <Compile Include="Physics_Patch.cs" />
     <Compile Include="Planter_Patch.cs" />
     <Compile Include="Geyser_Patch.cs" />

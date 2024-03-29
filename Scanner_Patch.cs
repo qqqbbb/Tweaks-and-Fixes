@@ -44,7 +44,7 @@ namespace Tweaks_and_Fixes
             { // -57 -23 -364
                 //if (__result != PDAScanner.Result.None)
                 //    AddDebug("Scan " + __result.ToString());
-                if (Main.config.removeFragmentCrate && finishedScan && PDAScanner.scanTarget.techType == TechType.StarshipCargoCrate)
+                if (ConfigToEdit.removeFragmentCrate.Value && finishedScan && PDAScanner.scanTarget.techType == TechType.StarshipCargoCrate)
                 { // destroy crate
                     //AddDebug("finished scan " + __result.ToString() + " " + PDAScanner.scanTarget.gameObject.name);
                     UnityEngine.Object.Destroy(PDAScanner.scanTarget.gameObject);

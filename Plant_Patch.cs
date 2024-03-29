@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
+using static KnownTech;
 using static VehicleUpgradeConsoleInput;
 
 namespace Tweaks_Fixes
@@ -48,7 +49,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SetScale")]
             static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
             {
-                if (!Main.config.fixMelons)
+                if (!ConfigToEdit.fixMelons.Value)
                     return true;
 
                 TechType tt = __instance.seed.plantTechType;
@@ -105,7 +106,7 @@ namespace Tweaks_Fixes
                 if (__instance == null)
                     return;
 
-                if (Main.config.creepvineLights && CraftData.GetTechType(__instance.gameObject) == TechType.Creepvine)
+                if (ConfigToEdit.creepvineLights.Value && CraftData.GetTechType(__instance.gameObject) == TechType.Creepvine)
                 {
                     Light light = __instance.GetComponentInChildren<Light>();
                     //Light[] lights = __instance.GetComponentsInChildren<Light>();
@@ -188,7 +189,7 @@ namespace Tweaks_Fixes
             //[HarmonyPostfix]
             static void SetPickedUpPostfix(PickPrefab __instance)
             {
-                if (!Main.config.creepvineLights)
+                if (!ConfigToEdit.creepvineLights.Value)
                     return;
 
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -214,7 +215,7 @@ namespace Tweaks_Fixes
             public static void SetPickedStatePostfix(PickPrefab __instance, bool newPickedState)
             {
                 //AddDebug(__instance.pickTech + " SetPickedState " + newPickedState);
-                if (!Main.config.creepvineLights || __instance.pickTech != TechType.CreepvineSeedCluster)
+                if (!ConfigToEdit.creepvineLights.Value || __instance.pickTech != TechType.CreepvineSeedCluster)
                     return;
 
                 FruitPlant fp = __instance.GetComponentInParent<FruitPlant>();
@@ -235,6 +236,20 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Inventory), "OnAddItem")]
+        class Inventory_OnAddItem_Patch
+        {
+            public static void Postfix(Inventory __instance, InventoryItem item)
+            {
+                if (ConfigToEdit.fixMelons.Value && item != null && item._techType == TechType.MelonSeed && item.item)
+                {
+                    Plantable p = item.item.GetComponent<Plantable>();
+                    if (p)
+                        p.size = Plantable.PlantSize.Large;
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(Plantable))]
         class Plantable_Patch
         {
@@ -242,7 +257,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnProtoDeserialize")]
             static void OnProtoDeserializePostfix(Plantable __instance)
             {
-                if (!Main.config.fixMelons)
+                if (!ConfigToEdit.fixMelons.Value)
                     return;
 
                 if (__instance.plantTechType == TechType.MelonPlant)
@@ -251,7 +266,6 @@ namespace Tweaks_Fixes
                     //AddDebug("Planter AddItem fix " + p.plantTechType);
                     __instance.size = Plantable.PlantSize.Large;
                 }
-
             }
 
             [HarmonyPostfix]
@@ -259,7 +273,7 @@ namespace Tweaks_Fixes
             public static void SpawnPostfix(ref GameObject __result)
             {
                 //AddDebug("Plantable Spawn " + __result.name);
-                if (Main.config.randomPlantRotation)
+                if (ConfigToEdit.randomPlantRotation.Value)
                 {
                     Vector3 rot = __result.transform.eulerAngles;
                     float y = UnityEngine.Random.Range(0, 360);

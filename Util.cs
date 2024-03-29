@@ -149,12 +149,18 @@ namespace Tweaks_Fixes
             return creature && eatable;
         }
 
-        public static void MakeEatable(GameObject go, float food, float water, bool despawns)
+        public static void MakeEatable(GameObject go, float food)
         {
             Eatable eatable = go.EnsureComponent<Eatable>();
             eatable.foodValue = food;
+            eatable.despawns = IsEatableFish(go);
+        }
+
+        public static void MakeDrinkable(GameObject go, float water)
+        {
+            Eatable eatable = go.EnsureComponent<Eatable>();
             eatable.waterValue = water;
-            eatable.despawns = despawns;
+            eatable.despawns = IsEatableFish(go);
         }
 
         public static void Message(string str)

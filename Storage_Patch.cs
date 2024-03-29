@@ -6,14 +6,12 @@ using System.Linq;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
-using static UWE.CubeFace;
+using static Tweaks_Fixes.Locker_Door_Opener;
 
 namespace Tweaks_Fixes
 {
     public class Storage_Patch
     {
-        static FMODAsset openSound;
-        static FMODAsset closeSound;
         public static List<Sign> savedSigns = new List<Sign>();
         public static List<StorageContainer> labelledLockers = new List<StorageContainer>();
 
@@ -32,119 +30,8 @@ namespace Tweaks_Fixes
                 background = background_;
             }
         }
-        
-        public class LockerDoorOpener: MonoBehaviour
-        {
-            public float startRotation;
-            public float endRotation;
-            public float t;
-            public float duration = 1f;
-            public float openAngle = 135f;
-            public float doubleDoorOpenAngle = 90f;
 
-            public IEnumerator Rotate(Transform door, bool playCloseSound = false, bool deco = false)
-            {
-                while (t < duration)
-                {
-                    t += Time.deltaTime;
-                    float f = t / duration;
-                    float rotation = Mathf.Lerp(startRotation, endRotation, f);
-                    //Main.Log("rotation " + rotation );
-                    //AddDebug(" rotation " + rotation);
-                    if (deco)
-                        door.localEulerAngles = new Vector3(door.localEulerAngles.x, rotation, door.localEulerAngles.z);
-                    //else if (test)
-                    //    door.localEulerAngles = new Vector3(door.localEulerAngles.x, rotation, door.localEulerAngles.z);
-                    else
-                        door.localEulerAngles = new Vector3(door.localEulerAngles.x, door.localEulerAngles.y, rotation);
-
-                    if (endRotation == 0f)
-                    {
-                        if (playCloseSound && f > .62f && closeSound != null)
-                        {
-                            playCloseSound = false;
-                            Utils.PlayFMODAsset(closeSound, door.transform);
-                        }
-                        else if (f > 1f)
-                        {
-                            ColoredLabel cl = door.GetComponentInChildren<ColoredLabel>();
-                            Transform parent = door.transform.parent.parent.parent;
-                            if (cl && parent)
-                                cl.transform.SetParent(parent);
-                        }
-                    }
-                    yield return null;
-                }
-            }
-
-            public IEnumerator Rotate(Transform doorLeft, Transform doorRight, bool playCloseSound = false)
-            {
-                while (t < duration)
-                {
-                    t += Time.deltaTime;
-                    float f = t / duration;
-                    float rotation = Mathf.Lerp(startRotation, endRotation, f);
-                    doorLeft.localEulerAngles = new Vector3(doorLeft.localEulerAngles.x, doorLeft.localEulerAngles.y, -rotation);
-                    doorRight.localEulerAngles = new Vector3(doorRight.localEulerAngles.x, doorRight.localEulerAngles.y, rotation);
-                    if (f > .62f && playCloseSound && closeSound != null)
-                    {
-                        playCloseSound = false;
-                        Utils.PlayFMODAsset(closeSound, doorLeft.transform.parent);
-                    }
-                    yield return null;
-                }
-            }
-        }
-
-        public class DecoLockerMyController : HandTarget, IHandTarget
-        {
-            private StorageContainer _storageContainer = null;
-
-            public override void Awake()
-            {
-                //base.Awake();
-                //if (gameObject.transform.parent == null)
-                //    AddDebug("DecoLockerMyController Awake parent null");
-                //else
-                HandTarget[] handTargets = transform.GetComponents<HandTarget>();
-                HandTarget oldController = null;
-                foreach (HandTarget handTarget in handTargets)
-                {
-                    if (handTarget != this)
-                        oldController = handTarget;
-                }
-                if (oldController)
-                    Destroy(oldController);
-                _storageContainer = gameObject.transform.GetComponentInChildren<StorageContainer>();
-            }
-
-            public void OnHandClick(GUIHand hand)
-            {
-                if (!base.enabled)
-                    return;
-
-                if (_storageContainer)
-                    _storageContainer.OnHandClick(hand);
-            }
-
-            public void OnHandHover(GUIHand hand)
-            {
-                if (!base.enabled)
-                    return;
-
-                //AddDebug("DecoLockerMyController OnHandHover " + transform.name);
-                //AddDebug("DecoLockerMyController OnHandHover parent " + transform.parent.name);
-                if (_storageContainer == null)
-                {
-                    //AddDebug("DecoLockerMyController OnHandHover _storageContainer == null " + transform.name);
-                    _storageContainer = gameObject.transform.GetComponentInChildren<StorageContainer>();
-                }
-                else
-                    _storageContainer.OnHandHover(hand);
-            }
-        }
-
-        static string GetKey(Transform door)
+        static string GetLabelKey(Transform door)
         {
             Constructable c = door.GetComponentInParent<Constructable>();
             PrefabIdentifier pi = c.GetComponent<PrefabIdentifier>();
@@ -155,10 +42,11 @@ namespace Tweaks_Fixes
             sb.Append(Mathf.RoundToInt(pos.y));
             sb.Append("_");
             sb.Append(Mathf.RoundToInt(pos.z));
+            //Main.logger.LogMessage("GetLabelKey " + door.name + " " + sb.ToString());
             return sb.ToString();
         }
 
-        static string GetKeyCyclops(Transform door)
+        static string GetLabelKeyCyclops(Transform door)
         {
             //AddDebug("GetKeyCyclops " + door.name);
             PingInstance pi = door.GetComponentInParent<PingInstance>();
@@ -174,6 +62,7 @@ namespace Tweaks_Fixes
             }
             if (st && st.GetComponent<CyclopsLocker>())
                 pos = st.transform.parent.parent.localPosition;
+
             StringBuilder sb = new StringBuilder(pi._label);
             sb.Append("_");
             sb.Append(Mathf.RoundToInt(pos.x));
@@ -219,15 +108,15 @@ namespace Tweaks_Fixes
             //AddDebug("CleanDecoLocker done");
         }
 
-        static IEnumerator AddLabel(Transform door, int type, Transform locker)
+        static IEnumerator AddLabel(Transform door, DoorType type, Transform locker)
         {
             if (door.GetComponentInChildren<Sign>())
                 yield break;
 
             yield return new WaitUntil(() => Main.gameLoaded == true);
-
+            //Main.logger.LogMessage("AddLabel 1 " + door.name);
             //AddDebug("AddLabel  " + locker.name + " " + type);
-            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            TaskResult <GameObject> result = new TaskResult<GameObject>();
             yield return CraftData.InstantiateFromPrefabAsync(TechType.Sign, result);
             GameObject sign = result.Get();
             //AddDebug("AddLabel sign " + sign.name);
@@ -251,12 +140,9 @@ namespace Tweaks_Fixes
             UnityEngine.Object.Destroy(tr.gameObject);
             tr = sign.transform.Find("UI/Base/Right");
             UnityEngine.Object.Destroy(tr.gameObject);
-            if (type == 0) // locker
+            if (type == DoorType.Locker)
             {
                 LiveMixin lm = locker.GetComponent<LiveMixin>();
-                //if (lm == null)
-                //    AddDebug("AddLabel LiveMixin null");
-
                 UnityEngine.Object.Destroy(lm);
                 sign.transform.localPosition = new Vector3(.32f, -.58f, .26f);
                 sign.transform.localEulerAngles = new Vector3(0f, 90f, 90f);
@@ -265,12 +151,12 @@ namespace Tweaks_Fixes
                 tr = sign.transform.Find("UI/Base/Plus");
                 tr.localPosition = new Vector3(tr.localPosition.x + 130f, tr.localPosition.y - 320f, tr.localPosition.z);
             }
-            else if (type == 1) // cyclops locker
+            else if (type == DoorType.CyclopsLocker) 
             {
                 sign.transform.localPosition = new Vector3(-.03f, -.37f, .45f);
                 sign.transform.localEulerAngles = new Vector3(0f, 80f, 90f);
             }
-            else if (type == 2) // decorations locker
+            else if (type == DoorType.DecoLocker) 
             {
                 sign.transform.localPosition = new Vector3(-.31f, -.02f, .45f);
                 sign.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
@@ -279,7 +165,6 @@ namespace Tweaks_Fixes
             Constructable c = sign.GetComponent<Constructable>();
             //if (c == null)
             //    AddDebug("AddLabel Constructable null");
-
             UnityEngine.Object.Destroy(c);
             TechTag tt = sign.GetComponent<TechTag>();
             UnityEngine.Object.Destroy(tt);
@@ -303,38 +188,63 @@ namespace Tweaks_Fixes
             signInput.stringDefaultLabel = "SmallLockerDefaultLabel";
             signInput.inputField.text = Language.main.Get(signInput.stringDefaultLabel);
 
-            if (type == 0)
+            if (type == DoorType.Locker)
                 signInput.inputField.characterLimit = 58;
-            else if (type == 1 || type == 2)
+            else if (type == DoorType.CyclopsLocker || type == DoorType.DecoLocker)
                 signInput.inputField.characterLimit = 44;
             //    si.scaleIndex = -2; // range -3 3 
             string slot = SaveLoadManager.main.currentSlot;
             if (Main.config.lockerNames.ContainsKey(slot))
             {
+                //Main.logger.LogMessage("AddLabel lockerNames.ContainsKey" + door.name);
                 if (locker.parent && locker.parent.GetComponent<SubControl>())
                 {
                     //AddDebug("AddLabel  parent is cyclops " + type);
-                    type = 1;
+                    type = DoorType.CyclopsLocker;
                 }
                 string key = string.Empty;
-                if (type == 0 || type == 2)
-                    key = GetKey(door);
-                else if (type == 1)
-                    key = GetKeyCyclops(door);
+                if (type == DoorType.Locker || type == DoorType.DecoLocker)
+                    key = GetLabelKey(door);
+                else if (type == DoorType.CyclopsLocker)
+                    key = GetLabelKeyCyclops(door);
 
                 if (Main.config.lockerNames[slot].ContainsKey(key))
                 {
+                    //Main.logger.LogMessage("AddLabel lockerNames.ContainsKey " + door.name);
                     SavedLabel sl = Main.config.lockerNames[slot][key];
                     signInput.inputField.text = sl.text;
                     signInput.colorIndex = sl.color;
                     signInput.SetBackground(sl.background);
                     signInput.scaleIndex = sl.scale;
+                    //Main.logger.LogMessage("AddLabel lockerNames.ContainsKey " + signInput.inputField.text);
                     //AddDebug("saved text " + sl.text);
                 }
             }
             //AddDebug("AddLabel done " + type);
         }
-        
+
+        [HarmonyPostfix]
+        [HarmonyPatch("Awake")]
+        static void AwakePostfix(StorageContainer __instance)
+        {
+            if (!ConfigToEdit.newStorageUI.Value)
+                return;
+            //TechTag techTag = __instance.GetComponent<TechTag>();
+            //AddDebug("StorageContainer Awake " + __instance.prefabRoot.name);
+            //if (__instance.transform.parent)
+            //    AddDebug("StorageContainer Awake parent " + __instance.transform.parent.name);
+            //if (techTag && techTag.type == TechType.SmallLocker)
+            //{
+            //}
+            if (__instance.name == "submarine_locker_01_door")
+            {
+                PrefabIdentifier pi = __instance.GetComponentInParent<PrefabIdentifier>();
+                //AddDebug("CyclopsLocker  " + pi.name);
+                if (pi.name == "Cyclops-MainPrefab(Clone)") // dont touch prefab
+                    UWE.CoroutineHost.StartCoroutine(AddLabel(__instance.transform, DoorType.CyclopsLocker, __instance.transform));
+            }
+        }
+
         [HarmonyPatch(typeof(DeployableStorage))]
         public class DeployableStorage_Patch
         {
@@ -342,7 +252,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(DeployableStorage __instance)
             {
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return;
                 //AddDebug("DeployableStorage Awake");
                 //PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>(true);
@@ -427,60 +337,11 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(StorageContainer))]
         class StorageContainer_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnConstructedChanged")]
-            static void OnConstructedChangedPostfix(StorageContainer __instance, bool constructed)
-            {
-                if (!constructed)
-                    return;
-
-                TechTag techTag = __instance.GetComponent<TechTag>();
-                //if (techTag)
-                //    AddDebug(__instance.name + "  OnConstructedChanged  " + techTag.type);
-                //else
-                //    AddDebug(__instance.name + "  OnConstructedChanged  ");
-                //if (__instance.transform.parent)
-                //    AddDebug(__instance.name + "  OnConstructedChanged parent  " + __instance.transform.parent.name);
-                if (techTag)
-                {
-                    if (techTag.type == TechType.SmallLocker)
-                    {
-                        //AddDebug("StorageContainer OnConstructedChanged " + __instance.prefabRoot.name);
-                        if (Main.gameLoaded && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
-                        { // collision does not match mesh. Can see it after fixing cyclops collision. move it so cant see it when outside
-                            //AddDebug("StorageContainer OnConstructedChanged parent " + __instance.transform.parent.name);
-                            __instance.transform.position += __instance.transform.forward * .05f;
-                        }
-                        Transform label = __instance.transform.Find("Label");
-                        if (label)
-                        {
-                            Collider collider = label.GetComponent<Collider>();
-                            if (collider)
-                                UnityEngine.Object.Destroy(collider);
-                        }
-                    }
-                    else if (techTag.type == TechType.Locker && !Main.visibleLockerInteriorLoaded)
-                    {
-                        Transform parent = __instance.transform.parent;
-                        if (parent && parent.name == "DecorativeLockerClosed(Clone)")
-                            return;
-
-                        Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
-                        if (doorRight)// parent is null when built
-                        {
-                            UWE.CoroutineHost.StartCoroutine(AddLabel(doorRight, 0, __instance.transform));
-                        }
-                    }
-
-                }
-
-            }
-          
             [HarmonyPostfix]
             [HarmonyPatch("CreateContainer")]
             static void CreateContainerPostfix(StorageContainer __instance)
             { // runs twice on game load
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return;
                 //TechTag techTag = __instance.GetComponent<TechTag>();
                 //if (techTag)
@@ -498,7 +359,7 @@ namespace Tweaks_Fixes
                         //AddDebug("decoDoor ");
                         labelledLockers.Add(__instance);
                         CleanDecoLocker(__instance.transform);
-                        UWE.CoroutineHost.StartCoroutine(AddLabel(decoDoor, 2, __instance.transform.parent));
+                        UWE.CoroutineHost.StartCoroutine(AddLabel(decoDoor, DoorType.DecoLocker, __instance.transform.parent));
                     }
                 }
                 TechTag techTag = __instance.GetComponent<TechTag>();
@@ -532,212 +393,15 @@ namespace Tweaks_Fixes
                         if (parent && parent.name == "DecorativeLockerClosed(Clone)")
                             return;
 
-                        //AddDebug("StorageContainer CreateContainer " + __instance.prefabRoot.name);
+                        //Main.logger.LogMessage("StorageContainer CreateContainer " + __instance.prefabRoot.name);
                         Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
                         if (!labelledLockers.Contains(__instance) && doorRight)// parent is null when built
                         {
+                            //Main.logger.LogMessage("StorageContainer CreateContainer found door " + __instance.prefabRoot.name);
                             labelledLockers.Add(__instance);
                             UWE.CoroutineHost.StartCoroutine(AddLabel(doorRight, 0, __instance.transform));
                         }
                     }
-                }
-            }
-         
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
-            static void AwakePostfix(StorageContainer __instance)
-            {
-                if (!Main.config.newStorageUI)
-                    return;
-                //TechTag techTag = __instance.GetComponent<TechTag>();
-                //AddDebug("StorageContainer Awake " + __instance.prefabRoot.name);
-                //if (__instance.transform.parent)
-                //    AddDebug("StorageContainer Awake parent " + __instance.transform.parent.name);
-                //if (techTag && techTag.type == TechType.SmallLocker)
-                //{
-                //}
-                if (__instance.name == "submarine_locker_01_door")
-                {
-                    PrefabIdentifier pi = __instance.GetComponentInParent<PrefabIdentifier>();
-                    //AddDebug("CyclopsLocker  " + pi.name);
-                    if (pi.name == "Cyclops-MainPrefab(Clone)") // dont touch prefab
-                        UWE.CoroutineHost.StartCoroutine(AddLabel(__instance.transform, 1, __instance.transform));
-                }
-                if (openSound == null)
-                {
-                    openSound = ScriptableObject.CreateInstance<FMODAsset>();
-                    openSound.path = "event:/sub/cyclops/locker_open";
-                    openSound.id = "{c97d1fdf-ea26-4b19-8358-7f6ea77c3763}";
-                    closeSound = ScriptableObject.CreateInstance<FMODAsset>();
-                    closeSound.path = "event:/sub/cyclops/locker_close";
-                    closeSound.id = "{16eb5589-e341-41cb-9c88-02cb4e3da44a}";
-                }
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("Open", new Type[] { typeof(Transform) })]
-            static void OpenPostfix(StorageContainer __instance, Transform useTransform)
-            {
-                if (!Main.config.newStorageUI)
-                    return;
-
-                TechTag techTag = __instance.GetComponent<TechTag>();
-                if (techTag == null)
-                    techTag = __instance.transform.parent.GetComponent<TechTag>();
-
-                //AddDebug(" Open  " + __instance.name);
-                //AddDebug(" Open  useTransform " + useTransform.name);
-                //if (__instance.transform.parent.name == "upgrade_geoHldr")
-                //{
-                //    Transform door = __instance.transform.parent.Find("Exosuit_01_storage");
-                //    if (door)
-                //    {
-                //        AddDebug("Exosuit_01_storage " + door.transform.localEulerAngles);
-                //    }
-                //}
-                if (techTag == null)
-                    return;
-
-                string techType = techTag.type.ToString();
-                //AddDebug(" Open " + techTag.type + " " + useTransform.name);
-                if (techTag.type == TechType.SmallLocker || techType == "RadLocker")
-                {
-                    OpenWallLocker(__instance);
-                }
-                else if (techTag.type == TechType.Locker)
-                {
-                    Transform doorLeft = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_L");
-                    Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
-                    if (doorLeft && doorRight)
-                    {
-                        LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
-                        rotater.startRotation = doorLeft.transform.localEulerAngles.z;
-                        rotater.endRotation = rotater.startRotation + rotater.doubleDoorOpenAngle;
-                        rotater.t = 0f;
-                        rotater.StartCoroutine(rotater.Rotate(doorLeft, doorRight));
-                        if (openSound != null)
-                            Utils.PlayFMODAsset(openSound, __instance.transform);
-                    }
-                }
-                //AddDebug("StorageContainer open " + name);
-                else if(techType == "DecorativeLockerClosed")
-                {
-                    Transform door = __instance.transform.parent.Find("submarine_locker_03_door_01/locker_04_door");
-                    if (door)
-                    {
-                        //AddDebug("DecorativeLockerClosed");
-                        LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
-                        rotater.startRotation = door.transform.localEulerAngles.z;
-                        rotater.endRotation = rotater.startRotation + rotater.openAngle;
-                        rotater.t = 0f;
-                        rotater.StartCoroutine(rotater.Rotate(door, false, true));
-                        if (openSound != null)
-                            Utils.PlayFMODAsset(openSound, __instance.transform);
-                    }
-                }
-                return;
-                //else if (name == "Autosorter")
-                {
-                    Transform door = __instance.transform.Find("model/submarine_locker_02/submarine_locker_02_door");
-                    if (door)
-                    {
-                        Transform canvas = __instance.transform.Find("Canvas");
-                        FollowTransform ft = canvas.gameObject.EnsureComponent<FollowTransform>();
-                        ft.parent = door;
-                        //ft.keepRotation = true;
-                        //AddDebug("Autosorter Open ");
-                        ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>(true);
-                        if (cl)
-                            cl.transform.SetParent(door.transform);
-                        LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
-                        rotater.startRotation = door.transform.localEulerAngles.z;
-                        rotater.endRotation = rotater.startRotation + rotater.openAngle;
-                        rotater.t = 0f;
-                        rotater.StartCoroutine(rotater.Rotate(door));
-                        if (openSound != null)
-                            Utils.PlayFMODAsset(openSound, __instance.transform);
-                    }
-                }
-            }
-
-            private static void OpenWallLocker(StorageContainer __instance)
-            {
-                Transform door = __instance.transform.Find("model/submarine_locker_02/submarine_locker_02_door");
-                if (door)
-                {
-                    //AddDebug("SmallLocker Open ");
-                    ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>(true);
-                    if (cl)
-                        cl.transform.SetParent(door.transform);
-
-                    LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
-                    rotater.startRotation = door.transform.localEulerAngles.z;
-                    rotater.endRotation = rotater.startRotation + rotater.openAngle;
-                    rotater.t = 0f;
-                    rotater.StartCoroutine(rotater.Rotate(door));
-                    if (openSound != null)
-                        Utils.PlayFMODAsset(openSound, __instance.transform);
-                }
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("OnClose")]
-            static void OnClosePostfix(StorageContainer __instance)
-            {
-                if (!Main.config.newStorageUI)
-                    return;
-
-                TechTag techTag = __instance.GetComponent<TechTag>();
-                if (techTag == null)
-                    techTag = __instance.transform.parent.GetComponent<TechTag>();
-
-                if (techTag == null)
-                    return;
-
-                string techType = techTag.type.ToString();
-                if (techTag.type == TechType.SmallLocker || techType == "RadLocker")
-                {
-                    CloseWallLocker(__instance);
-                }
-                else if (techTag.type == TechType.Locker)
-                {
-                    Transform doorLeft = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_L");
-                    Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
-                    if (doorLeft && doorRight)
-                    {
-                        LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
-                        rotater.startRotation = doorRight.transform.localEulerAngles.z;
-                        rotater.endRotation = 0f;
-                        rotater.t = 0f;
-                        rotater.StartCoroutine(rotater.Rotate(doorLeft, doorRight, true));
-                    }
-                }
-                else if (techType == "DecorativeLockerClosed")
-                {
-                    Transform door = __instance.transform.parent.Find("submarine_locker_03_door_01/locker_04_door");
-                    if (door)
-                    {
-                        //AddDebug("DecorativeLockerClosed");
-                        LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
-                        rotater.startRotation = door.transform.localEulerAngles.y;
-                        rotater.endRotation = 0f;
-                        rotater.t = 0f;
-                        rotater.StartCoroutine(rotater.Rotate(door, true, true));
-                    }
-                }
-            }
-
-            private static void CloseWallLocker(StorageContainer __instance)
-            {
-                Transform door = __instance.transform.Find("model/submarine_locker_02/submarine_locker_02_door");
-                if (door)
-                {
-                    //AddDebug("SmallLocker OnClose ");
-                    LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
-                    rotater.startRotation = door.transform.localEulerAngles.z;
-                    rotater.endRotation = 0f;
-                    rotater.t = 0f;
-                    rotater.StartCoroutine(rotater.Rotate(door, true));
                 }
             }
 
@@ -745,7 +409,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch( "OnHandHover")]
             static bool OnHandHoverPrefix(StorageContainer __instance, GUIHand hand)
             {
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return true;
 
                 if (!__instance.enabled)
@@ -766,7 +430,7 @@ namespace Tweaks_Fixes
                 }
                 StringBuilder stringBuilder = new StringBuilder(Language.main.Get(__instance.hoverText));
                 stringBuilder.Append(" (");
-                stringBuilder.Append(TooltipFactory.stringButton0);
+                stringBuilder.Append(UI_Patches.leftHandButton);
                 stringBuilder.Append(")\n");
                 //string text = __instance.hoverText + " (" + TooltipFactory.stringLeftHand + ")\n";
                 //string textEmpty = __instance.IsEmpty() ? "Empty" : string.Empty;
@@ -797,7 +461,7 @@ namespace Tweaks_Fixes
                     //AddDebug("ColoredLabel " + cl.stringEditLabel);
                     stringBuilder.Append(Language.main.Get(cl.stringEditLabel));
                     stringBuilder.Append(" (");
-                    stringBuilder.Append(TooltipFactory.stringButton1);
+                    stringBuilder.Append(UI_Patches.rightHandButton);
                     stringBuilder.Append(")");
                     //text  += Language.main.Get(cl.stringEditLabel) + " (" + TooltipFactory.stringRightHand+ ")";
                     if (GameInput.GetButtonDown(GameInput.Button.RightHand))
@@ -808,7 +472,7 @@ namespace Tweaks_Fixes
                     //AddDebug("sign");
                     stringBuilder.Append(Language.main.Get("SmallLockerEditLabel"));
                     stringBuilder.Append(" (");
-                    stringBuilder.Append(TooltipFactory.stringButton1);
+                    stringBuilder.Append(UI_Patches.rightHandButton);
                     stringBuilder.Append(")");
                     //text  += Language.main.Get(cl.stringEditLabel) + " (" + TooltipFactory.stringRightHand+ ")";
                     if (GameInput.GetButtonDown(GameInput.Button.RightHand))
@@ -882,7 +546,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnDeselect")]
             static void OnDeselectPostfix(uGUI_SignInput __instance)
             {
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return;
                 //AddDebug("uGUI_SignInput OnDeselect " + __instance.stringDefaultLabel);
                 if (__instance.stringDefaultLabel == "SmallLockerDefaultLabel")
@@ -892,7 +556,7 @@ namespace Tweaks_Fixes
                         //AddDebug("uGUI_SignInput OnDeselect locker " + __instance.inputField.characterLimit);
                         //bool cyclopsLocker = __instance.transform.parent.parent.GetComponent<CyclopsLocker>();
                         bool cyclops = __instance.transform.GetComponentInParent<SubControl>();
-                        string key = cyclops ? GetKeyCyclops(__instance.transform.parent.parent) : GetKey(__instance.transform.parent.parent);
+                        string key = cyclops ? GetLabelKeyCyclops(__instance.transform.parent.parent) : GetLabelKey(__instance.transform.parent.parent);
                         //AddDebug("key " + key);
                         string slot = SaveLoadManager.main.currentSlot;
                         if (!Main.config.lockerNames.ContainsKey(slot))
@@ -923,7 +587,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("DeconstructAsync")]
             static void DeconstructPostfix(Constructable __instance)
             {
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return;
 
                 if ( __instance.constructedAmount == 0f)
@@ -934,7 +598,7 @@ namespace Tweaks_Fixes
                         string slot = SaveLoadManager.main.currentSlot;
                         if (Main.config.lockerNames.ContainsKey(slot))
                         {
-                            string key = GetKey(__instance.transform);
+                            string key = GetLabelKey(__instance.transform);
                             if (Main.config.lockerNames[slot].ContainsKey(key))
                             {
                                 //AddDebug("Deconstruct saved locker ");
@@ -1039,6 +703,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        
+        enum DoorType {Locker, CyclopsLocker, DecoLocker }
     }
 }

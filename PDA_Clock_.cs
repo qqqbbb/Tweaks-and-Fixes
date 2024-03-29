@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
         {
             private static void Prefix()
             {
-                if (!Main.config.pdaClock)
+                if (!ConfigToEdit.pdaClock.Value)
                     return;
                 PDA_ClockGO.SetActive(false);
             }
@@ -65,7 +65,7 @@ namespace Tweaks_Fixes
         {
             private static void Postfix(uGUI_Equipment __instance, Equipment equipment)
             {
-                if (!Main.config.pdaClock)
+                if (!ConfigToEdit.pdaClock.Value)
                     return;
 
                 if (equipment.GetCompatibleSlot(EquipmentType.Body, out string str))
@@ -83,7 +83,7 @@ namespace Tweaks_Fixes
                 //GameObject label = CreateGameObject(__instance, "TimeLabel", -280f);
                 //PDA_Clock.TimeLabelObject = label;
                 //label.GetComponent<Text>().text = "TIME";
-                if (!Main.config.pdaClock)
+                if (!ConfigToEdit.pdaClock.Value)
                     return;
 
                 PDA_ClockGO = Object.Instantiate(__instance.storageLabel.gameObject, __instance.gameObject.transform);

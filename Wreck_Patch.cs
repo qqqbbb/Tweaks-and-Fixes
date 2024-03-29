@@ -46,6 +46,7 @@ namespace Tweaks_Fixes
                 Main.config.openedWreckDoors[slot][Key] = !__instance.opened;
                 //Main.config.Save(); 00058db8c0ac
             }
+        
             [HarmonyPrefix]
             [HarmonyPatch("Awake")]
             public static void AwakePrefix(BulkheadDoor __instance)

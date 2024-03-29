@@ -34,8 +34,8 @@ namespace Tweaks_Fixes
                 __instance.warningSmokeEmitter.Play();
                 __instance.eruptionEmitter.Stop();
 
-                float eruptionIntervalvariance = Main.config.lavaGeyserEruptionInterval * .5f;
-                float nextEruptTime = Main.config.lavaGeyserEruptionInterval + UnityEngine.Random.value * eruptionIntervalvariance;
+                float eruptionIntervalvariance = ConfigToEdit.lavaGeyserEruptionInterval.Value * .5f;
+                float nextEruptTime = ConfigToEdit.lavaGeyserEruptionInterval.Value + UnityEngine.Random.value * eruptionIntervalvariance;
                 __instance.Invoke("Erupt", UnityEngine.Random.value * nextEruptTime);
                 //Main.logger.LogDebug("Geyser Start nextEruptTime " + nextEruptTime);
                 if (Geyser.consoleCmdRegged)
@@ -60,7 +60,7 @@ namespace Tweaks_Fixes
                     if (cc)  // 24
                         cc.height = 30;
                 }
-                if (Main.config.removeLavaGeyserRockParticles)
+                if (ConfigToEdit.removeLavaGeyserRockParticles.Value)
                     __instance.StartCoroutine(RemoveRockParticles(__instance));
             }
             [HarmonyPrefix]
@@ -86,8 +86,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Erupt")]
             static void EruptPostfix(Geyser __instance)
             {
-                float eruptionIntervalvariance = Main.config.lavaGeyserEruptionInterval * .5f;
-                float nextEruptTime = Main.config.lavaGeyserEruptionInterval + UnityEngine.Random.value * eruptionIntervalvariance;
+                float eruptionIntervalvariance = ConfigToEdit.lavaGeyserEruptionInterval.Value * .5f;
+                float nextEruptTime = ConfigToEdit.lavaGeyserEruptionInterval.Value + UnityEngine.Random.value * eruptionIntervalvariance;
                 __instance.Invoke("Erupt", nextEruptTime);
             }
 
@@ -147,7 +147,7 @@ namespace Tweaks_Fixes
                 //    AddDebug("Geyser OnTriggerStay " + other.gameObject.tag);
 
                 //Rigidbody rb = other.GetComponentInChildren<Rigidbody>();
-                if (Main.config.lavaGeyserEruptionForce == 0)
+                if (ConfigToEdit.lavaGeyserEruptionForce.Value == 0)
                     return;
             
                 Rigidbody rb = go.GetComponentInChildren<Rigidbody>();
@@ -165,7 +165,7 @@ namespace Tweaks_Fixes
 
             private static Vector3 CalculateGeyserForce()
             {
-                float force = Main.config.lavaGeyserEruptionForce;
+                float force = ConfigToEdit.lavaGeyserEruptionForce.Value;
                 float xForce = UnityEngine.Random.Range(-force, force) * UnityEngine.Random.value;
                 float yForce = force + force * UnityEngine.Random.value;
                 float zForce = UnityEngine.Random.Range(-force, force) * UnityEngine.Random.value;

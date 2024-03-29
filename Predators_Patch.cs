@@ -111,7 +111,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ScanForAggressionTarget")]
             public static bool ScanForAggressionTargetPrefix(AggressiveWhenSeeTarget __instance)
             {
-                if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy || !__instance.enabled || Main.config.predatorExclusion.Contains(__instance.myTechType))
+                if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy || !__instance.enabled)
                     return false;
 
                 if ( __instance.targetType != EcoTargetType.Shark || Main.config.aggrMult == 1f)
@@ -172,8 +172,6 @@ namespace Tweaks_Fixes
             {
                 __result = CanAttackTarget(__instance, target, __result);
             }
-            
- 
         }
 
         public static bool CanAttackSub(AttackCyclops attackCyclops)
@@ -332,11 +330,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IsTargetValid")]
             public static void IsTargetValidPrefix(AttackCyclops __instance, IEcoTarget target, ref bool __result)
             {
-                TechType myTT = CraftData.GetTechType(__instance.gameObject);
-                if (Main.config.predatorExclusion.Contains(myTT))
-                    __result = false;
-                else
-                    __result = Vector3.Distance(target.GetPosition(), __instance.transform.position) < cyclopsAttackDist * Main.config.aggrMult;
+                __result = Vector3.Distance(target.GetPosition(), __instance.transform.position) < cyclopsAttackDist * Main.config.aggrMult;
             }
 
             //[HarmonyPostfix]
@@ -404,7 +398,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IsValidTarget")]
             public static void IsValidTargetPostfix(AttachToVehicle __instance, IEcoTarget target, ref bool __result)
             {
-                if (Main.config.aggrMult == 0f || Main.config.predatorExclusion.Contains(CraftData.GetTechType(__instance.gameObject)))
+                if (Main.config.aggrMult == 0f)
                     __result = false;
             }
         }
@@ -418,9 +412,6 @@ namespace Tweaks_Fixes
                 if (player == null || player.GetMode() != Player.Mode.LockedPiloting || Main.config.aggrMult == 0)
                     return false;
 
-                TechType myTT = CraftData.GetTechType(__instance.gameObject);
-                if (Main.config.predatorExclusion.Contains(myTT))
-                    return false;
                 Vehicle vehicle = player.GetVehicle();
                 if (vehicle == null || Vector3.Distance(vehicle.transform.position, __instance.transform.position) > __instance.range * Main.config.aggrMult)
                     return false;
@@ -488,10 +479,12 @@ namespace Tweaks_Fixes
                 bool pl = target.GetComponent<Player>();
                 if (player || subRoot || vehicle)
                 {
-                    //AddDebug("CanBite biteInterval " + biteInterval);
-                    float aggrMult = 2f - Main.config.aggrMult;
-                    biteInterval *= aggrMult;
-                    //AddDebug("CanBite biteInterval after " + biteInterval);
+                    if (!(__instance is CrabsnakeMeleeAttack))
+                    { // crabsnake attack interval is 4
+                        //AddDebug("CanBite biteInterval " + biteInterval);
+                        float aggrMult = 2f - Main.config.aggrMult;
+                        biteInterval *= aggrMult;
+                    }
                 }
                 if (Time.time < __instance.timeLastBite + biteInterval)
                 {

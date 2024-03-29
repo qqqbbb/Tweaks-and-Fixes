@@ -105,10 +105,10 @@ namespace Tweaks_Fixes
 
                 //AddDebug(" NotifyConstructedChanged " + __instance.techType);
                 //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
-                if (!Main.config.builderPlacingWhenFinishedBuilding)
+                if (!ConfigToEdit.builderPlacingWhenFinishedBuilding.Value)
                     Player.main.StartCoroutine(BuilderEnd(2));
                 
-                if (!Main.config.mapRoomFreeCameras && __instance.techType == TechType.BaseMapRoom)
+                if (!ConfigToEdit.mapRoomFreeCameras.Value && __instance.techType == TechType.BaseMapRoom)
                     camerasToRemove = 2;
                 else
                     camerasToRemove = 0;
@@ -133,7 +133,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(SolarPanel __instance, GUIHand hand)
             {
-                if (!Main.config.newUIstrings)
+                if (!ConfigToEdit.newUIstrings.Value)
                     return true;
 
                 Constructable c = __instance.gameObject.GetComponent<Constructable>();
@@ -166,7 +166,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(FMOD_CustomEmitter __instance)
             {
-                if (Main.config.silentReactor && __instance.asset && __instance.asset.path == "event:/sub/base/nuke_gen_loop")
+                if (ConfigToEdit.silentReactor.Value && __instance.asset && __instance.asset.path == "event:/sub/base/nuke_gen_loop")
                 { 
                     //AddDebug(__instance.name + " FMOD_CustomEmitter Awake ");
                     __instance.asset = null;
@@ -223,7 +223,7 @@ namespace Tweaks_Fixes
         {
             static void Prefix(SolarPanel __instance)
             {
-                __instance.maxDepth = Main.config.solarPanelMaxDepth;
+                __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
                 //Main.logger.LogInfo(" SolarPanel Start " + Ocean.GetDepthOf(__instance.gameObject) + " DepthScalar " + __instance.GetDepthScalar() + " SunScalar " + __instance.GetSunScalar());
                 //AddDebug(" SolarPanel Start " + Ocean.GetDepthOf(__instance.gameObject) + " DepthScalar " + __instance.GetDepthScalar() + " SunScalar " + __instance.GetSunScalar());
                 //for (int i = 0; i <= 100; i++)

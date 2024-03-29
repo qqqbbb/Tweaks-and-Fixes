@@ -11,17 +11,23 @@ namespace Tweaks_Fixes
         public static float crushDamageResistance = 0f;
         public static int extraCrushDepth = 0;
         public static Dictionary<TechType, int> crushDepthEquipment = new Dictionary<TechType, int>();
-        public static Dictionary<TechType, float> crushDamageEquipment = new Dictionary<TechType, float>();
+        public static Dictionary<TechType, int> crushDamageEquipment = new Dictionary<TechType, int>();
+        //public static List<string> playerCrushDamageExclusion = new List<string> { };
 
-        
-        public static void CrushDamage()
+        public static void CrushDamagePlayer()
         {
-            if (!Player.main.gameObject.activeInHierarchy)
+            if (!Player.main.gameObject.activeInHierarchy || !Player.main.IsSwimming() || !Player.main.liveMixin)
                 return;
 
             float depth = Ocean.GetDepthOf(Player.mainObject);
+            string biome = Player.main.GetBiomeString();
+            if (biome.StartsWith("Prison_Aquarium"))
+                depth -= 1450;
+            else if (biome.StartsWith("Precursor_Gun"))
+                depth -= 95;
+
             float crushDepth = Main.config.crushDepth + extraCrushDepth;
-            if (depth < crushDepth || !Player.main.IsSwimming() || !Player.main.liveMixin)
+            if (depth < crushDepth)
                 return;
 
             float mult = 1f - crushDamageResistance;
@@ -50,9 +56,8 @@ namespace Tweaks_Fixes
                 if (crushDamageEquipment.ContainsKey(tt))
                 {
                     //AddDebug("crushDamageEquipment " + crushDamageEquipment[tt]);
-                    crushDamageResistance += crushDamageEquipment[tt];
-                    if (crushDamageResistance > 1f)
-                        crushDamageResistance = 1f;
+                    float res = crushDamageEquipment[tt] * .01f;
+                    crushDamageResistance += Mathf.Clamp01(res);
                 }
             }
             [HarmonyPostfix]

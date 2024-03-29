@@ -13,6 +13,8 @@ namespace Tweaks_Fixes
         static HashSet<TechType> eqiupped ;
         static Queue<InventoryItem> toEqiup;
         static HashSet<TechType> toEqiupTT;
+        public static GameInput.Button quickslotButton;
+        public static GameInput.Button lightButton;
 
         public static bool invChanged = true; 
 
@@ -111,7 +113,7 @@ namespace Tweaks_Fixes
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 //AddDebug("SlotNext");
-                if (Input.GetKey(Main.config.quickslotKey))
+                if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     Pickupable pickupable = Inventory.main.GetHeld();
                     if (pickupable != null)
@@ -120,7 +122,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                else if (Input.GetKey(Main.config.lightKey))
+                else if (Input.GetKey(Main.config.lightKey) || GameInput.GetButtonHeld(lightButton))
                 {
                     Pickupable p = Inventory.main.GetHeld();
                     if (!p)
@@ -143,8 +145,10 @@ namespace Tweaks_Fixes
                             return true;
 
                         TechType tt = CraftData.GetTechType(p.gameObject);
+                        //AddDebug("lights TechType " + tt);
                         if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
                             return true;
+
                         if (!Tools_Patch.lightIntensityStep.ContainsKey(tt))
                         {
                             AddDebug("lightIntensityStep missing " + tt);
@@ -156,6 +160,7 @@ namespace Tweaks_Fixes
                             return false;
                         }
                         float origIntensity = Tools_Patch.lightOrigIntensity[tt];
+                        //AddDebug("origIntensity " + origIntensity);
                         //float step = origIntensity / 15f;
                         Flare flare = p.GetComponent<Flare>();
                         if (flare && flare.flareActivateTime == 0)
@@ -185,7 +190,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(Main.config.quickslotKey))
+                if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     Pickupable pickupable = Inventory.main.GetHeld();
                     if (pickupable != null)
@@ -194,7 +199,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                else if (Input.GetKey(Main.config.lightKey))
+                else if (Input.GetKey(Main.config.lightKey) || GameInput.GetButtonHeld(lightButton))
                 {
                     Pickupable p = Inventory.main.GetHeld();
                     if (!p)
@@ -229,8 +234,9 @@ namespace Tweaks_Fixes
 
                         foreach (Light l in lights)
                         {
-                            l.intensity -= Tools_Patch.lightIntensityStep[tt]; ;
+                            l.intensity -= Tools_Patch.lightIntensityStep[tt];
                             //AddDebug("Light Intensity Down " + l.intensity);
+                            //AddDebug("Light Intensity Step " + Tools_Patch.lightIntensityStep[tt]);
                             Main.config.lightIntensity[tt] = l.intensity;
                             if (flare)
                             {

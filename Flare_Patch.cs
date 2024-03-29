@@ -145,5 +145,25 @@ namespace Tweaks_Fixes
             if (!Main.flareRepairLoaded)
                 intensityChanged = false;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(Flare.OnRightHandDown))]
+        static bool OnRightHandDownPostfix(Flare __instance)
+        { // fix: can throw flare in base
+            bool canThrow = Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
+            //AddDebug("OnRightHandDown CanDropItemHere " + canThrow);
+            return canThrow;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(Flare.OnToolUseAnim))]
+        static bool OnToolUseAnimPostfix(Flare __instance)
+        { // fix: can throw flare in base
+            bool canThrow = Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
+            //AddDebug("OnToolUseAnim CanDropItemHere " + canThrow);
+            return canThrow;
+        }
+
+
     }
 }

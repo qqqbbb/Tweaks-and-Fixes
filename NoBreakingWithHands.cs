@@ -51,7 +51,7 @@ namespace Tweaks_Fixes
              if (exosuit && exosuit.HasClaw())
                  return true;
 
-            if (!Main.config.newUIstrings)
+            if (!ConfigToEdit.newUIstrings.Value)
                 return false;
 
             Knife knife = Inventory.main.GetHeldTool() as Knife;
@@ -66,7 +66,7 @@ namespace Tweaks_Fixes
                 //}
             }
             else
-                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[15]);
+                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_outcrop"));
             //HandReticle.main.SetInteractTextRaw(Main.config.translatableStrings[15], null);
             return false;
         }
@@ -81,11 +81,10 @@ namespace Tweaks_Fixes
         [HarmonyPatch("AllowedToPickUp")]
         public static bool AllowedToPickUpPrefix(Pickupable __instance, ref bool __result)
         {
-
             if (!Main.config.noBreakingWithHand)
                 return true;
 
-            cantPickUp = false;
+            //cantPickUp = false;
             __result = __instance.isPickupable && Time.time - __instance.timeDropped > 1f && Player.main.HasInventoryRoom(__instance);
             if (__result && !Player.main.inExosuit && Main.config.notPickupableResources.Contains(__instance.GetTechType()))
             {
@@ -93,7 +92,7 @@ namespace Tweaks_Fixes
                 if (rb && rb.isKinematic && Inventory.main.GetHeldTool() as Knife == null)
                 {
                     //AddDebug("Need knife to break it free");
-                    cantPickUp = true;
+                    //cantPickUp = true;
                     __result = false;
                 }
             }
@@ -105,8 +104,10 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandHover")]
         public static void PickupableOnHandHover(Pickupable __instance)
         {
-            if (cantPickUp && Main.config.newUIstrings)
-                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[16]);
+            if ( ConfigToEdit.newUIstrings.Value && !__instance.AllowedToPickUp() && __instance.GetTechType() != TechType.CyclopsDecoy)
+            {
+                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource"));
+            }
             //HandReticle.main.SetInteractTextRaw(Main.config.translatableStrings[16], null);
             //AddDebug("cantPickUp " + cantPickUp);
         }

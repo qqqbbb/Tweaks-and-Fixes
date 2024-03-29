@@ -53,23 +53,6 @@ namespace Tweaks_Fixes
 
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Pickup")]
-            public static void PickupPostfix(Pickupable __instance)
-            {
-                AddDebug("Pickup " + __instance.GetTechType());
-                if (!Main.config.canReplantMelon)
-                {
-                    TechType tt = __instance.GetTechType();
-                    if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)
-                    {
-                        Plantable p = __instance.GetComponent<Plantable>();
-                        if (p)
-                            UnityEngine.Object.Destroy(p);
-                    }
-                }
-
-            }
             //[HarmonyPrefix]
             //[HarmonyPatch("OnHandHover")]
             public static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)
@@ -119,7 +102,7 @@ namespace Tweaks_Fixes
                                     uGUI.main.userInput.RequestString(beaconLabel.stringBeaconLabel, beaconLabel.stringBeaconSubmit, beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beaconLabel.SetLabel));
                                 text2 = beaconLabel.labelName;
                             }
-                            text1 = "(" + TooltipFactory.stringButton0 + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+                            text1 = "(" + UI_Patches.leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
                             StringBuilder stringBuilder = new StringBuilder(text1);
                             stringBuilder.Append(UI_Patches.beaconPickString);
 
@@ -199,7 +182,7 @@ namespace Tweaks_Fixes
                             lm.tempDamage = 0;
                         }
                         __result = true;
-                        if (Main.config.medKitHPperSecond >= Main.config.medKitHP)
+                        if (ConfigToEdit.medKitHPperSecond.Value >= Main.config.medKitHP)
                         {
                             Player.main.GetComponent<LiveMixin>().AddHealth(Main.config.medKitHP);
                         }

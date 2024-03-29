@@ -201,6 +201,7 @@ namespace Tweaks_Fixes
             else
                 return true;
         }
+     
         [HarmonyPostfix]
         [HarmonyPatch("TorpedoShot")]
         public static void TorpedoShotPostfix(Vehicle __instance, ItemsContainer container, ref TorpedoType torpedoType, Transform muzzle)
@@ -219,7 +220,7 @@ namespace Tweaks_Fixes
                 {
                     List<TorpedoType> torpedos = GetTorpedos(__instance, SeaMoth_patch.torpedoStorage);
                     if (torpedos.Count <= 1)
-                        SeaMoth_patch.exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringButton1;
+                        SeaMoth_patch.exitButton = UI_Patches.vehicleExitButton + " " + UI_Patches.seamothLightsButton;
                 }
             }
             else if (__instance is Exosuit)
@@ -258,13 +259,13 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandHover")]
         public static void OnHandHoverPostfix(Vehicle __instance)
         {
-            if (!Main.config.newUIstrings)
+            if (!ConfigToEdit.newUIstrings.Value)
                 return;
             //AddDebug("SeaMoth_patch.seamothName " + SeaMoth_patch.seamothName);
             //EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
             if (__instance.onGround && !Inventory.main.GetHeld() && __instance is SeaMoth && !__instance.docked && !Player.main.IsSwimming())
             {
-                HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[14] + SeaMoth_patch.seamothName, false, GameInput.Button.RightHand);
+                HandReticle.main.SetText(HandReticle.TextType.Hand, UI_Patches.pushSeamothString, false, GameInput.Button.RightHand);
                 if (GameInput.GetButtonDown(GameInput.Button.RightHand))
                 {
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
@@ -417,8 +418,8 @@ namespace Tweaks_Fixes
                 dockedVehicles[__instance] = Vehicle.DockType.None;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("ToggleSlot", new Type[] { typeof(int), typeof(bool) })]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("ToggleSlot", new Type[] { typeof(int), typeof(bool) })]
         public static bool ToggleSlotPrefix(int slotID, bool state, Vehicle __instance)
         {
             //AddDebug(" Vehicle ToggleSlot  " + slotID + " " + state);
@@ -468,7 +469,7 @@ namespace Tweaks_Fixes
         static void OnProtoDeserializePostfix(Vehicle __instance)
         {
             //AddDebug("Vehicle OnProtoDeserialize ");
-            if (Main.config.disableGravityForExosuit && __instance is Exosuit && Player.main.currentMountedVehicle != __instance)
+            if (ConfigToEdit.disableGravityForExosuit.Value && __instance is Exosuit && Player.main.currentMountedVehicle != __instance)
             {
                 Util.FreezeObject(__instance.gameObject, true);
             }
@@ -498,7 +499,6 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(SeaMoth))]
     class SeaMoth_patch
     {
-        public static string seamothName;
         public static string exitButton;
         static TechType currentModule;
         static string useButton;
@@ -558,18 +558,18 @@ namespace Tweaks_Fixes
                 selectedTorpedo = torpedos[0];
                 //AddDebug("ChangeTorpedo prev not found " + selectedTorpedo.techType);
             }
-            useButton = Language.main.Get(selectedTorpedo.techType) + " x" + torpedoStorage.GetCount(selectedTorpedo.techType) + " " + TooltipFactory.stringButton0;
+            useButton = Language.main.Get(selectedTorpedo.techType) + " " + torpedoStorage.GetCount(selectedTorpedo.techType) + " " + UI_Patches.leftHandButton;
             //AddDebug("ChangeTorpedo useButton new " + useButton);
             if (!Main.torpedoImprovementsLoaded)
             {
                 if (torpedos.Count > 1)
                 {
-                    exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringButton1 + UI_Patches.changeTorpedoButton;
+                    exitButton = UI_Patches.vehicleExitButton + " " + UI_Patches.seamothLightsButton + UI_Patches.changeTorpedoButton;
                 }
                 else if (torpedos.Count <= 1)
                 {
                     //AddDebug("ChangeTorpedo Count <= 1 " + selectedTorpedo.techType);
-                    exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringButton1;
+                    exitButton = UI_Patches.vehicleExitButton + " " + UI_Patches.seamothLightsButton;
                 }
             }
         }
@@ -579,7 +579,6 @@ namespace Tweaks_Fixes
         public static void StartPostfix(SeaMoth __instance)
         {
             LargeWorldEntity_Patch.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
-            seamothName = Language.main.Get(TechType.Seamoth);
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance) && Vehicle_patch.dockedVehicles[__instance] == Vehicle.DockType.Cyclops)
                 __instance.animator.Play("seamoth_cyclops_launchbay_dock");
 
@@ -597,9 +596,8 @@ namespace Tweaks_Fixes
         {
             //AddDebug("OnPilotModeBegin");
             //__instance.OnUpgradeModuleToggle();
-            exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringButton1;
+            exitButton = UI_Patches.vehicleExitButton + " " + UI_Patches.seamothLightsButton;
             //seamothName = Language.main.Get(TechType.Seamoth);
-            seamothName = __instance.GetName();
         }
 
         [HarmonyPostfix]
@@ -612,18 +610,18 @@ namespace Tweaks_Fixes
                 selectedTorpedo = null;
                 torpedoModuleActive = false;
                 useButton = null;
-                exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringButton1;
+                exitButton = UI_Patches.vehicleExitButton + " " + UI_Patches.seamothLightsButton;
                 return;
             }
             currentModule = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[slotID]);
             string currentModuleName = Language.main.Get(currentModule);
-            currentModuleName = currentModuleName.Replace(seamothName, "");
+            currentModuleName = currentModuleName.Replace(UI_Patches.seamothName, "");
             currentModuleName = currentModuleName.TrimStart();
             currentModuleName = currentModuleName[0].ToString().ToUpper() + currentModuleName.Substring(1); // Uppercase first character
             if (currentModule == TechType.SeamothElectricalDefense)
-                useButton = currentModuleName + Main.config.translatableStrings[18] + TooltipFactory.stringButton0 + Main.config.translatableStrings[19];
+                useButton = currentModuleName + Language.main.Get("TF_seamoth_defence_press") + UI_Patches.leftHandButton + Language.main.Get("TF_seamoth_defence_charge");
             else
-                useButton = currentModuleName + " " + TooltipFactory.stringButton0;
+                useButton = currentModuleName + " " + UI_Patches.leftHandButton;
 
             //AddDebug("OnUpgradeModuleToggle " + currentModule + " " + active);
             if (currentModule == TechType.SeamothTorpedoModule)
@@ -638,18 +636,18 @@ namespace Tweaks_Fixes
                 else if (torpedos.Count > 0)
                 {
                     TechType torpedoType = torpedos[0].techType;
-                    useButton = Language.main.Get(torpedoType) + " x" + torpedoStorage.GetCount(torpedoType) + " " + TooltipFactory.stringButton0;
+                    useButton = Language.main.Get(torpedoType) + " " + torpedoStorage.GetCount(torpedoType) + " " + UI_Patches.leftHandButton;
                     //AddDebug("OnUpgradeModuleToggle useButton " + useButton);
                 }
                 if (torpedos.Count > 1 && !Main.torpedoImprovementsLoaded)
                 {
-                    exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringButton1 + UI_Patches.changeTorpedoButton;
+                    exitButton = UI_Patches.vehicleExitButton + " " + UI_Patches.seamothLightsButton + UI_Patches.changeTorpedoButton;
                 }
             }
             else
             {
                 torpedoModuleActive = false;
-                exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringButton1;
+                exitButton = UI_Patches.vehicleExitButton + " " + UI_Patches.seamothLightsButton;
             }
         }
 
@@ -663,7 +661,7 @@ namespace Tweaks_Fixes
                 ItemsContainer storageInSlot = __instance.GetStorageInSlot(slotID, TechType.SeamothTorpedoModule);
                 if (selectedTorpedo != null && storageInSlot.Contains(selectedTorpedo.techType))
                 {
-                    useButton = Language.main.Get(selectedTorpedo.techType) + " x" + storageInSlot.GetCount(selectedTorpedo.techType) + " " + TooltipFactory.stringButton0;
+                    useButton = Language.main.Get(selectedTorpedo.techType) + " " + storageInSlot.GetCount(selectedTorpedo.techType) + " " + UI_Patches.leftHandButton;
                     return;
                 }
                 for (int index = 0; index < __instance.torpedoTypes.Length; ++index)
@@ -671,7 +669,7 @@ namespace Tweaks_Fixes
                     TechType torpedoType = __instance.torpedoTypes[index].techType;
                     if (storageInSlot.Contains(__instance.torpedoTypes[index].techType))
                     {
-                        useButton = Language.main.Get(torpedoType) + " x" + storageInSlot.GetCount(torpedoType) + " " + TooltipFactory.stringButton0;
+                        useButton = Language.main.Get(torpedoType) + " " + storageInSlot.GetCount(torpedoType) + " " + UI_Patches.leftHandButton;
                         return;
                     }
                 }
@@ -691,15 +689,14 @@ namespace Tweaks_Fixes
 
             if (__instance.GetPilotingMode() && !__instance.ignoreInput)
             {
-                if (Main.config.newUIstrings)
+                if (ConfigToEdit.newUIstrings.Value)
                 {
                     HandReticle.main.SetTextRaw(HandReticle.TextType.Use, useButton);
                     HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, exitButton);
                 }
                 else
                 {
-                    string buttonFormat = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit);
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.Use, buttonFormat);
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.Use, UI_Patches.vehicleExitButton);
                     HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, string.Empty);
                 }
                 Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
@@ -850,7 +847,7 @@ namespace Tweaks_Fixes
                 selectedTorpedo = torpedos[0];
                 //AddDebug("ChangeTorpedo prev not found " + selectedTorpedo.techType);
             }
-            //useButton = Language.main.Get(selectedTorpedo.techType) + " x" + torpedoStorage.GetCount(selectedTorpedo.techType) + " " + TooltipFactory.stringLeftHand;
+            //useButton = Language.main.Get(selectedTorpedo.techType) + " " + torpedoStorage.GetCount(selectedTorpedo.techType) + " " + TooltipFactory.stringLeftHand;
             //if (torpedos.Count > 1)
             {
                 //exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringRightHand + UI_Patches.changeTorpedoButton;
@@ -895,7 +892,7 @@ namespace Tweaks_Fixes
                     TechType torpedoType = torpedoTypes[index].techType;
                     //AddDebug(torpedoType + " " + container.GetCount(torpedoType));
                     if (selectedTorpedo.techType == torpedoType && torpedoStorage.Contains(torpedoType))
-                        return Language.main.Get(torpedoType) + " x" + torpedoStorage.GetCount(torpedoType);
+                        return Language.main.Get(torpedoType) + " " + torpedoStorage.GetCount(torpedoType);
                 }
             }
             if (!next)
@@ -911,7 +908,7 @@ namespace Tweaks_Fixes
                         else if (torpedoStorage == torpedoStorageRight && selectedTorpedoRight == null)
                             selectedTorpedoRight = torpedoTypes[index];
                         //AddDebug(torpedoType + " " + SeaMoth_patch.torpedoStorage.GetCount(torpedoType));
-                        return Language.main.Get(torpedoType) + " x" + torpedoStorage.GetCount(torpedoType);
+                        return Language.main.Get(torpedoType) + " " + torpedoStorage.GetCount(torpedoType);
                     }
                 }
             }
@@ -966,7 +963,7 @@ namespace Tweaks_Fixes
                 armNamesChanged = true;
                 GetArmNames(__instance);
             }
-            if (Main.config.disableGravityForExosuit)
+            if (ConfigToEdit.disableGravityForExosuit.Value)
             {
                 Util.FreezeObject(__instance.gameObject, false);
             }
@@ -981,7 +978,7 @@ namespace Tweaks_Fixes
         public static void OnPilotModeEndPostfix(Exosuit __instance)
         {
             //AddDebug("OnPilotModeEnd");
-            if (Main.config.disableGravityForExosuit)
+            if (ConfigToEdit.disableGravityForExosuit.Value)
             {
                 Util.FreezeObject(__instance.gameObject, true);
             }
@@ -996,7 +993,7 @@ namespace Tweaks_Fixes
             //AddDebug("Start currentLeftArmType " + __instance.currentLeftArmType);
             //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
             //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
-            exosuitName = Language.main.Get("Exosuit");
+            //exosuitName = Language.main.Get("Exosuit");
             //GetArmNames(__instance);
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
             {
@@ -1174,9 +1171,30 @@ namespace Tweaks_Fixes
             if (Main.vehicleLightsImprovedLoaded)
                 return;
 
-            if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.currentMountedVehicle == __instance && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+            CheckExosuitButtons(__instance);
+        }
+
+        private static void CheckExosuitButtons(Exosuit exosuit)
+        {
+            if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.currentMountedVehicle == exosuit)
             {
-                ToggleLights(__instance);
+                if (GameInput.GetButtonDown(GameInput.Button.MoveDown))
+                    ToggleLights(exosuit);
+
+                if (GameInput.lastDevice == GameInput.Device.Controller)
+                {
+                    bool leftTorpedo = HasMoreThan1TorpedoType(exosuit, torpedoStorageLeft);
+                    bool rightTorpedo = HasMoreThan1TorpedoType(exosuit, torpedoStorageRight);
+
+                    if (leftTorpedo && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                    {
+                        ChangeTorpedo(exosuit, torpedoStorageLeft);
+                    }
+                    else if (rightTorpedo && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                    {
+                        ChangeTorpedo(exosuit, torpedoStorageRight);
+                    }
+                }
             }
         }
 
@@ -1216,7 +1234,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("UpdateUIText")]
         public static bool UpdateUITextPrefix(Exosuit __instance, bool hasPropCannon)
         {
-            if (Main.vehicleLightsImprovedLoaded || !Main.config.newUIstrings)
+            if (Main.vehicleLightsImprovedLoaded || !ConfigToEdit.newUIstrings.Value)
                 return true;
 
             if (armNamesChanged || !__instance.hasInitStrings || __instance.lastHasPropCannon != hasPropCannon)
@@ -1230,17 +1248,17 @@ namespace Tweaks_Fixes
                 {
                     primary.Append(leftArm);
                     primary.Append(' ');
-                    primary.Append(TooltipFactory.stringButton0);
+                    primary.Append(UI_Patches.leftHandButton);
                     primary.Append("  ");
                 }
                 if (!string.IsNullOrEmpty(rightArm))
                 {
                     primary.Append(rightArm);
                     primary.Append(' ');
-                    primary.Append(TooltipFactory.stringButton1);
+                    primary.Append(UI_Patches.rightHandButton);
                     primary.Append("  ");
                 }
-                __instance.sb = new StringBuilder(UI_Patches.exosuitExitButton);
+                __instance.sb = new StringBuilder(UI_Patches.exosuitExitLightsButton);
                 //AddDebug("__instance.sb Length" + __instance.sb.Length);
                 if (!Main.exosuitTorpedoDisplayLoaded)
                 {
@@ -1250,22 +1268,27 @@ namespace Tweaks_Fixes
                         //AddDebug("UpdateUIText rightTorpedo HasMoreThan1TorpedoType " + rightTorpedo);
                         if (leftTorpedo && rightTorpedo)
                         {
-                            __instance.sb.Append(Main.config.translatableStrings[20]);
+                            __instance.sb.Append(UI_Patches.changeTorpedoString);
                             __instance.sb.Append(UI_Patches.slot1Plus2Button);
-                            __instance.sb.Append(UI_Patches.changeTorpedoExosuitButtonKeyboard);
+                            //__instance.sb.Append(UI_Patches.changeTorpedoExosuitButton);
                         }
                         else if (leftTorpedo)
                         {
-                            __instance.sb.Append(Main.config.translatableStrings[20]);
+                            __instance.sb.Append(UI_Patches.changeTorpedoString);
                             __instance.sb.Append(UI_Patches.slot1Button);
-                            __instance.sb.Append(UI_Patches.changeTorpedoExosuitButtonKeyboard);
+                            //__instance.sb.Append(UI_Patches.changeTorpedoExosuitButton);
                         }
                         else if (rightTorpedo)
                         {
-                            __instance.sb.Append(Main.config.translatableStrings[20]);
+                            __instance.sb.Append(UI_Patches.changeTorpedoString);
                             __instance.sb.Append(UI_Patches.slot2Button);
-                            __instance.sb.Append(UI_Patches.changeTorpedoExosuitButtonKeyboard);
+                            //__instance.sb.Append(UI_Patches.changeTorpedoExosuitButton);
                         }
+                    }
+                    else if (GameInput.lastDevice == GameInput.Device.Controller)
+                    { // alt tool button used by prop arm
+                        if (leftTorpedo || rightTorpedo)
+                            __instance.sb.Append(UI_Patches.exosuitChangeRightTorpedoButton);
                     }
                 }
                 if (hasPropCannon)

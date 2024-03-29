@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
 using static ErrorMessage;
-using static Nautilus.Assets.CustomModelData;
-using static VFXParticlesPool;
 using System.Collections;
 using UWE;
+using UnityEngine.XR;
 
 namespace Tweaks_Fixes
 {
@@ -55,9 +54,8 @@ namespace Tweaks_Fixes
 
                     lightOrigIntensity[tt] = lights[0].intensity;
                     lightIntensityStep[tt] = lights[0].intensity * .1f;
-                    //Main.Log(tt + " lightOrigIntensity " + lights[0].intensity);
+                    //Main.logger.LogMessage(tt + " lightOrigIntensity " + lights[0].intensity);
                 }
-
             }
             static float knifeRangeDefault = 0f;
             static float knifeDamageDefault = 0f;
@@ -97,9 +95,9 @@ namespace Tweaks_Fixes
                     //AddDebug(" attackDist  " + knife.attackDist);
                     //AddDebug(" damage  " + knife.damage);
                 }
-                LEDLight ledLight = __instance as LEDLight;
-                if (ledLight)
-                    ledLight.SetLightsActive(Main.config.LEDLightWorksInHand);
+                //LEDLight ledLight = __instance as LEDLight;
+                //if (ledLight)
+                //    ledLight.SetLightsActive(Main.config.LEDLightWorksInHand);
             }
 
             [HarmonyPostfix]
@@ -593,6 +591,160 @@ namespace Tweaks_Fixes
             { // fires when saving
               //AddDebug("Seaglide OnHolster " + __instance.toggleLights.lightsActive);
                 SaveSeaglideState(__instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(MainCameraControl), "OnUpdate")]
+        class MainCameraControl_Patch
+        {
+            static readonly float highFOVseaglideCameraOffset = 0.02f;
+
+            public static bool Prefix(MainCameraControl __instance)
+            {
+                if (XRSettings.enabled || MiscSettings.fieldOfView < 75 || Inventory.main.quickSlots.activeToolName != "seaglide")
+                    return true;
+
+                FixedOnUpdate(__instance);
+                return false;
+            }
+
+            private static void FixedOnUpdate(MainCameraControl __instance)
+            {// fix: can see your neck wnen using seaglide and high FOV
+                //AddDebug("MainCameraControl OnUpdate " + Inventory.main.quickSlots.activeToolName);
+                float deltaTime = Time.deltaTime;
+                __instance.swimCameraAnimation = !__instance.underWaterTracker.isUnderWater ? Mathf.Clamp01(__instance.swimCameraAnimation - deltaTime) : Mathf.Clamp01(__instance.swimCameraAnimation + deltaTime);
+                double minimumY = __instance.minimumY;
+                double maximumY = __instance.maximumY;
+                Vector3 velocity = __instance.playerController.velocity;
+                bool pdaInUse = false;
+                bool flag2 = false;
+                bool inVehicle = false;
+                bool inExosuit = Player.main.inExosuit;
+                bool builderMenuOpen = uGUI_BuilderMenu.IsOpen();
+                if (Player.main != null)
+                {
+                    pdaInUse = Player.main.GetPDA().isInUse;
+                    inVehicle = Player.main.motorMode == Player.MotorMode.Vehicle;
+                    flag2 = pdaInUse | inVehicle || __instance.cinematicMode;
+                    if (XRSettings.enabled && VROptions.gazeBasedCursor)
+                        flag2 |= builderMenuOpen;
+                }
+                if (flag2 != __instance.wasInLockedMode || __instance.lookAroundMode != __instance.wasInLookAroundMode)
+                {
+                    __instance.camRotationX = 0.0f;
+                    __instance.camRotationY = 0.0f;
+                    __instance.wasInLockedMode = flag2;
+                    __instance.wasInLookAroundMode = __instance.lookAroundMode;
+                }
+                bool flag5 = (!__instance.cinematicMode || __instance.lookAroundMode && !pdaInUse) && __instance.mouseLookEnabled && (inVehicle || AvatarInputHandler.main == null || AvatarInputHandler.main.IsEnabled() || Builder.isPlacing);
+                if (inVehicle && !XRSettings.enabled && !inExosuit)
+                    flag5 = false;
+
+                Transform transform = __instance.transform;
+                float num1 = pdaInUse || __instance.lookAroundMode || Player.main.GetMode() == Player.Mode.LockedPiloting ? 1f : -1f;
+                if (!flag2 || __instance.cinematicMode && !__instance.lookAroundMode)
+                {
+                    __instance.cameraOffsetTransform.localEulerAngles = UWE.Utils.LerpEuler(__instance.cameraOffsetTransform.localEulerAngles, Vector3.zero, deltaTime * 5f);
+                }
+                else
+                {
+                    transform = __instance.cameraOffsetTransform;
+                    __instance.rotationY = Mathf.LerpAngle(__instance.rotationY, 0.0f, PDA.deltaTime * 15f);
+                    __instance.transform.localEulerAngles = new Vector3(Mathf.LerpAngle(__instance.transform.localEulerAngles.x, 0.0f, PDA.deltaTime * 15f), __instance.transform.localEulerAngles.y, 0.0f);
+                    __instance.cameraUPTransform.localEulerAngles = UWE.Utils.LerpEuler(__instance.cameraUPTransform.localEulerAngles, Vector3.zero, PDA.deltaTime * 15f);
+                }
+                if (!XRSettings.enabled)
+                {
+                    Vector3 localPosition = __instance.cameraOffsetTransform.localPosition;
+                    localPosition.z = highFOVseaglideCameraOffset;
+                    //localPosition.z = Mathf.Clamp(localPosition.z + (PDA.deltaTime * num1 * 0.25f), __instance.camPDAZStart, __instance.camPDAZOffset + __instance.camPDAZStart);
+                    //AddDebug("  localPosition.z " + localPosition.z.ToString("0.00"));
+                    __instance.cameraOffsetTransform.localPosition = localPosition;
+                }
+                Vector2 vector2 = Vector2.zero;
+                if (flag5 && FPSInputModule.current.lastGroup == null)
+                {
+                    Vector2 lookDelta = GameInput.GetLookDelta();
+                    if (XRSettings.enabled && VROptions.disableInputPitch)
+                        lookDelta.y = 0.0f;
+                    if (inExosuit)
+                        lookDelta.x = 0.0f;
+                    vector2 = lookDelta * Player.main.mesmerizedSpeedMultiplier;
+                }
+                __instance.UpdateCamShake();
+                if (__instance.cinematicMode && !__instance.lookAroundMode)
+                {
+                    __instance.camRotationX = Mathf.LerpAngle(__instance.camRotationX, 0.0f, deltaTime * 2f);
+                    __instance.camRotationY = Mathf.LerpAngle(__instance.camRotationY, 0.0f, deltaTime * 2f);
+                    __instance.transform.localEulerAngles = new Vector3(-__instance.camRotationY + __instance.camShake, __instance.camRotationX, 0.0f);
+                }
+                else if (flag2)
+                {
+                    if (!XRSettings.enabled)
+                    {
+                        bool flag6 = !__instance.lookAroundMode | pdaInUse;
+                        int num2 = !__instance.lookAroundMode | pdaInUse ? 1 : 0;
+                        Vehicle vehicle = Player.main.GetVehicle();
+                        if (vehicle != null)
+                            flag6 = vehicle.controlSheme != Vehicle.ControlSheme.Mech | pdaInUse;
+                        __instance.camRotationX += vector2.x;
+                        __instance.camRotationY += vector2.y;
+                        __instance.camRotationX = Mathf.Clamp(__instance.camRotationX, -60f, 60f);
+                        __instance.camRotationY = Mathf.Clamp(__instance.camRotationY, -60f, 60f);
+                        if (num2 != 0)
+                            __instance.camRotationX = Mathf.LerpAngle(__instance.camRotationX, 0.0f, PDA.deltaTime * 10f);
+                        if (flag6)
+                            __instance.camRotationY = Mathf.LerpAngle(__instance.camRotationY, 0.0f, PDA.deltaTime * 10f);
+                        __instance.cameraOffsetTransform.localEulerAngles = new Vector3(-__instance.camRotationY, __instance.camRotationX + __instance.camShake, 0.0f);
+                    }
+                }
+                else
+                {
+                    __instance.rotationX += vector2.x;
+                    __instance.rotationY += vector2.y;
+                    __instance.rotationY = Mathf.Clamp(__instance.rotationY, __instance.minimumY, __instance.maximumY);
+                    __instance.cameraUPTransform.localEulerAngles = new Vector3(Mathf.Min(0.0f, -__instance.rotationY + __instance.camShake), 0.0f, 0.0f);
+                    transform.localEulerAngles = new Vector3(Mathf.Max(0.0f, -__instance.rotationY + __instance.camShake), __instance.rotationX, 0.0f);
+                }
+                __instance.UpdateStrafeTilt();
+                Vector3 vector3_1 = __instance.transform.localEulerAngles + new Vector3(0.0f, 0.0f, (__instance.cameraAngleMotion.y * __instance.cameraTiltMod + __instance.strafeTilt + __instance.camShake * 0.5f));
+                float num3 = 0.0f - __instance.skin;
+                if (!flag2 && __instance.GetCameraBob())
+                {
+                    __instance.smoothedSpeed = UWE.Utils.Slerp(__instance.smoothedSpeed, Mathf.Min(1f, velocity.magnitude / 5f), deltaTime);
+                    num3 += ((Mathf.Sin(Time.time * 6f) - 1f) * (0.02f + __instance.smoothedSpeed * 0.15f)) * __instance.swimCameraAnimation;
+                }
+                if (__instance.impactForce > 0)
+                {
+                    __instance.impactBob = Mathf.Min(0.9f, __instance.impactBob + __instance.impactForce * deltaTime);
+                    __instance.impactForce -= (Mathf.Max(1f, __instance.impactForce) * deltaTime * 5f);
+                }
+                float y = num3 - __instance.impactBob - __instance.stepAmount;
+                if (__instance.impactBob > 0.0)
+                    __instance.impactBob = Mathf.Max(0.0f, __instance.impactBob - (Mathf.Pow(__instance.impactBob, 0.5f) * Time.deltaTime * 3f));
+                __instance.stepAmount = Mathf.Lerp(__instance.stepAmount, 0f, deltaTime * Mathf.Abs(__instance.stepAmount));
+                __instance.transform.localPosition = new Vector3(0f, y, 0f);
+                __instance.transform.localEulerAngles = vector3_1;
+                if (Player.main.motorMode == Player.MotorMode.Vehicle)
+                    __instance.transform.localEulerAngles = Vector3.zero;
+                Vector3 vector3_2 = new Vector3(0f, __instance.transform.localEulerAngles.y, 0.0f);
+                Vector3 vector3_3 = __instance.transform.localPosition;
+                if (XRSettings.enabled)
+                {
+                    vector3_2.y = !flag2 || inVehicle ? 0f : __instance.viewModelLockedYaw;
+                    if (!inVehicle && !__instance.cinematicMode)
+                    {
+                        if (!flag2)
+                        {
+                            Quaternion rotation = __instance.playerController.forwardReference.rotation;
+                            Quaternion quaternion = __instance.gameObject.transform.parent.rotation.GetInverse() * rotation;
+                            vector3_2.y = quaternion.eulerAngles.y;
+                        }
+                        vector3_3 = __instance.gameObject.transform.parent.worldToLocalMatrix.MultiplyPoint(__instance.playerController.forwardReference.position);
+                    }
+                }
+                __instance.viewModel.transform.localEulerAngles = vector3_2;
+                __instance.viewModel.transform.localPosition = vector3_3;
             }
         }
 

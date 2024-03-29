@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using static ErrorMessage;
-using UnityEngine.Playables;
 
 namespace Tweaks_Fixes
 {
@@ -63,6 +62,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Survival))]
         class Survival_Start_patch
         {
+            private const float bladderFishOxygen = 15f;
+
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             public static void StartPostfix(Survival __instance)
@@ -179,22 +180,15 @@ namespace Tweaks_Fixes
                 float finalFood = Mathf.Min(food, rndFood);
                 if (Main.config.newHungerSystem && __instance.food > 100f && finalFood > 0)
                 {
-                    float mult = (200f - __instance.food) * .01f;
+                    float mult = (playerMaxFood - __instance.food) * .01f;
                     finalFood *= mult;
                 }
-                //AddDebug("finalFood " + finalFood);
                 int rndWater = Main.rndm.Next(minWater, maxWater);
                 float finalWater = Mathf.Min(water, rndWater);
                 if (Main.config.newHungerSystem && __instance.water > 100f && finalWater > 0)
                 {
-                    float mult = (200f - __instance.water) * .01f;
+                    float mult = (playerMaxWater - __instance.water) * .01f;
                     finalWater *= mult;
-                }
-                if (finalWater < 0 && __instance.water + finalWater < playerMinFood)
-                {
-                    int waterDamage = Mathf.Abs((int)(__instance.water + finalWater - playerMinFood));
-                    //AddDebug("waterDamage " + waterDamage);
-                    Player.main.liveMixin.TakeDamage(waterDamage, Player.main.gameObject.transform.position, DamageType.Starve);
                 }
                 if (finalFood < 0 && __instance.food + finalFood < playerMinFood)
                 {
@@ -202,18 +196,26 @@ namespace Tweaks_Fixes
                     //AddDebug("foodDamage " + foodDamage);
                     Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
                 }
+                if (finalWater < 0 && __instance.water + finalWater < playerMinFood)
+                {
+                    int waterDamage = Mathf.Abs((int)(__instance.water + finalWater - playerMinFood));
+                    //AddDebug("waterDamage " + waterDamage);
+                    Player.main.liveMixin.TakeDamage(waterDamage, Player.main.gameObject.transform.position, DamageType.Starve);
+                }
                 __instance.onEat.Trigger((float)finalFood);
                 __instance.food += finalFood;
                 __instance.onDrink.Trigger((float)finalWater);
                 __instance.water += finalWater;
-                //AddDebug("rndWater " + finalWater);
+                //AddDebug("finalWater " + finalWater);
+                //AddDebug("finalFood " + finalFood);
+
                 if (finalFood > 0f)
                     GoalManager.main.OnCustomGoalEvent("Eat_Something");
                 if (finalWater > 0f)
                     GoalManager.main.OnCustomGoalEvent("Drink_Something");
 
                 if (techType == TechType.Bladderfish)
-                    Player.main.GetComponent<OxygenManager>().AddOxygen(15f);
+                    Player.main.GetComponent<OxygenManager>().AddOxygen(bladderFishOxygen);
 
                 Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
                 Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
@@ -244,41 +246,25 @@ namespace Tweaks_Fixes
                 //    {
                 //AddDebug("DeadMeat " + ecoTarget.name + " PARENT " + ecoTarget.transform.parent.name);
                 //Destroy(__instance.gameObject);
-                //    }
-                //}
-                //AddDebug("Eatable awake " + __instance.gameObject.name);
-                //Main.Log("Eatable awake " + __instance.gameObject.name + " decomposes "+ __instance.decomposes);
-                //__instance.kDecayRate *= .5f;
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //if (tt == TechType.JellyPlant)
-                //{
-                    //Main.logger.LogMessage("Eatable awake " + tt);
-                //    __instance.decomposes = Main.config.gelSackDecomposes;
-                //    __instance.kDecayRate = .01f;
-                //}
-                //Main.Log("kDecayRate " + __instance.kDecayRate);
-                //Main.Log("waterValue " + __instance.waterValue);
-                //Creature creature = __instance.GetComponent<Creature>();
-
+                if (Main.config.foodDecayRateMult == 0)
+                { // does not work for dead fish
+                    __instance.decomposes = false;
+                }
                 if (__instance.decomposes)
                 {
                     __instance.kDecayRate *= Main.config.foodDecayRateMult;
                 }
-                if (Main.config.foodTweaks)
+                if (Main.config.fishFoodWaterRatio > 0)
                 {
                     if (Util.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
-                        __instance.waterValue = Mathf.Abs(__instance.foodValue) * .5f;
-
+                        __instance.waterValue = __instance.foodValue * Main.config.fishFoodWaterRatio;
                 }
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (Main.config.eatableFoodValue.ContainsKey(tt))
-                {
-                    __instance.foodValue = Main.config.eatableFoodValue[tt];
-                }
-                if (Main.config.eatableWaterValue.ContainsKey(tt))
-                {
-                    __instance.waterValue = Main.config.eatableWaterValue[tt];
-                }
+                //TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //Main.logger.LogMessage("Eatable awake " + tt + " eatableFoodValue.ContainsKey " + Main.config.eatableFoodValue.ContainsKey(tt));
+                //if (Main.config.eatableFoodValue.ContainsKey(tt))
+                //    __instance.foodValue = Main.config.eatableFoodValue[tt];
+                //if (Main.config.eatableWaterValue.ContainsKey(tt))
+                //    __instance.waterValue = Main.config.eatableWaterValue[tt];
             }
         }
 
@@ -287,7 +273,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(EcoTarget __instance)
             {
-                if (Main.config.removeCookedFishOnReload && !Main.gameLoaded && __instance.type == EcoTargetType.DeadMeat)
+                if (ConfigToEdit.removeCookedFishOnReload.Value && !Main.gameLoaded && __instance.type == EcoTargetType.DeadMeat)
                 { // remove cooked fish from lava geysers
                     Pickupable p = __instance.GetComponent<Pickupable>();
                     if (p)// p.inventoryItem is null
@@ -302,7 +288,7 @@ namespace Tweaks_Fixes
             public static void Postfix(Plantable __instance)
             {
                 //AddDebug(" OnProtoDeserialize " + __instance.plantTechType);
-                if (!Main.config.canReplantMelon)
+                if (!ConfigToEdit.canReplantMelon.Value)
                 {
                     TechType tt = __instance.plantTechType;
                     if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)

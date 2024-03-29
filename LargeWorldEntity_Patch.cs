@@ -11,10 +11,12 @@ namespace Tweaks_Fixes
     class LargeWorldEntity_Patch
     {
         public static HashSet<TechType> removeLight = new HashSet<TechType> { };
+        public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
+        public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
 
         public static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
         {
-            if (!Main.config.tweaksAffectingGPU)
+            if (!ConfigToEdit.tweaksAffectingGPU.Value)
                 return;
             //AddDebug("AlwaysUseHiPolyMesh " + go.name);
             if (techType == TechType.Boomerang)// dont disable FP model
@@ -33,7 +35,7 @@ namespace Tweaks_Fixes
 
         public static void SetCellLevel(LargeWorldEntity lwe, LargeWorldEntity.CellLevel cellLevel)
         {
-            if (!Main.config.tweaksAffectingGPU && cellLevel > lwe.cellLevel)
+            if (!ConfigToEdit.tweaksAffectingGPU.Value && cellLevel > lwe.cellLevel)
                 return;
 
             lwe.cellLevel = cellLevel;
@@ -176,12 +178,10 @@ namespace Tweaks_Fixes
                 {
                     //SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
-                else if (tt == TechType.CreepvineSeedCluster)
-                {
-                    float creepVineSeedFood = Main.config.creepVineSeedFood;
-                    if (creepVineSeedFood > 0)
-                        Util.MakeEatable(__instance.gameObject, creepVineSeedFood * .5f, creepVineSeedFood, false);
-                }
+                //else if (tt == TechType.CreepvineSeedCluster)
+                //{
+                        //Util.MakeEatable(__instance.gameObject, creepVineSeedFood * .5f, creepVineSeedFood, false);
+                //}
                 else if (tt == TechType.CoralShellPlate)
                 {
                     AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
@@ -245,6 +245,14 @@ namespace Tweaks_Fixes
                 //    if (x == -63 && y == -16 && z == -223)
                 //        __instance.gameObject.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
                 //}
+                if (eatableFoodValue.ContainsKey(tt))
+                {
+                    Util.MakeEatable(__instance.gameObject, eatableFoodValue[tt]);
+                }
+                if (eatableWaterValue.ContainsKey(tt))
+                {
+                    Util.MakeDrinkable(__instance.gameObject, eatableWaterValue[tt]);
+                }
                 if (removeLight.Contains(tt))
                 {
                     MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
@@ -252,6 +260,7 @@ namespace Tweaks_Fixes
                     {
                         if (mr.GetComponentInParent<ChildObjectIdentifier>())
                             continue; // skip fruits
+
                         foreach (Material m in mr.materials)
                         {
                             m.DisableKeyword("MARMO_EMISSION");
@@ -263,7 +272,6 @@ namespace Tweaks_Fixes
                     foreach (Light l in lights)
                         l.enabled = false;
                 }
-
             }
 
             [HarmonyPostfix]

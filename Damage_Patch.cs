@@ -33,7 +33,7 @@ namespace Tweaks_Fixes
                         //ps.startColor = new Color(1f, 0f, 0f);
                         ParticleSystem.MainModule psMain = ps.main;
                         //Main.Log("startColor " + psMain.startColor.color);
-                        Color newColor = new Color(Main.config.bloodColor["Red"], Main.config.bloodColor["Green"], Main.config.bloodColor["Blue"], psMain.startColor.color.a);
+                        Color newColor = new Color(ConfigToEdit.bloodColor.Value.x, ConfigToEdit.bloodColor.Value.y, ConfigToEdit.bloodColor.Value.z, psMain.startColor.color.a);
                         psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
                     }
                 }
@@ -74,7 +74,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnCollisionEnter")]
             public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
-                if (!Main.config.replaceDealDamageOnImpactScript)
+                if (!ConfigToEdit.replaceDealDamageOnImpactScript.Value)
                     return true;
 
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
@@ -140,11 +140,11 @@ namespace Tweaks_Fixes
                 bool canDealDamage = true;
                 //if (otherDDOI && damageMult < otherDDOI.speedMinimumForDamage)
                 //    canDealDamage = false;
-                if (myTT == TechType.Seamoth && damageMult < Main.config.seamothDealDamageMinSpeed)
+                if (myTT == TechType.Seamoth && damageMult < ConfigToEdit.seamothDealDamageMinSpeed.Value)
                     canDealDamage = false;
-                else if (myTT == TechType.Exosuit && damageMult < Main.config.exosuitDealDamageMinSpeed)
+                else if (myTT == TechType.Exosuit && damageMult < ConfigToEdit.exosuitDealDamageMinSpeed.Value)
                     canDealDamage = false;
-                else if (myTT == TechType.Cyclops && damageMult < Main.config.cyclopsDealDamageMinSpeed)
+                else if (myTT == TechType.Cyclops && damageMult < ConfigToEdit.cyclopsDealDamageMinSpeed.Value)
                     canDealDamage = false;
 
                 if (damageMult > 0 && canDealDamage && Time.time > __instance.timeLastDamage + 1f)
@@ -179,29 +179,29 @@ namespace Tweaks_Fixes
                     return false;
 
                 //bool canTakeDamage = true;
-                if (myTT == TechType.Seamoth && damageMult < Main.config.seamothTakeDamageMinSpeed)
+                if (myTT == TechType.Seamoth && damageMult < ConfigToEdit.seamothTakeDamageMinSpeed.Value)
                     return false;
-                else if (myTT == TechType.Exosuit && damageMult < Main.config.exosuitTakeDamageMinSpeed)
+                else if (myTT == TechType.Exosuit && damageMult < ConfigToEdit.exosuitTakeDamageMinSpeed.Value)
                     return false;
-                else if (myTT == TechType.Cyclops && damageMult < Main.config.cyclopsTakeDamageMinSpeed)
+                else if (myTT == TechType.Cyclops && damageMult < ConfigToEdit.cyclopsTakeDamageMinSpeed.Value)
                     return false;
 
                 if (otherRB)
                 {
-                    if (myTT == TechType.Seamoth && otherRB.mass <= Main.config.seamothTakeDamageMinMass)
+                    if (myTT == TechType.Seamoth && otherRB.mass <= ConfigToEdit.seamothTakeDamageMinMass.Value)
                         return false;
-                    else if (myTT == TechType.Exosuit && otherRB.mass <= Main.config.exosuitTakeDamageMinMass)
+                    else if (myTT == TechType.Exosuit && otherRB.mass <= ConfigToEdit.exosuitTakeDamageMinMass.Value)
                         return false;
-                    else if (myTT == TechType.Cyclops && otherRB.mass <= Main.config.cyclopsTakeDamageMinMass)
+                    else if (myTT == TechType.Cyclops && otherRB.mass <= ConfigToEdit.cyclopsTakeDamageMinMass.Value)
                         return false;
                 }
                 else if (otherRB == null || terrain)
                 {
-                    if (myTT == TechType.Seamoth && Main.config.seamothTakeDamageMinMass >= 10000)
+                    if (myTT == TechType.Seamoth && ConfigToEdit.seamothTakeDamageMinMass.Value >= 10000)
                         return false;
-                    else if (myTT == TechType.Exosuit && Main.config.exosuitTakeDamageMinMass >= 10000)
+                    else if (myTT == TechType.Exosuit && ConfigToEdit.exosuitTakeDamageMinMass.Value >= 10000)
                         return false;
-                    else if (myTT == TechType.Cyclops && Main.config.cyclopsTakeDamageMinMass >= 10000)
+                    else if (myTT == TechType.Cyclops && ConfigToEdit.cyclopsTakeDamageMinMass.Value >= 10000)
                         return false;
                 }
                 //float myDamage = colMag * Mathf.Clamp((1f + massRatio * 0.001f), 0f, damageMult);
@@ -248,7 +248,7 @@ namespace Tweaks_Fixes
                 //__instance.onHealTempDamage = LiveMixin.floatEventPool.Get();
                 //if (__instance.data.deathEffect)
                 //    Main.Log("deathEffect " + __instance.data.deathEffect);
-                if (Main.config.noKillParticles)
+                if (ConfigToEdit.noKillParticles.Value)
                 { 
                     //__instance.data.damageEffect = null;
                     __instance.data.deathEffect = null;
@@ -611,7 +611,7 @@ namespace Tweaks_Fixes
             {
                 //Main.config.crushDamageScreenEffect = false;
                 //AddDebug("AddHudDamage " + damageInfo.type);
-                if (!Main.config.crushDamageScreenEffect && damageInfo.type == DamageType.Pressure)
+                if (!ConfigToEdit.crushDamageScreenEffect.Value && damageInfo.type == DamageType.Pressure)
                     return false;
 
                 if (Main.config.damageImpactEffect)

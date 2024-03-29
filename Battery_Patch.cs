@@ -49,6 +49,9 @@ namespace Tweaks_Fixes
         {
             static void Prefix(ref float amount, IPowerInterface powerInterface)
             {
+                if (Main.config.vehicleEnergyConsMult == 1f)
+                    return;
+
                 PowerRelay pr = powerInterface as PowerRelay;
                 if (pr && subPowerRelays.Contains(pr))
                 {

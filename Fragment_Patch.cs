@@ -48,7 +48,7 @@ namespace Tweaks_Fixes
                                       flag = PDAScanner.IsFragment(techType);
                                       if (flag && PDAScanner.ContainsCompleteEntry(techType))
                                       {
-                                          if (Main.config.dontSpawnKnownFragments)
+                                          if (ConfigToEdit.dontSpawnKnownFragments.Value)
                                           {
                                               //AddDebug("DONT LOAD " + techType);
                                               __result = filler;
@@ -122,7 +122,7 @@ namespace Tweaks_Fixes
       {
           static void Postfix(ResourceTracker __instance)
           {
-              if (Main.config.dontSpawnKnownFragments && __instance.techType == TechType.Fragment)
+              if (ConfigToEdit.dontSpawnKnownFragments.Value && __instance.techType == TechType.Fragment)
               {
                   TechType tt = CraftData.GetTechType(__instance.gameObject);
                   if (PDAScanner.complete.Contains(tt))

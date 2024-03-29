@@ -80,8 +80,7 @@ namespace Tweaks_Fixes
             {
                 //__instance.StartCoroutine(Test());
                 Main.survival = __instance.GetComponent<Survival>();
-                if (Main.config.cantScanExosuitClawArm)
-                    DisableExosuitClawArmScan();
+
             }
 
             [HarmonyPostfix]
@@ -98,16 +97,16 @@ namespace Tweaks_Fixes
                 if (Main.config.crushDamageMult > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
-                    Crush_Damage.CrushDamage();
+                    Crush_Damage.CrushDamagePlayer();
                 }
                 if (Main.config.medKitHPtoHeal > 0 && Time.time > healTime)
                 //if (Main.config.medKitHPtoHeal > 0 && DayNightCycle.main.timePassedAsFloat > healTime)
                 { // not checking savegame slot
                     healTime = Time.time + 1.0f;
                     //healTime = DayNightCycle.main.timePassedAsFloat + 1f;
-                    __instance.liveMixin.AddHealth(Main.config.medKitHPperSecond);
+                    __instance.liveMixin.AddHealth(ConfigToEdit.medKitHPperSecond.Value);
                     //AddDebug("AddHealth " + Main.config.medKitHPperSecond);
-                    Main.config.medKitHPtoHeal -= Main.config.medKitHPperSecond;
+                    Main.config.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
                     if (Main.config.medKitHPtoHeal < 0)
                         Main.config.medKitHPtoHeal = 0;
                 }
@@ -225,7 +224,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(FootstepSounds __instance, Transform xform)
             {
-                if (!Main.config.fixFootstepSound)
+                if (!ConfigToEdit.disableFootstepClickSound.Value)
                     return true;
 
                 if (!__instance.ShouldPlayStepSounds())

@@ -19,7 +19,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
-                if (Main.config.CreatureFleeChance == 100 && !Main.config.CreatureFleeChanceBasedOnHealth && Main.config.CreatureFleeUseDamageThreshold)
+                if (Main.config.CreatureFleeChance == 100 && !Main.config.creatureFleeChanceBasedOnHealth && Main.config.creatureFleeUseDamageThreshold)
                     return true;
                 
                 if (!__instance.enabled)
@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
                 float damage = damageInfo.damage;
                 bool doFlee = false;
                 LiveMixin liveMixin = __instance.creature.liveMixin;
-                if (Main.config.CreatureFleeChanceBasedOnHealth && liveMixin && liveMixin.IsAlive())
+                if (Main.config.creatureFleeChanceBasedOnHealth && liveMixin && liveMixin.IsAlive())
                 {
                     int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
                     int rnd1 = Main.rndm.Next(0, maxHealth+1);
@@ -52,7 +52,7 @@ namespace Tweaks_Fixes
                     //    AddDebug(__instance.name + " accumulatedDamage " + __instance.accumulatedDamage + " damageThreshold " + __instance.damageThreshold);
 
                     __instance.lastDamagePosition = damageInfo.position;
-                    if (Main.config.CreatureFleeUseDamageThreshold && __instance.accumulatedDamage <= __instance.damageThreshold)
+                    if (Main.config.creatureFleeUseDamageThreshold && __instance.accumulatedDamage <= __instance.damageThreshold)
                         return false;
 
                     int rnd = Main.rndm.Next(1, 101);
@@ -90,7 +90,7 @@ namespace Tweaks_Fixes
             public static bool CheckLoseToothPrefix(Stalker __instance, GameObject target)
             { // only scrap metal has HardnessMixin  0.5
                 float rndm = UnityEngine.Random.value;
-                float stalkerLoseTooth = Main.config.stalkerLoseTooth * .01f;
+                float stalkerLoseTooth = Main.config.stalkerLoseToothChance * .01f;
                 if (stalkerLoseTooth >= rndm && HardnessMixin.GetHardness(target) > rndm)
                     __instance.LoseTooth();
 
@@ -100,7 +100,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("LoseTooth")]
             public static bool LoseToothPrefix(Stalker __instance, ref bool __result)
             {
-                if (Main.config.stalkerLooseToothSound)
+                if (ConfigToEdit.stalkerLooseToothSound.Value)
                     return true;
 
                 GameObject go = UnityEngine.Object.Instantiate(__instance.toothPrefab);
@@ -191,8 +191,8 @@ namespace Tweaks_Fixes
             {
                 if (__instance.GetComponent<Pickupable>()) // fish
                 {
-                    __instance.respawn = Main.config.fishRespawn;
-                    __instance.respawnOnlyIfKilledByCreature = !Main.config.fishRespawnIfKilledByPlayer;
+                    __instance.respawn = ConfigToEdit.fishRespawn.Value;
+                    __instance.respawnOnlyIfKilledByCreature = !ConfigToEdit.fishRespawnIfKilledByPlayer.Value;
                     if (Main.config.fishRespawnTime > 0)
                         __instance.respawnInterval = Main.config.fishRespawnTime * 1200f;
 
@@ -206,15 +206,15 @@ namespace Tweaks_Fixes
 
                 if (liveMixin.maxHealth >= 3000f) // Leviathan
                 {
-                    __instance.respawn = Main.config.leviathansRespawn;
-                    __instance.respawnOnlyIfKilledByCreature = !Main.config.leviathansRespawnIfKilledByPlayer;
+                    __instance.respawn = ConfigToEdit.leviathansRespawn.Value;
+                    __instance.respawnOnlyIfKilledByCreature = !ConfigToEdit.leviathansRespawnIfKilledByPlayer.Value;
                     if (Main.config.leviathanRespawnTime > 0)
                         __instance.respawnInterval = Main.config.leviathanRespawnTime * 1200f;
                 }
                 else
                 {
-                    __instance.respawn = Main.config.creaturesRespawn;
-                    __instance.respawnOnlyIfKilledByCreature = !Main.config.creaturesRespawnIfKilledByPlayer;
+                    __instance.respawn = ConfigToEdit.creaturesRespawn.Value;
+                    __instance.respawnOnlyIfKilledByCreature = !ConfigToEdit.creaturesRespawnIfKilledByPlayer.Value;
                     if (Main.config.creatureRespawnTime > 0)
                         __instance.respawnInterval = Main.config.creatureRespawnTime * 1200f;
                 }
@@ -224,7 +224,7 @@ namespace Tweaks_Fixes
             static void OnTakeDamagePostfix(CreatureDeath __instance, DamageInfo damageInfo)
             {
                 //AddDebug(__instance.name + " OnTakeDamage " + damageInfo.dealer.name);
-                if (!Main.config.heatBladeCooks && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
+                if (!ConfigToEdit.heatBladeCooks.Value && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
                     __instance.lastDamageWasHeat = false;
             }
             //[HarmonyPrefix]
@@ -295,7 +295,7 @@ namespace Tweaks_Fixes
         class ReefbackLife_OnEnable_patch
         {
             public static void Postfix(ReefbackLife __instance)
-            {
+            { // make it avoid player life pod
                 //AddDebug(" ReefbackLife OnEnable " + (int)__instance.transform.position.y);
                 AvoidObstacles ao = __instance.gameObject.GetComponent<AvoidObstacles>();
                 if (!ao)
@@ -564,7 +564,17 @@ namespace Tweaks_Fixes
                     __result = false;
             }
         }
-        
+
+        [HarmonyPatch(typeof(CuteFishHandTarget), "AllowedToInteract")]
+        class CuteFishHandTarget_AllowedToInteract_patch
+        {
+            public static void Postfix(CuteFishHandTarget __instance, ref bool __result)
+            {
+                if (!Player.main.IsSwimming())
+                    __result = false;
+            }
+        }
+
 
     }
 }

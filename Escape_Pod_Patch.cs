@@ -5,6 +5,9 @@ using System.Collections;
 using System.Collections.Generic;
 using static ErrorMessage;
 using static VFXParticlesPool;
+using static GameInput;
+using static RootMotion.FinalIK.GrounderQuadruped;
+using System;
 
 namespace Tweaks_Fixes
 {
@@ -16,6 +19,7 @@ namespace Tweaks_Fixes
     //Operational sky specIntensity 1.5
     class Escape_Pod_Patch
     {
+        public static Dictionary<TechType, int> newGameLoot = new Dictionary<TechType, int>();
 
         public static bool IsSmokeOut(string slot)
         {
@@ -139,7 +143,7 @@ namespace Tweaks_Fixes
                 if (Main.config.pickedUpFireExt)
                 {
                     __instance.extinguisherModel.SetActive(false);
-                    Object.Destroy(__instance.gameObject);
+                    UnityEngine.Object.Destroy(__instance.gameObject);
                 }
                 return false;
             }
@@ -157,17 +161,13 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(LootSpawner __instance)
             {
-                __instance.escapePodTechTypes = new List<TechType>();
-                foreach (KeyValuePair<string, int> loot in Main.config.startingLoot)
+                __instance.escapePodTechTypes.Clear();
+                foreach (KeyValuePair<TechType, int> loot in newGameLoot)
                 {
-                    TechTypeExtensions.FromString(loot.Key, out TechType tt, true);
                     //Main.Log("Start Loot " + tt);
                     //AddDebug("Start Loot " + tt);
-                    if (tt == TechType.None)
-                        continue;
-
                     for (int i = 0; i < loot.Value; i++)
-                        __instance.escapePodTechTypes.Add(tt);
+                        __instance.escapePodTechTypes.Add(loot.Key);
                 }
             }
         }

@@ -13,24 +13,6 @@ namespace Tweaks_and_Fixes
     internal class Planter_Patch
     {
         [HarmonyPrefix]
-        [HarmonyPatch("AddItem", new Type[1] { typeof(InventoryItem) })]
-        static void AddItemPrefix(Planter __instance, InventoryItem item)
-        {
-            if (!Main.config.fixMelons)
-                return;
-
-            Plantable p = item.item.GetComponent<Plantable>();
-            if (p && p.plantTechType == TechType.MelonPlant)
-            {
-                //Planter.PlantSlot slotById = __instance.GetSlotByID(slotID);
-                //if (slotById == null || slotById.isOccupied)
-                //    return;
-                //AddDebug("Planter AddItem InventoryItem " + p.plantTechType);
-                p.size = Plantable.PlantSize.Large;
-            }
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch("RemoveItem", new Type[1] { typeof(int) })]
         static bool RemoveItemPrefix(Planter __instance, int slotID)
         {

@@ -12,6 +12,8 @@ using static VFXParticlesPool;
 using static HandReticle;
 using System.Linq;
 using UWE;
+using Nautilus.Options.Attributes;
+using Nautilus.Options;
 
 namespace Tweaks_Fixes
 {
@@ -20,57 +22,24 @@ namespace Tweaks_Fixes
         public static GameObject storedGO;
 
 
-        //[HarmonyPatch(typeof(DisplayManager))]
-        class DisplayManager_Patch
+        //[HarmonyPatch(typeof(LEDLight), "OnProtoDeserialize")] 
+        class EnergyMixin_SpawnDefaultAsync_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Update")]
-            static void UpdatePostfix(DisplayManager __instance)
+            static void Prefix(LEDLight __instance)
             {
-                //AddDebug("Screen.currentResolution.width " + Screen.currentResolution.width);
-                //AddDebug("DisplayManager.resolution.width " + __instance.resolution.width);
-                if (Screen.currentResolution.width != 1280)
-                {
-                    Screen.SetResolution(1280, 720, true);
-                    //__instance.resolution = Screen.currentResolution;
-                }
-            }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("Initialize")]
-            static void InitializePrefix(DisplayManager __instance)
-            {
-                //if (Screen.currentResolution.width != __instance.resolution.width)
-                //    AddDebug("Resolution !!! ");
-
-                //AddDebug("Initialize Screen.currentResolution " + Screen.currentResolution.width);
-                //AddDebug("Initialize DisplayManager.resolution " + __instance.resolution.width);
-                Main.logger.LogMessage("Resolution should be fixed");
-                if (Screen.currentResolution.width != 1280)
-                {
-                    Main.logger.LogMessage("Resolution should be fixed");
-                    AddDebug("Resolution should be fixed");
-                    //Screen.SetResolution(1280, 720, true);
-                    //__instance.resolution = Screen.currentResolution;
-                }
+                Main.logger.LogMessage("LEDLight OnProtoDeserialize ");
+                AddDebug("LEDLight OnProtoDeserialize ");
+                EnergyMixin energyMixin = __instance.gameObject.EnsureComponent<EnergyMixin>();
+                //AddDebug("LEDLight OnProtoDeserialize ");
             }
         }
 
-        //[HarmonyPatch(typeof(InspectOnFirstPickup), "Start")]
-        class InspectOnFirstPickup_Start_Patch
-        {
-            static void Postfix(InspectOnFirstPickup __instance)
-            {
-                Main.logger.LogMessage(" InspectOnFirstPickup Start " + __instance.name);
-                AddDebug(" InspectOnFirstPickup Start " + __instance.name);
-
-            }
-        }
-
-        [HarmonyPatch(typeof(Player), "Update")]
+        //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
+                //AddDebug("TitaniumClone " + Language.main.Get("TitaniumClone"));
                 //if (Input.GetKey(KeyCode.LeftShift))
                 //    AddDebug("timePassed " + DayNightCycle.main.timePassedAsFloat);
                 //AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
@@ -93,9 +62,9 @@ namespace Tweaks_Fixes
                     int x = Mathf.RoundToInt(Player.main.transform.position.x);
                     int y = Mathf.RoundToInt(Player.main.transform.position.y);
                     int z = Mathf.RoundToInt(Player.main.transform.position.z);
-                    AddDebug(x + " " + y + " " + z);
+                    //AddDebug(x + " " + y + " " + z);
                     AddDebug("GetBiomeString " + Player.main.GetBiomeString());
-                    AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(__instance.transform.position));
+                    //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(__instance.transform.position)); 
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
@@ -118,6 +87,13 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
+                    AddDebug("HasRoomFor TechType.None " + Inventory.main.HasRoomFor(TechType.None));
+                    AddDebug("HasRoomFor TechType.Nickel " + Inventory.main.HasRoomFor(TechType.Nickel));
+                    AddDebug("HasRoomFor TechType.NarrowBed " + Inventory.main.HasRoomFor(TechType.NarrowBed));
+                    //AddDebug("RightHand " + GameInput.GetBinding(GameInput.Device.Controller, GameInput.Button.RightHand, GameInput.BindingSet.Primary));
+                    //AddDebug("LeftHand " + GameInput.GetBinding(GameInput.Device.Controller, GameInput.Button.RightHand, GameInput.BindingSet.Primary));
+                    //AddDebug("ControllerLeftTrigger index " + GameInput.GetInputIndex("ControllerLeftTrigger")); // 179
+                    //AddDebug("ControllerRightTrigger index " + GameInput.GetInputIndex("ControllerRightTrigger")); // 180
                     printTarget();
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
@@ -266,7 +242,6 @@ namespace Tweaks_Fixes
                     AddDebug(go.name);
             }
         }
-
 
         //[HarmonyPatch(typeof(VoxelandGrassBuilder), "CreateUnityMeshes")]
         class VoxelandGrassBuilder_CreateUnityMeshes_Patch

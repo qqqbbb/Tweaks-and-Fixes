@@ -154,7 +154,7 @@ namespace Tweaks_Fixes
             public static void ForceLightingStatePostfix(SubRoot __instance, bool lightingOn)
             {
                 if (__instance.isCyclops)
-                    __instance.interiorSky.affectedByDayNightCycle = Main.config.cyclopsSunlight && !lightingOn;
+                    __instance.interiorSky.affectedByDayNightCycle = ConfigToEdit.cyclopsSunlight.Value && !lightingOn;
                 //AddDebug("SubRoot ForceLightingState " + lightingOn);
             }
         }
@@ -701,7 +701,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(CyclopsProximitySensors __instance)
             {
                 //Main.config.disableCyclopsProximitySensor = true;
-                return !Main.config.disableCyclopsProximitySensor;
+                return !ConfigToEdit.disableCyclopsProximitySensor.Value;
             }
         }
 

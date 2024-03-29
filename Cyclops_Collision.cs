@@ -12,6 +12,7 @@ namespace Tweaks_Fixes
 {
     class Cyclops_Collision
     {
+        static bool fixCyclopsCollision;
         // Storage_Patch 510
         //[HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
@@ -20,7 +21,7 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
             {
-                if (__instance.isCyclops && Main.config.fixCyclopsCollision)
+                if (__instance.isCyclops && fixCyclopsCollision)
                 {
                     //    FixCollision(__instance);
                 }
@@ -130,7 +131,7 @@ namespace Tweaks_Fixes
             public static void Postfix()
             { // ignore cyclops outer colliders when building in cyclops
               //Builder.placeLayerMask = (LayerMask)~(1 << LayerMask.NameToLayer("Player") | 1 << LayerMask.NameToLayer("Trigger") | 1 << LayerMask.NameToLayer("NotUseable"));
-                if (Main.config.fixCyclopsCollision)
+                if (fixCyclopsCollision)
                     Builder.placeLayerMask = -6815745;
                 //AddDebug("Builder Initialize ");
                 // Main.Log("Builder Initialize " + Builder.placeLayerMask.value);
@@ -142,7 +143,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(ref GameObject result, ref bool __result, float maxDistance, out float distance)
             {
-                if (!Main.config.fixCyclopsCollision)
+                if (!fixCyclopsCollision)
                 {
                     distance = 0f;
                     return true;
@@ -183,7 +184,7 @@ namespace Tweaks_Fixes
             public static bool PrefixOld(ref GameObject result, ref bool __result, float maxDistance, Targeting.FilterRaycast filter, out float distance)
             {
                 //AddDebug(" Targeting GetTarget  " + result.name);
-                if (!Main.config.fixCyclopsCollision || !Player.main.currentSub || !Player.main.currentSub.isCyclops)
+                if (!fixCyclopsCollision || !Player.main.currentSub || !Player.main.currentSub.isCyclops)
                 {
                     distance = 0f;
                     return true;
@@ -228,7 +229,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Fabricator __instance)
             {
-                if (Main.config.fixCyclopsCollision && Main.gameLoaded && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
+                if (fixCyclopsCollision && Main.gameLoaded && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
                 { // collision does not match mesh. Can see it after fixing cyclops collision. move it so cant see it when outside
                   //AddDebug("Fabricator Start parent " + __instance.transform.parent.name);
                     __instance.transform.position += __instance.transform.forward * .11f;
@@ -242,7 +243,7 @@ namespace Tweaks_Fixes
        //static readonly Targeting.FilterRaycast filter = hit => hit.collider != null && hit.collider.gameObject.layer == LayerID.NotUseable;
             public static bool Prefix(BuilderTool __instance)
             {
-                if (!Main.config.fixCyclopsCollision)
+                if (!fixCyclopsCollision)
                     return true;
 
                 if (__instance.handleInputFrame == Time.frameCount)
@@ -328,7 +329,7 @@ namespace Tweaks_Fixes
              
             public static bool PrefixOld(BuilderTool __instance)
             {
-                if (!Main.config.fixCyclopsCollision)
+                if (!fixCyclopsCollision)
                     return true;
 
                 if (__instance.handleInputFrame == Time.frameCount)

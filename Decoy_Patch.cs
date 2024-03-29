@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -11,16 +12,16 @@ namespace Tweaks_Fixes
     public class Decoy_Patch
     {
         public static List<GameObject> decoysToDestroy = new List<GameObject>();
+        public static ConditionalWeakTable<GameObject, string> pickupShinies = new ConditionalWeakTable<GameObject, string>();
         //static Dictionary<CyclopsDecoy, decoyData> decoys = new Dictionary<CyclopsDecoy, decoyData>();
-        
+
         public class DestroyOnDisable : MonoBehaviour
         {
             private void OnDisable()
             {
-                //AddDebug("OnDisable ");
                 //if (!gameObject.GetComponentInParent<Player>())
                 //{
-                    //UniqueIdentifier ui = gameObject.GetComponent<UniqueIdentifier>();
+                //UniqueIdentifier ui = gameObject.GetComponent<UniqueIdentifier>();
                 decoysToDestroy.Remove(gameObject);
                 Destroy(gameObject);
                 //}
@@ -34,7 +35,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             static bool StartPrefix(CyclopsDecoy __instance)
             {
-                //AddDebug("CyclopsDecoy launch " + __instance.launch);
+                //AddDebug("CyclopsDecoy Start launch " + __instance.launch);
                 Stabilizer s = __instance.GetComponent<Stabilizer>();
                 if (s)
                     UnityEngine.Object.Destroy(s);
@@ -57,17 +58,22 @@ namespace Tweaks_Fixes
                     //lm.data.explodeOnDestroy = false;
                     lm.data.knifeable = false;
                 }
-                if (!__instance.launch && Main.config.decoyRequiresSub)
+                if (!__instance.launch && ConfigToEdit.decoyRequiresSub.Value)
+                {
+                    //AddDebug("CyclopsDecoy Start decoyRequiresSub");
                     __instance.Invoke("Despawn", 0f);
+                }
                 else
                 {
+                    Pickupable p = __instance.GetComponent<Pickupable>();
+                    p.isPickupable = false;
                     __instance.Invoke("Despawn", Main.config.decoyLifeTime);
                     CyclopsDecoyManager.AddDecoyToGlobalHashSet(__instance.gameObject);
                     //p.isPickupable = false;
                 }
 
                 //else if (Main.config.decoyRequiresSub)
-                //{
+                //{ 
                 //    p.isPickupable = true;
                 //    __instance.Invoke("Despawn", 0);
                 //decoys[__instance] = new decoyData(Main.config.subDecoyHP, DayNightCycle.main.timePassedAsFloat);
@@ -103,10 +109,6 @@ namespace Tweaks_Fixes
             static bool DespawnPrefix(CyclopsDecoy __instance)
             {
                 //AddDebug("Despawn Decoy");
-                //Pickupable p = __instance.GetComponent<Pickupable>();
-                //p.isPickupable = false;
-                Pickupable p = __instance.GetComponent<Pickupable>();
-                p.isPickupable = false;
                 __instance.gameObject.AddComponent<DestroyOnDisable>();
                 CyclopsDecoyManager.RemoveDecoyFromGlobalHashSet(__instance.gameObject);
                 FMOD_CustomLoopingEmitter cle = __instance.GetComponent<FMOD_CustomLoopingEmitter>();
@@ -141,7 +143,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Inventory __instance, Pickupable item, ref bool __result)
             {
-                if (Main.config.decoyRequiresSub && item.GetComponent<CyclopsDecoy>())
+                if (ConfigToEdit.decoyRequiresSub.Value && item.GetComponent<CyclopsDecoy>())
                    __result = false;
             }
         }
