@@ -96,14 +96,11 @@ namespace Tweaks_Fixes
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool newHungerSystem = false;
 
-        [Choice("Eating raw fish", Tooltip = "This changes amount of food you get by eating raw fish. Harmless: it's a random number between 0 and fish's food value. Risky: it's a random number between fish's negative food value and fish's food value. Harmful: it's a random number between fish's negative food value and 0.")]
-        public EatingRawFish eatRawFish;
-
         [Slider("Fish water/food value ratio", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "If this is more than 0 fish's water value will be proportional to its food value. If this is 0.1 then water value will be 10% of food value. If this is 0.9 then water value will be 90% of food value. Game has to be reloaded after changing this.")]
         public float fishFoodWaterRatio = 0f;
 
-        //[Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Game has to be reloaded after changing this.")]
-        //public bool foodTweaks = false;
+        [Choice("Eating raw fish", Tooltip = "This changes amount of food you get by eating raw fish. Harmless: it's a random number between 0 and fish's food value. Risky: it's a random number between fish's negative food value and fish's food value. Harmful: it's a random number between fish's negative food value and 0.")]
+        public EatingRawFish eatRawFish;
 
         [Toggle("Can't eat underwater", Tooltip = "If enabled you will not be able to eat or drink when swimming underwater.")]
         public bool cantEatUnderwater = false;
@@ -113,9 +110,6 @@ namespace Tweaks_Fixes
 
         [Slider("Food decay rate multiplier", 0f, 3f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "Food decay rate will be multiplied by this. You have to reload the game after changing this.")]
         public float foodDecayRateMult = 1f;
-
-        //[Toggle("Thermoblade cooks fish on kill", Tooltip = "")]
-        public bool heatBladeCooks = true;
 
         [Toggle("New poison damage system", Tooltip = "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.")]
         public bool newPoisonSystem = false;
@@ -422,39 +416,6 @@ namespace Tweaks_Fixes
         public bool removeWaterFromBlueprints = false;
         public bool swapControllerTriggers = false;
 
-        // also edit UI_Patches.GetStrings when editing this
-        public List<string> translatableStrings__ = new List<string> //  translate config enums 
-        { "Burnt out ", //  0   flare
-            "Lit ",      // 1   flare
-        "Toggle lights", // 2   toggle lights
-        "Increases your safe diving depth by ", // 3 crushDepthEquipment
-        " meters.", // 4    crushDepthEquipment
-        "Restores ", // 5    medkit desc
-        " health.", // 6    medkit desc
-        "mass ",    // 7     invMultWater   invMultLand
-        ": min ",     // 8    eatRawFish tooltip 
-        ", max ",     // 9    eatRawFish tooltip 
-        "Throw",        // 10   flare   
-        "Light and throw",  //  11  flare   
-        "Light" ,        // 12   flare   
-        "Toggle map" ,    // 13   Seaglide map   
-         "Push " ,    // 14   push beached seamoth
-          "Need a knife to break it" ,    // 15  no breaking with bare hands  BreakableResource
-        "Need a knife to break it free" ,    // 16  no breaking with bare hands  Pickupable
-        "Toggle lights",            // 17  toggle seamoth lights
-        ". Press and hold ",         // 18  seamoth defense module
-        " to charge the shot",      // 19  seamoth defense module, stasis rifle
-        " Change torpedo ",      // 20  vehicle UI
-        " Hold ",                // 21  exosuit UI
-        " and press ",          // 22  exosuit UI
-        " to change torpedo ",      // 23  exosuit UI
-        // 24 Bladderfish ttoltip
-        "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.",
-        // 25 SeamothElectricalDefense tooltip
-        "Generates a localized electric field designed to ward off aggressive fauna. Press and hold the button to charge the shot.",
-        "Swivel left", // 26 
-        "Swivel right", // 27 
-        };  // also edit UI_Patches.GetStrings when editing this
 
     }
 

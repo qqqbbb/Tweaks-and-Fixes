@@ -5,8 +5,6 @@ using HarmonyLib;
 using System.Text;
 using static ErrorMessage;
 using TMPro;
-using static UWE.CubeFace;
-using static RootMotion.FinalIK.GrounderQuadruped;
 
 namespace Tweaks_Fixes
 {
@@ -17,7 +15,7 @@ namespace Tweaks_Fixes
         static bool chargerOpen = false;
         //static List <TechType> landPlantSeeds = new List<TechType> { TechType.BulboTreePiece, TechType.PurpleVegetable, TechType.FernPalmSeed, TechType.OrangePetalsPlantSeed, TechType.HangingFruit, TechType.MelonSeed, TechType.PurpleVasePlantSeed, TechType.PinkMushroomSpore, TechType.PurpleRattleSpore, TechType.PinkFlowerSeed };
         //static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.AcidMushroomSpore, TechType.BloodOil, TechType.BluePalmSeed, TechType.KooshChunk, TechType.PurpleBranchesSeed, TechType.WhiteMushroomSpore, TechType.EyesPlantSeed, TechType.RedRollPlantSeed, TechType.GabeSFeatherSeed, TechType.JellyPlantSeed, TechType.RedGreenTentacleSeed, TechType.SnakeMushroomSpore, TechType.MembrainTreeSeed, TechType.SmallFanSeed, TechType.RedBushSeed, TechType.RedConePlantSeed, TechType.RedBasketPlantSeed, TechType.SeaCrownSeed, TechType.ShellGrassSeed, TechType.SpottedLeavesPlantSeed, TechType.SpikePlantSeed, TechType.PurpleFanSeed, TechType.PurpleStalkSeed, TechType.PurpleTentacleSeed };
-        static List <TechType> fishTechTypes = new List<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.Eyeye, TechType.GarryFish, TechType.HoleFish, TechType.Hoopfish, TechType.Hoverfish, TechType.LavaBoomerang, TechType.Oculus, TechType.Peeper, TechType.Reginald, TechType.LavaEyeye, TechType.Spadefish, TechType.Spinefish };
+        static List<TechType> fishTechTypes = new List<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.Eyeye, TechType.GarryFish, TechType.HoleFish, TechType.Hoopfish, TechType.Hoverfish, TechType.LavaBoomerang, TechType.Oculus, TechType.Peeper, TechType.Reginald, TechType.LavaEyeye, TechType.Spadefish, TechType.Spinefish };
         public static Dictionary<ItemsContainer, Planter> planters = new Dictionary<ItemsContainer, Planter>();
         static public string beaconToolString = string.Empty;
         static public string beaconPickString = string.Empty;
@@ -93,7 +91,7 @@ namespace Tweaks_Fixes
             stasisRifleString = Language.main.Get("TF_seamoth_defence_press").Substring(1) + "(" + rightHandButton + ")" + Language.main.Get("TF_seamoth_defence_charge");
             scannerString = LanguageCache.GetButtonFormat("ScannerSelfScanFormat", GameInput.Button.AltTool);
             //exosuitExitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + ' ' + Language.main.Get("TF_toggle_vehicle_lights") + " (" + moveDownButton + ")";
-            exosuitExitLightsButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + ' ' + LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.MoveDown) ;
+            exosuitExitLightsButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + ' ' + LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.MoveDown);
             vehicleExitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit);
             seamothLightsButton = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.RightHand);
             seamothName = Language.main.Get(TechType.Seamoth);
@@ -115,7 +113,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(Trashcan), "OnEnable")]
         class Trashcan_OnEnable_Patch
         {
@@ -133,7 +131,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(uGUI_ItemsContainer), "OnAddItem")]
         class uGUI_ItemsContainer_OnAddItem_Patch
         {
@@ -151,7 +149,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(BaseBioReactor), "Start")]
         class BaseBioReactor_Start_Patch
         {
@@ -175,7 +173,7 @@ namespace Tweaks_Fixes
                 planters[__instance.storageContainer.container] = __instance;
             }
         }
-        
+
         [HarmonyPatch(typeof(uGUI_InventoryTab))]
         class uGUI_InventoryTab_Patch
         {
@@ -220,7 +218,7 @@ namespace Tweaks_Fixes
                 if (equipment != null)
                 {
                     //AddDebug(" equipment ");
-                    bool charger = equipment.GetCompatibleSlot( EquipmentType.BatteryCharger, out string s) || equipment.GetCompatibleSlot(EquipmentType.PowerCellCharger, out string ss);
+                    bool charger = equipment.GetCompatibleSlot(EquipmentType.BatteryCharger, out string s) || equipment.GetCompatibleSlot(EquipmentType.PowerCellCharger, out string ss);
                     //AddDebug("charger " + charger);
                     foreach (var pair in __instance.inventory.items)
                     {
@@ -246,7 +244,7 @@ namespace Tweaks_Fixes
                     }
                 }
             }
-           
+
             [HarmonyPostfix]
             [HarmonyPatch("OnClosePDA")]
             static void OnClosePDAPostfix(uGUI_InventoryTab __instance)
@@ -256,10 +254,10 @@ namespace Tweaks_Fixes
                     pair.Value.SetChroma(1f);
             }
         }
-        
+
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
-        { 
+        {
             [HarmonyPostfix]
             [HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
@@ -292,7 +290,7 @@ namespace Tweaks_Fixes
                             stringBuilder.Append(lightFlareString);
                             text = stringBuilder.ToString();
                         }
-                        else if(lit && canThrow)
+                        else if (lit && canThrow)
                             text = throwFlareString;
                         else if (!lit && !canThrow)
                             text = lightFlareString;
@@ -360,7 +358,7 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, sb.ToString());
                     }
                 }
-                else if(!Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
+                else if (!Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
                 {
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
@@ -416,7 +414,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(uGUI_MainMenu), "Update")]
         class uGUI_MainMenu_Update_Patch
         {
@@ -438,7 +436,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(uGUI_PDA), "Update")]
         class uGUI_PDA_Update_Patch
         {
@@ -481,7 +479,7 @@ namespace Tweaks_Fixes
                 return !Main.config.disableHints;
             }
         }
-        
+
         [HarmonyPatch(typeof(TooltipFactory))]
         class TooltipFactory_Patch
         {
@@ -529,7 +527,7 @@ namespace Tweaks_Fixes
                 }
 
             }
-          
+
             [HarmonyPostfix]
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPostfix(StringBuilder sb, TechType techType, GameObject obj)
@@ -573,7 +571,7 @@ namespace Tweaks_Fixes
                                 if (index != -1)
                                 {
                                     if (foodValue > 0)
-                                    { 
+                                    {
                                         if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
                                             food = food.Substring(0, index) + "≈ 0";
                                         else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
@@ -650,7 +648,7 @@ namespace Tweaks_Fixes
 
             }
         }
-        
+
         //[HarmonyPatch(typeof(Language), "FormatString", new Type[] { typeof(string), typeof(object[]) })]
         class Language_FormatString_Patch
         {
@@ -661,7 +659,7 @@ namespace Tweaks_Fixes
                 //if (format.Contains("FOOD:") || format.Contains("H₂O:"))
                 //    AddDebug("FormatString " + __result);
 
-                if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(Int32)  )
+                if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(Int32))
                     return;
 
                 int value = (int)args[0];
@@ -687,7 +685,7 @@ namespace Tweaks_Fixes
                         sb_.Append(max);
                         sb_.Append(value);
                     }
-                    else if(Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
                     {
                         //__result = tokens[0] + min + "-" + value + max + "0";
                         sb_.Append("-");
@@ -879,7 +877,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-        
+
         [HarmonyPatch(typeof(uGUI_InputGroup))]
         class uGUI_InputGroup_Patch
         {
@@ -966,7 +964,7 @@ namespace Tweaks_Fixes
                 AddDebug("uGUI_BlueprintsTab UpdateEntries ");
                 if (did)
                     return;
-                
+
                 for (int index1 = 0; index1 < uGUI_BlueprintsTab.groups.Count; ++index1)
                 {
                     //did = true;
@@ -986,13 +984,13 @@ namespace Tweaks_Fixes
                 }
             }
         }
- 
+
         [HarmonyPatch(typeof(uGUI_BlueprintsTab), "Open")]
         class uGUI_BlueprintsTab_Open_Patch
         {
             public static void Postfix(uGUI_BlueprintsTab __instance)
             {
-                if (!ConfigToEdit.removeCookedFishFromBlueprints.Value && !ConfigToEdit.removeWaterFromBlueprints.Value )
+                if (!ConfigToEdit.removeCookedFishFromBlueprints.Value && !ConfigToEdit.removeWaterFromBlueprints.Value)
                     return;
 
                 Transform scrollCanvas = __instance.transform.Find("Content/ScrollView/Viewport/ScrollCanvas");

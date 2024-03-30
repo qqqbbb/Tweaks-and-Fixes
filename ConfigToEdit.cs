@@ -96,13 +96,13 @@ namespace Tweaks_Fixes
             pdaClock = Main.configB.Bind("", "PDA clock", true);
             transferAllItemsButton = Main.configB.Bind("", "Move all items button", Button.LookUp, "Press this button to move all items from one container to another. This works only with controller.");
             transferSameItemsButton = Main.configB.Bind("", "Move same items button", Button.LookDown, "Press this button to move all items of the same type from one container to another. This works only with controller.");
-            quickslotButton = Main.configB.Bind("", "Quickslot cycle button", Button.Exit, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller.");
+            quickslotButton = Main.configB.Bind("", "Quickslot cycle button", Button.Jump, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller.");
             lightButton = Main.configB.Bind("", "Light intensity button", Button.LeftHand, "When holding a tool in your hand or driving a vehicle press 'Cycle next' or 'Cycle previous' button while holding down this button to change the tool's or vehicle's light intensity. This works only with controller.");
             gameStartWarningText = Main.configB.Bind("", "Game start warning text", "", "Text shown when the game starts. If this field is empty the warning will be skipped.");
             newGameLoot = Main.configB.Bind("", "Life pod items", "FilteredWater 2, NutrientBlock 2, Flare 2", "Items you find in your life pod when you start a new game. The format is item ID, space, number of items. Every entry is separated by comma.");
             crushDepthEquipment = Main.configB.Bind("", "Crush depth equipment", "ReinforcedDiveSuit 0", "Allows you to make your equipment increase your crush depth. The format is: item ID, space, number of meters that will be added to your crush depth. Every entry is separated by comma.");
             crushDamageEquipment = Main.configB.Bind("", "Crush damage equipment", "ReinforcedDiveSuit 0", "Allows you to make your equipment reduce your crush damage. The format is: item ID, space, crush damage percent that will be blocked. Every entry is separated by comma.");
-            itemMass = Main.configB.Bind("", "Item mass", "PrecursorKey_Blue 5, PrecursorKey_Orange 5, PrecursorKey_Purple 5, PrecursorKey_Red 5, PrecursorKey_White 5", "Allows you to change mass of pickupable items. The format is: item ID, space, item mass in kilogrammes. Every entry is separated by comma.");
+            itemMass = Main.configB.Bind("", "Item mass", "PrecursorKey_Blue 5.0, PrecursorKey_Orange 5.0, PrecursorKey_Purple 5.0, PrecursorKey_Red 5.0, PrecursorKey_White 5.0", "Allows you to change mass of pickupable items. The format is: item ID, space, item mass in kg. Mass is a decimal point number. Every entry is separated by comma.");
             unmovableItems = Main.configB.Bind("", "Unmovable items", "", "Contains pickupable items that can not be moved by bumping into them. You will always find them where you dropped them.  Every entry is separated by comma.");
             bloodColor = Main.configB.Bind("", "Blood color", new Vector3(0.784f, 1f, 0.157f), "Lets you change the color of creatures' blood. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             gravTrappable = Main.configB.Bind("", "Gravtrappable items", "seaglide, airbladder, flare, flashlight, builder, lasercutter, ledlight, divereel, propulsioncannon, welder, repulsioncannon, scanner, stasisrifle, knife, heatblade, precursorkey_blue, precursorkey_orange, precursorkey_purple, compass, fins, fireextinguisher, firstaidkit, doubletank, plasteeltank, radiationsuit, radiationhelmet, radiationgloves, rebreather, reinforceddivesuit, maproomhudchip, tank, stillsuit, swimchargefins, ultraglidefins, highcapacitytank,", "List of items affected by grav trap.");
@@ -163,29 +163,37 @@ namespace Tweaks_Fixes
             {
                 string s = entries[i].Trim();
                 string techType;
-                string amount;
+                string num;
                 int index = s.IndexOf(' ');
                 if (index == -1)
                     continue;
 
                 techType = s.Substring(0, index);
-                amount = s.Substring(index);
+                num = s.Substring(index);
                 if (!TechTypeExtensions.FromString(techType, out TechType tt, true))
                     continue;
                 // no simple way to check if techType is pickupable
-                int a = 0;
+                int num_ = 0;
+                float numFl = 0;
                 try
                 {
-                    a = Int32.Parse(amount);
+                    if (num.Contains('.'))
+                        numFl = float.Parse(num);
+                    else
+                        num_ = int.Parse(num);
                 }
                 catch (Exception)
                 {
                     continue;
                 }
-                if (a < 1)
-                    continue;
-
-                dic.Add(tt, a);
+                if (num_ > 0)
+                {
+                    dic.Add(tt, num_);
+                }
+                else if (numFl > 0)
+                {
+                    dic.Add(tt, numFl);
+                }
                 //Main.logger.LogDebug("ParseDicFromString " + tt + " " + a);
             }
             return (Dictionary <T, T1>)dic;
@@ -237,13 +245,21 @@ namespace Tweaks_Fixes
             Pickupable_Patch.shinies = ParseSetFromString<TechType>(stalkerPlayThings.Value);
             LargeWorldEntity_Patch.eatableFoodValue = ParseDicFromString<TechType, int>(eatableFoodValue.Value);
             LargeWorldEntity_Patch.eatableWaterValue = ParseDicFromString<TechType, int>(eatableWaterValue.Value);
-            Escape_Pod_Patch.newGameLoot = ParseDicFromString<TechType, int>(eatableWaterValue.Value);
+            Escape_Pod_Patch.newGameLoot = ParseDicFromString<TechType, int>(newGameLoot.Value);
 
+            // Button enum checked for acceptable value during ConfigEntry binding
+            Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
+            Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
+            Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
+            Enum.TryParse(lightButton.Value.ToString(), out QuickSlots_Patch.lightButton);
+            //Main.logger.LogMessage("quickslotButton " + QuickSlots_Patch.quickslotButton);
+            //Main.logger.LogMessage("lightButton " + QuickSlots_Patch.lightButton);
 
         }
 
         public enum Button
         {
+            None,
             Jump,
             PDA,
             Deconstruct,
@@ -252,11 +268,6 @@ namespace Tweaks_Fixes
             RightHand,
             CycleNext,
             CyclePrev,
-            Slot1,
-            Slot2,
-            Slot3,
-            Slot4,
-            Slot5,
             AltTool,
             TakePicture,
             Reload,
@@ -264,8 +275,8 @@ namespace Tweaks_Fixes
             LookUp,
             LookDown,
             LookLeft,
-            LookRight,
-            None
+            LookRight
+            
         }
 
     }

@@ -85,7 +85,6 @@ namespace Tweaks_Fixes
             public static void Postfix(GamepadInputModule __instance, object selectedItem, GameInput.Button button, ref bool __result)
             { // runs when inventory open
                 //AddDebug("GamepadInputModule TranslateButtonEvent " + selectedItem + " button " + button);
-                //Main.logger.LogMessage("GamepadInputModule TranslateButtonEvent " + selectedItem + " button " + button);
                 if (button == transferAllItemsButton || button == transferSameItemsButton)
                 {
                     if (button == transferAllItemsButton)

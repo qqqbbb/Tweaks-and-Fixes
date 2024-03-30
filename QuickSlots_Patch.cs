@@ -115,6 +115,7 @@ namespace Tweaks_Fixes
                 //AddDebug("SlotNext");
                 if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
                 {
+                    //AddDebug("quickslotButton");
                     Pickupable pickupable = Inventory.main.GetHeld();
                     if (pickupable != null)
                     {
@@ -124,6 +125,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKey(Main.config.lightKey) || GameInput.GetButtonHeld(lightButton))
                 {
+                    //AddDebug("lightButton");
                     Pickupable p = Inventory.main.GetHeld();
                     if (!p)
                     //if (!p && Player.main.currentSub)

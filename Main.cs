@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.04.01";
+            VERSION = "3.04.02";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -80,159 +80,11 @@ namespace Tweaks_Fixes
             config.Load();
         }
 
-        public static void CopyConfigSettings()
-        {
-            if (config.configSettingsCopied)
-                return;
-            
-            ConfigToEdit.heatBladeCooks.Value = config.heatBladeCooks;
-            ConfigToEdit.dontSpawnKnownFragments.Value = config.dontSpawnKnownFragments;
-            ConfigToEdit.cantScanExosuitClawArm.Value = config.cantScanExosuitClawArm;
-            ConfigToEdit.mapRoomFreeCameras.Value = config.mapRoomFreeCameras;
-            ConfigToEdit.decoyRequiresSub.Value = config.decoyRequiresSub;
-            ConfigToEdit.noKillParticles.Value = config.noKillParticles;
-            ConfigToEdit.cyclopsSunlight.Value = config.cyclopsSunlight;
-            ConfigToEdit.alwaysShowHealthFoodNunbers.Value = config.alwaysShowHealthNunbers;
-            ConfigToEdit.pdaClock.Value = config.pdaClock;
-            //ConfigToEdit.gameStartWarningText.Value = config.gameStartWarning;
-            if (config.startingLoot.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<string, int> entry in config.startingLoot)
-                {
-                    sb.Append(entry.Key);
-                    sb.Append(" ");
-                    sb.Append(entry.Value);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.newGameLoot.Value = sb.ToString();
-            }
-            if (config.crushDepthEquipment.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<string, int> entry in config.crushDepthEquipment)
-                {
-                    sb.Append(entry.Key);
-                    sb.Append(" ");
-                    sb.Append(entry.Value);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.crushDepthEquipment.Value = sb.ToString();
-            }
-            if (config.crushDamageEquipment.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<string, int> entry in config.crushDamageEquipment)
-                {
-                    sb.Append(entry.Key);
-                    sb.Append(" ");
-                    sb.Append(entry.Value);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.crushDamageEquipment.Value = sb.ToString();
-            }
-            if (config.itemMass.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<string, float> entry in config.itemMass)
-                {
-                    sb.Append(entry.Key);
-                    sb.Append(" ");
-                    sb.Append(entry.Value);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.itemMass.Value = sb.ToString();
-            }
-            if (config.unmovableItems.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (string entry in config.unmovableItems)
-                {
-                    sb.Append(entry);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.unmovableItems.Value = sb.ToString();
-            }
-            if (config.bloodColor.ContainsKey("Red") && config.bloodColor.ContainsKey("Green") && config.bloodColor.ContainsKey("Blue"))
-            {
-                ConfigToEdit.bloodColor.Value = new Vector3(config.bloodColor["Red"], config.bloodColor["Green"], config.bloodColor["Blue"]);
-            }
-            if (config.gravTrappable.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (string s in config.gravTrappable)
-                {
-                    sb.Append(s);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.gravTrappable.Value = sb.ToString();
-            }
-            if (config.silentCreatures.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (string s in config.silentCreatures)
-                {
-                    sb.Append(s);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.silentCreatures.Value = sb.ToString();
-            }
-            if (config.stalkerPlayThings.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (string s in config.stalkerPlayThings)
-                {
-                    sb.Append(s);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.stalkerPlayThings.Value = sb.ToString();
-            }
-            if (config.eatableFoodValue.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<TechType, int> entry in config.eatableFoodValue)
-                {
-                    sb.Append(entry.Key);
-                    sb.Append(" ");
-                    sb.Append(entry.Value);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.eatableFoodValue.Value = sb.ToString();
-            }
-            if (config.eatableWaterValue.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<TechType, int> entry in config.eatableWaterValue)
-                {
-                    sb.Append(entry.Key);
-                    sb.Append(" ");
-                    sb.Append(entry.Value);
-                    sb.Append(", ");
-                }
-                sb.Length -= 2; // delete last 2 char
-                ConfigToEdit.eatableWaterValue.Value = sb.ToString();
-            }
-            ConfigToEdit.medKitHPperSecond.Value = config.medKitHPperSecond;
-            ConfigToEdit.fixMelons.Value = config.fixMelons;
-            ConfigToEdit.randomPlantRotation.Value = config.randomPlantRotation;
-            ConfigToEdit.silentReactor.Value = config.silentReactor;
-            ConfigToEdit.removeFragmentCrate.Value = config.removeFragmentCrate;
-            ConfigToEdit.creepvineLights.Value = config.creepvineLights;
-            config.configSettingsCopied = true;
-            configB.Save();
-        }
-         
         public static void LoadedGameSetup()
         {
+            if (ConfigToEdit.cantScanExosuitClawArm.Value)
+                Player_Patches.DisableExosuitClawArmScan();
+
             if (ConfigToEdit.fixMelons.Value)
                 CraftData.itemSizes[TechType.MelonPlant] = new Vector2int(2, 2);
 
@@ -321,12 +173,10 @@ namespace Tweaks_Fixes
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             LanguageHandler.RegisterLocalizationFolder();
-            //ParseFromConfig();
+            ParseFromConfig();
             GetLoadedMods();
-            CopyConfigSettings();
-            //Escape_Pod_Patch.ParseNewGameLoot();
-            if (ConfigToEdit.cantScanExosuitClawArm.Value)
-                Player_Patches.DisableExosuitClawArmScan();
+            ConfigToEdit.ParseFromConfig();
+
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
