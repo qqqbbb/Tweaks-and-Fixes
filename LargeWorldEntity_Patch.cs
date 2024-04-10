@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -13,8 +14,12 @@ namespace Tweaks_Fixes
         public static HashSet<TechType> removeLight = new HashSet<TechType> { };
         public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
+        public static Dictionary<TechType, int> techTypesToDespawn = new Dictionary<TechType, int> { };
+        static HashSet<TechType> plantSurfaces = new HashSet<TechType> {TechType.BloodRoot, TechType.BloodOil, TechType.BloodVine, TechType.BluePalm, TechType.KooshChunk, TechType.HugeKoosh, TechType.LargeKoosh, TechType.MediumKoosh, TechType.SmallKoosh, TechType.BulboTreePiece, TechType.BulboTree, TechType.PurpleBranches, TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.AcidMushroom, TechType.WhiteMushroom, TechType.EyesPlant, TechType.FernPalm, TechType.RedRollPlant, TechType.GabeSFeather, TechType.RedGreenTentacle, TechType.JellyPlant, TechType.OrangeMushroom, TechType.SnakeMushroom, TechType.OrangePetalsPlant, TechType.SpikePlant, TechType.MembrainTree, TechType.Melon, TechType.SmallMelon, TechType.MelonPlant, TechType
+        .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
+        static HashSet<string> plantsWithNoTechtype = new HashSet<string> { "Coral_reef_small_deco_03(Clone)", "Coral_reef_small_deco_05(Clone)", "Coral_reef_small_deco_08(Clone)" };
 
-        public static void AlwaysUseHiPolyMesh(GameObject go, TechType techType = TechType.None)
+        public static void ForceBestLODmesh(GameObject go, TechType techType = TechType.None)
         {
             if (!ConfigToEdit.tweaksAffectingGPU.Value)
                 return;
@@ -65,6 +70,13 @@ namespace Tweaks_Fixes
                 UnityEngine.Object.Destroy(lm);
         }
 
+        private static void RemoveLivemixin(Component component)
+        {
+            LiveMixin lm = component.GetComponent<LiveMixin>();
+            if (lm)
+                UnityEngine.Object.Destroy(lm);
+        }
+
         public static void DisableWavingShader(LargeWorldEntity __instance)
         {
             foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
@@ -75,6 +87,71 @@ namespace Tweaks_Fixes
                     m.DisableKeyword("UWE_WAVING");
                 }
             }
+        }
+
+
+        //[HarmonyPatch(typeof(UniqueIdentifier), "Awake")]
+        class UniqueIdentifier_Awake_patch
+        {
+            public static bool Prefix(UniqueIdentifier __instance)
+            {
+                //if (!Main.gameLoaded)
+                //    return true;
+                
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (!techTypesToDespawn.ContainsKey(tt))
+                    return true;
+
+                //Main.logger.LogMessage("UniqueIdentifier Awake " + tt + " pi.id " + __instance.id);
+                string currentSlot = SaveLoadManager.main.currentSlot;
+
+                //if (Main.config.objectsSurvivedDespawn.ContainsKey(currentSlot) && Main.config.objectsSurvivedDespawn[currentSlot].Contains(__instance.id))
+                //{
+                //    Main.logger.LogMessage("UniqueIdentifier objectsSurvidedDespawn " + tt + " pi.id " + __instance.id);
+                //    return true;
+                //}
+                //if (Main.config.objectsDespawned.Contains(__instance.id))
+                //{
+                //    Main.logger.LogMessage("UniqueIdentifier objectsDespawned " + tt + " pi.id " + __instance.id);
+                //    return true;
+                //}
+                //int rnd = Main.rndm.Next(0, 101);
+                //if (techTypesToDespawn[tt] >= rnd)
+                //{
+                    //Main.logger.LogMessage("Destroy UniqueIdentifier " + tt);
+                    //Main.config.objectsDespawned.Add(__instance.id);
+                    //UnityEngine.Object.Destroy(__instance.gameObject);
+                    //return false;
+                //}
+                //else
+                //{
+                //    if (String.IsNullOrEmpty(__instance.id))
+                //    {
+                //        int x = (int)__instance.transform.position.x;
+                //        int y = (int)__instance.transform.position.y;
+                //        int z = (int)__instance.transform.position.z;
+                //        Main.logger.LogMessage("UniqueIdentifier Awake null pi.id " + tt + " " + x + " " + y + " " + z);
+                //        return true;
+                //    }
+                //    Main.logger.LogMessage("save UniqueIdentifier " + tt + " PrefabIdentifier " + __instance.id);
+                //    if (Main.config.objectsSurvivedDespawn.ContainsKey(currentSlot))
+                //        Main.config.objectsSurvivedDespawn[currentSlot].Add(__instance.id);
+                //    else
+                //        Main.config.objectsSurvivedDespawn[currentSlot] = new HashSet<string> { __instance.id };
+                //}
+                return true;
+            }
+        }
+
+        static IEnumerator Despawn(PrefabIdentifier prefabIdentifier)
+        {
+            //AddDebug("Test start ");
+            //Main.Log("Test start ");
+            while (string.IsNullOrEmpty(prefabIdentifier.id))
+                yield return null;
+
+            AddDebug("Test end !!! ");
+            Main.logger.LogMessage("Test end !!! ");
         }
 
         [HarmonyPatch(typeof(LargeWorldEntity))]
@@ -88,8 +165,11 @@ namespace Tweaks_Fixes
                 //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
                 //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
-
-                if(tt == TechType.BigCoralTubes)
+                if (plantSurfaces.Contains(tt))
+                {
+                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+                }
+                if (tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
@@ -108,17 +188,6 @@ namespace Tweaks_Fixes
                     }
                     //86.651 -33.781 -334.973
                 }
-                //else if (tt == TechType.MembrainTree)
-                //{
-                    //if (__instance.transform.parent == null)
-                    //    return; // has just grown in planter  
-                    //else if (__instance.GetComponent<GrownPlant>())
-                    //    return; // spawned in planter
-                                //AddDebug(" fix  MembrainTree " + __instance.name);
-
-                    //AlwaysUseHiPolyMesh(__instance.gameObject);
-                    //model / Coral_reef_membrain_tree_01_25
-                //}
                 //else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
                 //else if (tt == TechType.BluePalm && __instance.name == "coral_reef_plant_small_01_03(Clone)")
@@ -146,12 +215,14 @@ namespace Tweaks_Fixes
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
                 else if (tt == TechType.BloodRoot || tt == TechType.BloodVine)
                 {
+                    if (tt == TechType.BloodVine)
+                        RemoveLivemixin(__instance);
+                    
                     if (Main.config.fruitGrowTime > 0)
                         Util.EnsureFruits(__instance.gameObject);
                 }
                 else if (tt == TechType.Creepvine)
                 {
-                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
                     if (Main.config.fruitGrowTime > 0)
                         Util.EnsureFruits(__instance.gameObject);
                 }
@@ -173,6 +244,7 @@ namespace Tweaks_Fixes
                 else if (tt == TechType.SnakeMushroom)
                 {
                     SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                    //RemoveLivemixing(__instance);
                 }
                 else if (tt == TechType.FloatingStone) // ?
                 {
@@ -194,23 +266,35 @@ namespace Tweaks_Fixes
                 else if (tt == TechType.SpikePlant)
                 {
                     MakeImmuneToCannon(__instance.gameObject);
-                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+                }
+                else if (tt == TechType.PurpleFan) // veined nettle
+                { // disable collision, allow scanning
+                    BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
+                    bc.gameObject.layer = LayerID.Useable;
+                    bc.isTrigger  = true;
+                }
+                else if (tt == TechType.PurpleTentacle) // writhing weed
+                { // disable collision, allow scanning
+                    BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
+                    bc.gameObject.layer = LayerID.Useable;
+                    bc.isTrigger = true;
+                    bc.size = new Vector3(bc.size.x, bc.size.y, bc.size.z * 3);
                 }
                 else if (tt == TechType.None)
                 {
-                    if (__instance.GetComponent<StoreInformationIdentifier>() && Main.config.biomesRemoveLight.Contains(Player.main.GetBiomeString()))
-                    {
-                        Light light = __instance.GetComponent<Light>();
-                        if (light && light.enabled && __instance.transform.childCount == 0)
-                            light.enabled = false;
-                    }
+                    //if (__instance.GetComponent<StoreInformationIdentifier>() && Main.config.biomesRemoveLight.Contains(Player.main.GetBiomeString()))
+                    //{
+                    //    Light light = __instance.GetComponent<Light>();
+                    //    if (light && light.enabled && __instance.transform.childCount == 0)
+                    //        light.enabled = false;
+                    //}
                     //else if (__instance.name == "coral_reef_small_deco_12(Clone)")
                     //    AlwaysUseHiPolyMesh(__instance.gameObject);
                     //else if (__instance.name == "Coral_reef_ball_clusters_01_Light(Clone)")
                     //    AlwaysUseHiPolyMesh(__instance.gameObject);
-                    else if (__instance.name == "Land_tree_01(Clone)")
+                    if (__instance.name == "Land_tree_01(Clone)")
                     {
-                        AlwaysUseHiPolyMesh(__instance.gameObject);
+                        ForceBestLODmesh(__instance.gameObject);
                         foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
                         {
                             foreach (Material m in mr.materials)
@@ -230,12 +314,17 @@ namespace Tweaks_Fixes
                     {
                         AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
                     }
-                    //else if (__instance.name == "Coral_reef_small_deco_03(Clone)")
-                    //{ // short purple plant
-                    //    BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
-                    //    if (bc)
-                    //        UnityEngine.Object.Destroy(bc);
-                    //}
+                    else if (plantsWithNoTechtype.Contains(__instance.name))
+                    { 
+                        BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
+                        if (bc)
+                        {
+                            bc.isTrigger = true;
+                            bc.gameObject.layer = LayerID.Useable;
+                        }
+                        AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+                    }
+                    return;
                 }
                 //else if (tt.ToString() == "TF_Stone")
                 //{
@@ -253,37 +342,55 @@ namespace Tweaks_Fixes
                 {
                     Util.MakeDrinkable(__instance.gameObject, eatableWaterValue[tt]);
                 }
-                if (removeLight.Contains(tt))
-                {
-                    MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
-                    foreach (MeshRenderer mr in mrs)
-                    {
-                        if (mr.GetComponentInParent<ChildObjectIdentifier>())
-                            continue; // skip fruits
+                //if (removeLight.Contains(tt))
+                //{
+                //    MeshRenderer[] mrs = __instance.GetComponentsInChildren<MeshRenderer>();
+                //    foreach (MeshRenderer mr in mrs)
+                //    {
+                //        if (mr.GetComponentInParent<ChildObjectIdentifier>())
+                //            continue; // skip fruits
 
-                        foreach (Material m in mr.materials)
-                        {
-                            m.DisableKeyword("MARMO_EMISSION");
-                            //m.DisableKeyword("MARMO_SPECMAP"); 
-                        }
-                    }
-                    //AddDebug(__instance.name + " removeLight ");
-                    Light[] lights = __instance.GetComponentsInChildren<Light>();
-                    foreach (Light l in lights)
-                        l.enabled = false;
-                }
+                //        foreach (Material m in mr.materials)
+                //        {
+                //            m.DisableKeyword("MARMO_EMISSION");
+                //            //m.DisableKeyword("MARMO_SPECMAP"); 
+                //        }
+                //    }
+                //    //AddDebug(__instance.name + " removeLight ");
+                //    Light[] lights = __instance.GetComponentsInChildren<Light>();
+                //    foreach (Light l in lights)
+                //        l.enabled = false;
+                //}
+
             }
 
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             public static void StartPostfix(LargeWorldEntity __instance)
             {
-                if (__instance.transform.position.y < 1f && __instance.name.StartsWith("FloatingStone") && !__instance.name.EndsWith("Floaters(Clone)"))
+                //TechType tt = CraftData.GetTechType(__instance.gameObject);
+
+                //if (techTypesToDespawn.ContainsKey(tt))
+                //{
+                //PrefabIdentifier pi = __instance.GetComponent<PrefabIdentifier>();
+                //if (Main.gameLoaded && pi && string.IsNullOrEmpty(pi.id))
+                //{
+                //    Main.logger.LogMessage("LargeWorldEntity Start null pi.id " + __instance.name);
+                //    if (Testing.prefabIdentifier == null)
+                //    {
+                //        AddDebug("LargeWorldEntity Start null pi.id " + __instance.name);
+                //        Testing.prefabIdentifier = pi;
+                //        UWE.CoroutineHost.StartCoroutine(Test(pi));
+                //    }
+                //    return;
+                //}
+                //}
+                if (__instance.transform.position.y < 1f && __instance.name.StartsWith("FloatingStone") && !__instance.name.EndsWith("Floaters(Clone)")) // -6 -13
                 //if (__instance.name.StartsWith("FloatingStone"))
-                {
-                  //Floater[] floaters = __instance.GetAllComponentsInChildren<Floater>();
-                  //if (floaters.Length == 0)
-                  //if (__instance.transform.position.y < 1f && __instance.GetComponent<FloatersTarget>() == null)
+                {// make boulders that block cave entrances not fall down when world chunk unloads
+                 //Floater[] floaters = __instance.GetAllComponentsInChildren<Floater>();
+                 //if (floaters.Length == 0)
+                 //if (__instance.transform.position.y < 1f && __instance.GetComponent<FloatersTarget>() == null)
                     {
                         //Rigidbody rb = __instance.GetComponent<Rigidbody>();
                         //if (rb)
@@ -300,38 +407,20 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("UpdateCell")]
-            static void UpdateCellPostfix(LargeWorldEntity __instance, LargeWorldStreamer streamer)
-            { // make boulders that block cave entrances not fall down when world chunk unloads
-                if (!__instance.name.StartsWith("FloatingStone"))
-                    return;
-
-                Rigidbody rb = __instance.GetComponent<Rigidbody>();
-                if (rb == null)
-                    return;
-
-                float dist = Vector3.Distance(__instance.transform.position, MainCamera.camera.transform.position);
-                //if (rb && Testing.rbToTest == rb)
-                //    AddDebug("FloatingStone UpdateCell isKinematic " + rb.isKinematic + " " + dist);
-
-                //rb.isKinematic = dist > Main.config.detectCollisionsDist;
-            }
-
             [HarmonyPrefix]
             [HarmonyPatch("StartFading")]
             public static bool StartFadingPrefix(LargeWorldEntity __instance)
             {
                 if (!Main.gameLoaded)
                     return false;
-
+                //AddDebug("StartFading " + __instance.name);
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (tt == TechType.Titanium || tt == TechType.Copper || tt == TechType.Silver || tt == TechType.Gold || tt == TechType.Lead || tt == TechType.Diamond || tt == TechType.Lithium)
+                if (tt == TechType.Titanium || tt == TechType.Copper || tt == TechType.Silver || tt == TechType.Gold || tt == TechType.Lead || tt == TechType.Diamond || tt == TechType.Lithium || tt == TechType.JeweledDiskPiece)
                 {
-                    //AddDebug("StartFading " + __instance.name);
+              
                     return false;
                 }
-                if (Creature_Tweaks.pickupShinies.TryGetValue(__instance.gameObject, out string s))
+                if (Creature_Tweaks.pickupShinies.Contains(__instance.gameObject))
                 {
                     //AddDebug("StartFading pickupShinies " + __instance.name);
                     return false;

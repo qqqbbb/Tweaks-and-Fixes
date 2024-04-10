@@ -36,20 +36,29 @@ namespace Tweaks_Fixes
     {
         public static bool Prefix(BreakableResource __instance)
         {
-            //AddDebug("BreakableResource OnHandHover");
-            //if (Player.main.inExosuit)
-            //{
-            //    HandReticle.main.SetInteractText(__instance.breakText);
-            //    return false;
-            //}
-            //if (__instance.GetComponent<LiveMixin>() != null)
-            //    AddDebug("BreakableResource LiveMixin");
-             if (!Main.config.noBreakingWithHand)
+            Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
+            if (!Main.config.noBreakingWithHand && exosuit == null)
                 return true;
 
-             Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
-             if (exosuit && exosuit.HasClaw())
-                 return true;
+            if (exosuit && !exosuit.HasClaw())
+                return false;
+
+            if (exosuit)
+            {
+                //AddDebug("leftArmType " + exosuit.leftArmType);
+                //AddDebug("rightArmType " + exosuit.rightArmType);
+                GameInput.Button button;
+                if (exosuit.leftArmType == TechType.ExosuitClawArmModule)
+                    button = GameInput.Button.LeftHand;
+                else
+                    button = GameInput.Button.RightHand;
+
+                HandReticle.main.SetText(HandReticle.TextType.Hand, __instance.breakText, true, button);
+                //HandReticle.main.SetIcon(HandReticle.IconType.Hand);
+                return false;
+            }
+            if (!Main.config.noBreakingWithHand)
+                return true;
 
             if (!ConfigToEdit.newUIstrings.Value)
                 return false;
@@ -59,11 +68,6 @@ namespace Tweaks_Fixes
             {
                 //HandReticle.main.SetInteractText(__instance.breakText);
                 HandReticle.main.SetText(HandReticle.TextType.Hand, __instance.breakText, true, GameInput.Button.LeftHand);
-                //if (GameInput.GetButtonDown(GameInput.Button.RightHand))
-                //{
-                //    __instance.BreakIntoResources();
-                //    AddDebug("RightHand");
-                //}
             }
             else
                 HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_outcrop"));
@@ -104,7 +108,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandHover")]
         public static void PickupableOnHandHover(Pickupable __instance)
         {
-            if ( ConfigToEdit.newUIstrings.Value && !__instance.AllowedToPickUp() && __instance.GetTechType() != TechType.CyclopsDecoy)
+            if (Main.config.noBreakingWithHand && !__instance.AllowedToPickUp() && Main.config.notPickupableResources.Contains(__instance.GetTechType()))
             {
                 HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource"));
             }

@@ -10,11 +10,13 @@ namespace Tweaks_Fixes
     class Creature_Tweaks
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
-        public static ConditionalWeakTable<GameObject, string> pickupShinies = new ConditionalWeakTable<GameObject, string>();
+        public static HashSet<GameObject> pickupShinies = new HashSet<GameObject>();
         public static ConditionalWeakTable<GameObject, Rigidbody> objectsRBs = new ConditionalWeakTable<GameObject, Rigidbody>();
+        public static HashSet<TechType> notRespawningCreatures;
+        public static HashSet<TechType> notRespawningCreaturesIfKilledByPlayer;
+        public static Dictionary<TechType, int> respawnTime = new Dictionary<TechType, int>();
 
-        
-       [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
+        [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
             public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
@@ -185,39 +187,24 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CreatureDeath))]
         class CreatureDeath_Patch
         {
+
+            //static HashSet<TechType> creatureDeaths = new HashSet<TechType>();
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             static void StartPostfix(CreatureDeath __instance)
             {
-                if (__instance.GetComponent<Pickupable>()) // fish
-                {
-                    __instance.respawn = ConfigToEdit.fishRespawn.Value;
-                    __instance.respawnOnlyIfKilledByCreature = !ConfigToEdit.fishRespawnIfKilledByPlayer.Value;
-                    if (Main.config.fishRespawnTime > 0)
-                        __instance.respawnInterval = Main.config.fishRespawnTime * 1200f;
-
-                    return;
-                }
-                //AddDebug(__instance.name + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
-                //AddDebug(__instance.name + " respawn " + __instance.respawn);
-                LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
-                if (!liveMixin)
-                    return;
-
-                if (liveMixin.maxHealth >= 3000f) // Leviathan
-                {
-                    __instance.respawn = ConfigToEdit.leviathansRespawn.Value;
-                    __instance.respawnOnlyIfKilledByCreature = !ConfigToEdit.leviathansRespawnIfKilledByPlayer.Value;
-                    if (Main.config.leviathanRespawnTime > 0)
-                        __instance.respawnInterval = Main.config.leviathanRespawnTime * 1200f;
-                }
-                else
-                {
-                    __instance.respawn = ConfigToEdit.creaturesRespawn.Value;
-                    __instance.respawnOnlyIfKilledByCreature = !ConfigToEdit.creaturesRespawnIfKilledByPlayer.Value;
-                    if (Main.config.creatureRespawnTime > 0)
-                        __instance.respawnInterval = Main.config.creatureRespawnTime * 1200f;
-                }
+                TechType techType = CraftData.GetTechType(__instance.gameObject);
+                //if (!creatureDeaths.Contains(techType))
+                //{
+                //    creatureDeaths.Add(techType);
+                //    Main.logger.LogMessage("CreatureDeath " + techType + " respawns " + __instance.respawn + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature + " respawnInterval " + __instance.respawnInterval);
+                //}
+                __instance.respawn = !notRespawningCreatures.Contains(techType);
+                __instance.respawnOnlyIfKilledByCreature = notRespawningCreaturesIfKilledByPlayer.Contains(techType);
+                //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawn " + __instance.respawn);
+                //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
+                if (respawnTime.ContainsKey(techType))
+                    __instance.respawnInterval = respawnTime[techType] * Main.dayLengthSeconds;
             }
             [HarmonyPostfix]
             [HarmonyPatch("OnTakeDamage")]
@@ -340,6 +327,14 @@ namespace Tweaks_Fixes
                             return;
                         }
                     }
+                    Rigidbody rigidbody = __instance.GetComponent<Rigidbody>();
+                    foreach (Rigidbody rb in Tools_Patch.stasisTargets)
+                    {
+                        if (rigidbody == rb)
+                        {
+                            __result = true;
+                        }
+                    }
                 }
 
             }
@@ -442,7 +437,8 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                pickupShinies.Add(__instance.shinyTarget, null);
+                //AddDebug("save shiny " + __instance.shinyTarget);
+                pickupShinies.Add(__instance.shinyTarget);
                 __instance.SendMessage("OnShinyPickUp", __instance.shinyTarget, SendMessageOptions.DontRequireReceiver);
                 __instance.shinyTarget.gameObject.SendMessage("OnShinyPickUp", __instance.gameObject, SendMessageOptions.DontRequireReceiver);
                 UWE.Utils.SetCollidersEnabled(__instance.shinyTarget, false);
@@ -478,7 +474,7 @@ namespace Tweaks_Fixes
                 //TechType tt = CraftData.GetTechType(targetGO);
                 //if (tt == TechType.ScrapMetal)
                 //    __result = false;
-                if (pickupShinies.TryGetValue(targetGO, out string s))
+                if (pickupShinies.Contains(targetGO))
                 {
                     //AddDebug("IsTargetValid pickupShinies " + targetGO.name);
                     __result = false;
@@ -565,15 +561,10 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CuteFishHandTarget), "AllowedToInteract")]
-        class CuteFishHandTarget_AllowedToInteract_patch
-        {
-            public static void Postfix(CuteFishHandTarget __instance, ref bool __result)
-            {
-                if (!Player.main.IsSwimming())
-                    __result = false;
-            }
-        }
+
+   
+        
+
 
 
     }

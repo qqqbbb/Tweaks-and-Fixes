@@ -11,7 +11,6 @@ namespace Tweaks_Fixes
     class UI_Patches
     {
         static bool textInput = false;
-        //static bool fishTooltip = false;
         static bool chargerOpen = false;
         //static List <TechType> landPlantSeeds = new List<TechType> { TechType.BulboTreePiece, TechType.PurpleVegetable, TechType.FernPalmSeed, TechType.OrangePetalsPlantSeed, TechType.HangingFruit, TechType.MelonSeed, TechType.PurpleVasePlantSeed, TechType.PinkMushroomSpore, TechType.PurpleRattleSpore, TechType.PinkFlowerSeed };
         //static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.AcidMushroomSpore, TechType.BloodOil, TechType.BluePalmSeed, TechType.KooshChunk, TechType.PurpleBranchesSeed, TechType.WhiteMushroomSpore, TechType.EyesPlantSeed, TechType.RedRollPlantSeed, TechType.GabeSFeatherSeed, TechType.JellyPlantSeed, TechType.RedGreenTentacleSeed, TechType.SnakeMushroomSpore, TechType.MembrainTreeSeed, TechType.SmallFanSeed, TechType.RedBushSeed, TechType.RedConePlantSeed, TechType.RedBasketPlantSeed, TechType.SeaCrownSeed, TechType.ShellGrassSeed, TechType.SpottedLeavesPlantSeed, TechType.SpikePlantSeed, TechType.PurpleFanSeed, TechType.PurpleStalkSeed, TechType.PurpleTentacleSeed };
@@ -53,8 +52,9 @@ namespace Tweaks_Fixes
         static public string seamothName = string.Empty;
         static public string pushSeamothString = string.Empty;
         static public string changeTorpedoString = string.Empty;
+        static public string toggleBaseLightsString = string.Empty;
 
-
+        
 
         static void GetStrings()
         {
@@ -96,9 +96,17 @@ namespace Tweaks_Fixes
             seamothLightsButton = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.RightHand);
             seamothName = Language.main.Get(TechType.Seamoth);
             pushSeamothString = Language.main.Get("TF_push_seamoth") + seamothName;
+            toggleBaseLightsString = Language.main.Get("TF_toggle_base_lights") + " (" + deconstructButton + ")";
             Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
             if (exosuit)
                 Exosuit_Patch.GetArmNames(exosuit);
+        }
+
+        private static void HandleBaseLights(SubRoot subRoot)
+        {
+            HandReticle.main.SetTextRaw(HandReticle.TextType.Use, toggleBaseLightsString);
+            if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                Base_Patch.ToggleBaseLight(subRoot);
         }
 
         [HarmonyPatch(typeof(Aquarium), "Start")]
@@ -363,13 +371,7 @@ namespace Tweaks_Fixes
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
                     {
-                        StringBuilder sb = new StringBuilder(Language.main.Get("TF_toggle_base_lights"));
-                        sb.Append(" (");
-                        sb.Append(deconstructButton);
-                        sb.Append(")");
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, sb.ToString());
-                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                            Base_Patch.ToggleBaseLight(subRoot);
+                        HandleBaseLights(subRoot);
                     }
                 }
                 if (!__instance.activeTarget)
@@ -413,6 +415,8 @@ namespace Tweaks_Fixes
                     HandReticle.main.SetText(HandReticle.TextType.Hand, sb.ToString(), false);
                 }
             }
+
+
         }
 
         [HarmonyPatch(typeof(uGUI_MainMenu), "Update")]
@@ -555,59 +559,56 @@ namespace Tweaks_Fixes
                         if (!string.IsNullOrEmpty(secondaryTooltip))
                             name = Language.main.GetFormat<string, string>("DecomposingFormat", secondaryTooltip, name);
                         TooltipFactory.WriteTitle(sb, name);
-                        TooltipFactory.WriteDebug(sb, techType);
-                        if (GameModeUtils.RequiresSurvival())
+                        //TooltipFactory.WriteDebug(sb, techType);
+                        int foodValue = Mathf.CeilToInt(eatable.GetFoodValue());
+                        if (foodValue != 0)
                         {
-                            int foodValue = Mathf.CeilToInt(eatable.GetFoodValue());
-                            if (foodValue != 0)
-                            {
-                                string food = Language.main.GetFormat<int>("FoodFormat", foodValue);
-                                int index = -1;
-                                if (foodValue < 0)
-                                    index = food.LastIndexOf('-');
-                                else
-                                    index = food.LastIndexOf('+');
+                            string food = Language.main.GetFormat<int>("FoodFormat", foodValue);
+                            int index = -1;
+                            if (foodValue < 0)
+                                index = food.LastIndexOf('-');
+                            else
+                                index = food.LastIndexOf('+');
 
-                                if (index != -1)
-                                {
-                                    if (foodValue > 0)
-                                    {
-                                        if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
-                                            food = food.Substring(0, index) + "≈ 0";
-                                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
-                                            food = food.Substring(0, index) + "≈ " + Mathf.CeilToInt(foodValue * .5f);
-                                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
-                                            food = food.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(foodValue * .5f));
-                                    }
-                                    //AddDebug("food  " + food);
-                                }
-                                TooltipFactory.WriteDescription(sb, food);
-                            }
-                            int waterValue = Mathf.CeilToInt(eatable.GetWaterValue());
-                            if (waterValue != 0)
+                            if (index != -1)
                             {
-                                string water = Language.main.GetFormat<int>("WaterFormat", waterValue);
-                                int index = -1;
-                                if (waterValue < 0)
-                                    index = water.LastIndexOf('-');
-                                else
-                                    index = water.LastIndexOf('+');
-
-                                if (index != -1)
+                                if (foodValue > 0)
                                 {
-                                    if (waterValue > 0)
-                                    {
-                                        if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
-                                            water = water.Substring(0, index) + "≈ 0";
-                                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
-                                            water = water.Substring(0, index) + "≈ " + Mathf.CeilToInt(waterValue * .5f);
-                                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
-                                            water = water.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(waterValue * .5f));
-                                    }
-                                    //AddDebug("water  " + water);
+                                    if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                                        food = food.Substring(0, index) + "≈ 0";
+                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                                        food = food.Substring(0, index) + "≈ " + Mathf.CeilToInt(foodValue * .5f);
+                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                                        food = food.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(foodValue * .5f));
                                 }
-                                TooltipFactory.WriteDescription(sb, water);
+                                //AddDebug("food  " + food);
                             }
+                            TooltipFactory.WriteDescription(sb, food);
+                        }
+                        int waterValue = Mathf.CeilToInt(eatable.GetWaterValue());
+                        if (waterValue != 0)
+                        {
+                            string water = Language.main.GetFormat<int>("WaterFormat", waterValue);
+                            int index = -1;
+                            if (waterValue < 0)
+                                index = water.LastIndexOf('-');
+                            else
+                                index = water.LastIndexOf('+');
+
+                            if (index != -1)
+                            {
+                                if (waterValue > 0)
+                                {
+                                    if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                                        water = water.Substring(0, index) + "≈ 0";
+                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                                        water = water.Substring(0, index) + "≈ " + Mathf.CeilToInt(waterValue * .5f);
+                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                                        water = water.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(waterValue * .5f));
+                                }
+                                //AddDebug("water  " + water);
+                            }
+                            TooltipFactory.WriteDescription(sb, water);
                         }
                         TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
 

@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(VFXVolumetricLight __instance)
             {
-                if (__instance.transform.parent.name == "DataboxLight(Clone)" || __instance.transform.parent.name == "DataboxLight_small(Clone)")
+                if (__instance.transform.parent.name.StartsWith("DataboxLight"))
                 {
                     //Main.Log("VFXVolumetricLight Awake parent " + __instance.transform.parent.name);
                     databoxLights.Add(__instance.transform.parent.gameObject);

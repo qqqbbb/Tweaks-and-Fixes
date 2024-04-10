@@ -34,7 +34,7 @@ namespace Tweaks_Fixes
                 }
                 else if (name == "GrowingMembrainTree(Clone)")
                 {   //  all LOD meshes look the same, render distance is too small
-                    LargeWorldEntity_Patch.AlwaysUseHiPolyMesh(__instance.gameObject);
+                    LargeWorldEntity_Patch.ForceBestLODmesh(__instance.gameObject);
                 }
             }
 
@@ -84,7 +84,7 @@ namespace Tweaks_Fixes
                 {
                     __instance.fruitSpawnEnabled = true;
                     // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-                    __instance.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
+                    __instance.fruitSpawnInterval = Main.config.fruitGrowTime * Main.dayLengthSeconds;
                 }
             }
             //[HarmonyPrefix]

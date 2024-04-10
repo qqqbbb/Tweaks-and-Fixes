@@ -15,6 +15,7 @@ namespace Tweaks_Fixes
 {
     public static class Util
     {
+
         public static bool GetTarget(Vector3 startPos, Vector3 dir, float distance, out RaycastHit hitInfo)
         {
             //return Physics.Raycast(startPos, dir, out hitInfo, distance, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore);
@@ -276,7 +277,7 @@ namespace Tweaks_Fixes
             fp.fruitSpawnEnabled = true;
             //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
             // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-            fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
+            fp.fruitSpawnInterval = Main.config.fruitGrowTime * Main.dayLengthSeconds;
             //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
             if (fp.fruitSpawnInterval == 0f)
                 fp.fruitSpawnInterval = 1f;

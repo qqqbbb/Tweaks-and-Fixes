@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.04.02";
+            VERSION = "3.05.04";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
         public static bool exosuitTorpedoDisplayLoaded = false; // not updated
         public static bool torpedoImprovementsLoaded = false;
         static string configPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
-
+        public const float dayLengthSeconds = 1200f;
 
         public static Config config = OptionsPanelHandler.RegisterModOptions<Config>();
         
@@ -76,6 +76,7 @@ namespace Tweaks_Fixes
             Battery_Patch.subPowerRelays.Clear();
             Coffee_Patch.spawnedCoffeeTime.Clear();
             UI_Patches.planters.Clear();
+            Creature_Tweaks.pickupShinies.Clear();
             //Tools_Patch.seaglideLightsLoaded = false;
             config.Load();
         }
@@ -132,6 +133,7 @@ namespace Tweaks_Fixes
                 config.openedWreckDoors.Remove(slotName);
                 config.lockerNames.Remove(slotName);
                 config.baseLights.Remove(slotName);
+                //config.objectsSurvidedDespawn.Remove(slotName);
                 config.Save();
             }
 

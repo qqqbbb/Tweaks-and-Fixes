@@ -20,25 +20,164 @@ namespace Tweaks_Fixes
     class Testing
     {
         public static GameObject storedGO;
+        public static PrefabIdentifier prefabIdentifier;
 
-
-        //[HarmonyPatch(typeof(LEDLight), "OnProtoDeserialize")] 
-        class EnergyMixin_SpawnDefaultAsync_Patch
+        static bool GetScanTarget(float distance, out GameObject result)
         {
-            static void Prefix(LEDLight __instance)
+
+            bool flag = false;
+            Transform transform = MainCamera.camera.transform;
+            Vector3 position = transform.position;
+            Vector3 forward = transform.forward;
+            Ray ray = new Ray(position, forward);
+            int layerMask = ~(1 << LayerID.OnlyVehicle);
+            int numHits = UWE.Utils.RaycastIntoSharedBuffer(ray, distance, layerMask, QueryTriggerInteraction.Collide);
+            //DebugTargetConsoleCommand.radius = -1f;
+            RaycastHit resultHit = new RaycastHit();
+            AddDebug("GetScanTarget numHits1 " + numHits);
+
+            //if (Targeting.Filter(UWE.Utils.sharedHitBuffer, numHits1, out resultHit))
+            //    flag = true;
+            for (int index1 = 0; index1 < numHits; ++index1)
             {
-                Main.logger.LogMessage("LEDLight OnProtoDeserialize ");
-                AddDebug("LEDLight OnProtoDeserialize ");
-                EnergyMixin energyMixin = __instance.gameObject.EnsureComponent<EnergyMixin>();
-                //AddDebug("LEDLight OnProtoDeserialize ");
+                RaycastHit hit = UWE.Utils.sharedHitBuffer[index1];
+                Collider collider = hit.collider;
+                if (collider == null)
+                    continue;
+
+                GameObject gameObject = collider.gameObject;
+                Transform transform1 = collider.transform;
+                if (gameObject == null || transform1 == null)
+                    continue;
+
+                int layer = gameObject.layer;
+                //Transform transform2 = null;
+                bool next = false;
+                for (int index2 = 0; index2 < Targeting.ignoreList.Count; ++index2)
+                {
+                    Transform ignore = Targeting.ignoreList[index2];
+                    if (transform1.IsAncestorOf(ignore))
+                    {
+                        //transform2 = ignore;
+                        next = true;
+                        break;
+                    }
+                }
+                if (next)
+                    continue;
+
+                //if (transform2 == null)
+                if (resultHit.collider == null || hit.distance < resultHit.distance)
+                    resultHit = hit;
+                
+            }
+            if (resultHit.collider != null)
+            {
+                GameObject go = Util.GetEntityRoot(resultHit.collider.gameObject);
+                AddDebug("GetScanTarget resultHit " + go.name);
+            }
+
+
+            //if (!flag)
+            //{
+            //    foreach (float radius in GameInput.IsPrimaryDeviceGamepad() ? Targeting.gamepadRadiuses : Targeting.standardRadiuses)
+            //    {
+            //        DebugTargetConsoleCommand.radius = radius;
+            //        ray.origin = position + forward * radius;
+            //        int numHits2 = UWE.Utils.SpherecastIntoSharedBuffer(ray, radius, distance, layerMask, queryTriggerInteraction);
+            //        if (Targeting.Filter(UWE.Utils.sharedHitBuffer, numHits2, out resultHit))
+            //        {
+            //            flag = true;
+            //            break;
+            //        }
+            //    }
+            //}
+            Targeting.Reset();
+            DebugTargetConsoleCommand.Stop();
+            result = resultHit.collider != null ? resultHit.collider.gameObject : null;
+            distance = resultHit.distance;
+            return flag;
+        }
+
+        public static bool GetTarget(float maxDistance, out GameObject result, out float distance)
+        {
+            bool flag = false;
+            Transform transform = MainCamera.camera.transform;
+            Vector3 position = transform.position;
+            Vector3 forward = transform.forward;
+            Ray ray = new Ray(position, forward);
+            int layerMask = ~(1 << LayerID.Trigger  | 1 << LayerID.OnlyVehicle);
+            QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Collide;
+            int numHits1 = UWE.Utils.RaycastIntoSharedBuffer(ray, maxDistance, layerMask, queryTriggerInteraction);
+            DebugTargetConsoleCommand.radius = -1f;
+            RaycastHit resultHit;
+            if (Targeting.Filter(UWE.Utils.sharedHitBuffer, numHits1, out resultHit))
+                flag = true;
+            if (!flag)
+            {
+                foreach (float radius in GameInput.IsPrimaryDeviceGamepad() ? Targeting.gamepadRadiuses : Targeting.standardRadiuses)
+                {
+                    DebugTargetConsoleCommand.radius = radius;
+                    ray.origin = position + forward * radius;
+                    int numHits2 = UWE.Utils.SpherecastIntoSharedBuffer(ray, radius, maxDistance, layerMask, queryTriggerInteraction);
+                    if (Targeting.Filter(UWE.Utils.sharedHitBuffer, numHits2, out resultHit))
+                    {
+                        flag = true;
+                        break;
+                    }
+                }
+            }
+            Targeting.Reset();
+            DebugTargetConsoleCommand.Stop();
+            result = resultHit.collider != null ? resultHit.collider.gameObject : null;
+            distance = resultHit.distance;
+            return flag;
+        }
+
+        //[HarmonyPatch(typeof(PDAScanner), "UpdateTarget")]
+        class PDAScanner_SpawnDefaultAsync_Patch
+        {
+            static bool Prefix(float distance, bool self)
+            {
+                PDAScanner.ScanTarget scanTarget = new PDAScanner.ScanTarget();
+                scanTarget.Invalidate();
+                GameObject result;
+                if (self)
+                {
+                    result = Player.main != null ? Player.main.gameObject : null;
+                }
+                else
+                {
+                    //AddDebug("PDAScanner_UpdateTarget " );
+                    Targeting.AddToIgnoreList(Player.main.gameObject);
+                    //Targeting.GetTarget(distance, out result, out float _);
+                    GetScanTarget(distance, out result);
+                }
+                scanTarget.Initialize(result);
+                AddDebug("PDAScanner UpdateTarget " + Util.GetEntityRoot(result).name);
+
+                if (PDAScanner.scanTarget.techType == scanTarget.techType && !(PDAScanner.scanTarget.gameObject != scanTarget.gameObject) && !(PDAScanner.scanTarget.uid != scanTarget.uid))
+                    return false;
+
+                if (PDAScanner.scanTarget.isPlayer && PDAScanner.scanTarget.hasUID && PDAScanner.cachedProgress.ContainsKey(PDAScanner.scanTarget.uid))
+                    PDAScanner.cachedProgress[PDAScanner.scanTarget.uid] = 0.0f;
+
+                float num;
+                if (scanTarget.hasUID && PDAScanner.cachedProgress.TryGetValue(scanTarget.uid, out num))
+                    scanTarget.progress = num;
+                PDAScanner.scanTarget = scanTarget;
+                return false;
             }
         }
 
-        //[HarmonyPatch(typeof(Player), "Update")] 
+        //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
+                //AddDebug("GetBiomeString " + Player.main.GetBiomeString());
+                //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(__instance.transform.position));
+                //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
                 //AddDebug("TitaniumClone " + Language.main.Get("TitaniumClone"));
                 //if (Input.GetKey(KeyCode.LeftShift))
                 //    AddDebug("timePassed " + DayNightCycle.main.timePassedAsFloat);
@@ -63,12 +202,14 @@ namespace Tweaks_Fixes
                     int y = Mathf.RoundToInt(Player.main.transform.position.y);
                     int z = Mathf.RoundToInt(Player.main.transform.position.z);
                     //AddDebug(x + " " + y + " " + z);
-                    AddDebug("GetBiomeString " + Player.main.GetBiomeString());
-                    //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(__instance.transform.position)); 
+
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                   
+                    if (Player.main.currentSub)
+                    {
+                        AddDebug("power Status  " + Player.main.currentSub.powerRelay.GetPowerStatus());
+                    }
                     //Main.logger.LogDebug("press C ");
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
@@ -87,9 +228,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    AddDebug("HasRoomFor TechType.None " + Inventory.main.HasRoomFor(TechType.None));
-                    AddDebug("HasRoomFor TechType.Nickel " + Inventory.main.HasRoomFor(TechType.Nickel));
-                    AddDebug("HasRoomFor TechType.NarrowBed " + Inventory.main.HasRoomFor(TechType.NarrowBed));
+                    //AddDebug("techTypesToDespawn Count " + LargeWorldEntity_Patch.techTypesToDespawn.Count());
                     //AddDebug("RightHand " + GameInput.GetBinding(GameInput.Device.Controller, GameInput.Button.RightHand, GameInput.BindingSet.Primary));
                     //AddDebug("LeftHand " + GameInput.GetBinding(GameInput.Device.Controller, GameInput.Button.RightHand, GameInput.BindingSet.Primary));
                     //AddDebug("ControllerLeftTrigger index " + GameInput.GetInputIndex("ControllerLeftTrigger")); // 179
@@ -195,7 +334,7 @@ namespace Tweaks_Fixes
 
                 
                 //AddDebug(" cellLevel " + lwe.cellLevel);
-                //AddDebug("vfxSurfaceType  " + vfxSurfaceType);
+                AddDebug("vfxSurfaceType  " + vfxSurfaceType);
                 //LiveMixin lm = lwe.GetComponent<LiveMixin>();
                 //if (lm)
                 //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);

@@ -23,8 +23,6 @@ namespace Tweaks_Fixes
                 //collider.bounds = col.bounds;
                 //AddDebug("invincibleInCreative " + __instance.invincibleInCreative);
             }
-            VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
-            vFXSurface.surfaceType = VFXSurfaceTypes.vegetation;
         }
     }
 

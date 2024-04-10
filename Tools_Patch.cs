@@ -6,6 +6,7 @@ using static ErrorMessage;
 using System.Collections;
 using UWE;
 using UnityEngine.XR;
+using static UnityEngine.PlayerLoop.PreLateUpdate;
 
 namespace Tweaks_Fixes
 {
@@ -13,8 +14,7 @@ namespace Tweaks_Fixes
     {
         public static Dictionary<TechType, float> lightIntensityStep = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
-        public static bool releasingGrabbedObject = false;
-        public static bool shootingObject = false;
+
         //public static List<GameObject> repCannonGOs = new List<GameObject>();
         //static ToggleLights seaglideLights;
         //static VehicleInterface_MapController seaglideMap;
@@ -248,18 +248,6 @@ namespace Tweaks_Fixes
             }
         }
         
-        [HarmonyPatch(typeof(Constructor), "OnEnable")]
-        class Constructor_OnEnable_Patch
-        {
-            static void Postfix(Constructor __instance)
-            {
-                //AddDebug("OnEnable Constructor ");
-                ImmuneToPropulsioncannon itpc = __instance.GetComponent<ImmuneToPropulsioncannon>();
-                //itpc.enabled = false;
-                if (itpc)
-                    UnityEngine.Object.Destroy(itpc);
-            }
-        }
 
         [HarmonyPatch(typeof(MapRoomCamera))]
         class MapRoomCamera_Patch
@@ -344,6 +332,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(StasisSphere))]
         class StasisSphere_Patch
         {
+            static bool updateFrame;
+            
             private static bool isBigger(StasisSphere stasisSphere, GameObject go)
             {// does not work reliably for boneshark
                 float stasisSphereVolume = UWE.Utils.GetAABBVolume(stasisSphere.gameObject);
@@ -352,9 +342,82 @@ namespace Tweaks_Fixes
                 return volume > stasisSphereVolume;
             }
 
+            //[HarmonyPostfix]
+            //[HarmonyPatch("EnableField")]
+            private static void EnableFieldPostfix(StasisSphere __instance)
+            {
+
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("LateUpdate")]
+            private static bool LateUpdatePrefix(StasisSphere __instance)
+            {
+                //if (!Main.config.stasisRifleTweak)
+                //    return true;
+
+                if (!__instance.fieldEnabled)
+                    return false;
+
+                updateFrame = !updateFrame;
+                if (!updateFrame)
+                    return false;
+                
+                __instance.fieldEnergy -= Time.deltaTime / __instance.time;
+                //AddDebug("fieldEnergy " + __instance.fieldEnergy.ToString("0.00"));
+                float fieldRadius = __instance.fieldRadius;
+                float num1 = fieldRadius * fieldRadius + 4f;
+                if (__instance.fieldEnergy <= 0)
+                {
+                    //AddDebug("CancelAll ");
+                    __instance.fieldEnergy = 0f;
+                    __instance.CancelAll();
+                    FMODUWE.PlayOneShot(__instance.soundDeactivate, __instance.tr.position);
+                }
+                else
+                {
+                    Rigidbody target = null;
+                    List<Rigidbody> rigidbodyList = new List<Rigidbody>();
+                    int num2 = UWE.Utils.OverlapSphereIntoSharedBuffer(__instance.tr.position, fieldRadius, (int)__instance.fieldLayerMask);
+                    for (int index = 0; index < num2; ++index)
+                    {
+                        if (__instance.Freeze(UWE.Utils.sharedColliderBuffer[index], ref target))
+                            rigidbodyList.Add(target);
+                    }
+                    for (int index = __instance.targets.Count - 1; index >= 0; --index)
+                    {
+                        target = __instance.targets[index];
+                        if (target == null || !target.gameObject.activeSelf)
+                        {
+                            __instance.targets.RemoveAt(index);
+                        }
+                        else
+                        {
+                            Pickupable componentInParent = target.GetComponentInParent<Pickupable>();
+                            if (componentInParent != null && componentInParent.attached)
+                                __instance.targets.RemoveAt(index);
+                            else if (!rigidbodyList.Contains(target))
+                            {
+                                Vector3 end = target.ClosestPointOnBounds(__instance.tr.position);
+                                Vector3 vector3 = end - __instance.tr.position;
+                                //Debug.DrawLine(__instance.tr.position, end, Color.red);
+                                if (vector3.sqrMagnitude > num1)
+                                {
+                                    __instance.Unfreeze(target);
+                                    __instance.targets.RemoveAt(index);
+                                }
+                            }
+                        }
+                    }
+                    __instance.tr.localScale = (2f * fieldRadius + 2f) * Vector3.one;
+                    __instance.UpdateMaterials();
+                }
+                return false;
+            }
+
             //[HarmonyPrefix]
             //[HarmonyPatch("LateUpdate")]
-            private static bool LateUpdatePrefix(StasisSphere __instance)
+            private static bool LateUpdatePrefix_OLD(StasisSphere __instance)
             {
                 //if (!Main.config.stasisRifleTweak)
                 //    return true;
@@ -531,6 +594,7 @@ namespace Tweaks_Fixes
             private static void AwakePostfix(StasisSphere __instance)
             {
                 stasisTargets = __instance.targets;
+
             }
         }
 
@@ -604,11 +668,11 @@ namespace Tweaks_Fixes
                 if (XRSettings.enabled || MiscSettings.fieldOfView < 75 || Inventory.main.quickSlots.activeToolName != "seaglide")
                     return true;
 
-                FixedOnUpdate(__instance);
+                HighFOVseaglideOnUpdate(__instance);
                 return false;
             }
 
-            private static void FixedOnUpdate(MainCameraControl __instance)
+            private static void HighFOVseaglideOnUpdate(MainCameraControl __instance)
             {// fix: can see your neck wnen using seaglide and high FOV
                 //AddDebug("MainCameraControl OnUpdate " + Inventory.main.quickSlots.activeToolName);
                 float deltaTime = Time.deltaTime;
@@ -748,8 +812,9 @@ namespace Tweaks_Fixes
             }
         }
 
+
         //[HarmonyPatch(typeof(Inventory), "OnAddItem")]
-        class Inventory_OnAddItem_Patch
+            class Inventory_OnAddItem_Patch
         {
             public static void Postfix(Inventory __instance, InventoryItem item)
             {
@@ -780,99 +845,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(PropulsionCannon))]
-        class PropulsionCannon_Patch
-        {
-            //[HarmonyPatch(nameof(PropulsionCannon.TraceForGrabTarget))]
-            //[HarmonyPrefix]
-            static bool TraceForGrabTargetPrefix(PropulsionCannon __instance, ref GameObject __result)
-            {
-                __result = null;
-                Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
-                if (target == null)
-                {
-                    //AddDebug(" no target");
-                    return false;
-                }
-                UniqueIdentifier ui = target.GetComponentInParent<UniqueIdentifier>();
-                if (ui)
-                    AddDebug("target " + ui.gameObject.name);
-                else
-                {
-                    //AddDebug(target.name + "has no identifier");
-                    return false;
-                }
-                if (ui.gameObject.GetComponent<FruitPlant>())
-                {
-                    //AddDebug("FruitPlant");
-                    return false;
-                }
-                if (!__instance.ValidateObject(ui.gameObject))
-                {
-                    //AddDebug("could not Validate Object");
-                    return false;
-                }
-                if (ui.gameObject.GetComponent<Pickupable>())
-                {
-                    //AddDebug("Pickupable");
-                    __result = target;
-                    return false;
-                }
-                Bounds aabb = __instance.GetAABB(ui.gameObject);
-                if (aabb.size.x * aabb.size.y * aabb.size.z <= __instance.maxAABBVolume)
-                {
-                    __result = target;
-                    //AddDebug("small object");
-                }
-                //if (__result == null)
-                //AddDebug("ValidateNewObject null");
-                return false;
-            }
-
-            //[HarmonyPatch("OnShoot")]
-            //[HarmonyPrefix]
-            static void OnShootPrefix(PropulsionCannon __instance)
-            {
-                if (__instance.grabbedObject == null)
-                    return;
-                //AddDebug("OnShoot " + __instance.grabbedObject.name);
-                releasingGrabbedObject = true;
-            }
-
-            //[HarmonyPatch("ReleaseGrabbedObject")]
-            //[HarmonyPrefix]
-            static void ReleaseGrabbedObjectPrefix(PropulsionCannon __instance)
-            {
-                if (__instance.grabbedObject == null)
-                    return;
-                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
-                releasingGrabbedObject = true;
-            }
-
-            //[HarmonyPatch("GrabObject")]
-            //[HarmonyPostfix]
-            static void GrabObjectPostfix(PropulsionCannon __instance, GameObject target)
-            {
-                //if (__instance.grabbedObject == null)
-                //    return;
-                Rigidbody rb = __instance.grabbedObject.GetComponent<Rigidbody>();
-                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
-                //if (rb)
-                //    AddDebug("Rigidbody useGravity " + rb.useGravity);
-                WorldForces wf = __instance.grabbedObject.GetComponent<WorldForces>();
-                if (wf)
-                {
-                    //AddDebug("WorldForces handleGravity " + wf.handleGravity);
-                    //AddDebug("WorldForces aboveWaterGravity " + wf.aboveWaterGravity);
-                    //AddDebug("WorldForces underwaterGravity " + wf.underwaterGravity);
-                }
-
-                //    rb.useGravity = true;
-                //releasingGrabbedObject = true;
-            }
-
-
-        }
    
     }
 }

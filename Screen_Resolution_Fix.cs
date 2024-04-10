@@ -32,7 +32,7 @@ namespace Tweaks_Fixes
                 if (Main.config.screenRes.width == 0)
                     return;
 
-                if (Screen.currentResolution.width != Main.config.screenRes.width && Screen.currentResolution.height != Main.config.screenRes.height)
+                if (Screen.currentResolution.width != Main.config.screenRes.width || Screen.currentResolution.height != Main.config.screenRes.height)
                 {
                     Resolution[] resolutions = Screen.resolutions;
                     for (int i = 0; i < resolutions.Length; i++)

@@ -234,10 +234,21 @@ namespace Tweaks_Fixes
 
         }
 
-        [HarmonyPatch(typeof(Eatable), "Awake")]
-        class Eatable_Awake_patch
+        [HarmonyPatch(typeof(Eatable))]
+        class Eatable_patch
         {
-            public static void Postfix(Eatable __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("Awake")]
+            public static void AwakePrefix(Eatable __instance)
+            {
+                if (Main.config.foodDecayRateMult == 0)
+                { // does not work for dead fish
+                    __instance.decomposes = false;
+                }
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("Awake")]
+            public static void AwakePostfix(Eatable __instance)
             {
                 //if (!Main.loadingDone)
                 //{
@@ -246,10 +257,6 @@ namespace Tweaks_Fixes
                 //    {
                 //AddDebug("DeadMeat " + ecoTarget.name + " PARENT " + ecoTarget.transform.parent.name);
                 //Destroy(__instance.gameObject);
-                if (Main.config.foodDecayRateMult == 0)
-                { // does not work for dead fish
-                    __instance.decomposes = false;
-                }
                 if (__instance.decomposes)
                 {
                     __instance.kDecayRate *= Main.config.foodDecayRateMult;
@@ -265,6 +272,13 @@ namespace Tweaks_Fixes
                 //    __instance.foodValue = Main.config.eatableFoodValue[tt];
                 //if (Main.config.eatableWaterValue.ContainsKey(tt))
                 //    __instance.waterValue = Main.config.eatableWaterValue[tt];
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("SetDecomposes")]
+            public static void SetDecomposesPrefix(Eatable __instance, ref bool value)
+            { // SetDecomposes runs when fish killed
+                if (value && Main.config.foodDecayRateMult == 0)
+                    value = false;
             }
         }
 

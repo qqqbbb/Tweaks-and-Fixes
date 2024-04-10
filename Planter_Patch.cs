@@ -3,11 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Tweaks_Fixes;
 using UnityEngine;
 
-namespace Tweaks_and_Fixes
+namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(Planter))]
     internal class Planter_Patch

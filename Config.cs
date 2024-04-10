@@ -14,50 +14,49 @@ namespace Tweaks_Fixes
     //[Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-
-        [Slider("Time flow speed multiplier", 0.1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time."), OnChange(nameof(UpdateGameSpeed))]
+        [Slider("Time flow speed multiplier", 0.1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time."), OnChange(nameof(UpdateTimeSpeed))]
         public float timeFlowSpeed = 1f;
 
-        [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
+        [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
         public float playerSpeedMult = 1f;
 
-        [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
+        [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
         public float playerDamageMult = 1f;
 
-        [Slider("Vehicle damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage your vehicles take will be multiplied by this.")]
+        [Slider("Vehicle damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Amount of damage your vehicles take will be multiplied by this.")]
         public float vehicleDamageMult = 1f;
 
-        //[Slider("Damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "When anything but the player or vehicles takes damage, it will be multiplied by this.")]
+        //[Slider("Damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "When anything but the player or vehicles takes damage, it will be multiplied by this.")]
         //public float damageMult = 1f;
 
-        [Slider("Predator aggression multiplier", 0f, 2f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's more than 1 predators attack you from greater distance and more often.")]
+        [Slider("Predator aggression multiplier", 0f, 2f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's more than 1 predators attack you from greater distance and more often.")]
         public float aggrMult = 1f;
 
-        [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
+        [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:0.#}", Tooltip = "Amount of oxygen you consume every breath.")]
         public float oxygenPerBreath = 3f;
 
-        [Slider("Tool power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by your tools will be multiplied by this.")]
+        [Slider("Tool power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Amount of power consumed by your tools will be multiplied by this.")]
         public float toolEnergyConsMult = 1f;
 
-        [Slider("Vehicle power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by your vehicles will be multiplied by this.")]
+        [Slider("Vehicle power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Amount of power consumed by your vehicles will be multiplied by this.")]
         public float vehicleEnergyConsMult = 1f;
 
-        [Slider("Base power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by things in your base will be multiplied by this.")]
+        [Slider("Base power consumption multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Amount of power consumed by things in your base will be multiplied by this.")]
         public float baseEnergyConsMult = 1f;
 
-        [Slider("Knife range multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
+        [Slider("Knife range multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeRangeMult = 1f;
 
-        [Slider("Knife damage multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
+        [Slider("Knife damage multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeDamageMult = 1f;
 
         [Slider("First aid kit HP", 10, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored by using first aid kit.")]
         public int medKitHP = 50;
 
-        [Slider("Crafting time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Crafting time will be multiplied by this when crafting things with fabricator or modification station. Does not work with EasyCraft mod.")]
+        [Slider("Crafting time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:0.#}", Tooltip = "Crafting time will be multiplied by this when crafting things with fabricator or modification station. Does not work with EasyCraft mod.")]
         public float craftTimeMult = 1f;
 
-        [Slider("Building time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Building time will be multiplied by this when using builder tool.")]
+        [Slider("Building time multiplier", 0.1f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:0.#}", Tooltip = "Building time will be multiplied by this when using builder tool.")]
         public float buildTimeMult = 1f;
 
         [Toggle("Player movement tweaks", Tooltip = "Player swimming speed is reduced to 70%. Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 5% on land and in water. Fins reduce your speed by 10% on land. Lightweight high capacity tank reduces your speed by 5% on land. Every other tank reduces your speed by 10% on land and by 5% in water. No speed reduction when near wrecks. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%. Game has to be reloaded after changing this.")]
@@ -78,13 +77,13 @@ namespace Tweaks_Fixes
         [Slider("Cyclops auto-repair threshold", 0, 100, DefaultValue = 90, Step = 1, Format = "{0:F0}", Tooltip = "Cyclops auto-repairs when it's not on fire and its HP percent is above this.")]
         public int cyclopsAutoHealHealthPercent = 90;
 
-        [Slider("Crush depth", 50, 500, DefaultValue = 200, Step = 10, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
+        [Slider("Crush depth", 50, 500, DefaultValue = 200, Step = 10, Format = "{0:F0}", Tooltip = "Depth in meters below which player starts taking crush damage. Does not work if crush damage multiplier is 0.")]
         public int crushDepth = 200;
 
-        [Slider("Crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "Every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.")]
+        [Slider("Crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:0.#}", Tooltip = "Every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.")]
         public float crushDamageMult = 0f;
 
-        [Slider("Vehicle crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "Every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.")]
+        [Slider("Vehicle crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:0.#}", Tooltip = "Every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.")]
         public float vehicleCrushDamageMult = 0f;
 
         [Choice("Unmanned vehicles can be attacked", Tooltip = "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.")]
@@ -96,9 +95,10 @@ namespace Tweaks_Fixes
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool newHungerSystem = false;
 
-        [Slider("Fish water/food value ratio", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "If this is more than 0 fish's water value will be proportional to its food value. If this is 0.1 then water value will be 10% of food value. If this is 0.9 then water value will be 90% of food value. Game has to be reloaded after changing this.")]
+        [Slider("Fish water/food value ratio", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:0.#}", Tooltip = "If this is more than 0 then fish's water value will be proportional to its food value. If this is 0.1 then water value will be 10% of food value. If this is 0.9 then water value will be 90% of food value. Game has to be reloaded after changing this.")]
         public float fishFoodWaterRatio = 0f;
 
+        //[OnChange("EatRawFishChangedEvent")]
         [Choice("Eating raw fish", Tooltip = "This changes amount of food you get by eating raw fish. Harmless: it's a random number between 0 and fish's food value. Risky: it's a random number between fish's negative food value and fish's food value. Harmful: it's a random number between fish's negative food value and 0.")]
         public EatingRawFish eatRawFish;
 
@@ -108,7 +108,7 @@ namespace Tweaks_Fixes
         [Toggle("Can't use first aid kit underwater", Tooltip = "If enabled you will not be able to use first aid kit when swimming underwater.")]
         public bool cantUseMedkitUnderwater = false;
 
-        [Slider("Food decay rate multiplier", 0f, 3f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "Food decay rate will be multiplied by this. You have to reload the game after changing this.")]
+        [Slider("Food decay rate multiplier", 0f, 3f, DefaultValue = 1f, Step = .01f, Format = "{0:0.#}", Tooltip = "Food decay rate will be multiplied by this. You have to reload the game after changing this.")]
         public float foodDecayRateMult = 1f;
 
         [Toggle("New poison damage system", Tooltip = "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.")]
@@ -117,16 +117,16 @@ namespace Tweaks_Fixes
         [Slider("Fruit growth time", 0, 30, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit, creepvine seeds and blood oil to grow. If this is 0 then vanilla code will run. You have to reload your game after changing this.")]
         public int fruitGrowTime = 0;
 
-        [Slider("Catchable fish speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of fish that you can catch will be multiplied by this.")]
+        [Slider("Catchable fish speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Swimming speed of fish that you can catch will be multiplied by this.")]
         public float fishSpeedMult = 1f;
 
-        [Slider("Other creatures speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
+        [Slider("Other creatures speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
         public float creatureSpeedMult = 1f;
 
         [Slider("Creature flee chance percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Creature's flee chance percent when it's under attack and its flee damage threshold is reached.")]
         public int CreatureFleeChance = 100;
 
-        [Toggle("Damage threshold for fleeing creatures", Tooltip = "Most creatures have damage threshold that has to be reached before they start fleeing. If this is false every creature will flee if it takes any damage.")]
+        [Toggle("Damage threshold for fleeing creatures", Tooltip = "Most creatures have damage threshold that has to be reached before they start fleeing. If this is off every creature will flee if it takes any damage.")]
         public bool creatureFleeUseDamageThreshold = true;
 
         [Toggle("Creature flee chance percent depends on its health", Tooltip = "Only creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both 'Creature flee chance percent' and 'Damage threshold for fleeing creatures'.")]
@@ -135,7 +135,7 @@ namespace Tweaks_Fixes
         [Toggle("Creatures in alien containment can breed", Tooltip = "")]
         public bool waterparkCreaturesBreed = true;
 
-        [Toggle("Can't catch fish with bare hands", Tooltip = "To catch fish you will have to use propulsion cannon or grav trap. Does not apply if you are inside alien containment.")]
+        [Toggle("Can't catch fish with bare hands", Tooltip = "To catch fish you will have to use knife, propulsion cannon, stasis rifle or grav trap. Does not apply if you are inside alien containment.")]
         public bool noFishCatching = false;
 
         [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
@@ -162,24 +162,15 @@ namespace Tweaks_Fixes
         [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
         public bool realOxygenCons = false;
 
-        [Slider("Fish respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes small fish to respawn after it was killed or caught. Default value of 6 hours will be used if it's 0. Game has to be reloaded after changing this.")]
-        public int fishRespawnTime = 0;
-
-        [Slider("Big creature respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a creature that you can't catch to respawn after it was killed. Default value of 12 hours will be used if it's 0. Game has to be reloaded after changing this.")]
-        public int creatureRespawnTime = 0;
-
-        [Slider("Leviathan respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a leviathan to respawn after it was killed. Default value of 1 day will be used if it's 0. Game has to be reloaded after changing this.")]
-        public int leviathanRespawnTime = 0;
-
         //[Toggle("Do not spawn fragments for unlocked blueprints", Tooltip = "")]
-        public bool dontSpawnKnownFragments = false;
+        //public bool dontSpawnKnownFragments = false;
         //[Toggle("Unlock prawn suit only by scanning prawn suit", Tooltip = "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arms. Game has to be reloaded after changing this.")]
-        public bool cantScanExosuitClawArm = false;
+        //public bool cantScanExosuitClawArm = false;
         [Toggle("Camera bobbing", Tooltip = "Camera bobbing when swimming.")]
         public bool cameraBobbing = true;
 
         //[Toggle("Free camera drones for scanner room", Tooltip = "If disabled scanner room will be built without camera drones.")]
-        public bool mapRoomFreeCameras = true;
+        //public bool mapRoomFreeCameras = true;
 
         [Slider("Free torpedos", 0, 6, DefaultValue = 2, Step = 1, Format = "{0:F0}", Tooltip = "Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.")]
         public int freeTorpedos = 2;
@@ -191,7 +182,7 @@ namespace Tweaks_Fixes
         public int decoyHP = 0;
 
         //[Toggle("Creature decoy does not work when dropped from inventory", Tooltip = "")]
-        public bool decoyRequiresSub = false;
+        //public bool decoyRequiresSub = false;
 
         [Slider("Life pod power cell max charge", 10, 100, DefaultValue = 25, Step = 1, Format = "{0:F0}", Tooltip = "Max charge for each of its 3 power cells. Game has to be reloaded after changing this.")]
         public int escapePodMaxPower = 25;
@@ -199,7 +190,7 @@ namespace Tweaks_Fixes
         [Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are not charged. Game has to be reloaded after changing this.")]
         public bool escapePodPowerTweak = false;
 
-        [Slider("Battery charge multiplier", 0.5f, 2f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Max charge of batteries and power cells will be multiplied by this. Game has to be reloaded after changing this.")]
+        [Slider("Battery charge multiplier", 0.5f, 2f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Max charge of batteries and power cells will be multiplied by this. Game has to be reloaded after changing this.")]
         public float batteryChargeMult = 1f;
 
         [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries and power cells you craft will be set to this.")]
@@ -212,15 +203,15 @@ namespace Tweaks_Fixes
         public DropItemsOnDeath dropItemsOnDeath;
 
         //[Toggle("No particles when creature dies", Tooltip = "No particles (yellow cloud) will spawn when a creature dies. Game has to be reloaded after changing this.")]
-        public bool noKillParticles = false;
+        //public bool noKillParticles = false;
 
         [Choice("Outcrops from seatreaders", Tooltip = "")]
         public SeaTreaderOutcrop seaTreaderOutcrop;
 
-        [Slider("Inventory weight multiplier in water", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
+        [Slider("Inventory weight multiplier in water", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:0.#}", Tooltip = "When it's not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultWater = 0f;
 
-        [Slider("Inventory weight multiplier on land", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
+        [Slider("Inventory weight multiplier on land", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:0.#}", Tooltip = "When it's not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultLand = 0f;
 
         //[Toggle("Sunlight affects lighting in cyclops", Tooltip = "")]
@@ -341,15 +332,16 @@ namespace Tweaks_Fixes
         {
             //Base_Light.UpdateBaseLight();
         }
-        //public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
         public enum DropItemsOnDeath { Vanilla, Drop_everything,Do_not_drop_anything }
         public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum SeaTreaderOutcrop { Vanilla, Only_when_stomping_ground, Never }
 
         public List<string> silentCreatures = new List<string> { };
+        //public Dictionary<string, HashSet<string>> objectsSurvivedDespawn = new Dictionary<string, HashSet<string>> { };
+        //public HashSet<string> objectsDespawned = new HashSet<string> { };
         //public List<string> removeLight = new List<string> { };
-        public List<string> biomesRemoveLight = new List<string> { };
+        //public List<string> biomesRemoveLight = new List<string> { };
         public List<string> stalkerPlayThings = new List<string> { "ScrapMetal", "MapRoomCamera", "Beacon", "Seaglide", "CyclopsDecoy", "Gravsphere", "SmallStorage", "FireExtinguisher", "DoubleTank", "PlasteelTank", "PrecursorKey_Blue", "PrecursorKey_Orange", "PrecursorKey_Purple", "PrecursorKey_Red", "PrecursorKey_White", "Rebreather", "Tank", "HighCapacityTank", "Flare", "Flashlight", "Builder", "LaserCutter", "LEDLight", "DiveReel", "PropulsionCannon", "Knife", "HeatBlade", "Scanner", "Welder", "RepulsionCannon", "StasisRifle" };
         public Dictionary<TechType, float> lightIntensity = new Dictionary<TechType, float>();
         //public Dictionary<string, float> damageMult_ = new Dictionary<string, float> { { "Creepvine", 1f } };
@@ -360,12 +352,8 @@ namespace Tweaks_Fixes
 
         public Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { {TechType.CreepvineSeedCluster, 5 } };
         public Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { { TechType.CreepvineSeedCluster, 10 } };
-        //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
-        //{
-        //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
-        //}
-        //public HashSet<TechType> ttt = new HashSet<TechType> {TechType.Coffee };
-        static void UpdateGameSpeed()
+
+        static void UpdateTimeSpeed()
         {
             if (DayNightCycle.main)
                 DayNightCycle.main._dayNightSpeed = Main.config.timeFlowSpeed;
@@ -388,12 +376,6 @@ namespace Tweaks_Fixes
         public bool builderPlacingWhenFinishedBuilding = true;
         public bool crushDamageScreenEffect = true;
         public bool removeCookedFishOnReload = true;
-        public bool fishRespawn = true;
-        public bool fishRespawnIfKilledByPlayer = true;
-        public bool creaturesRespawn = true;
-        public bool creaturesRespawnIfKilledByPlayer = false;
-        public bool leviathansRespawn = false;
-        public bool leviathansRespawnIfKilledByPlayer = false;
         public bool disableGravityForExosuit = false;
         public float cyclopsDealDamageMinSpeed = 2f;
         public float cyclopsTakeDamageMinSpeed = 2f;
