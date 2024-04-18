@@ -10,7 +10,7 @@ namespace Tweaks_Fixes
     {
         public static bool Prefix()
         {
-            if (!Main.config.noBreakingWithHand)
+            if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
             Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
@@ -37,7 +37,7 @@ namespace Tweaks_Fixes
         public static bool Prefix(BreakableResource __instance)
         {
             Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
-            if (!Main.config.noBreakingWithHand && exosuit == null)
+            if (!ConfigMenu.noBreakingWithHand.Value && exosuit == null)
                 return true;
 
             if (exosuit && !exosuit.HasClaw())
@@ -57,7 +57,7 @@ namespace Tweaks_Fixes
                 //HandReticle.main.SetIcon(HandReticle.IconType.Hand);
                 return false;
             }
-            if (!Main.config.noBreakingWithHand)
+            if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
             if (!ConfigToEdit.newUIstrings.Value)
@@ -85,7 +85,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("AllowedToPickUp")]
         public static bool AllowedToPickUpPrefix(Pickupable __instance, ref bool __result)
         {
-            if (!Main.config.noBreakingWithHand)
+            if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
             //cantPickUp = false;
@@ -108,7 +108,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandHover")]
         public static void PickupableOnHandHover(Pickupable __instance)
         {
-            if (Main.config.noBreakingWithHand && !__instance.AllowedToPickUp() && Main.config.notPickupableResources.Contains(__instance.GetTechType()))
+            if (ConfigMenu.noBreakingWithHand.Value && !__instance.AllowedToPickUp() && Main.config.notPickupableResources.Contains(__instance.GetTechType()))
             {
                 HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource"));
             }
@@ -121,7 +121,7 @@ namespace Tweaks_Fixes
         public static bool PickupableOnHandClick(Pickupable __instance)
         {
             //AddDebug("OnHandClick " + __instance.GetTechType());
-            if (!Main.config.noBreakingWithHand)
+            if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
             Exosuit exosuit = Player.main.GetVehicle() as Exosuit;

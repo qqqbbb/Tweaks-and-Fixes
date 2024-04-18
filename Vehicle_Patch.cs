@@ -26,7 +26,7 @@ namespace Tweaks_Fixes
             if (currentLights == null || currentLights.Length == 0 || currentLights[0] == null || currentLights[0].gameObject == null || !currentLights[0].gameObject.activeInHierarchy)
                 return;
 
-            if (!Input.GetKey(Main.config.lightKey))
+            if (!Input.GetKey(ConfigMenu.lightButton.Value))
                 return;
             //Light[] lights = __instance.GetComponentsInChildren<Light>();
             //AddDebug("lights.Length  " + currentLights[0].gameObject.activeInHierarchy);
@@ -103,7 +103,6 @@ namespace Tweaks_Fixes
                 return null;
 
             List<TorpedoType> torpedos = new List<TorpedoType>();
-
             //AddDebug("GetTorpedos torpedoStorage.count " + torpedoStorage.count);
             for (int index = 0; index < vehicle.torpedoTypes.Length; ++index)
             {
@@ -356,12 +355,12 @@ namespace Tweaks_Fixes
             if (!__instance.GetPilotingMode())
                 return false;
 
-            if (Main.config.seamothMoveTweaks && __instance.controlSheme == Vehicle.ControlSheme.Submersible)
+            if (ConfigMenu.seamothMoveTweaks.Value && __instance.controlSheme == Vehicle.ControlSheme.Submersible)
             {
                 ApplyPhysicsMoveSeamoth(__instance);
                 return false;
             }
-            else if (Main.config.exosuitMoveTweaks && __instance.controlSheme == Vehicle.ControlSheme.Mech)
+            else if (ConfigMenu.exosuitMoveTweaks.Value && __instance.controlSheme == Vehicle.ControlSheme.Mech)
             {
                 ApplyPhysicsMoveExosuit(__instance);
                 return false;
@@ -495,6 +494,30 @@ namespace Tweaks_Fixes
 
     }
 
+    [HarmonyPatch(typeof(VFXSeamothDamages))]
+    class VFXSeamothDamages_patch
+    {
+        [HarmonyPostfix]
+        [HarmonyPatch("Start")]
+        public static void StartPostfix(VFXSeamothDamages __instance)
+        {
+            //Transform t = __instance.transform.Find("xDrips");
+            __instance.dripsParticles = null;
+        }
+        //[HarmonyPrefix]
+        //[HarmonyPatch("UpdateParticles")]
+        public static bool UpdateParticlesPostfix(VFXSeamothDamages __instance)
+        {
+            //AddDebug("UpdateParticles " + rate);
+            return true;
+        }
+        //[HarmonyPostfix]
+        //[HarmonyPatch("Update")]
+        public static void UpdatePostfix(VFXSeamothDamages __instance)
+        {
+            AddDebug("VFXSeamothDamages Update");
+        }
+    }
 
     [HarmonyPatch(typeof(SeaMoth))]
     class SeaMoth_patch
@@ -582,7 +605,7 @@ namespace Tweaks_Fixes
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance) && Vehicle_patch.dockedVehicles[__instance] == Vehicle.DockType.Cyclops)
                 __instance.animator.Play("seamoth_cyclops_launchbay_dock");
 
-            if (Main.config.seamothMoveTweaks)
+            if (ConfigMenu.seamothMoveTweaks.Value)
             {
                 __instance.sidewardForce = __instance.forwardForce * .5f;
                 __instance.verticalForce = __instance.forwardForce * .5f;
@@ -702,7 +725,7 @@ namespace Tweaks_Fixes
                 Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
                 float magnitude = moveDirection.magnitude;
 
-                if (Main.config.seamothMoveTweaks)
+                if (ConfigMenu.seamothMoveTweaks.Value)
                     magnitude = Mathf.Clamp(moveDirection.magnitude, 0f, 1f);
 
                 if (magnitude > 0.1f)
@@ -1043,7 +1066,7 @@ namespace Tweaks_Fixes
         {    // thrusters consumes 2x energy
              // no limit on thrusters
              //  strafing disabled in ApplyPhysicsMoveExosuit
-            if (!Main.config.exosuitMoveTweaks)
+            if (!ConfigMenu.exosuitMoveTweaks.Value)
                 return true;
 
             Vehicle_patch.VehicleUpdate(__instance);
@@ -1735,7 +1758,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnCraftEnd")]
         public static bool OnCraftEndPrefix(SeamothStorageContainer __instance, TechType techType)
         {
-            if (Main.config.freeTorpedos == 2)
+            if (ConfigToEdit.freeTorpedos.Value == 2)
                 return true;
 
             __instance.Init();
@@ -1748,7 +1771,7 @@ namespace Tweaks_Fixes
         public static IEnumerator OnCraftEndAsync(SeamothStorageContainer __instance)
         {
             TaskResult<GameObject> taskResult = new TaskResult<GameObject>();
-            for (int i = 0; i < Main.config.freeTorpedos; ++i)
+            for (int i = 0; i < ConfigToEdit.freeTorpedos.Value; ++i)
             {
                 yield return CraftData.InstantiateFromPrefabAsync(TechType.WhirlpoolTorpedo, (IOut<GameObject>)taskResult);
                 GameObject gameObject = taskResult.Get();

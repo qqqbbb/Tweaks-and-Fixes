@@ -22,7 +22,6 @@ namespace Tweaks_Fixes
             return Physics.Raycast(startPos, dir, out hitInfo, distance);
         }
 
-
         public static IEnumerator Cook(GameObject go)
         {
             TechType cookedData = CraftData.GetCookedData(CraftData.GetTechType(go.gameObject));
@@ -80,6 +79,15 @@ namespace Tweaks_Fixes
                 //AddDebug("Drop  " + p.GetTechName());
                 p.Drop();
             }
+        }
+
+        public static bool CanPlayerEat()
+        {
+            if (GameModeUtils.IsOptionActive(GameModeOption.NoSurvival))
+                return false;
+
+            bool cantEat = ConfigMenu.cantEatUnderwater.Value && Player.main.isUnderwater.value;
+            return !cantEat;
         }
 
         public static void FreezeObject(GameObject go, bool state)
@@ -146,8 +154,10 @@ namespace Tweaks_Fixes
         public static bool IsEatableFish(GameObject go)
         {
             Creature creature = go.GetComponent<Creature>();
-            Eatable eatable = go.GetComponent<Eatable>();
-            return creature && eatable;
+            if (creature == null)
+                return false;
+
+            return go.GetComponent<Eatable>();
         }
 
         public static void MakeEatable(GameObject go, float food)
@@ -277,7 +287,7 @@ namespace Tweaks_Fixes
             fp.fruitSpawnEnabled = true;
             //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
             // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-            fp.fruitSpawnInterval = Main.config.fruitGrowTime * Main.dayLengthSeconds;
+            fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
             //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
             if (fp.fruitSpawnInterval == 0f)
                 fp.fruitSpawnInterval = 1f;
@@ -326,10 +336,10 @@ namespace Tweaks_Fixes
 
         public static GameObject GetEntityRoot(GameObject go)
         {
-            PrefabIdentifier prefabIdentifier = go.GetComponent<PrefabIdentifier>();
+            UniqueIdentifier prefabIdentifier = go.GetComponent<UniqueIdentifier>();
             if (prefabIdentifier == null)
-                prefabIdentifier = go.GetComponentInParent<PrefabIdentifier>();
-            return prefabIdentifier != null ? prefabIdentifier.gameObject : go;
+                prefabIdentifier = go.GetComponentInParent<UniqueIdentifier>();
+            return prefabIdentifier != null ? prefabIdentifier.gameObject : null;
         }
 
         public static IEnumerable<GameObject> FindAllRootGameObjects()

@@ -49,11 +49,11 @@ namespace Tweaks_Fixes
                 //UniqueIdentifier ui = __instance.gameObject.GetComponent<UniqueIdentifier>();
                 LiveMixin lm = null;
 
-                if (Main.config.decoyHP > 0)
+                if (ConfigMenu.decoyHP.Value > 0)
                 { // HP not saved 
                     lm = __instance.gameObject.AddComponent<LiveMixin>();
                     lm.data = ScriptableObject.CreateInstance<LiveMixinData>();
-                    lm.data.maxHealth = Main.config.decoyHP;
+                    lm.data.maxHealth = ConfigMenu.decoyHP.Value;
                     lm.data.destroyOnDeath = true;
                     //lm.data.explodeOnDestroy = false;
                     lm.data.knifeable = false;
@@ -67,7 +67,7 @@ namespace Tweaks_Fixes
                 {
                     Pickupable p = __instance.GetComponent<Pickupable>();
                     p.isPickupable = false;
-                    __instance.Invoke("Despawn", Main.config.decoyLifeTime);
+                    __instance.Invoke("Despawn", ConfigMenu.decoyLifeTime.Value);
                     CyclopsDecoyManager.AddDecoyToGlobalHashSet(__instance.gameObject);
                     //p.isPickupable = false;
                 }

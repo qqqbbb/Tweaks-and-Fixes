@@ -145,7 +145,7 @@ namespace Tweaks_Fixes
                 {
                     Main.config.subThrottleIndex = (int)cyclopsMotorMode.cyclopsMotorMode;
                     //AddDebug("save subThrottleIndex");
-                    Main.config.Save();
+                    Main.configMenu.Save();
                 }
             }
 
@@ -221,7 +221,7 @@ namespace Tweaks_Fixes
                 if (!__instance.LOD.IsFull())
                     return false;
 
-                if (!Main.config.cyclopsMoveTweaks || Main.cyclopsDockingLoaded)
+                if (!ConfigMenu.cyclopsMoveTweaks.Value || Main.cyclopsDockingLoaded)
                     return true;
 
                 __instance.appliedThrottle = false;
@@ -279,7 +279,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("FixedUpdate")]
             public static bool FixedUpdatePrefix(SubControl __instance)
             {  // halve vertical and backward speed
-                if (!Main.config.cyclopsMoveTweaks)
+                if (!ConfigMenu.cyclopsMoveTweaks.Value)
                     return true;
 
                 if (!__instance.LOD.IsFull() || __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
@@ -782,7 +782,7 @@ namespace Tweaks_Fixes
                 {
                     int fireChance = UnityEngine.Random.Range(0, __instance.engineOverheatValue + 50);
                     fireChance = Mathf.Clamp(fireChance, 0, 100);
-                    int fireCheck = 100 - Main.config.cyclopsFireChance;
+                    int fireCheck = 100 - ConfigMenu.cyclopsFireChance.Value;
                     //AddDebug("fireChance " + fireChance);
                     if (fireChance > fireCheck)
                         __instance.CreateFire(__instance.roomFires[CyclopsRooms.EngineRoom]);
@@ -796,11 +796,11 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(CyclopsExternalDamageManager __instance)
             {
-                if (Main.config.cyclopsAutoHealHealthPercent == 90)
+                if (ConfigMenu.cyclopsAutoHealHealthPercent.Value == 90)
                     return true;
 
                 //AddDebug(__instance.name + " CyclopsExternalDamageManager UpdateOvershield " + __instance.overshieldPercentage);
-                if (__instance.subFire.GetFireCount() > 0 || __instance.subLiveMixin.GetHealthFraction() <= Main.config.cyclopsAutoHealHealthPercent * .01f)
+                if (__instance.subFire.GetFireCount() > 0 || __instance.subLiveMixin.GetHealthFraction() <= ConfigMenu.cyclopsAutoHealHealthPercent.Value * .01f)
                     return false;
 
                 __instance.subLiveMixin.AddHealth(3f);

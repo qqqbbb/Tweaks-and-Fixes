@@ -103,12 +103,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="ConfigMenu.cs" />
+    <Compile Include="OptionsMemu.cs" />
     <Compile Include="PropulsionCannon_Patch.cs" />
     <Compile Include="Cutefish_Patch.cs" />
     <Compile Include="Constructor_Patch.cs" />
     <Compile Include="Start_Warning_Patch.cs" />
     <Compile Include="ConfigToEdit.cs" />
-    <Compile Include="GameInput_Patch.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
     <Compile Include="Locker_Door_Opener.cs" />
     <Compile Include="Inventory_Patch.cs" />
@@ -119,7 +120,7 @@
     <Compile Include="Sound_Patch.cs" />
     <Compile Include="Translation.cs" />
     <Compile Include="Cyclops_Collision.cs" />
-    <Compile Include="DayNightCycle_Patch.cs" />
+    <Compile Include="TimeFlow_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Base_Patch.cs" />
     <Compile Include="Randomize.cs" />
@@ -158,7 +159,7 @@
     <Compile Include="Wreck_Patch.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config.cs" />
+    <Compile Include="ConfigMain.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

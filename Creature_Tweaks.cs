@@ -12,6 +12,9 @@ namespace Tweaks_Fixes
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
         public static HashSet<GameObject> pickupShinies = new HashSet<GameObject>();
         public static ConditionalWeakTable<GameObject, Rigidbody> objectsRBs = new ConditionalWeakTable<GameObject, Rigidbody>();
+        public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
+        public static ConditionalWeakTable<SwimBehaviour, string> reefbackSBs = new ConditionalWeakTable<SwimBehaviour, string>();
+        public static ConditionalWeakTable<SwimBehaviour, string> gasopodSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static HashSet<TechType> notRespawningCreatures;
         public static HashSet<TechType> notRespawningCreaturesIfKilledByPlayer;
         public static Dictionary<TechType, int> respawnTime = new Dictionary<TechType, int>();
@@ -21,7 +24,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
-                if (Main.config.CreatureFleeChance == 100 && !Main.config.creatureFleeChanceBasedOnHealth && Main.config.creatureFleeUseDamageThreshold)
+                if (ConfigMenu.CreatureFleeChance.Value == 100 && !ConfigMenu.creatureFleeChanceBasedOnHealth.Value && ConfigMenu.creatureFleeUseDamageThreshold.Value)
                     return true;
                 
                 if (!__instance.enabled)
@@ -30,7 +33,7 @@ namespace Tweaks_Fixes
                 float damage = damageInfo.damage;
                 bool doFlee = false;
                 LiveMixin liveMixin = __instance.creature.liveMixin;
-                if (Main.config.creatureFleeChanceBasedOnHealth && liveMixin && liveMixin.IsAlive())
+                if (ConfigMenu.creatureFleeChanceBasedOnHealth.Value && liveMixin && liveMixin.IsAlive())
                 {
                     int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
                     int rnd1 = Main.rndm.Next(0, maxHealth+1);
@@ -54,11 +57,11 @@ namespace Tweaks_Fixes
                     //    AddDebug(__instance.name + " accumulatedDamage " + __instance.accumulatedDamage + " damageThreshold " + __instance.damageThreshold);
 
                     __instance.lastDamagePosition = damageInfo.position;
-                    if (Main.config.creatureFleeUseDamageThreshold && __instance.accumulatedDamage <= __instance.damageThreshold)
+                    if (ConfigMenu.creatureFleeUseDamageThreshold.Value && __instance.accumulatedDamage <= __instance.damageThreshold)
                         return false;
 
                     int rnd = Main.rndm.Next(1, 101);
-                    if (Main.config.CreatureFleeChance >= rnd)
+                    if (ConfigMenu.CreatureFleeChance.Value >= rnd)
                         doFlee = true;
                 }
                 if (doFlee)
@@ -92,7 +95,7 @@ namespace Tweaks_Fixes
             public static bool CheckLoseToothPrefix(Stalker __instance, GameObject target)
             { // only scrap metal has HardnessMixin  0.5
                 float rndm = UnityEngine.Random.value;
-                float stalkerLoseTooth = Main.config.stalkerLoseToothChance * .01f;
+                float stalkerLoseTooth = ConfigMenu.stalkerLoseToothChance.Value * .01f;
                 if (stalkerLoseTooth >= rndm && HardnessMixin.GetHardness(target) > rndm)
                     __instance.LoseTooth();
 
@@ -243,7 +246,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnStep")]
             public static bool OnStepPrefix(SeaTreaderSounds __instance, Transform legTr, AnimationEvent animationEvent)
             {
-                if (Main.config.seaTreaderOutcrop == Config.SeaTreaderOutcrop.Vanilla)
+                if (ConfigToEdit.seaTreaderOutcrop.Value == ConfigToEdit.SeaTreaderOutcrop.Vanilla)
                     return true;
 
                 if (animationEvent.animatorClipInfo.clip == __instance.walkinAnimClip && !__instance.treader.IsWalking())
@@ -261,7 +264,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnStomp")]
             public static bool OnStompPrefix(SeaTreaderSounds __instance)
             {
-                if (Main.config.seaTreaderOutcrop == Config.SeaTreaderOutcrop.Never)
+                if (ConfigToEdit.seaTreaderOutcrop.Value == ConfigToEdit.SeaTreaderOutcrop.Never)
                 {
                     if (Time.time < __instance.lastStompAttackTime + 0.2f)
                         return false;
@@ -302,7 +305,7 @@ namespace Tweaks_Fixes
             public static void Postfix(Pickupable __instance, ref bool __result)
             {
                 //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (Main.config.noFishCatching && Util.IsEatableFish(__instance.gameObject) && !Util.IsDead(__instance.gameObject))
+                if (ConfigMenu.noFishCatching.Value && Util.IsEatableFish(__instance.gameObject) && !Util.IsDead(__instance.gameObject))
                 {
                     __result = false;
                     if (Player.main._currentWaterPark)
@@ -345,23 +348,37 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(SwimBehaviour __instance, ref float velocity, ref Vector3 targetPosition)
             {
-                if (Util.IsEatableFish(__instance.gameObject))
+                if (fishSBs.TryGetValue(__instance, out string s) || Util.IsEatableFish(__instance.gameObject))
                 {
-                    velocity *= Main.config.fishSpeedMult;
+                    velocity *= ConfigMenu.fishSpeedMult.Value;
+                    if (s == null)
+                        fishSBs.Add(__instance, "");
                 }
                 else
                 {
-                    velocity *= Main.config.creatureSpeedMult;
+                    velocity *= ConfigMenu.creatureSpeedMult.Value;
+                    if (gasopodSBs.TryGetValue(__instance, out string ss) && targetPosition.y > -1f)
+                    {
+                        targetPosition.y = Main.rndm.Next(-11, -1);
+                        return;
+                    }
+                    if (reefbackSBs.TryGetValue(__instance, out string sss) && targetPosition.y > -15f)
+                    {
+                        targetPosition.y = -15f;
+                        return;
+                    }
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
                     if (tt == TechType.Reefback && targetPosition.y > -15f)
                     { // dont allow them to surface
                         //AddDebug("Fix reefback y pos");
                         targetPosition.y = -15f;
+                        reefbackSBs.Add(__instance, "" );
                     }
                     else if (tt == TechType.Gasopod && targetPosition.y > -1f)
                     { 
                         targetPosition.y = Main.rndm.Next(-11, -1);
                         //AddDebug("Gasopod Swim To " + targetPosition.y);
+                        gasopodSBs.Add(__instance, "");
                     }
                 }
             }
@@ -387,7 +404,7 @@ namespace Tweaks_Fixes
                 }
                 if (gameObject)
                 {
-                    if (!Main.config.stalkersGrabShinyTool && gameObject.GetComponentInParent<Player>())
+                    if (!ConfigToEdit.stalkersGrabShinyTool.Value && gameObject.GetComponentInParent<Player>())
                     {
                         //AddDebug("player holding shiny " + gameObject.name);
                         return false;
@@ -427,7 +444,7 @@ namespace Tweaks_Fixes
                 if (__instance.shinyTarget.GetComponentInParent<Player>() != null)
                 {
                     //AddDebug("player holds shiny");
-                    if (Main.config.stalkersGrabShinyTool && Player.main.currentSub == null)
+                    if (ConfigToEdit.stalkersGrabShinyTool.Value && Player.main.currentSub == null)
                         Inventory.main.DropHeldItem(false);
                     else
                     {
@@ -556,7 +573,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(WaterParkCreature __instance, ref bool __result)
             {
-                if (!Main.config.waterparkCreaturesBreed)
+                if (!ConfigMenu.waterparkCreaturesBreed.Value)
                     __result = false;
             }
         }

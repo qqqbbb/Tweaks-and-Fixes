@@ -74,7 +74,8 @@ namespace Tweaks_Fixes
             if (resultHit.collider != null)
             {
                 GameObject go = Util.GetEntityRoot(resultHit.collider.gameObject);
-                AddDebug("GetScanTarget resultHit " + go.name);
+                if (go)
+                    AddDebug("GetScanTarget resultHit " + go.name);
             }
 
 
@@ -134,39 +135,31 @@ namespace Tweaks_Fixes
             return flag;
         }
 
-        //[HarmonyPatch(typeof(PDAScanner), "UpdateTarget")]
+        //[HarmonyPatch(typeof(Creature), "Start")]
         class PDAScanner_SpawnDefaultAsync_Patch
         {
-            static bool Prefix(float distance, bool self)
+            static bool Prefix(Creature __instance)
             {
-                PDAScanner.ScanTarget scanTarget = new PDAScanner.ScanTarget();
-                scanTarget.Invalidate();
-                GameObject result;
-                if (self)
+                if (__instance.GetComponent<Pickupable>())
                 {
-                    result = Player.main != null ? Player.main.gameObject : null;
-                }
-                else
-                {
-                    //AddDebug("PDAScanner_UpdateTarget " );
-                    Targeting.AddToIgnoreList(Player.main.gameObject);
-                    //Targeting.GetTarget(distance, out result, out float _);
-                    GetScanTarget(distance, out result);
-                }
-                scanTarget.Initialize(result);
-                AddDebug("PDAScanner UpdateTarget " + Util.GetEntityRoot(result).name);
-
-                if (PDAScanner.scanTarget.techType == scanTarget.techType && !(PDAScanner.scanTarget.gameObject != scanTarget.gameObject) && !(PDAScanner.scanTarget.uid != scanTarget.uid))
+                    //UnityEngine.Object.Destroy(__instance.gameObject);
                     return false;
 
-                if (PDAScanner.scanTarget.isPlayer && PDAScanner.scanTarget.hasUID && PDAScanner.cachedProgress.ContainsKey(PDAScanner.scanTarget.uid))
-                    PDAScanner.cachedProgress[PDAScanner.scanTarget.uid] = 0.0f;
+                }
+                return true;
+            }
+        }
 
-                float num;
-                if (scanTarget.hasUID && PDAScanner.cachedProgress.TryGetValue(scanTarget.uid, out num))
-                    scanTarget.progress = num;
-                PDAScanner.scanTarget = scanTarget;
-                return false;
+        //[HarmonyPatch(typeof(MeleeAttack), "CanBite")]
+        class MeleeAttack_SpawnDefaultAsync_Patch
+        {
+            static void Postfix(MeleeAttack __instance, bool __result, GameObject target)
+            {
+                if (target == Player.mainObject)
+                {
+                    AddDebug("MeleeAttack CanBite Player " + __result);
+                }
+                //return false;
             }
         }
 
@@ -175,21 +168,16 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
+
+                //AddDebug("CalculateBiome " + Player.main.CalculateBiome());
                 //AddDebug("GetBiomeString " + Player.main.GetBiomeString());
                 //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(__instance.transform.position));
                 //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
-                //AddDebug("TitaniumClone " + Language.main.Get("TitaniumClone"));
                 //if (Input.GetKey(KeyCode.LeftShift))
                 //    AddDebug("timePassed " + DayNightCycle.main.timePassedAsFloat);
                 //AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
-                //AddDebug("stalkerLoseTooth " + Main.config.stalkerLoseTooth * .01f);
-                //AddDebug("Time.time " + (int)Time.time);
-                //AddDebug("isUnderwaterForSwimming " + __instance.isUnderwaterForSwimming.value);
-                //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 if (Input.GetKeyDown(KeyCode.B))
                 {
-                    //AddDebug("activeSlot " + Inventory.main.quickSlots.activeSlot);
-                    //AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
                     //if (Player.main.IsInBase())
                     //    AddDebug("IsInBase");
                     //else if (Player.main.IsInSubmarine())
@@ -206,11 +194,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    if (Player.main.currentSub)
-                    {
-                        AddDebug("power Status  " + Player.main.currentSub.powerRelay.GetPowerStatus());
-                    }
-                    //Main.logger.LogDebug("press C ");
+                    AddDebug(" activeSlot " + Main.config.activeSlot);
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
@@ -307,7 +291,10 @@ namespace Tweaks_Fixes
             if (!target)
                 return;
 
-            target = Util.GetEntityRoot(target);
+            GameObject root = Util.GetEntityRoot(target);
+            if (root)
+                target = root;
+
             VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
             TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
             if (tcpc)
@@ -340,6 +327,9 @@ namespace Tweaks_Fixes
                 //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
             }
             AddDebug(target.gameObject.name);
+            if (target.transform.parent)
+                AddDebug(target.transform.parent.name);
+
             //AddDebug("parent " + target.transform.parent.gameObject.name);
             //if (target.transform.parent.parent)
             //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);

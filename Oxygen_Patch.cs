@@ -88,7 +88,7 @@ namespace Tweaks_Fixes
             static bool GetOxygenPerBreathPrefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
             {
                 if (GameModeUtils.RequiresOxygen())
-                    __result = Main.config.oxygenPerBreath;
+                    __result = ConfigMenu.oxygenPerBreath.Value;
                 else
                     __result = 0f;
 
@@ -103,7 +103,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("depthLevel " + (int)__instance.depthLevel);
                 //AddDebug("depthOf " + (int)Ocean.main.GetDepthOf(__instance.gameObject);
-                if (!Main.config.realOxygenCons)
+                if (!ConfigMenu.realOxygenCons.Value)
                     return true;
 
                 if (__instance.currentSub || __instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
@@ -113,7 +113,7 @@ namespace Tweaks_Fixes
                     return false;
                 }
                 float depth = Mathf.Abs(__instance.depthLevel);
-                float mult = 1.5f / Main.config.crushDepth;
+                float mult = 1.5f / ConfigMenu.crushDepth.Value;
                 __result = 3f - depth * mult;
                 // __result is negative when depth is 2x deeper than crushDepth
                 __result = Mathf.Clamp(__result, 0.1f, 3f);

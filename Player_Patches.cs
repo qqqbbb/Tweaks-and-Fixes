@@ -94,7 +94,7 @@ namespace Tweaks_Fixes
                 else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
                     Vehicle_patch.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (Main.config.crushDamageMult > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
+                if (ConfigMenu.crushDamageMult.Value > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
                     Crush_Damage.CrushDamagePlayer();
@@ -117,7 +117,7 @@ namespace Tweaks_Fixes
                 if (Food_Patch.hungerUpdateTime > Time.time)
                     return;
 
-                if (Main.config.newHungerSystem)
+                if (ConfigMenu.newHungerSystem.Value)
                 {
                     Food_Patch.UpdateStats(Main.survival);
                     //__instance.Invoke("UpdateHunger", updateHungerInterval);
@@ -148,7 +148,7 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    __instance.crushDepth = Main.config.crushDepth;
+                    __instance.crushDepth = ConfigMenu.crushDepth.Value;
                     float depth = Ocean.GetDepthOf(__instance.gameObject);
                     if (depth > __instance.crushDepth)
                         depthClass = Ocean.DepthClass.Crush;
@@ -161,15 +161,6 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("CanBeAttacked")]
-            public static void Postfix(Player __instance, ref bool __result)
-            {
-                //AddDebug("AggressiveWhenSeeTarget start " + __instance.myTechType + " " + __instance.maxSearchRings);
-                //__result = !__instance.IsInsideWalkable() && !__instance.justSpawned && !GameModeUtils.IsInvisible() && !Player.main.precursorOutOfWater && !PrecursorMoonPoolTrigger.inMoonpool;
-                if (Main.config.aggrMult == 0f)
-                    __result = false;
-            }
         }
 
         //[HarmonyPatch(typeof(CrushDamage), "GetDepth")]
@@ -192,7 +183,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(Inventory __instance)
             {
                 //AddDebug("LoseItems");
-                if (Main.config.dropItemsOnDeath == Config.DropItemsOnDeath.Drop_everything)
+                if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Drop_everything)
                 {
                     List<InventoryItem> inventoryItemList = new List<InventoryItem>();
                     foreach (InventoryItem inventoryItem in Inventory.main.container)
@@ -211,7 +202,7 @@ namespace Tweaks_Fixes
                     }
                     return false;
                 }
-                else if (Main.config.dropItemsOnDeath == Config.DropItemsOnDeath.Do_not_drop_anything)
+                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Do_not_drop_anything)
                 {
                     return false;
                 }

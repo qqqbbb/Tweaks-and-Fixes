@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         static bool chargerOpen = false;
         //static List <TechType> landPlantSeeds = new List<TechType> { TechType.BulboTreePiece, TechType.PurpleVegetable, TechType.FernPalmSeed, TechType.OrangePetalsPlantSeed, TechType.HangingFruit, TechType.MelonSeed, TechType.PurpleVasePlantSeed, TechType.PinkMushroomSpore, TechType.PurpleRattleSpore, TechType.PinkFlowerSeed };
         //static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.AcidMushroomSpore, TechType.BloodOil, TechType.BluePalmSeed, TechType.KooshChunk, TechType.PurpleBranchesSeed, TechType.WhiteMushroomSpore, TechType.EyesPlantSeed, TechType.RedRollPlantSeed, TechType.GabeSFeatherSeed, TechType.JellyPlantSeed, TechType.RedGreenTentacleSeed, TechType.SnakeMushroomSpore, TechType.MembrainTreeSeed, TechType.SmallFanSeed, TechType.RedBushSeed, TechType.RedConePlantSeed, TechType.RedBasketPlantSeed, TechType.SeaCrownSeed, TechType.ShellGrassSeed, TechType.SpottedLeavesPlantSeed, TechType.SpikePlantSeed, TechType.PurpleFanSeed, TechType.PurpleStalkSeed, TechType.PurpleTentacleSeed };
-        static List<TechType> fishTechTypes = new List<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.Eyeye, TechType.GarryFish, TechType.HoleFish, TechType.Hoopfish, TechType.Hoverfish, TechType.LavaBoomerang, TechType.Oculus, TechType.Peeper, TechType.Reginald, TechType.LavaEyeye, TechType.Spadefish, TechType.Spinefish };
+        static HashSet<TechType> fishTechTypes = new HashSet<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.Eyeye, TechType.GarryFish, TechType.HoleFish, TechType.Hoopfish, TechType.Hoverfish, TechType.LavaBoomerang, TechType.Oculus, TechType.Peeper, TechType.Reginald, TechType.LavaEyeye, TechType.Spadefish, TechType.Spinefish };
         public static Dictionary<ItemsContainer, Planter> planters = new Dictionary<ItemsContainer, Planter>();
         static public string beaconToolString = string.Empty;
         static public string beaconPickString = string.Empty;
@@ -28,8 +28,6 @@ namespace Tweaks_Fixes
         public static string deconstructButton = string.Empty;
         static public string changeTorpedoButton = string.Empty;
         static public string propCannonString = string.Empty;
-        //static public string changeTorpedoExosuitButtonGamepad = string.Empty;
-        //static public string changeTorpedoExosuitButton = string.Empty;
         static public string cycleNextButton = string.Empty;
         static public string cyclePrevButton = string.Empty;
         public static string stasisRifleString = string.Empty;
@@ -53,11 +51,15 @@ namespace Tweaks_Fixes
         static public string pushSeamothString = string.Empty;
         static public string changeTorpedoString = string.Empty;
         static public string toggleBaseLightsString = string.Empty;
+        static public string propCannonEatString = string.Empty;
+        static public string pickupString = string.Empty;
 
-        
+
 
         static void GetStrings()
         {
+            pickupString = Language.main.Get("PickUp");
+            pickupString = pickupString.Substring(0, pickupString.IndexOf('{')).Trim();
             changeTorpedoString = Language.main.Get("TF_change_torpedo");
             rightHandButton = uGUI.FormatButton(GameInput.Button.RightHand);
             leftHandButton = uGUI.FormatButton(GameInput.Button.LeftHand);
@@ -73,6 +75,7 @@ namespace Tweaks_Fixes
             Exosuit_Patch.armNamesChanged = true;
             dropString = TooltipFactory.stringDrop + " (" + rightHandButton + ")";
             eatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
+            propCannonEatString = TooltipFactory.stringEat + " (" + deconstructButton + ")";
             lightFlareString = Language.main.Get("TF_light_flare") + " (" + altToolButton + ")";
             throwFlareString = Language.main.Get("TF_throw_flare") + " (" + rightHandButton + ")";
             lightAndThrowFlareString = Language.main.Get("TF_light_and_throw_flare") + " (" + rightHandButton + ")";
@@ -270,7 +273,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
             {
-                if (!ConfigToEdit.newUIstrings.Value)
+                if (!ConfigToEdit.newUIstrings.Value || !Main.gameLoaded)
                     return;
 
                 PlayerTool tool = __instance.GetTool();
@@ -342,6 +345,7 @@ namespace Tweaks_Fixes
                         if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                             cl.signInput.Select(true);
                     }
+
                     if (Util.IsEatableFish(tool.gameObject))
                     {
                         StringBuilder sb = new StringBuilder();
@@ -349,16 +353,16 @@ namespace Tweaks_Fixes
                         if (canDrop)
                             sb.Append(dropString);
 
-                        bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
                         //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
-                        if (!cantEat)
+                        if (Util.CanPlayerEat())
                         {
                             if (canDrop)
                                 sb.Append(",  ");
+
                             sb.Append(eatString);
                             if (GameInput.GetButtonDown(GameInput.Button.AltTool))
                             {
-                                Inventory playerInv = Inventory.main;
+                                //Inventory playerInv = Inventory.main;
                                 //playerInv.UseItem(playerInv.quickSlots.heldItem);
                                 Inventory.main.ExecuteItemAction(ItemAction.Eat, heldItem);
                             }
@@ -366,7 +370,7 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, sb.ToString());
                     }
                 }
-                else if (!Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
+                else if (!IngameMenu.main.isActiveAndEnabled && !Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
                 {
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
@@ -446,12 +450,17 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(uGUI_PDA __instance)
             {
-                if (Input.GetKey(KeyCode.LeftShift))
+                if (!Main.gameLoaded || GameInput.lastDevice != GameInput.Device.Keyboard || IngameMenu.main.isActiveAndEnabled || !Player.main.pda.isOpen)
+                    return;
+
+                if (Input.GetKeyDown(ConfigMenu.nextPDATabKey.Value))
                 {
-                    if (Input.GetAxis("Mouse ScrollWheel") > 0f)
-                        __instance.OpenTab(__instance.GetNextTab());
-                    else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
-                        __instance.OpenTab(__instance.GetPreviousTab());
+                    //if (Input.GetAxis("Mouse ScrollWheel") > 0f)
+                    __instance.OpenTab(__instance.GetNextTab());
+                }
+                else if (Input.GetKeyDown(ConfigMenu.previousPDATabKey.Value))
+                {
+                    __instance.OpenTab(__instance.GetPreviousTab());
                 }
             }
         }
@@ -461,7 +470,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(uGUI_FeedbackCollector __instance)
             {
-                return !Main.config.disableHints;
+                return !ConfigMenu.disableHints.Value;
             }
         }
 
@@ -470,7 +479,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(uGUI_SceneIntro __instance)
             {
-                return !Main.config.disableHints;
+                return !ConfigMenu.disableHints.Value;
             }
         }
 
@@ -480,7 +489,7 @@ namespace Tweaks_Fixes
             static bool Prefix(PlayerWorldArrows __instance)
             {
                 //AddDebug("CreateWorldArrows");
-                return !Main.config.disableHints;
+                return !ConfigMenu.disableHints.Value;
             }
         }
 
@@ -548,7 +557,7 @@ namespace Tweaks_Fixes
                 //if (!ConfigToEdit.newUIstrings.Value)
                 //    return;
 
-                if (Main.config.eatRawFish != Config.EatingRawFish.Vanilla && fishTechTypes.Contains(techType) && GameModeUtils.RequiresSurvival())
+                if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.Vanilla && fishTechTypes.Contains(techType) && GameModeUtils.RequiresSurvival())
                 {
                     Eatable eatable = obj.GetComponent<Eatable>();
                     if (eatable)
@@ -574,11 +583,11 @@ namespace Tweaks_Fixes
                             {
                                 if (foodValue > 0)
                                 {
-                                    if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                                    if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Risky)
                                         food = food.Substring(0, index) + "≈ 0";
-                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmless)
                                         food = food.Substring(0, index) + "≈ " + Mathf.CeilToInt(foodValue * .5f);
-                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmful)
                                         food = food.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(foodValue * .5f));
                                 }
                                 //AddDebug("food  " + food);
@@ -599,11 +608,11 @@ namespace Tweaks_Fixes
                             {
                                 if (waterValue > 0)
                                 {
-                                    if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                                    if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Risky)
                                         water = water.Substring(0, index) + "≈ 0";
-                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmless)
                                         water = water.Substring(0, index) + "≈ " + Mathf.CeilToInt(waterValue * .5f);
-                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmful)
                                         water = water.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(waterValue * .5f));
                                 }
                                 //AddDebug("water  " + water);
@@ -632,10 +641,10 @@ namespace Tweaks_Fixes
                 {
                     sb.Clear();
                     TooltipFactory.WriteTitle(sb, Language.main.Get("FirstAidKit"));
-                    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<float>("HealthFormat", Main.config.medKitHP));
+                    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<float>("HealthFormat", ConfigMenu.medKitHP.Value));
                     TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_FirstAidKit"));
                 }
-                if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
+                if (ConfigMenu.invMultLand.Value > 0f || ConfigMenu.invMultWater.Value > 0f)
                 {
                     Rigidbody rb = obj.GetComponent<Rigidbody>();
                     if (rb)
@@ -650,60 +659,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Language), "FormatString", new Type[] { typeof(string), typeof(object[]) })]
-        class Language_FormatString_Patch
-        {
-            static void Postfix(string format, ref string __result, object[] args)
-            {
-                if (!ConfigToEdit.newUIstrings.Value)
-                    return;
-                //if (format.Contains("FOOD:") || format.Contains("H₂O:"))
-                //    AddDebug("FormatString " + __result);
-
-                if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(Int32))
-                    return;
-
-                int value = (int)args[0];
-                if (value > 0f && format.Contains("FOOD:") || format.Contains("H₂O:"))
-                {
-                    string[] tokens = __result.Split(':');
-                    string min = Language.main.Get("TF_min");
-                    string max = Language.main.Get("TF_max");
-                    StringBuilder sb_ = new StringBuilder(tokens[0]);
-                    sb_.Append(min);
-                    if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
-                    {
-                        //__result = tokens[0] + min + "0" + max + value;
-                        sb_.Append("0");
-                        sb_.Append(max);
-                        sb_.Append(value);
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
-                    {
-                        //__result = tokens[0] + min + "-" + value + max + value;
-                        sb_.Append("-");
-                        sb_.Append(value);
-                        sb_.Append(max);
-                        sb_.Append(value);
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
-                    {
-                        //__result = tokens[0] + min + "-" + value + max + "0";
-                        sb_.Append("-");
-                        sb_.Append(value);
-                        sb_.Append(max);
-                        sb_.Append("0");
-                    }
-                    __result = sb_.ToString();
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(uGUI_HealthBar), "LateUpdate")]
         class uGUI_HealthBar_LateUpdate_Patch
         {
             public static bool Prefix(uGUI_HealthBar __instance)
             {
+                if (!Main.gameLoaded)
+                    return false;
+
                 if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
                     return true;
 
@@ -721,7 +684,7 @@ namespace Tweaks_Fixes
                             liveMixin.onHealDamage.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnHealDamage));
                         }
                         //float has = liveMixin.health - liveMixin.tempDamage;
-                        float has = Main.config.newPoisonSystem ? liveMixin.health : liveMixin.health - liveMixin.tempDamage;
+                        float has = ConfigToEdit.newPoisonSystem.Value ? liveMixin.health : liveMixin.health - liveMixin.tempDamage;
 
                         float maxHealth = liveMixin.maxHealth;
                         __instance.SetValue(has, maxHealth);
@@ -767,6 +730,9 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(uGUI_FoodBar __instance)
             {
+                if (!Main.gameLoaded)
+                    return false;
+
                 if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
                     return true;
 
@@ -825,6 +791,9 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(uGUI_WaterBar __instance)
             {
+                if (!Main.gameLoaded)
+                    return false;
+
                 if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
                     return true;
 
@@ -912,17 +881,21 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(FlashingLightsDisclaimer), "Start")]
-        public static class FlashingLightsDisclaimerStartPatch
+        [HarmonyPatch(typeof(HintSwimToSurface), "Update")]
+        public static class HintSwimToSurface_Update_Patch
         {
-            public static bool Prefix(FlashingLightsDisclaimer __instance)
+            public static bool Prefix(HintSwimToSurface __instance)
             {
-                //if (ConfigToEdit.gameStartWarningText.Value)
-                //    return true;
-                //Main.logger.LogDebug("FlashingLightsDisclaimer Start ");
-                __instance.gameObject.SetActive(false);
-                //FlashingLightsDisclaimer.isFirstRun = false;
-                return false;
+                return ConfigToEdit.lowOxygenWarning.Value;
+            }
+        }
+
+        [HarmonyPatch(typeof(LowOxygenAlert), "Update")]
+        public static class LowOxygenAlert_Update_Patch
+        {
+            public static bool Prefix(LowOxygenAlert __instance)
+            {
+                return ConfigToEdit.lowOxygenAudioWarning.Value;
             }
         }
 
@@ -962,7 +935,7 @@ namespace Tweaks_Fixes
             static bool did;
             public static void Postfix(uGUI_BlueprintsTab __instance)
             {
-                AddDebug("uGUI_BlueprintsTab UpdateEntries ");
+                //AddDebug("uGUI_BlueprintsTab UpdateEntries ");
                 if (did)
                     return;
 

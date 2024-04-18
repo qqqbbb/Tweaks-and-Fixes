@@ -6,7 +6,6 @@ using static ErrorMessage;
 using System.Collections;
 using UWE;
 using UnityEngine.XR;
-using static UnityEngine.PlayerLoop.PreLateUpdate;
 
 namespace Tweaks_Fixes
 {
@@ -90,8 +89,8 @@ namespace Tweaks_Fixes
                     if (knifeDamageDefault == 0f)
                         knifeDamageDefault = knife.damage;
 
-                    knife.attackDist = knifeRangeDefault * Main.config.knifeRangeMult;
-                    knife.damage = knifeDamageDefault * Main.config.knifeDamageMult;
+                    knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
+                    knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
                     //AddDebug(" attackDist  " + knife.attackDist);
                     //AddDebug(" damage  " + knife.damage);
                 }
@@ -281,7 +280,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("CycleCamera")]
             static bool CycleCameraPrefix(MapRoomScreen __instance, int direction)
             {
-                if (!Input.GetKey(Main.config.lightKey))
+                if (!Input.GetKey(ConfigMenu.lightButton.Value))
                     return true;
 
                 if (Vehicle_patch.currentLights.Length == 0)

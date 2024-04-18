@@ -1,6 +1,5 @@
 ﻿
 using HarmonyLib;
-using System.Reflection;
 using System;
 using Nautilus.Handlers;
 using Nautilus.Assets;
@@ -18,16 +17,17 @@ using UWE;
 using BepInEx.Configuration;
 using System.IO;
 using System.Text;
+using Nautilus.Options;
 
 namespace Tweaks_Fixes
 {
     [BepInPlugin(GUID, MODNAME, VERSION)]
     public class Main : BaseUnityPlugin
     {
-        private const string
+        public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.05.04";
+            VERSION = "3.06.0";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -43,13 +43,18 @@ namespace Tweaks_Fixes
         public static bool visibleLockerInteriorLoaded;
         public static bool exosuitTorpedoDisplayLoaded = false; // not updated
         public static bool torpedoImprovementsLoaded = false;
-        static string configPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
+        static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
+        static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public const float dayLengthSeconds = 1200f;
 
-        public static Config config = OptionsPanelHandler.RegisterModOptions<Config>();
-        
-        public static ConfigFile configB;
+        //public static ConfigOld configOld = OptionsPanelHandler.RegisterModOptions<ConfigOld>();
+        public static ConfigMain config = new ConfigMain();
+        internal static OptionsMemu options ;
+        public static ConfigFile configMenu;
+        public static ConfigFile configToEdit;
         //public static ConfigToEditManually configMenu { get; } = OptionsPanelHandler.RegisterModOptions<ConfigToEditManually>();
+
+        //GameModeUtils.IsOptionActive(mode, GameModeOption.NoSurvival);
 
         public static void CleanUp()
         {
@@ -83,6 +88,7 @@ namespace Tweaks_Fixes
 
         public static void LoadedGameSetup()
         {
+
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_Patches.DisableExosuitClawArmScan();
 
@@ -129,12 +135,11 @@ namespace Tweaks_Fixes
             public static void ClearSlotAsyncPostfix(SaveLoadManager __instance, string slotName)
             {
                 //AddDebug("ClearSlotAsync " + slotName);
-                config.escapePodSmokeOut.Remove(slotName);
                 config.openedWreckDoors.Remove(slotName);
                 config.lockerNames.Remove(slotName);
                 config.baseLights.Remove(slotName);
                 //config.objectsSurvidedDespawn.Remove(slotName);
-                config.Save();
+                configMenu.Save();
             }
 
             [HarmonyPostfix]
@@ -165,19 +170,28 @@ namespace Tweaks_Fixes
 
         public void Setup()
         {
+            //Logger.LogDebug("configOld activeSlot " + config.activeSlot);
+            //configMenu = this.Config;
+            configMenu = new ConfigFile(configMenuPath, true);
+            ConfigMenu.Bind();
             logger = Logger;
-            configB = new ConfigFile(configPath, true);
+            configToEdit = new ConfigFile(configToEditPath, true);
             ConfigToEdit.Bind();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
+
+            //logger.LogMessage("Setup activeSlot " + Main.config.activeSlot);
+            CraftData.harvestOutputList[TechType.CoralShellPlate] = TechType.JeweledDiskPiece;
             SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup);
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             LanguageHandler.RegisterLocalizationFolder();
-            ParseFromConfig();
             GetLoadedMods();
             ConfigToEdit.ParseFromConfig();
+
+            options = new OptionsMemu();
+            OptionsPanelHandler.RegisterModOptions(options);
 
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
@@ -188,11 +202,6 @@ namespace Tweaks_Fixes
             //CustomPrefab stone = new CustomPrefab( "TF_Stone", "TF_Stone", "");
             //stone.SetSpawns(new SpawnLocation(new Vector3(0.67f, -14.11f, -323.3f), new Vector3(0f, 310f, 329f)));
             //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
-        }
-
-        private void Awake()
-        {
-
         }
 
         private void Start()

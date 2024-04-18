@@ -9,49 +9,50 @@ namespace Tweaks_Fixes
 {
     internal class Inventory_Patch
     {
+        static InventoryItem selectedItem;
         public static GameInput.Button transferAllItemsButton;
         public static GameInput.Button transferSameItemsButton;
-        static bool transferAllItems;
-        static bool transferSameItems;
 
         public static bool MoveAllItems(InventoryItem item)
         {
-            transferAllItems = false;
+            //AddDebug("MoveAllItems ");
+            if (item == null)
+                return false;
+
             ItemsContainer container = (ItemsContainer)item.container;
             IItemsContainer oppositeContainer = Inventory.main.GetOppositeContainer(item);
             List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
             foreach (TechType itemType in container.GetItemTypes())
                 container.GetItems(itemType, itemsToTransfer);
 
+            bool swapped = false;
             foreach (InventoryItem ii in itemsToTransfer)
             {
                 //AddDebug("itemsToTransfer " + ii.item.name);
-                Inventory.AddOrSwap(ii, oppositeContainer);
+                if (Inventory.AddOrSwap(ii, oppositeContainer))
+                    swapped = true;
             }
-            if (itemsToTransfer.Count > 0)
-                return true;
-            else
-                return false;
+            return swapped;
         }
 
         public static bool MoveSameItems(InventoryItem item)
         {
             //AddDebug("MoveSameItems " );
-            transferSameItems = false;
+            if (item == null)
+                return false;
+
             ItemsContainer container = (ItemsContainer)item.container;
             IItemsContainer oppositeContainer = Inventory.main.GetOppositeContainer(item);
             List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
-            container.GetItems(item.item.GetTechType(), itemsToTransfer);
-
+            container.GetItems(item.techType, itemsToTransfer);
+            bool swapped = false;
             foreach (InventoryItem ii in itemsToTransfer)
             {
                 //AddDebug("itemsToTransfer " + ii.item.name);
-                Inventory.AddOrSwap(ii, oppositeContainer);
+                if (Inventory.AddOrSwap(ii, oppositeContainer))
+                    swapped = true;
             }
-            if (itemsToTransfer.Count > 0)
-                return true;
-            else
-                return false;
+            return swapped;
         }
 
         [HarmonyPatch(typeof(Inventory), "ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
@@ -59,52 +60,74 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
-                //AddDebug("ExecuteItemAction AltUseItem " + item.item.GetTechType());
+                //AddDebug("ExecuteItemAction  " + item.techType);
                 //AddDebug("ExecuteItemAction action " + action);
                 IItemsContainer oppositeContainer = __instance.GetOppositeContainer(item);
                 if (Main.advancedInventoryLoaded || action != ItemAction.Switch || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
                     return true;
 
-                if (transferAllItems || Input.GetKey(Main.config.transferAllItemsKey))
+                if (GameInput.lastDevice == GameInput.Device.Keyboard)
                 {
-                    //AddDebug("transfer All Items ");
-                    return !MoveAllItems(item);
-                }
-                else if (transferSameItems || Input.GetKey(Main.config.transferSameItemsKey))
-                {
-                    //AddDebug("transfer same Items ");
-                    return !MoveSameItems(item);
+                    if (Input.GetKey(ConfigMenu.transferSameItemsButton.Value))
+                        return !MoveSameItems(item);
+
+                    if (Input.GetKey(ConfigMenu.transferAllItemsButton.Value))
+                        return !MoveAllItems(item);
                 }
                 return true;
             }
         }
 
-        [HarmonyPatch(typeof(GamepadInputModule), "TranslateButtonEvent")]
-        class GamepadInputModule_TranslateButtonEvent_Patch
+        [HarmonyPatch(typeof(GamepadInputModule))]
+        class GamepadInputModule_Patch
         {
-            public static void Postfix(GamepadInputModule __instance, object selectedItem, GameInput.Button button, ref bool __result)
+            //[HarmonyPostfix]
+            //[HarmonyPatch("TranslateButtonEvent")]
+            public static void TranslateButtonEventPostfix(GamepadInputModule __instance, object selectedItem, GameInput.Button button, ref bool __result)
             { // runs when inventory open
                 //AddDebug("GamepadInputModule TranslateButtonEvent " + selectedItem + " button " + button);
-                if (button == transferAllItemsButton || button == transferSameItemsButton)
+                if (button == transferSameItemsButton)
                 {
-                    if (button == transferAllItemsButton)
-                    {
-                        //AddDebug("ButtonDown transferAllItemsButton");
-                        transferAllItems = true;
-                    }
-                    else if (button == transferSameItemsButton)
-                    {
-                        //AddDebug("ButtonDown transferSameItemsButton");
-                        transferSameItems = true;
-                    }
-                    PointerEventData evtData;
-                    FPSInputModule.current.GetPointerDataFromInputModule(out evtData);
-                    evtData.button = PointerEventData.InputButton.Left;
-                    ((IPointerClickHandler)selectedItem).OnPointerClick(evtData);
-                    __result = true;
+                    MoveSameItems(Inventory_Patch.selectedItem);
+                }
+                else if(button == transferAllItemsButton )
+                {
+                    MoveAllItems(Inventory_Patch.selectedItem);
                 }
             }
+           
+            [HarmonyPostfix]
+            [HarmonyPatch("OnUpdate")]
+            public static void OnUpdatePostfix(GamepadInputModule __instance)
+            {
+                if (Input.GetKeyDown(ConfigMenu.transferAllItemsButton.Value) || GameInput.GetButtonDown(transferAllItemsButton))
+                {
+                    MoveAllItems(selectedItem);
+                }
+                else if (Input.GetKeyDown(ConfigMenu.transferSameItemsButton.Value) || GameInput.GetButtonDown(transferSameItemsButton))
+                {
+                    MoveSameItems(selectedItem);
+                }
+            }
+
         }
+
+        [HarmonyPatch(typeof(uGUI_ItemsContainer))]
+        class uGUI_ItemsContainer_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("SelectItem")]
+            static void Prefix(uGUI_ItemsContainer __instance, object item)
+            {
+                uGUI_ItemIcon key = item as uGUI_ItemIcon;
+                if (key == null || !__instance.icons.TryGetValue(key, out selectedItem))
+                    return;
+
+                //AddDebug("uGUI_ItemsContainer SelectItem " + selectedItem.techType);
+            }
+
+        }
+
 
 
     }

@@ -21,11 +21,6 @@ namespace Tweaks_Fixes
     {
         public static Dictionary<TechType, int> newGameLoot = new Dictionary<TechType, int>();
 
-        public static bool IsSmokeOut(string slot)
-        {
-            return Main.config.escapePodSmokeOut.ContainsKey(slot) && Main.config.escapePodSmokeOut[slot];
-        }
-
         public static void LetSmokeOut(EscapePod escapePod)
         {
             //AddDebug("LetSmokeOut");
@@ -41,7 +36,7 @@ namespace Tweaks_Fixes
                 sky.sky.AffectedByDayNightCycle = true;
             }
             //AddDebug("currentSlot " + SaveLoadManager.main.currentSlot);
-            Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot] = true;
+            Main.config.escapePodSmokeOut = true;
         }
 
         static IEnumerator SetMaxPower(EscapePod escapePod)
@@ -50,11 +45,11 @@ namespace Tweaks_Fixes
             while (!Main.gameLoaded)
                 yield return null;
             
-            float maxPower = Main.config.escapePodMaxPower;
+            float maxPower = ConfigMenu.escapePodMaxPower.Value;
             bool damaged = escapePod.damageEffectsShowing || Player.main.isNewBorn;
             foreach (RegeneratePowerSource cell in escapePod.GetAllComponentsInChildren<RegeneratePowerSource>())
             {
-                if (Main.config.escapePodPowerTweak && damaged)
+                if (ConfigToEdit.escapePodPowerTweak.Value && damaged)
                     cell.powerSource.maxPower = maxPower * .5f;
                 else
                     cell.powerSource.maxPower = maxPower;
@@ -66,10 +61,10 @@ namespace Tweaks_Fixes
                 if (cell.powerSource.power > cell.powerSource.maxPower)
                     cell.powerSource.power = cell.powerSource.maxPower;
 
-                if (Main.config.escapePodPowerTweak && Player.main.isNewBorn)
+                if (ConfigToEdit.escapePodPowerTweak.Value && Player.main.isNewBorn)
                     cell.powerSource.power = 0;
             }
-            if (damaged && IsSmokeOut(SaveLoadManager.main.currentSlot))
+            if (damaged && Main.config.escapePodSmokeOut)
                 LetSmokeOut(escapePod);
         }
 
@@ -94,7 +89,7 @@ namespace Tweaks_Fixes
             {
                 //RepairPod(__instance);
                 //AddDebug("EscapePod OnRepair");
-                int maxPower = Main.config.escapePodMaxPower;
+                int maxPower = ConfigMenu.escapePodMaxPower.Value;
                 foreach (RegeneratePowerSource cell in __instance.GetAllComponentsInChildren<RegeneratePowerSource>())
                 {
                     //AddDebug("RepairPod maxPower " + maxPower);

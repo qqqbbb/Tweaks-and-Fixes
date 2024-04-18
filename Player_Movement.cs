@@ -40,9 +40,9 @@ namespace Tweaks_Fixes
 
             float mult;
             if (Player.main.IsSwimming())
-                mult = 100f - massTotal * Main.config.invMultWater;
+                mult = 100f - massTotal * ConfigMenu.invMultWater.Value;
             else
-                mult = 100f - massTotal * Main.config.invMultLand;
+                mult = 100f - massTotal * ConfigMenu.invMultLand.Value;
 
             //float mult = massTotal * Main.config.InvMult;
             mult = Mathf.Clamp(mult, 0f, 100f);
@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(MainCameraControl __instance, ref bool __result)
             {
-                if (!Main.config.cameraBobbing)
+                if (!ConfigMenu.cameraBobbing.Value)
                 {
                     __result = false;
                     return false;
@@ -85,7 +85,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("UpdateActiveState")]
             public static bool UpdateActiveStatePrefix(Seaglide __instance)
             {
-                if (!Main.config.playerMoveTweaks)
+                if (!ConfigMenu.playerMoveTweaks.Value)
                     return true;
                 // seaglide works only if moving forward
                 int num1 = __instance.activeState ? 1 : 0;
@@ -119,7 +119,7 @@ namespace Tweaks_Fixes
             {
                 //inMaxSpeed *= Main.config.playerSpeedMult;
                 //AddDebug("AlterMaxSpeed inMaxSpeed " + inMaxSpeed);
-                if (!Main.config.playerMoveTweaks)
+                if (!ConfigMenu.playerMoveTweaks.Value)
                     return true;
 
                 //__result = inMaxSpeed * .9f;
@@ -155,9 +155,9 @@ namespace Tweaks_Fixes
 
             public static void Postfix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
             {
-                __result *= Main.config.playerSpeedMult;
+                __result *= ConfigMenu.playerSpeedMult.Value;
                 //AddDebug("AlterMaxSpeed " + __result);
-                if (Main.config.playerMoveTweaks)
+                if (ConfigMenu.playerMoveTweaks.Value)
                 {
                     __result *= 0.7f;
                     PlayerTool tool = Inventory.main.GetHeldTool();
@@ -169,7 +169,7 @@ namespace Tweaks_Fixes
                         __result *= 0.7f;
                         //AddDebug("AlterMaxSpeed playerMoveTweaks tool " + __result);
                     }
-                    if (Main.config.invMultWater > 0f)
+                    if (ConfigMenu.invMultWater.Value > 0f)
                         __result *= GetInvMult();
                 }
                 //__instance.currentPlayerSpeedMultipler = Mathf.MoveTowards(__instance.currentPlayerSpeedMultipler, __instance.playerSpeedModifier, 0.3f * Time.deltaTime);
@@ -187,7 +187,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SetMotorMode")]
             static bool SetMotorModePrefix(PlayerController __instance, Player.MotorMode newMotorMode)
             {
-                if (!Main.config.playerMoveTweaks)
+                if (!ConfigMenu.playerMoveTweaks.Value)
                     return true;
 
                 float forwardMaxSpeed = __instance.swimForwardMaxSpeed; // 6.64
@@ -264,7 +264,7 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("UpdateController")]
             static bool UpdateControllerPrefix(PlayerController __instance)
             {
-                if (Main.config.playerMoveTweaks)
+                if (ConfigMenu.playerMoveTweaks.Value)
                 {
                     //__instance.HandleUnderWaterState();
                     Vector3 colliderPosition = __instance.activeController.GetColliderPosition();
@@ -292,7 +292,7 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("UpdateController")]
             static bool UpdateControllerPrefixOld(PlayerController __instance)
             {
-                if (Main.config.playerMoveTweaks)
+                if (ConfigMenu.playerMoveTweaks.Value)
                 {
                     //__instance.HandleUnderWaterState();
                     Vector3 colliderPosition = __instance.activeController.GetColliderPosition();
@@ -323,7 +323,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(UnderwaterMotor __instance, ref Vector3 __result)
             {
-                if (!Main.config.playerMoveTweaks)
+                if (!ConfigMenu.playerMoveTweaks.Value)
                     return true;
                 // strafe speed halfed, backward speed halfed
                 Rigidbody rb = __instance.rb;
@@ -451,8 +451,8 @@ namespace Tweaks_Fixes
 
             public static void Postfix(UnderwaterMotor __instance, ref Vector3 __result)
             {
-                if (Main.config.playerSpeedMult != 1f)
-                    __instance.rb.drag /= Main.config.playerSpeedMult;
+                if (ConfigMenu.playerSpeedMult.Value != 1f)
+                    __instance.rb.drag /= ConfigMenu.playerSpeedMult.Value;
             }
         }
 
@@ -493,7 +493,7 @@ namespace Tweaks_Fixes
                 }
                 Quaternion quaternion = !__instance.underWater || !__instance.canSwim ? Quaternion.Euler(0.0f, __instance.playerController.forwardReference.rotation.eulerAngles.y, 0.0f) : __instance.playerController.forwardReference.rotation;
                 Vector3 input = __instance.movementInputDirection;
-                if (Main.config.playerMoveTweaks)
+                if (ConfigMenu.playerMoveTweaks.Value)
                 {
                     input.Normalize();
                     input.x *= .5f;
@@ -515,17 +515,17 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    float maxSpeed = Main.config.playerSpeedMult;
+                    float maxSpeed = ConfigMenu.playerSpeedMult.Value;
                     //Utils.AdjustSpeedScalarFromWeakness(ref maxSpeed);
                     //AddDebug("maxSpeed " + maxSpeed);
-                    if (Main.config.playerMoveTweaks)
+                    if (ConfigMenu.playerMoveTweaks.Value)
                         maxSpeed = AdjustGroundSpeed(maxSpeed);
-                    if (Main.config.invMultLand > 0f)
+                    if (ConfigMenu.invMultLand.Value > 0f)
                         maxSpeed *= GetInvMult();
 
                     if (!__instance.underWater && __instance.sprintPressed)
                     {
-                        if (!Main.config.playerMoveTweaks || Main.config.playerMoveTweaks && __instance.movementInputDirection.z > 0f)
+                        if (!ConfigMenu.playerMoveTweaks.Value || ConfigMenu.playerMoveTweaks.Value && __instance.movementInputDirection.z > 0f)
                             //maxSpeed *= __instance.sprintModifier;
                             __instance.sprinting = true;
 
@@ -580,7 +580,7 @@ namespace Tweaks_Fixes
                 //AddDebug("movementInputDirection " + __instance.movementInputDirection);
                 Quaternion quaternion = !__instance.underWater || !__instance.canSwim ? Quaternion.Euler(0f, __instance.playerController.forwardReference.rotation.eulerAngles.y, 0f) : __instance.playerController.forwardReference.rotation;
                 Vector3 input = __instance.movementInputDirection;
-                if (Main.config.playerMoveTweaks)
+                if (ConfigMenu.playerMoveTweaks.Value)
                 {
                     //input.Normalize();
                     input.x *= .5f;
@@ -602,13 +602,13 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    float maxSpeed = Main.config.playerSpeedMult;
+                    float maxSpeed = ConfigMenu.playerSpeedMult.Value;
                     //Utils.AdjustSpeedScalarFromWeakness(ref maxSpeed);
                     //AddDebug("maxSpeed " + maxSpeed);
-                    if (Main.config.playerMoveTweaks)
+                    if (ConfigMenu.playerMoveTweaks.Value)
                         maxSpeed = AdjustGroundSpeed(maxSpeed);
 
-                    if (Main.config.invMultLand > 0f)
+                    if (ConfigMenu.invMultLand.Value > 0f)
                         maxSpeed *= GetInvMult();
 
                     if (!__instance.underWater && __instance.sprintPressed && __instance.movementInputDirection.z > 0f && __instance.grounded)

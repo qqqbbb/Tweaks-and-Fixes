@@ -131,6 +131,8 @@ namespace Tweaks_Fixes
                     return;
 
                 GameObject go = Util.GetEntityRoot(other.gameObject);
+                if (!go)
+                    go = other.gameObject;
                 //AddDebug("Geyser OnTriggerStay " + go.name);
                 if (Util.IsEatableFish(go) && Util.IsDead(go))
                 {

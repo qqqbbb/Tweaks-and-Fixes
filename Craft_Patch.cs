@@ -20,8 +20,8 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("CrafterLogic Craft " + techType);
                 //crafting = true;
-                if (Main.config.craftTimeMult != 1f)
-                    duration *= Main.config.craftTimeMult;
+                if (ConfigMenu.craftTimeMult.Value != 1f)
+                    duration *= ConfigMenu.craftTimeMult.Value;
             }
         }
 
@@ -43,12 +43,12 @@ namespace Tweaks_Fixes
                 {
                     //Main.logger.LogDebug("CrafterLogic NotifyCraftEnd battery capacity " + battery._capacity);
                     //AddDebug("crafterOpen");
-                    if (Main.config.batteryChargeMult != 1f)
-                        battery._capacity *= Main.config.batteryChargeMult;
+                    if (ConfigMenu.batteryChargeMult.Value != 1f)
+                        battery._capacity *= ConfigMenu.batteryChargeMult.Value;
 
-                    if (Main.config.craftedBatteryCharge != 1)
+                    if (ConfigMenu.craftedBatteryCharge.Value != 1)
                     {
-                        float mult = Main.config.craftedBatteryCharge * .01f;
+                        float mult = ConfigMenu.craftedBatteryCharge.Value * .01f;
                         battery._charge = battery._capacity * mult;
                     }
                     if (batteriesUsedForCrafting.Count == 2)
@@ -111,7 +111,7 @@ namespace Tweaks_Fixes
                 if (NoCostConsoleCommand.main.fastBuildCheat)
                     return;
                 //AddDebug("GetConstructInterval " );
-                __result *= Main.config.buildTimeMult;
+                __result *= ConfigMenu.buildTimeMult.Value;
             }
         }
 

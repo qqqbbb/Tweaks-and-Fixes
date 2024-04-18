@@ -6,7 +6,7 @@ using System.Text;
 using Tweaks_Fixes;
 using UnityEngine;
 
-namespace Tweaks_and_Fixes
+namespace Tweaks_Fixes
 {
     internal class Scanner_Patch
     {

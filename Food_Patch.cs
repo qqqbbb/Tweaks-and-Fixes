@@ -25,7 +25,7 @@ namespace Tweaks_Fixes
 
             if (Player_Movement.timeSprinted > 0f)
             {
-                float sprintFoodCons = foodCons * Player_Movement.timeSprinted * Main.config.hungerUpdateInterval * .01f;
+                float sprintFoodCons = foodCons * Player_Movement.timeSprinted * ConfigMenu.hungerUpdateInterval.Value * .01f;
                 //AddDebug("UpdateStats sprintFoodCons " + sprintFoodCons);
                 __instance.food -= sprintFoodCons;
                 __instance.water -= sprintFoodCons;
@@ -49,11 +49,11 @@ namespace Tweaks_Fixes
             if (foodDamage > 0)
                 Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
 
-            float threshold1 = Main.config.newHungerSystem ? 0f : 20f;
-            float threshold2 = Main.config.newHungerSystem ? -50f : 10f;
+            float threshold1 = ConfigMenu.newHungerSystem.Value ? 0f : 20f;
+            float threshold2 = ConfigMenu.newHungerSystem.Value ? -50f : 10f;
             __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, oldFood, threshold1, threshold2);
             __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, oldWater, threshold1, threshold2);
-            hungerUpdateTime = Time.time + Main.config.hungerUpdateInterval;
+            hungerUpdateTime = Time.time + ConfigMenu.hungerUpdateInterval.Value;
             //AddDebug("Invoke  hungerUpdateInterval " + Main.config.hungerUpdateInterval);
             //AddDebug("Invoke dayNightSpeed " + DayNightCycle.main.dayNightSpeed);
             //__instance.Invoke("UpdateHunger", updateHungerInterval);
@@ -76,14 +76,14 @@ namespace Tweaks_Fixes
             static void UpdateHungerPostfix(Survival __instance)
             {
                 //AddDebug("UpdateHunger ");
-                hungerUpdateTime = Time.time + Main.config.hungerUpdateInterval;
+                hungerUpdateTime = Time.time + ConfigMenu.hungerUpdateInterval.Value;
             }
 
             //!!!            //[HarmonyPrefix] // does not run
             //[HarmonyPatch("GetWeaknessSpeedScalar")]
             public static bool GetWeaknessSpeedScalarPrefix(Survival __instance, ref float __result)
             {
-                if (!Main.config.newHungerSystem)
+                if (!ConfigMenu.newHungerSystem.Value)
                     return true;
 
                 float foodMult = 1f;
@@ -107,14 +107,14 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Eat")]
             public static bool EatPrefix(Survival __instance, GameObject useObj, ref bool __result)
             {
-                if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla && !Main.config.newHungerSystem)
+                if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !ConfigMenu.newHungerSystem.Value)
                     return true;
 
                 Eatable eatable = useObj.GetComponent<Eatable>();
                 int food = (int)eatable.foodValue;
                 int water = (int)eatable.waterValue;
-                int playerMinFood = Main.config.newHungerSystem ? -100 : 0;
-                float playerMaxWater = Main.config.newHungerSystem ? 200f : 100f;
+                int playerMinFood = ConfigMenu.newHungerSystem.Value ? -100 : 0;
+                float playerMaxWater = ConfigMenu.newHungerSystem.Value ? 200f : 100f;
                 float playerMaxFood = 200f;
                 int minFood = food;
                 int maxFood = food;
@@ -131,22 +131,22 @@ namespace Tweaks_Fixes
                 {
                     if (food > 0)
                     {
-                        if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla)
+                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla)
                         {
                             minFood = food;
                             maxFood = food;
                         }
-                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                        else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmless)
                         {
                             minFood = 0;
                             maxFood = food;
                         }
-                        else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                        else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Risky)
                         {
                             minFood = -food;
                             maxFood = food;
                         }
-                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                        else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmful)
                         {
                             minFood = -food;
                             maxFood = 0;
@@ -154,22 +154,22 @@ namespace Tweaks_Fixes
                     }
                     if (water > 0)
                     {
-                        if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla)
+                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla)
                         {
                             minWater = water;
                             maxWater = water;
                         }
-                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                        else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmless)
                         {
                             minWater = 0;
                             maxWater = water;
                         }
-                        else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                        else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Risky)
                         {
                             minWater = -water;
                             maxWater = water;
                         }
-                        else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                        else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmful)
                         {
                             minWater = -water;
                             maxWater = 0;
@@ -178,14 +178,14 @@ namespace Tweaks_Fixes
                 }
                 int rndFood = Main.rndm.Next(minFood, maxFood);
                 float finalFood = Mathf.Min(food, rndFood);
-                if (Main.config.newHungerSystem && __instance.food > 100f && finalFood > 0)
+                if (ConfigMenu.newHungerSystem.Value && __instance.food > 100f && finalFood > 0)
                 {
                     float mult = (playerMaxFood - __instance.food) * .01f;
                     finalFood *= mult;
                 }
                 int rndWater = Main.rndm.Next(minWater, maxWater);
                 float finalWater = Mathf.Min(water, rndWater);
-                if (Main.config.newHungerSystem && __instance.water > 100f && finalWater > 0)
+                if (ConfigMenu.newHungerSystem.Value && __instance.water > 100f && finalWater > 0)
                 {
                     float mult = (playerMaxWater - __instance.water) * .01f;
                     finalWater *= mult;
@@ -219,7 +219,7 @@ namespace Tweaks_Fixes
 
                 Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
                 Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
-                int warn = Main.config.newHungerSystem ? 0 : 20;
+                int warn = ConfigMenu.newHungerSystem.Value ? 0 : 20;
                 if (finalWater > 0 && __instance.water > warn && __instance.water - finalWater < warn)
                     __instance.vitalsOkNotification.Play();
                 else if (finalFood > 0 && __instance.food > warn && __instance.food - finalWater < warn)
@@ -241,7 +241,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             public static void AwakePrefix(Eatable __instance)
             {
-                if (Main.config.foodDecayRateMult == 0)
+                if (ConfigMenu.foodDecayRateMult.Value == 0)
                 { // does not work for dead fish
                     __instance.decomposes = false;
                 }
@@ -259,12 +259,12 @@ namespace Tweaks_Fixes
                 //Destroy(__instance.gameObject);
                 if (__instance.decomposes)
                 {
-                    __instance.kDecayRate *= Main.config.foodDecayRateMult;
+                    __instance.kDecayRate *= ConfigMenu.foodDecayRateMult.Value;
                 }
-                if (Main.config.fishFoodWaterRatio > 0)
+                if (ConfigMenu.fishFoodWaterRatio.Value > 0)
                 {
                     if (Util.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
-                        __instance.waterValue = __instance.foodValue * Main.config.fishFoodWaterRatio;
+                        __instance.waterValue = __instance.foodValue * ConfigMenu.fishFoodWaterRatio.Value;
                 }
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //Main.logger.LogMessage("Eatable awake " + tt + " eatableFoodValue.ContainsKey " + Main.config.eatableFoodValue.ContainsKey(tt));
@@ -277,7 +277,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SetDecomposes")]
             public static void SetDecomposesPrefix(Eatable __instance, ref bool value)
             { // SetDecomposes runs when fish killed
-                if (value && Main.config.foodDecayRateMult == 0)
+                if (value && ConfigMenu.foodDecayRateMult.Value == 0)
                     value = false;
             }
         }

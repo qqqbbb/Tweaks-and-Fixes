@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using HarmonyLib;
 
-namespace Tweaks_and_Fixes
+namespace Tweaks_Fixes
 {
     internal class Physics_Patch
     {

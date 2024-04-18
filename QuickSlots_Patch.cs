@@ -15,7 +15,6 @@ namespace Tweaks_Fixes
         static HashSet<TechType> toEqiupTT;
         public static GameInput.Button quickslotButton;
         public static GameInput.Button lightButton;
-
         public static bool invChanged = true; 
 
         public static void GetTools()
@@ -113,7 +112,8 @@ namespace Tweaks_Fixes
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 //AddDebug("SlotNext");
-                if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
+                if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
+                //if (Input.GetKey(Main.configOld.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     //AddDebug("quickslotButton");
                     Pickupable pickupable = Inventory.main.GetHeld();
@@ -123,7 +123,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                else if (Input.GetKey(Main.config.lightKey) || GameInput.GetButtonHeld(lightButton))
+                else if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(lightButton))
                 {
                     //AddDebug("lightButton");
                     Pickupable p = Inventory.main.GetHeld();
@@ -192,7 +192,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
+                if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
+                //if (Input.GetKey(Main.configOld.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     Pickupable pickupable = Inventory.main.GetHeld();
                     if (pickupable != null)
@@ -201,7 +202,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                else if (Input.GetKey(Main.config.lightKey) || GameInput.GetButtonHeld(lightButton))
+                else if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(lightButton))
                 {
                     Pickupable p = Inventory.main.GetHeld();
                     if (!p)

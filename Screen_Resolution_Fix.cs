@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using static ErrorMessage;
 using UnityEngine;
+using static OVRHaptics;
 
 namespace Tweaks_Fixes
 {
@@ -29,6 +30,11 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Initialize")]
             static void InitializePostfix(DisplayManager __instance)
             {
+                if (Main.config == null)
+                {
+                    Main.logger.LogMessage("DisplayManager Initialize configOld == null");
+                    return;
+                }
                 if (Main.config.screenRes.width == 0)
                     return;
 

@@ -12,8 +12,8 @@ namespace Tweaks_Fixes
 {
     public class Storage_Patch
     {
-        public static List<Sign> savedSigns = new List<Sign>();
-        public static List<StorageContainer> labelledLockers = new List<StorageContainer>();
+        public static HashSet<Sign> savedSigns = new HashSet<Sign>();
+        public static HashSet<StorageContainer> labelledLockers = new HashSet<StorageContainer>();
 
         public struct SavedLabel
         {

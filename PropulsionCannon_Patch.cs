@@ -7,9 +7,7 @@ using HarmonyLib;
 using static ErrorMessage;
 using static HandReticle;
 using UnityEngine.AddressableAssets;
-using static TechStringCache;
 using System.Collections;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -19,6 +17,63 @@ namespace Tweaks_Fixes
         static string releaseString;
         static string grabbedObjectPickupText;
         static GameObject targetObject;
+        static Eatable grabbedEatable;
+        static bool spawningFruit;
+        static PickPrefab fruitToPickUp;
+
+        private static IEnumerator SpawnResource(PropulsionCannon cannon, BreakableResource resource)
+        {
+            yield return new WaitForSeconds(.1f + UnityEngine.Random.value);
+            cannon.ReleaseGrabbedObject();
+            grabbingResource = false;
+            resource.BreakIntoResources();
+        }
+      
+        private static IEnumerator SpawnFruitAsync(PickPrefab pickPrefab, PropulsionCannon cannon)
+        {
+            if (!pickPrefab.gameObject.activeInHierarchy || pickPrefab.isAddingToInventory)
+                yield break;
+
+            spawningFruit = true;
+            pickPrefab.isAddingToInventory = true;
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(pickPrefab.pickTech, result);
+            GameObject fruit = result.Get();
+            if (fruit)
+            {
+                fruit.transform.position = pickPrefab.transform.position;
+                //AddDebug("spawned fruit from pickPrefab " + fruit.transform.position);
+                pickPrefab.SetPickedUp();
+                spawningFruit = false;
+                cannon.GrabObject(fruit);
+            }
+            pickPrefab.isAddingToInventory = false;
+        }
+
+        private static IEnumerator SpawnCoralDiskAsync(PropulsionCannon cannon, Vector3 position)
+        {
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(TechType.JeweledDiskPiece, result);
+            GameObject disk = result.Get();
+            if (disk)
+            {
+                disk.transform.position = position;
+                //AddDebug("spawned Coral Disk ");
+                cannon.GrabObject(disk);
+            }
+        }
+
+        private static PickPrefab GetFruit(FruitPlant fruitPlant)
+        {
+            foreach (PickPrefab pickPrefab in fruitPlant.fruits)
+            {
+                if (!pickPrefab.pickedState)
+                    return pickPrefab;
+            }
+            return null;
+            //int randomFruitIndex = UnityEngine.Random.Range(0, fruitPlant.fruits.Length);
+            //fruitToPickUp = fruitPlant.fruits[randomFruitIndex];
+        }
 
         [HarmonyPatch(typeof(PropulsionCannonWeapon))]
         class PropulsionCannonWeapon_patch
@@ -34,28 +89,34 @@ namespace Tweaks_Fixes
                     __result = string.Empty;
                     return false;
                 }
-                string buttonFormat1;
-                string buttonFormat2;
+                StringBuilder sb = new StringBuilder();
                 if (isGrabbingObject)
                 {
-                    buttonFormat1 = grabbedObjectPickupText;
-                    buttonFormat2 = releaseString;
+                    if (Util.CanPlayerEat() && grabbedEatable)
+                    {
+                        //AddDebug("GetCustomUseText grabbedEatable");
+                        sb.Append(UI_Patches.propCannonEatString + ", ");
+                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                        {
+                            __instance.propulsionCannon.ReleaseGrabbedObject();
+                            Main.survival.Eat(grabbedEatable.gameObject);
+                            UnityEngine.Object.Destroy(grabbedEatable.gameObject);
+                        }
+                    }
+                    sb.Append(grabbedObjectPickupText);
+                    sb.Append(releaseString);
                 }
                 else
                 {
                     if (targetObject)
-                        buttonFormat1 = LanguageCache.GetButtonFormat("PropulsionCannonToGrab", GameInput.Button.RightHand) + ", ";
-                    else
-                        buttonFormat1 = "";
+                        sb.Append(LanguageCache.GetButtonFormat("PropulsionCannonToGrab", GameInput.Button.RightHand) + ", ");
 
-                    buttonFormat2 = LanguageCache.GetButtonFormat("PropulsionCannonToLoad", GameInput.Button.AltTool);
+                    sb.Append(LanguageCache.GetButtonFormat("PropulsionCannonToLoad", GameInput.Button.AltTool));
                 }
-                if (buttonFormat1 != __instance.cachedPrimaryUseText || buttonFormat2 != __instance.cachedAltUseText)
-                {
-                    __instance.cachedCustomUseText = buttonFormat1 + buttonFormat2;
-                    __instance.cachedPrimaryUseText = buttonFormat1;
-                    __instance.cachedAltUseText = buttonFormat2;
-                }
+                string finalText = sb.ToString();
+                if (finalText != __instance.cachedPrimaryUseText)
+                    __instance.cachedCustomUseText = finalText;
+                
                 __result = __instance.cachedCustomUseText;
                 return false;
             }
@@ -65,65 +126,77 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PropulsionCannon))]
         class PropulsionCannon_Patch_
         {
-            //[HarmonyPatch(nameof(PropulsionCannon.TraceForGrabTarget))]
-            //[HarmonyPrefix]
+            [HarmonyPrefix]
+            [HarmonyPatch("TraceForGrabTarget")]
             static bool TraceForGrabTargetPrefix(PropulsionCannon __instance, ref GameObject __result)
             {
-                __result = null;
-                Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
-                if (target == null)
-                {
-                    //AddDebug(" no target");
+                if (spawningFruit)
                     return false;
-                }
-                UniqueIdentifier ui = target.GetComponentInParent<UniqueIdentifier>();
-                if (ui)
-                    AddDebug("target " + ui.gameObject.name);
-                else
-                {
-                    //AddDebug(target.name + "has no identifier");
-                    return false;
-                }
-                if (ui.gameObject.GetComponent<FruitPlant>())
-                {
-                    //AddDebug("FruitPlant");
-                    return false;
-                }
-                if (!__instance.ValidateObject(ui.gameObject))
-                {
-                    //AddDebug("could not Validate Object");
-                    return false;
-                }
-                if (ui.gameObject.GetComponent<Pickupable>())
-                {
-                    //AddDebug("Pickupable");
-                    __result = target;
-                    return false;
-                }
-                Bounds aabb = __instance.GetAABB(ui.gameObject);
-                if (aabb.size.x * aabb.size.y * aabb.size.z <= __instance.maxAABBVolume)
-                {
-                    __result = target;
-                    //AddDebug("small object");
-                }
-                //if (__result == null)
-                //AddDebug("ValidateNewObject null");
-                return false;
+
+                return true;
             }
+
 
             [HarmonyPostfix]
             [HarmonyPatch("TraceForGrabTarget")]
-            static void TraceForGrabTargetPostfix(PropulsionCannon __instance, GameObject __result)
+            static void TraceForGrabTargetPostfix(PropulsionCannon __instance, ref GameObject __result)
             {
-                targetObject = __result;
-            }
+                if (spawningFruit)
+                    return;
 
-            private static IEnumerator SpawnResource(PropulsionCannon cannon, BreakableResource resource)
-            {
-                yield return new WaitForSeconds(UnityEngine.Random.value);
-                cannon.grabbedObject = null;
-                grabbingResource = false;
-                resource.BreakIntoResources();
+                //if (__result)
+                //    AddDebug("TraceForGrabTarget default " + __result.name);
+
+                Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
+                //RaycastHit hitInfo = new RaycastHit();
+                //bool gotTarget = Util.GetPlayerTarget(__instance.pickupDistance, out hitInfo);
+                //AddDebug("TraceForGrabTarget gotTarget " + gotTarget);
+                if (!target)
+                {
+                    targetObject = null;
+                    return;
+                }
+                //Transform parent = target.transform.parent;
+                //AddDebug("TraceForGrabTarget GetTarget " + target.name);
+                Transform parent = target.transform.parent;
+                if (parent && parent.parent && parent.parent.name == "TreaderShale(Clone)")
+                { // has no UniqueIdentifier
+                    //AddDebug("TraceForGrabTarget TreaderShale ");
+                    __result = parent.parent.gameObject;
+                    return;
+                }
+                GameObject go = Util.GetEntityRoot(target);
+                if (go == null)
+                {
+                    //AddDebug("no UniqueIdentifier ");
+                    return;
+                }
+                //AddDebug("TraceForGrabTargetPostfix target " + go.name);
+                FruitPlant fruitPlant = go.GetComponent<FruitPlant>();
+                //if (fruitPlant != null)
+                //    AddDebug("TraceForGrabTargetPostfix fruitPlant ");
+
+                PickPrefab pickPrefab = go.GetComponent<PickPrefab>();
+                if (pickPrefab)
+                {
+                    //AddDebug("TraceForGrabTargetPostfix PickPrefab");
+                    fruitToPickUp = pickPrefab;
+                    __result = go;
+                    //UWE.CoroutineHost.StartCoroutine(SpawnFruitAsync(pickPrefab));
+                }
+                else if (fruitPlant)
+                {
+                    //AddDebug("TraceForGrabTargetPostfix fruitPlant");
+                    fruitToPickUp = GetFruit(fruitPlant);
+                    __result = fruitToPickUp ? fruitToPickUp.gameObject : null;
+                }
+                else
+                    fruitToPickUp = null;
+
+                //if (fruitToPickUp)
+                //    AddDebug("TraceForGrabTarget pickPrefab ");
+
+                targetObject = __result;
             }
 
             [HarmonyPrefix]
@@ -157,6 +230,16 @@ namespace Tweaks_Fixes
             [HarmonyPatch("GrabObject")]
             static bool GrabObjectPrefix(PropulsionCannon __instance, ref GameObject target)
             {
+                if (spawningFruit)
+                    return false;
+
+                if (fruitToPickUp)
+                {
+                    //AddDebug("StartCoroutine SpawnFruitAsync ");
+                    UWE.CoroutineHost.StartCoroutine(SpawnFruitAsync(fruitToPickUp, __instance));
+                    fruitToPickUp = null;
+                    return false;
+                }
                 TechType tt = CraftData.GetTechType(target);
                 if (tt == TechType.GenericJeweledDisk)
                 {
@@ -164,7 +247,13 @@ namespace Tweaks_Fixes
                     target = UnityEngine.Object.Instantiate(spawnOnKill.prefabToSpawn, spawnOnKill.transform.position, spawnOnKill.transform.rotation);
                     UnityEngine.Object.Destroy(spawnOnKill.gameObject);
                 }
-                else if (tt == TechType.LimestoneChunk || tt == TechType.SandstoneChunk || tt == TechType.ShaleChunk)
+                else if (tt == TechType.CoralShellPlate)
+                {
+                    UWE.CoroutineHost.StartCoroutine(SpawnCoralDiskAsync(__instance, target.transform.position));
+                    UnityEngine.Object.Destroy(target);
+                    return false;
+                }
+                else if (tt == TechType.LimestoneChunk || tt == TechType.SandstoneChunk || tt == TechType.ShaleChunk || target.name == "TreaderShale(Clone)")
                 {
                     grabbingResource = true;
                     BreakableResource resource = target.GetComponent<BreakableResource>();
@@ -180,13 +269,15 @@ namespace Tweaks_Fixes
                 if (!ConfigToEdit.newUIstrings.Value || __instance.grabbedObject == null)
                     return;
 
-                TechType tt = CraftData.GetTechType(__instance.grabbedObject);
+                //TechType tt = CraftData.GetTechType(__instance.grabbedObject);
                 //grabbedObjectName = Language.main.Get(tt.ToString());
                 releaseString = Language.main.Get("TF_propulsion_cannon_release") + "(" + UI_Patches.altToolButton + ")";
+                grabbedEatable = target.GetComponent<Eatable>();
                 Pickupable pickupable = target.GetComponent<Pickupable>();
                 if (pickupable != null && Inventory.main._container.HasRoomFor(pickupable))
                 {
-                    grabbedObjectPickupText = LanguageCache.GetPickupText(tt) + " (" + UI_Patches.leftHandButton + "), ";
+                    //grabbedObjectPickupText = LanguageCache.GetPickupText(tt) + " (" + UI_Patches.leftHandButton + "), ";
+                    grabbedObjectPickupText = UI_Patches.pickupString + " (" + UI_Patches.leftHandButton + "), ";
                 }
                 else
                     grabbedObjectPickupText = "";

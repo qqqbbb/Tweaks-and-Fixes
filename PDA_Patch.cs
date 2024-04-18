@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix]
             [HarmonyPatch("Open")]
             static bool OpenPrefix(PDA __instance, PDATab tab, Transform target, PDA.OnClose onCloseCallback, ref bool __result)
-            {
+            {// remove delay
                 if (__instance.isInUse || __instance.ignorePDAInput)
                 {
                     __result = false;
@@ -67,7 +67,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix]
             [HarmonyPatch("Close")]
             static bool ClosePrefix(PDA __instance)
-            {
+            {// remove delay
                 if (!__instance.isInUse || __instance.ignorePDAInput)
                     return false;
 
@@ -78,6 +78,7 @@ namespace Tweaks_Fixes
                 Vehicle vehicle = player.GetVehicle();
                 if (vehicle != null)
                     uGUI.main.quickSlots.SetTarget((IQuickSlots)vehicle);
+
                 __instance.targetWasSet = false;
                 __instance.target = null;
                 player.armsController.SetUsingPda(false);
@@ -96,6 +97,7 @@ namespace Tweaks_Fixes
                 UwePostProcessingManager.ClosePDA();
                 if (__instance.onCloseCallback == null)
                     return false;
+
                 PDA.OnClose onCloseCallback = __instance.onCloseCallback;
                 __instance.onCloseCallback = null;
                 onCloseCallback(__instance);

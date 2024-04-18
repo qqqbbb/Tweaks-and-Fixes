@@ -9,15 +9,52 @@ namespace Tweaks_Fixes
 {
     class Battery_Patch
     {
-        public static List<PowerRelay> subPowerRelays = new List<PowerRelay>();
-     
+        public static HashSet<PowerRelay> subPowerRelays = new HashSet<PowerRelay>();
+        static EnergyMixin PlayerToolEM;
+        static EnergyInterface propCannonEI;
+
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
         {
             static void Prefix(EnergyMixin __instance, ref float amount)
             {
-                //AddDebug("tool Consume Energy");
-                amount *= Main.config.toolEnergyConsMult;
+                if (PlayerToolEM == __instance)
+                {
+                    //AddDebug("tool Consume Energy");
+                    amount *= ConfigMenu.toolEnergyConsMult.Value;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerTool), "OnDraw")]
+        class PlayerTool_OnDraw_Patch
+        {
+            static void Postfix(PlayerTool __instance)
+            {
+                //AddDebug("PlayerTool OnDraw ");
+                PlayerToolEM = __instance.energyMixin;
+            }
+        }
+
+        [HarmonyPatch(typeof(PropulsionCannonWeapon), "OnDraw")]
+        class PropulsionCannonWeapon_OnDraw_Patch
+        {
+            static void Postfix(PropulsionCannonWeapon __instance)
+            {
+                propCannonEI = __instance.propulsionCannon.energyInterface;
+            }
+        }
+
+        [HarmonyPatch(typeof(EnergyInterface), "ConsumeEnergy")]
+        class EnergyInterface_ConsumeEnergy_Patch
+        {
+            static void Prefix(EnergyInterface __instance, ref float amount)
+            {
+                if (propCannonEI == __instance)
+                {
+                    //AddDebug(" propCannon ConsumeEnergy");
+                    amount *= ConfigMenu.toolEnergyConsMult.Value;
+                }
             }
         }
 
@@ -27,19 +64,19 @@ namespace Tweaks_Fixes
             static void Prefix(Vehicle __instance, ref float energyCost)
             {
                 //AddDebug("Vehicle Consume Energy");
-                energyCost *= Main.config.vehicleEnergyConsMult;
+                energyCost *= ConfigMenu.vehicleEnergyConsMult.Value;
             }
         }
 
 
-        [HarmonyPatch(typeof(PowerRelay), "Start")]
+        [HarmonyPatch(typeof(SubControl), "Start")]
         class PowerRelay_Start_Patch
         {
-            static void Postfix(PowerRelay __instance)
+            static void Postfix(SubControl __instance)
             {
-                if (__instance.GetComponent<SubControl>())
+                if (__instance.powerRelay)
                 {
-                    subPowerRelays.Add(__instance);
+                    subPowerRelays.Add(__instance.powerRelay);
                 }
             }
         }
@@ -49,19 +86,19 @@ namespace Tweaks_Fixes
         {
             static void Prefix(ref float amount, IPowerInterface powerInterface)
             {
-                if (Main.config.vehicleEnergyConsMult == 1f)
+                if (ConfigMenu.vehicleEnergyConsMult.Value == 1f)
                     return;
 
                 PowerRelay pr = powerInterface as PowerRelay;
                 if (pr && subPowerRelays.Contains(pr))
                 {
                     //AddDebug("Sub Consume Energy ");
-                    amount *= Main.config.vehicleEnergyConsMult;
+                    amount *= ConfigMenu.vehicleEnergyConsMult.Value;
                 }
                 else
                 { 
                     //AddDebug("base Consume Energy ");
-                    amount *= Main.config.baseEnergyConsMult;
+                    amount *= ConfigMenu.baseEnergyConsMult.Value;
                 }
             }
         }
@@ -73,7 +110,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnProtoDeserialize")]
             static void OnProtoDeserializePostfix(Battery __instance)
             {
-                __instance._capacity *= Main.config.batteryChargeMult;
+                __instance._capacity *= ConfigMenu.batteryChargeMult.Value;
                 if (__instance.charge > __instance._capacity)
                     __instance.charge = __instance._capacity;
                 //Main.logger.LogDebug("Battery OnProtoDeserialize " + __instance._capacity);

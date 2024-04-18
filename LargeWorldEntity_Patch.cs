@@ -17,6 +17,7 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, int> techTypesToDespawn = new Dictionary<TechType, int> { };
         static HashSet<TechType> plantSurfaces = new HashSet<TechType> {TechType.BloodRoot, TechType.BloodOil, TechType.BloodVine, TechType.BluePalm, TechType.KooshChunk, TechType.HugeKoosh, TechType.LargeKoosh, TechType.MediumKoosh, TechType.SmallKoosh, TechType.BulboTreePiece, TechType.BulboTree, TechType.PurpleBranches, TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.AcidMushroom, TechType.WhiteMushroom, TechType.EyesPlant, TechType.FernPalm, TechType.RedRollPlant, TechType.GabeSFeather, TechType.RedGreenTentacle, TechType.JellyPlant, TechType.OrangeMushroom, TechType.SnakeMushroom, TechType.OrangePetalsPlant, TechType.SpikePlant, TechType.MembrainTree, TechType.Melon, TechType.SmallMelon, TechType.MelonPlant, TechType
         .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
+        static HashSet<TechType> coralSurfaces = new HashSet<TechType> { TechType.BigCoralTubes, TechType.CoralShellPlate, TechType.GenericJeweledDisk, TechType.JeweledDiskPiece };
         static HashSet<string> plantsWithNoTechtype = new HashSet<string> { "Coral_reef_small_deco_03(Clone)", "Coral_reef_small_deco_05(Clone)", "Coral_reef_small_deco_08(Clone)" };
 
         public static void ForceBestLODmesh(GameObject go, TechType techType = TechType.None)
@@ -169,6 +170,10 @@ namespace Tweaks_Fixes
                 {
                     AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
                 }
+                else if (coralSurfaces.Contains(tt))
+                {
+                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
+                }
                 if (tt == TechType.BigCoralTubes)
                 {// fix  clipping with terrain 
                     int x = (int)__instance.transform.position.x;
@@ -185,6 +190,10 @@ namespace Tweaks_Fixes
                     else if (x == 86 && y == -33 && z == -334)
                     { // let player swim thru it
                         __instance.transform.position = new Vector3(__instance.transform.position.x, -33.3f, __instance.transform.position.z);
+                    }
+                    else if (x == 448 && y == -77 && z == -7)
+                    { // let player swim thru it
+                        __instance.transform.position = new Vector3(__instance.transform.position.x, __instance.transform.position.y, -6.5f);
                     }
                     //86.651 -33.781 -334.973
                 }
@@ -207,7 +216,7 @@ namespace Tweaks_Fixes
                     //else if (tt == TechType.PurpleVasePlant)
                     //    AlwaysUseHiPolyMesh(__instance.gameObject);
                 }
-                else if (tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree)
+                else if (tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree )
                 {
                     MakeImmuneToCannon(__instance.gameObject);
                 }
@@ -218,12 +227,12 @@ namespace Tweaks_Fixes
                     if (tt == TechType.BloodVine)
                         RemoveLivemixin(__instance);
                     
-                    if (Main.config.fruitGrowTime > 0)
+                    if (ConfigMenu.fruitGrowTime.Value > 0)
                         Util.EnsureFruits(__instance.gameObject);
                 }
                 else if (tt == TechType.Creepvine)
                 {
-                    if (Main.config.fruitGrowTime > 0)
+                    if (ConfigMenu.fruitGrowTime.Value > 0)
                         Util.EnsureFruits(__instance.gameObject);
                 }
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
@@ -254,11 +263,11 @@ namespace Tweaks_Fixes
                 //{
                         //Util.MakeEatable(__instance.gameObject, creepVineSeedFood * .5f, creepVineSeedFood, false);
                 //}
-                else if (tt == TechType.CoralShellPlate)
-                {
-                    AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
-                    MakeImmuneToCannon(__instance.gameObject);
-                }
+                //else if (tt == TechType.CoralShellPlate)
+                //{
+                    //AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
+                    //MakeImmuneToCannon(__instance.gameObject);
+                //}
                 else if (tt == TechType.Floater)
                 {
                     AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.organic);
@@ -279,6 +288,10 @@ namespace Tweaks_Fixes
                     bc.gameObject.layer = LayerID.Useable;
                     bc.isTrigger = true;
                     bc.size = new Vector3(bc.size.x, bc.size.y, bc.size.z * 3);
+                }
+                else if (tt == TechType.FarmingTray && __instance.name == "Base_exterior_Planter_Tray_01_abandoned(Clone)")
+                {
+                    MakeImmuneToCannon(__instance.gameObject);
                 }
                 else if (tt == TechType.None)
                 {

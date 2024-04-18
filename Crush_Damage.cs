@@ -12,7 +12,6 @@ namespace Tweaks_Fixes
         public static int extraCrushDepth = 0;
         public static Dictionary<TechType, int> crushDepthEquipment = new Dictionary<TechType, int>();
         public static Dictionary<TechType, int> crushDamageEquipment = new Dictionary<TechType, int>();
-        //public static List<string> playerCrushDamageExclusion = new List<string> { };
 
         public static void CrushDamagePlayer()
         {
@@ -26,12 +25,12 @@ namespace Tweaks_Fixes
             else if (biome.StartsWith("Precursor_Gun"))
                 depth -= 95;
 
-            float crushDepth = Main.config.crushDepth + extraCrushDepth;
+            float crushDepth = ConfigMenu.crushDepth.Value + extraCrushDepth;
             if (depth < crushDepth)
                 return;
 
             float mult = 1f - crushDamageResistance;
-            float damage = (depth - crushDepth) * Main.config.crushDamageMult * mult;
+            float damage = (depth - crushDepth) * ConfigMenu.crushDamageMult.Value * mult;
             //AddDebug(" CrushDamageUpdate " + damage);
             if (damage > 0f)
                 Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
@@ -91,7 +90,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("CrushDamageUpdate")]
             public static bool CrushDamageUpdatePrefix(CrushDamage __instance)
             {
-                if (Main.config.vehicleCrushDamageMult == 0f || !Main.gameLoaded)
+                if (ConfigMenu.vehicleCrushDamageMult.Value == 0f || !Main.gameLoaded)
                     return true;
 
                 if (!__instance.gameObject.activeInHierarchy || !__instance.enabled || !__instance.GetCanTakeCrushDamage() || __instance.depthCache == null)
@@ -101,7 +100,7 @@ namespace Tweaks_Fixes
                 if (depth < __instance.crushDepth)
                     return false;
 
-                float damage = (depth - __instance.crushDepth) * Main.config.vehicleCrushDamageMult;
+                float damage = (depth - __instance.crushDepth) * ConfigMenu.vehicleCrushDamageMult.Value;
                 //AddDebug("damage " + damage);
                 __instance.liveMixin.TakeDamage(damage, __instance.transform.position, DamageType.Pressure);
                 if (__instance.soundOnDamage)

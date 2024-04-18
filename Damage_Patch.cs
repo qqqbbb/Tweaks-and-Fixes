@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
         public static float healTempDamageTime = 0;
         static float poisonDamageInterval = .8f;
         static float poisonDamage = .5f;
-        public static List<LiveMixin> tempDamageLMs = new List<LiveMixin>();
+        public static HashSet<LiveMixin> tempDamageLMs = new HashSet<LiveMixin>();
         static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
 
 
@@ -84,6 +84,9 @@ namespace Tweaks_Fixes
                 GameObject colTarget = collision.gameObject;
                 if (!terrain)
                     colTarget = Util.GetEntityRoot(collision.gameObject);
+
+                if (!colTarget)
+                    colTarget = collision.gameObject;
 
                 if (collision.gameObject.GetComponentInParent<Player>())
                 {
@@ -287,7 +290,7 @@ namespace Tweaks_Fixes
                         __instance.health = Mathf.Max(0f, __instance.health - damage);
                     else 
                     {
-                        if (Main.config.newPoisonSystem && __instance.gameObject == Player.mainObject)
+                        if (ConfigToEdit.newPoisonSystem.Value && __instance.gameObject == Player.mainObject)
                         { // Survival.onHealTempDamage wont run
                             if (dealer == __instance.gameObject && position == Vector3.one)
                             {// from HealTempDamagePrefix
@@ -363,7 +366,7 @@ namespace Tweaks_Fixes
                             __instance.timeLastDamageEffect = Time.time;
                         }
                     }
-                    if (__instance.health <= 0f || !Main.config.newPoisonSystem && __instance.health - __instance.tempDamage <= 0f)
+                    if (__instance.health <= 0f || !ConfigToEdit.newPoisonSystem.Value && __instance.health - __instance.tempDamage <= 0f)
                     {
                         killed = true;
                         if (!__instance.IsCinematicActive() || __instance.ShouldKillInCinematic())
@@ -382,12 +385,12 @@ namespace Tweaks_Fixes
             [HarmonyPatch("HealTempDamage")]
             static bool HealTempDamagePrefix(LiveMixin __instance, float timePassed)
             {
-                if (!Main.config.newPoisonSystem || __instance.gameObject != Player.mainObject)
+                if (!ConfigToEdit.newPoisonSystem.Value || __instance.gameObject != Player.mainObject)
                     return true;
          
                 if (__instance.tempDamage > 0 && healTempDamageTime < Time.time)
                 {
-                    int foodMin = Main.config.newHungerSystem ? -99 : 1;
+                    int foodMin = ConfigMenu.newHungerSystem.Value ? -99 : 1;
                     float damage = 0f;
                     Survival survival = Main.survival;
                     if (survival.food > foodMin)
@@ -465,12 +468,12 @@ namespace Tweaks_Fixes
                 Vehicle vehicle = target.GetComponent<Vehicle>();
                 if (target == Player.mainObject)
                 {
-                    __result *= Main.config.playerDamageMult;
+                    __result *= ConfigMenu.playerDamageMult.Value;
                     //AddDebug("Player takes damage " + __result.ToString("0.0"));
                     if (Util.Approximately(__result, 0f))
                         return;
 
-                    if (Main.config.dropHeldTool)
+                    if (ConfigToEdit.dropHeldTool.Value)
                     {
                         if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
                         {
@@ -508,12 +511,12 @@ namespace Tweaks_Fixes
 
                         __result *= armorMult ;
                     }
-                    __result *= Main.config.vehicleDamageMult;
+                    __result *= ConfigMenu.vehicleDamageMult.Value;
                 }
                 else if (target.GetComponent<SubControl>())
                 {
                     //AddDebug("sub takes damage");
-                    __result *= Main.config.vehicleDamageMult;
+                    __result *= ConfigMenu.vehicleDamageMult.Value;
                 }
                 else
                 {
@@ -558,11 +561,11 @@ namespace Tweaks_Fixes
                 {
                     if (plantable.plantTechType == TechType.AcidMushroom || plantable.plantTechType == TechType.WhiteMushroom)
                     {
-                        if (Main.config.shroomDamageChance == 0)
+                        if (ConfigToEdit.shroomDamageChance.Value == 0)
                             return false;
 
                         int rnd = Main.rndm.Next(0, 100);
-                        if (Main.config.shroomDamageChance > rnd)
+                        if (ConfigToEdit.shroomDamageChance.Value > rnd)
                         {
                             int damageMin = (int)(__instance.damageAmount * .5f);
                             int damageMax = (int)(__instance.damageAmount * 1.5f);
@@ -585,11 +588,11 @@ namespace Tweaks_Fixes
                 {
                     if (plantable.plantTechType == TechType.AcidMushroom || plantable.plantTechType == TechType.WhiteMushroom)
                     {
-                        if (Main.config.shroomDamageChance == 0)
+                        if (ConfigToEdit.shroomDamageChance.Value == 0)
                             return false;
                         //AddDebug("DamageOnPickup OnKill damageAmount " + __instance.damageAmount);
                         int rnd = Main.rndm.Next(0, 100);
-                        if (Main.config.shroomDamageChance > rnd)
+                        if (ConfigToEdit.shroomDamageChance.Value > rnd)
                         {
                             int damageMin = (int)(__instance.damageAmount * .5f);
                             int damageMax = (int)(__instance.damageAmount * 1.5f);
@@ -614,10 +617,10 @@ namespace Tweaks_Fixes
                 if (!ConfigToEdit.crushDamageScreenEffect.Value && damageInfo.type == DamageType.Pressure)
                     return false;
 
-                if (Main.config.damageImpactEffect)
+                if (ConfigMenu.damageImpactEffect.Value)
                     __instance.CreateImpactEffect(damageScalar, damageSource, damageInfo.type);
 
-                if (Main.config.damageScreenFX)
+                if (ConfigMenu.damageScreenFX.Value)
                     __instance.PlayScreenFX(damageInfo);
 
                 return false;

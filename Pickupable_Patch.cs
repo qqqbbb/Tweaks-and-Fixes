@@ -17,6 +17,19 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Pickupable))]
         public class Pickupable_Patch_
         {
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Awake")]
+            static bool AwakePrefix(Pickupable __instance)
+            {
+                EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
+                if (ecoTarget && ecoTarget.type == EcoTargetType.Fragment)
+                {
+                    UnityEngine.Object.Destroy(__instance);
+                    return false;
+                }
+                return true;
+            }
+             
             [HarmonyPostfix]
             [HarmonyPatch("Awake")]
             static void AwakePostfix(Pickupable __instance)
@@ -47,8 +60,14 @@ namespace Tweaks_Fixes
                         if (et && et.type == EcoTargetType.Shiny)
                             return;
                     }
-                    EcoTarget ecoTarget = __instance.gameObject.AddComponent<EcoTarget>();
-                    ecoTarget.type = EcoTargetType.Shiny;
+                    EcoTarget[] ecoTargets = __instance.GetComponents<EcoTarget>();
+                    foreach (EcoTarget e in ecoTargets)
+                    {
+                        if (e.type == EcoTargetType.Shiny)
+                            return;
+                    }
+                    EcoTarget ecoTarget1 = __instance.gameObject.AddComponent<EcoTarget>();
+                    ecoTarget1.type = EcoTargetType.Shiny;
                 }
 
             }
@@ -176,20 +195,20 @@ namespace Tweaks_Fixes
                     }
                     if (techType == TechType.FirstAidKit)
                     {
-                        if (Main.config.newPoisonSystem)
+                        if (ConfigToEdit.newPoisonSystem.Value)
                         {
                             LiveMixin lm = Player.main.liveMixin;
                             lm.tempDamage = 0;
                         }
                         __result = true;
-                        if (ConfigToEdit.medKitHPperSecond.Value >= Main.config.medKitHP)
+                        if (ConfigToEdit.medKitHPperSecond.Value >= ConfigMenu.medKitHP.Value)
                         {
-                            Player.main.GetComponent<LiveMixin>().AddHealth(Main.config.medKitHP);
+                            Player.main.GetComponent<LiveMixin>().AddHealth(ConfigMenu.medKitHP.Value);
                         }
                         else
                         {
                             //AddDebug("Time.timeScale " + Time.timeScale);
-                            Main.config.medKitHPtoHeal = Main.config.medKitHP;
+                            Main.config.medKitHPtoHeal = ConfigMenu.medKitHP.Value;
                             Player_Patches.healTime = Time.time;
                             //Player_Patches.healTime = DayNightCycle.main.timePassedAsFloat;
                         }
@@ -223,7 +242,7 @@ namespace Tweaks_Fixes
             {
                 Pickupable pickupable = item.item;
                 TechType tt = pickupable.GetTechType();
-                if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
+                if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
                 {
                     if (__result == ItemAction.Eat && pickupable.gameObject.GetComponent<Eatable>())
                     {
@@ -233,7 +252,7 @@ namespace Tweaks_Fixes
                 }
                 if (tt == TechType.FirstAidKit && __result == ItemAction.Use)
                 {
-                    if (Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwater())
+                    if (ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater())
                     {
                         __result = ItemAction.None;
                         return;
