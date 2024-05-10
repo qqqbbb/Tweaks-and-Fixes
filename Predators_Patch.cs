@@ -2,12 +2,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -16,9 +14,9 @@ namespace Tweaks_Fixes
         static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
 
 
-        [HarmonyPatch(typeof(GameModeUtils), "IsInvisible")]
+        //[HarmonyPatch(typeof(GameModeUtils), "IsInvisible")]
         class GameModeUtils_IsInvisible_Patch
-        {
+        { 
             public static void Postfix(ref bool __result)
             {
                 if (ConfigMenu.aggrMult.Value == 0)
@@ -39,7 +37,7 @@ namespace Tweaks_Fixes
 
         private static bool CanVehicleBeAttacked(Vehicle vehicle)
         {
-            if (GameModeUtils.IsInvisible())
+            if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
                 return false;
 
             bool playerInside = Player.main.currentMountedVehicle == vehicle;
@@ -271,7 +269,7 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.aggrMult.Value == 1f)
                     return true;
 
-                if (GameModeUtils.IsInvisible())
+                if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
                 {
                     //AddDebug("Main.config.aggrMult == 0f");
                     __instance.currentTarget = null;
@@ -356,7 +354,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnCollisionEnter")]
             public static bool OnCollisionEnterPrefix(AttackCyclops __instance)
             {
-                if (GameModeUtils.IsInvisible())
+                if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
                 {
                     //AddDebug("Main.config.aggrMult == 0f");
                     return false;
@@ -374,7 +372,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Evaluate")]
             public static bool EvaluatePrefix(AttackCyclops __instance, ref float __result)
             {
-                if (GameModeUtils.IsInvisible())
+                if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
                 {
                     __result = 0f;
                     return false;
@@ -428,7 +426,7 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("Evaluate")]
             public static bool EvaluatePrefix(AttachToVehicle __instance, Creature creature, ref float __result, float time)
             {
-                if (GameModeUtils.IsInvisible())
+                if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
                 {
                     __result = 0f;
                     return false;
@@ -512,7 +510,7 @@ namespace Tweaks_Fixes
                 bool pl = target.GetComponent<Player>();
                 if (player || subRoot || vehicle)
                 {
-                    if (GameModeUtils.IsInvisible())
+                    if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
                     {
                         __result = false;
                         return false;

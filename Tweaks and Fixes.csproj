@@ -103,8 +103,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="CyclopsDoorSaver.cs" />
     <Compile Include="ConfigMenu.cs" />
-    <Compile Include="OptionsMemu.cs" />
+    <Compile Include="OptionsMenu.cs" />
     <Compile Include="PropulsionCannon_Patch.cs" />
     <Compile Include="Cutefish_Patch.cs" />
     <Compile Include="Constructor_Patch.cs" />

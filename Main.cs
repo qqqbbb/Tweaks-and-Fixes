@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.06.0";
+            VERSION = "3.07.0";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -47,14 +47,11 @@ namespace Tweaks_Fixes
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public const float dayLengthSeconds = 1200f;
 
-        //public static ConfigOld configOld = OptionsPanelHandler.RegisterModOptions<ConfigOld>();
-        public static ConfigMain config = new ConfigMain();
-        internal static OptionsMemu options ;
+        public static ConfigMain configMain = new ConfigMain();
+        internal static OptionsMenu options ;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
-        //public static ConfigToEditManually configMenu { get; } = OptionsPanelHandler.RegisterModOptions<ConfigToEditManually>();
 
-        //GameModeUtils.IsOptionActive(mode, GameModeOption.NoSurvival);
 
         public static void CleanUp()
         {
@@ -83,12 +80,11 @@ namespace Tweaks_Fixes
             UI_Patches.planters.Clear();
             Creature_Tweaks.pickupShinies.Clear();
             //Tools_Patch.seaglideLightsLoaded = false;
-            config.Load();
+            configMain.Load();
         }
 
         public static void LoadedGameSetup()
         {
-
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_Patches.DisableExosuitClawArmScan();
 
@@ -107,13 +103,9 @@ namespace Tweaks_Fixes
                 lm.SyncUpdatingState();
             }
             //AddDebug("LoadedGameSetup activeSlot " + config.activeSlot);
-            if (config.activeSlot != -1 && Player.main.mode == Player.Mode.Normal)
-                Inventory.main.quickSlots.SelectImmediate(config.activeSlot);
+            if (configMain.activeSlot != -1 && Player.main.mode == Player.Mode.Normal)
+                Inventory.main.quickSlots.SelectImmediate(configMain.activeSlot);
 
-            //if (EscapePod.main)
-            //    Escape_Pod_Patch.EscapePod_OnProtoDeserialize_Patch.Postfix(EscapePod.main);
-
-            //LanguageHandler.SetLanguageLine("Tooltip_Bladderfish", "Unique outer membrane has potential as a natural water filter. Can also be used as a source of oxygen.");
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip"));
             //LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, Language.main.Get("TF_bladderfish_tooltip")); 
 
@@ -123,6 +115,7 @@ namespace Tweaks_Fixes
                     Destroy(p.gameObject);
             }
             Food_Patch.cookedFish.Clear();
+            Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(OnPlayerUnderwaterChanged));
             //AddDebug("LoadedGameSetup ");
             //logger.LogMessage("LoadedGameSetup ");
         }
@@ -135,11 +128,12 @@ namespace Tweaks_Fixes
             public static void ClearSlotAsyncPostfix(SaveLoadManager __instance, string slotName)
             {
                 //AddDebug("ClearSlotAsync " + slotName);
-                config.openedWreckDoors.Remove(slotName);
-                config.lockerNames.Remove(slotName);
-                config.baseLights.Remove(slotName);
+                configMain.openedWreckDoors.Remove(slotName);
+                configMain.lockerNames.Remove(slotName);
+                configMain.baseLights.Remove(slotName);
+                configMain.cyclopsDoors.Remove(slotName);
                 //config.objectsSurvidedDespawn.Remove(slotName);
-                configMenu.Save();
+                configMain.Save();
             }
 
             [HarmonyPostfix]
@@ -147,7 +141,14 @@ namespace Tweaks_Fixes
             public static void CreateSlotAsyncPostfix(SaveLoadManager __instance)
             {
                 //AddDebug("SaveLoadManager CreateSlotAsync ");
-                config.pickedUpFireExt = false;
+                configMain.pickedUpFireExt = false;
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
+            public static void SaveToDeepStorageAsyncostfix(SaveLoadManager __instance)
+            { // runs after nautilus SaveEvent
+                //AddDebug("SaveToDeepStorageAsync");
+                SaveData();
             }
             //[HarmonyPostfix]
             //[HarmonyPatch("LoadSlotsAsync", new Type[0])]
@@ -157,42 +158,43 @@ namespace Tweaks_Fixes
             }
         }
 
+        static void OnPlayerUnderwaterChanged(Utils.MonitoredValue<bool> isUnderwaterForSwimming)
+        {
+            //AddDebug(" OnPlayerUnderwaterChanged " + Player.main.IsUnderwater());
+            Tools_Patch.FixHeatBlade();
+        }
+
         static void SaveData()
         {
-            //AddDebug("SaveData " + Inventory.main.quickSlots.activeSlot);
-            config.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
-            config.activeSlot = Inventory.main.quickSlots.activeSlot;
-            for (int i = Decoy_Patch.decoysToDestroy.Count - 1; i >= 0; i--)
-                Destroy(Decoy_Patch.decoysToDestroy[i]);
-
-            config.Save();
+            configMain.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
+            configMain.activeSlot = Inventory.main.quickSlots.activeSlot;
+            Decoy_Patch.DestroyDecoys();
+            configMain.Save();
+            //AddDebug("Save configMain " + Inventory.main.quickSlots.activeSlot);
         }
 
         public void Setup()
         {
             //Logger.LogDebug("configOld activeSlot " + config.activeSlot);
             //configMenu = this.Config;
-            configMenu = new ConfigFile(configMenuPath, true);
+            configMenu = new ConfigFile(configMenuPath, false);
             ConfigMenu.Bind();
             logger = Logger;
-            configToEdit = new ConfigFile(configToEditPath, true);
+            configToEdit = new ConfigFile(configToEditPath, false);
             ConfigToEdit.Bind();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
-
-            //logger.LogMessage("Setup activeSlot " + Main.config.activeSlot);
             CraftData.harvestOutputList[TechType.CoralShellPlate] = TechType.JeweledDiskPiece;
             SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup);
-            SaveUtils.RegisterOnSaveEvent(SaveData);
+            //SaveUtils.RegisterOnSaveEvent(TestSave);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             LanguageHandler.RegisterLocalizationFolder();
             GetLoadedMods();
             ConfigToEdit.ParseFromConfig();
-
-            options = new OptionsMemu();
+            options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
-
+            AddTechTypesToClassIDtable();
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
@@ -202,6 +204,12 @@ namespace Tweaks_Fixes
             //CustomPrefab stone = new CustomPrefab( "TF_Stone", "TF_Stone", "");
             //stone.SetSpawns(new SpawnLocation(new Vector3(0.67f, -14.11f, -323.3f), new Vector3(0f, 310f, 329f)));
             //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
+        }
+
+        private void TestSave()
+        {
+            //AddDebug("TestSave ");
+            throw new Exception();
         }
 
         private void Start()
@@ -244,7 +252,16 @@ namespace Tweaks_Fixes
                 //    refillOxygenTankLoaded = true;
             }
         }
-         
+
+        private static void AddTechTypesToClassIDtable()
+        {
+            CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
+            CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
+            CraftData.entClassTechTable["4f59199f-7049-4e13-9e57-5ee82c8732c5"] = TechType.Cyclops;
+
+            
+        }
+
         public static void ParseFromConfig()
         {
             //foreach (string name in config.removeLight)

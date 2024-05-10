@@ -90,8 +90,12 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> freeTorpedos;
         public static ConfigEntry<bool> lowOxygenWarning;
         public static ConfigEntry<bool> lowOxygenAudioWarning;
+        public static ConfigEntry<bool> builderToolBuildsInsideWithoutPower;
+        public static ConfigEntry<bool> cameraBobbing;
+        public static ConfigEntry<bool> disableHints;
+        public static ConfigEntry<bool> cyclopsHUDalwaysOn;
 
-        
+
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
@@ -153,7 +157,7 @@ namespace Tweaks_Fixes
             solarPanelMaxDepth = Main.configToEdit.Bind("", "Solar panel max depth", 250f, "Depth in meters below which solar panel does not produce power.");
             stalkerLooseToothSound = Main.configToEdit.Bind("", "Stalker losing tooth sound", true, "If false there will be no sound effect when a stalker loses its tooth.");
             canReplantMelon = Main.configToEdit.Bind("", "Can replant melon", true, "Gel sack and melon can not be replanted if this is false.");
-            removeCookedFishFromBlueprints = Main.configToEdit.Bind("", "Remove cooked fish recipes from blueprints PDA tab.", true);
+            removeCookedFishFromBlueprints = Main.configToEdit.Bind("", "Remove cooked fish recipes from blueprints PDA tab.", false);
             removeWaterFromBlueprints = Main.configToEdit.Bind("", "Remove water recipes from blueprints PDA tab.", false);
             disableFootstepClickSound = Main.configToEdit.Bind("", "Disable clicking sound when walking on metal surface", true);
             notRespawningCreatures = Main.configToEdit.Bind("", "Not respawning creatures", "Warper, GhostLeviathan, GhostLeviathanJuvenile, ReaperLeviathan, Reefback, SeaTreader", "Comma separated list of creature IDs that will not respawn when killed.");
@@ -170,13 +174,17 @@ namespace Tweaks_Fixes
             dropHeldTool = Main.configToEdit.Bind("", "Drop tool in your hands when taking damage", false, "Chance to drop your tool is equal to amount of damage taken.");
             newPoisonSystem = Main.configToEdit.Bind("", "New poison damage system", false, "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.");
             freeTorpedos = Main.configToEdit.Bind("", "Free torpedos", 2, new ConfigDescription("Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.", freeTorpedosRange));
+            lowOxygenWarning = Main.configToEdit.Bind("", "Low oxygen onscreen warning", true);
+            lowOxygenAudioWarning = Main.configToEdit.Bind("", "Low oxygen audio warning", true);
+            builderToolBuildsInsideWithoutPower = Main.configToEdit.Bind("", "Builder tool does not need power when building inside", true);
+            cameraBobbing = Main.configToEdit.Bind("", "Camera bobbing when swimming", false);
+            disableHints = Main.configToEdit.Bind("", "Disable tutorial messages", true, "This disables messages that tell you to 'eat something', 'break limestone', etc.");
+            cyclopsHUDalwaysOn = Main.configToEdit.Bind("", "Cyclops HUD always on", false);
 
             transferAllItemsButton = Main.configToEdit.Bind("", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             transferSameItemsButton = Main.configToEdit.Bind("", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             quickslotButton = Main.configToEdit.Bind("", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             lightButton = Main.configToEdit.Bind("", "Light intensity button", Button.None, "When holding a tool in your hand or driving a vehicle press 'Cycle next' or 'Cycle previous' button while holding down this button to change the tool's or vehicle's light intensity. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
-            lowOxygenWarning = Main.configToEdit.Bind("", "Low oxygen onscreen warning", true);
-            lowOxygenAudioWarning = Main.configToEdit.Bind("", "Low oxygen audio warning", true);
 
 
         }
@@ -285,7 +293,6 @@ namespace Tweaks_Fixes
             Creature_Tweaks.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
             Creature_Tweaks.respawnTime = ParseIntDicFromString(respawnTime.Value);
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
-
 
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
             Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);

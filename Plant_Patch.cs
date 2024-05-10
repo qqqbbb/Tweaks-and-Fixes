@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
-using static KnownTech;
-using static VehicleUpgradeConsoleInput;
 
 namespace Tweaks_Fixes
 {

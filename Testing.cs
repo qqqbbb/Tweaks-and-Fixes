@@ -8,8 +8,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
-using static VFXParticlesPool;
-using static HandReticle;
 using System.Linq;
 using UWE;
 using Nautilus.Options.Attributes;
@@ -135,31 +133,23 @@ namespace Tweaks_Fixes
             return flag;
         }
 
-        //[HarmonyPatch(typeof(Creature), "Start")]
-        class PDAScanner_SpawnDefaultAsync_Patch
+        //[HarmonyPatch(typeof(CraftData), "Start")]
+        class CraftData_Start_Patch
         {
-            static bool Prefix(Creature __instance)
+            static void Prefix(CraftData __instance)
             {
-                if (__instance.GetComponent<Pickupable>())
-                {
-                    //UnityEngine.Object.Destroy(__instance.gameObject);
-                    return false;
-
-                }
-                return true;
             }
         }
 
-        //[HarmonyPatch(typeof(MeleeAttack), "CanBite")]
-        class MeleeAttack_SpawnDefaultAsync_Patch
+        //[HarmonyPatch(typeof(MoveTowardsTarget), "IsValidTarget")]
+        class CraftData_IsValidTarget_Patch
         {
-            static void Postfix(MeleeAttack __instance, bool __result, GameObject target)
+            static void Postfix(MoveTowardsTarget __instance, IEcoTarget target, bool __result)
             {
-                if (target == Player.mainObject)
+                if (__instance.targetType == EcoTargetType.Whale)
                 {
-                    AddDebug("MeleeAttack CanBite Player " + __result);
+                    AddDebug(__instance.name + " MoveTowardsTarget IsValidTarget " + target.GetName() + " " + __result);
                 }
-                //return false;
             }
         }
 
@@ -168,14 +158,15 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
+                if (!Main.gameLoaded)
+                    return;
 
-                //AddDebug("CalculateBiome " + Player.main.CalculateBiome());
+                //AddDebug("isUnderwater " + Player.main.isUnderwater.value);
                 //AddDebug("GetBiomeString " + Player.main.GetBiomeString());
                 //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(__instance.transform.position));
-                //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
+                //AddDebug(PlatformUtils.main.GetServices().GetRichPresence());
                 //if (Input.GetKey(KeyCode.LeftShift))
                 //    AddDebug("timePassed " + DayNightCycle.main.timePassedAsFloat);
-                //AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
                 if (Input.GetKeyDown(KeyCode.B))
                 {
                     //if (Player.main.IsInBase())
@@ -194,7 +185,6 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    AddDebug(" activeSlot " + Main.config.activeSlot);
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
@@ -262,6 +252,8 @@ namespace Tweaks_Fixes
                     }
                 }
             }
+
+
         }
 
         static void PrintTerrainSurfaceType()
@@ -291,6 +283,7 @@ namespace Tweaks_Fixes
             if (!target)
                 return;
 
+            AddDebug("target  " + target.name);
             GameObject root = Util.GetEntityRoot(target);
             if (root)
                 target = root;

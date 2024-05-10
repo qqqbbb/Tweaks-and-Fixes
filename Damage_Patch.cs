@@ -4,9 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
-using static PlaceTool;
-using static Tweaks_Fixes.Damage_Patch;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -352,7 +349,7 @@ namespace Tweaks_Fixes
                         {
                             //AddDebug("Spawn vfxSurface Prefab ");
                             //Vector3 euler = MainCameraControl.main.transform.eulerAngles + new Vector3(300f, 90f, 0f);
-                            ParticleSystem particleSystem = VFXSurfaceTypeManager.main.Play(vfxSurface, VFXEventTypes.knife, position, Quaternion.identity, Player.main.transform);
+                            //ParticleSystem particleSystem = VFXSurfaceTypeManager.main.Play(vfxSurface, VFXEventTypes.knife, position, Quaternion.identity, Player.main.transform);
                             __instance.timeLastDamageEffect = Time.time;
                         }
                         else if (__instance.damageEffect)

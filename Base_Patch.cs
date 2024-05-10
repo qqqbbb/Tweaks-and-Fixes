@@ -12,8 +12,8 @@ namespace Tweaks_Fixes
     public class Base_Patch
     {
         static int camerasToRemove = 0;
+        static Dictionary <BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
 
-        
         public static void ToggleBaseLight(SubRoot subRoot)
         {
             //bool canToggle = subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
@@ -33,15 +33,15 @@ namespace Tweaks_Fixes
             //string key = x + "_" + y + "_" + z;
             string key = stringBuilder.ToString();
             string currentSlot = SaveLoadManager.main.currentSlot;
-            if (Main.config.baseLights.ContainsKey(currentSlot))
+            if (Main.configMain.baseLights.ContainsKey(currentSlot))
             {
-                Main.config.baseLights[currentSlot][key] = subRoot.subLightsOn;
+                Main.configMain.baseLights[currentSlot][key] = subRoot.subLightsOn;
                 //AddDebug(" ToggleBaseLight " + key + " " + subRoot.subLightsOn);
             }
             else
             {
-                Main.config.baseLights[currentSlot] = new Dictionary<string, bool>();
-                Main.config.baseLights[currentSlot][key] = subRoot.subLightsOn;
+                Main.configMain.baseLights[currentSlot] = new Dictionary<string, bool>();
+                Main.configMain.baseLights[currentSlot][key] = subRoot.subLightsOn;
                 //AddDebug(" ToggleBaseLight " + key + " " + subRoot.subLightsOn);
             }
         }
@@ -51,6 +51,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(SubRoot __instance)
             {
+                //AddDebug(__instance.name + " SubRoot Awake " + __instance.isBase);
                 //Light[] lights = __instance.GetComponentsInChildren<Light>();
                 if (__instance.isBase)
                 {
@@ -65,12 +66,44 @@ namespace Tweaks_Fixes
                     string key = x + "_" + y + "_" + z;
                     string currentSlot = SaveLoadManager.main.currentSlot;
                     //AddDebug("find BaseLight " + currentSlot + " key " + key);
-                    if (Main.config.baseLights.ContainsKey(currentSlot) && Main.config.baseLights[currentSlot].ContainsKey(key))
+                    if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].ContainsKey(key))
                     {
-                        __instance.subLightsOn = Main.config.baseLights[currentSlot][key];
+                        __instance.subLightsOn = Main.configMain.baseLights[currentSlot][key];
                         //AddDebug("saved BaseLight " + key + " " + __instance.subLightsOn);
                     }
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(BaseHullStrength), "CrushDamageUpdate")]
+        class BaseHullStrength_SpawnDefaultAsync_Patch
+        {
+            static bool Prefix(BaseHullStrength __instance)
+            {
+                if (!GameModeUtils.RequiresReinforcements() || __instance.totalStrength >= 0 || __instance.victims.Count <= 0)
+                    return false;
+
+                LiveMixin random = __instance.victims.GetRandom();
+                random.TakeDamage(BaseHullStrength.damagePerCrush, random.transform.position, DamageType.Pressure);
+                int index = 0;
+                if (__instance.totalStrength <= -3.0)
+                    index = 2;
+                else if (__instance.totalStrength <= -2.0)
+                    index = 1;
+
+                if (!baseHullStrengths.ContainsKey(__instance))
+                {
+                    baseHullStrengths[__instance] = __instance.GetComponent<SubRoot>();
+                }
+                else if (baseHullStrengths[__instance] == Player.main.currentSub)
+                {
+                    //AddDebug("Player inside");
+                    if (__instance.crushSounds[index] != null)
+                        Utils.PlayFMODAsset(__instance.crushSounds[index], random.transform);
+
+                    AddMessage(Language.main.GetFormat("BaseHullStrDamageDetected", __instance.totalStrength));
+                }
+                return false;
             }
         }
 
@@ -180,10 +213,25 @@ namespace Tweaks_Fixes
         class Bench_Patch
         {
             private static float chairRotSpeed = 70f;
+            private static Bench swivelChair;
+
+            [HarmonyPostfix]
+            [HarmonyPatch("EnterSittingMode")]
+            static void EnterSittingModePostfix(Bench __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //AddDebug("EnterSittingMode " + tt);
+                if (tt == TechType.StarshipChair)
+                {
+                    swivelChair = __instance;
+                }
+                else
+                    swivelChair = null;
+            }
 
             [HarmonyPrefix]
             [HarmonyPatch("OnUpdate")]
-            static bool Prefix(Bench __instance)
+            static bool OnUpdatePrefix(Bench __instance)
             {
                 if (__instance.currentPlayer == null)
                     return false;
@@ -197,8 +245,7 @@ namespace Tweaks_Fixes
                         __instance.ExitSittingMode(__instance.currentPlayer);
 
                     HandReticle.main.SetText(HandReticle.TextType.Use, "StandUp", true, GameInput.Button.Exit);
-                    TechType tt = CraftData.GetTechType(__instance.gameObject);
-                    if (tt == TechType.StarshipChair)
+                    if (__instance == swivelChair)
                     {
                         HandReticle.main.SetText(HandReticle.TextType.UseSubscript, UI_Patches.swivelText, false);
                         if (GameInput.GetButtonHeld(GameInput.Button.MoveRight))

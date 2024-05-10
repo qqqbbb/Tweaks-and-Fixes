@@ -194,7 +194,7 @@ namespace Tweaks_Fixes
                 signInput.inputField.characterLimit = 44;
             //    si.scaleIndex = -2; // range -3 3 
             string slot = SaveLoadManager.main.currentSlot;
-            if (Main.config.lockerNames.ContainsKey(slot))
+            if (Main.configMain.lockerNames.ContainsKey(slot))
             {
                 //Main.logger.LogMessage("AddLabel lockerNames.ContainsKey" + door.name);
                 if (locker.parent && locker.parent.GetComponent<SubControl>())
@@ -208,10 +208,10 @@ namespace Tweaks_Fixes
                 else if (type == DoorType.CyclopsLocker)
                     key = GetLabelKeyCyclops(door);
 
-                if (Main.config.lockerNames[slot].ContainsKey(key))
+                if (Main.configMain.lockerNames[slot].ContainsKey(key))
                 {
                     //Main.logger.LogMessage("AddLabel lockerNames.ContainsKey " + door.name);
-                    SavedLabel sl = Main.config.lockerNames[slot][key];
+                    SavedLabel sl = Main.configMain.lockerNames[slot][key];
                     signInput.inputField.text = sl.text;
                     signInput.colorIndex = sl.color;
                     signInput.SetBackground(sl.background);
@@ -559,10 +559,10 @@ namespace Tweaks_Fixes
                         string key = cyclops ? GetLabelKeyCyclops(__instance.transform.parent.parent) : GetLabelKey(__instance.transform.parent.parent);
                         //AddDebug("key " + key);
                         string slot = SaveLoadManager.main.currentSlot;
-                        if (!Main.config.lockerNames.ContainsKey(slot))
-                            Main.config.lockerNames[slot] = new Dictionary<string, SavedLabel>();
+                        if (!Main.configMain.lockerNames.ContainsKey(slot))
+                            Main.configMain.lockerNames[slot] = new Dictionary<string, SavedLabel>();
 
-                        Main.config.lockerNames[slot][key] = new SavedLabel(__instance.text, __instance.backgroundToggle.isOn, __instance.colorIndex, __instance.scaleIndex);
+                        Main.configMain.lockerNames[slot][key] = new SavedLabel(__instance.text, __instance.backgroundToggle.isOn, __instance.colorIndex, __instance.scaleIndex);
                     }
                 }
             }
@@ -596,13 +596,13 @@ namespace Tweaks_Fixes
                     {
                         //AddDebug("Deconstruct " + __instance.constructedAmount);
                         string slot = SaveLoadManager.main.currentSlot;
-                        if (Main.config.lockerNames.ContainsKey(slot))
+                        if (Main.configMain.lockerNames.ContainsKey(slot))
                         {
                             string key = GetLabelKey(__instance.transform);
-                            if (Main.config.lockerNames[slot].ContainsKey(key))
+                            if (Main.configMain.lockerNames[slot].ContainsKey(key))
                             {
                                 //AddDebug("Deconstruct saved locker ");
-                                Main.config.lockerNames[slot].Remove(key);
+                                Main.configMain.lockerNames[slot].Remove(key);
                             }
                         }
                     }

@@ -113,7 +113,6 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("SlotNext");
                 if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
-                //if (Input.GetKey(Main.configOld.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     //AddDebug("quickslotButton");
                     Pickupable pickupable = Inventory.main.GetHeld();
@@ -174,7 +173,7 @@ namespace Tweaks_Fixes
                             {
                                 l.intensity += Tools_Patch.lightIntensityStep[tt];
                                 //AddDebug("Light Intensity Up " + l.intensity);
-                                Main.config.lightIntensity[tt] = l.intensity;
+                                Main.configMain.lightIntensity[tt] = l.intensity;
                             }
                             if (flare)
                             {
@@ -240,7 +239,7 @@ namespace Tweaks_Fixes
                             l.intensity -= Tools_Patch.lightIntensityStep[tt];
                             //AddDebug("Light Intensity Down " + l.intensity);
                             //AddDebug("Light Intensity Step " + Tools_Patch.lightIntensityStep[tt]);
-                            Main.config.lightIntensity[tt] = l.intensity;
+                            Main.configMain.lightIntensity[tt] = l.intensity;
                             if (flare)
                             {
                                 Flare_Patch.intensityChanged = true;

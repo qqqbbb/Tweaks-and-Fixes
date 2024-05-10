@@ -8,9 +8,9 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    public class OptionsMemu : ModOptions
+    public class OptionsMenu : ModOptions
     {
-        public OptionsMemu() : base("Tweaks and Fixes")
+        public OptionsMenu() : base("Tweaks and Fixes")
         {
             ModSliderOption timeFlowSpeedSlider = ConfigMenu.timeFlowSpeed.ToModSliderOption(.1f, 10f, .1f, "{0:0.#}");
             ModSliderOption playerSpeedSlider = ConfigMenu.playerSpeedMult.ToModSliderOption(.5f, 5f, .1f, "{0:0.#}");
@@ -91,9 +91,9 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.damageImpactEffect.ToModToggleOption());
             AddItem(ConfigMenu.damageScreenFX.ToModToggleOption());
             AddItem(stalkerLoseToothChanceSlider);
-            AddItem(ConfigMenu.disableHints.ToModToggleOption());
+            //AddItem(ConfigMenu.disableHints.ToModToggleOption());
             AddItem(ConfigMenu.realOxygenCons.ToModToggleOption());
-            AddItem(ConfigMenu.cameraBobbing.ToModToggleOption());
+            //AddItem(ConfigMenu.cameraBobbing.ToModToggleOption());
             AddItem(decoyLifeTimeSlider);
             AddItem(decoyHPslider);
             AddItem(escapePodMaxPowerSlider);

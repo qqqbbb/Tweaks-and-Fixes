@@ -8,8 +8,10 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    static class BulkheadDoorPatch
+    static class Wreck_Door_Patch
     {
+        static HashSet<StarshipDoor> cutOpenedDoors = new HashSet<StarshipDoor>();
+
         [HarmonyPatch(typeof(BulkheadDoor))]
         class BulkheadDoor_OnHandClick_Patch
         {
@@ -31,38 +33,35 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnHandClick")]
             public static void OnHandClickPostfix(BulkheadDoor __instance)
             {
-                //SaveLoadManager.GameInfo gameInfo = SaveLoadManager.main.GetGameInfo(SaveLoadManager.main.currentSlot);
-                //long dictKey = GetKey(SaveLoadManager.main.currentSlot);
-                //PrefabIdentifier prefabIdentifier = __instance.GetComponent<PrefabIdentifier>();
-                //if (prefabIdentifier)
-                //{
-                //    Main.config.openedWreckDoors[prefabIdentifier.id] = !__instance.isOpen;
-                //}
-                int Key = Mathf.RoundToInt(__instance.gameObject.transform.position.x + __instance.gameObject.transform.position.y + __instance.gameObject.transform.position.z);
+                //AddDebug("BulkheadDoor OnHandClick opened " + __instance.opened);
+                Vector3Int pos = new Vector3Int((int)__instance.gameObject.transform.position.x, (int)__instance.gameObject.transform.position.y, (int)__instance.gameObject.transform.position.z);
                 string slot = SaveLoadManager.main.currentSlot;
-                if (!Main.config.openedWreckDoors.ContainsKey(slot))
-                    Main.config.openedWreckDoors[slot] = new Dictionary<int, bool>();
+                if (!Main.configMain.openedWreckDoors.ContainsKey(slot))
+                    Main.configMain.openedWreckDoors[slot] = new HashSet<Vector3Int>();
 
-                Main.config.openedWreckDoors[slot][Key] = !__instance.opened;
-                //Main.config.Save(); 00058db8c0ac
+                if (__instance.opened)
+                    Main.configMain.openedWreckDoors[slot].Remove(pos);
+                else
+                    Main.configMain.openedWreckDoors[slot].Add(pos);
+
+                //Main.configMain.openedWreckDoors[slot][Key] = !__instance.opened;
             }
-        
+
             [HarmonyPrefix]
             [HarmonyPatch("Awake")]
             public static void AwakePrefix(BulkheadDoor __instance)
             {
                 //float doorKey = __instance.gameObject.transform.position.x + __instance.gameObject.transform.position.y;
-                int Key = Mathf.RoundToInt(__instance.gameObject.transform.position.x + __instance.gameObject.transform.position.y + __instance.gameObject.transform.position.z);
+                Vector3Int pos = new Vector3Int((int)__instance.gameObject.transform.position.x, (int)__instance.gameObject.transform.position.y, (int)__instance.gameObject.transform.position.z);
                 string slot = SaveLoadManager.main.currentSlot;
-                if (Main.config.openedWreckDoors.ContainsKey(slot) && Main.config.openedWreckDoors[slot].ContainsKey(Key))
+                if (Main.configMain.openedWreckDoors.ContainsKey(slot) && Main.configMain.openedWreckDoors[slot].Contains(pos))
                 {
                     //Main.Log("load door " + slot + " " + doorKey + " " + Main.config.openedWreckDoors[slot][doorKey]);
                     //AddDebug("load door " + slot + " " + doorKey + " " + Main.config.openedWreckDoors[slot][doorKey]);
-                    __instance.initiallyOpen = Main.config.openedWreckDoors[slot][Key];
+                    __instance.initiallyOpen = true;
                 }
             }
         }
-
 
         [HarmonyPatch(typeof(StarshipDoor), "OnHandHover")]
         class StarshipDoor_OnHandHover_Patch
@@ -70,9 +69,14 @@ namespace Tweaks_Fixes
             private static bool Prefix(StarshipDoor __instance)
             {
                 //AddDebug("doorOpenMethod " + __instance.doorOpenMethod);
+                if (cutOpenedDoors.Contains(__instance))
+                {
+                    return false;
+                }
                 LaserCutObject laserCutObject = __instance.GetComponent<LaserCutObject>();
                 if (laserCutObject != null && laserCutObject.isCutOpen)
                 {
+                    cutOpenedDoors.Add (__instance);
                     //if (Input.GetKey(KeyCode.Z))
                     //{ 
                     //	laserCutObject.cutObject.SetActive(true);

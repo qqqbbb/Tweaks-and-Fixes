@@ -19,11 +19,13 @@ namespace Tweaks_Fixes
                 return;
 
             float depth = Ocean.GetDepthOf(Player.mainObject);
-            string biome = Player.main.GetBiomeString();
+            string biome = Player.main.biomeString;
             if (biome.StartsWith("Prison_Aquarium"))
                 depth -= 1450;
             else if (biome.StartsWith("Precursor_Gun"))
                 depth -= 95;
+            //else if (biome.StartsWith("ILZCastle"))
+            //    depth -= 1140;
 
             float crushDepth = ConfigMenu.crushDepth.Value + extraCrushDepth;
             if (depth < crushDepth)

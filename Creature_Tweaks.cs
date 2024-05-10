@@ -578,9 +578,19 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Inventory), "CanDropItemHere")]
+        class Inventory_CanDropItemHere_Patch
+        {
+            static void Postfix(Inventory __instance, Pickupable item, ref bool __result)
+            {
+                if (item.GetTechType() == TechType.Cutefish && Player.main.currentSub && Player.main.IsSwimming())
+                {
+                    __result = true;
+                }
+            }
+        }
 
-   
-        
+
 
 
 

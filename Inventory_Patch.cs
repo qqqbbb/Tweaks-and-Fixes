@@ -80,22 +80,7 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(GamepadInputModule))]
         class GamepadInputModule_Patch
-        {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("TranslateButtonEvent")]
-            public static void TranslateButtonEventPostfix(GamepadInputModule __instance, object selectedItem, GameInput.Button button, ref bool __result)
-            { // runs when inventory open
-                //AddDebug("GamepadInputModule TranslateButtonEvent " + selectedItem + " button " + button);
-                if (button == transferSameItemsButton)
-                {
-                    MoveSameItems(Inventory_Patch.selectedItem);
-                }
-                else if(button == transferAllItemsButton )
-                {
-                    MoveAllItems(Inventory_Patch.selectedItem);
-                }
-            }
-           
+        {          
             [HarmonyPostfix]
             [HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GamepadInputModule __instance)

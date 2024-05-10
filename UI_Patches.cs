@@ -470,7 +470,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(uGUI_FeedbackCollector __instance)
             {
-                return !ConfigMenu.disableHints.Value;
+                return !ConfigToEdit.disableHints.Value;
             }
         }
 
@@ -479,7 +479,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(uGUI_SceneIntro __instance)
             {
-                return !ConfigMenu.disableHints.Value;
+                return !ConfigToEdit.disableHints.Value;
             }
         }
 
@@ -489,7 +489,7 @@ namespace Tweaks_Fixes
             static bool Prefix(PlayerWorldArrows __instance)
             {
                 //AddDebug("CreateWorldArrows");
-                return !ConfigMenu.disableHints.Value;
+                return !ConfigToEdit.disableHints.Value;
             }
         }
 

@@ -61,9 +61,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> damageImpactEffect;
         public static ConfigEntry<bool> damageScreenFX;
         public static ConfigEntry<int> stalkerLoseToothChance;
-        public static ConfigEntry<bool> disableHints;
         public static ConfigEntry<bool> realOxygenCons;
-        public static ConfigEntry<bool> cameraBobbing;
         public static ConfigEntry<int> decoyLifeTime;
         public static ConfigEntry<int> decoyHP;
         public static ConfigEntry<int> escapePodMaxPower;
@@ -124,13 +122,11 @@ namespace Tweaks_Fixes
             creatureFleeChanceBasedOnHealth = Main.configMenu.Bind("", "Creature flee chance depends on its health", false, "Only creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both 'Creature flee chance percent' and 'Damage threshold for fleeing creatures'.");
             waterparkCreaturesBreed = Main.configMenu.Bind("", "Creatures in alien containment can breed", true);
             noFishCatching = Main.configMenu.Bind("", "Can not catch fish with bare hands", false, "To catch fish you will have to use knife, propulsion cannon, stasis rifle or grav trap. Does not apply if you are inside alien containment.");
-            noBreakingWithHand = Main.configMenu.Bind("", "Can not break outcrop with bare hands", false, "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.");
+            noBreakingWithHand = Main.configMenu.Bind("", "Can not break outcrop with bare hands", false, "You will have to use a knife, repulsion cannon or propulsion cannon to break outcrops or collect resources attached to rock or seabed.");
             damageImpactEffect = Main.configMenu.Bind("", "Player impact damage screen effects", true, "This toggles cracks on your swimming mask when you take damage.");
             damageScreenFX = Main.configMenu.Bind("", "Player damage screen effects", true, "This toggles red screen effects when you take damage.");
             stalkerLoseToothChance = Main.configMenu.Bind("", "Chance percent for stalker to lose its tooth", 50, "Probability percent for stalker to lose its tooth when it bites something hard.");
-            disableHints = Main.configMenu.Bind("", "Disable tutorial messages", false, "This disables messages that tell you to 'eat something', 'break limestone', etc. Game has to be reloaded after changing this.");
             realOxygenCons = Main.configMenu.Bind("", "Realistic oxygen consumption", false, "Vanilla oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth above 100 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be equal to vanilla max oxygen consumption and will increase as you dive deeper.");
-            cameraBobbing = Main.configMenu.Bind("", "Camera bobbing when swimming", true);
             decoyLifeTime = Main.configMenu.Bind("", "Creature decoy battery life time", 90, "Creature decoy stops working after this number of seconds.");
             decoyHP = Main.configMenu.Bind("", "Creature decoy HP", 0, "Creature decoy will be destroyed after taking this amount of damage if this value not 0. By default creature decoy HP is infinite.");
             escapePodMaxPower = Main.configMenu.Bind("", "Life pod power cell max charge", 25, "Max charge for each of its 3 power cells. Game has to be reloaded after changing this.");

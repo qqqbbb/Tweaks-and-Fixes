@@ -36,7 +36,8 @@ namespace Tweaks_Fixes
                 sky.sky.AffectedByDayNightCycle = true;
             }
             //AddDebug("currentSlot " + SaveLoadManager.main.currentSlot);
-            Main.config.escapePodSmokeOut = true;
+            Main.configMain.escapePodSmokeOut = true;
+            //Main.configMain.Save();
         }
 
         static IEnumerator SetMaxPower(EscapePod escapePod)
@@ -64,7 +65,7 @@ namespace Tweaks_Fixes
                 if (ConfigToEdit.escapePodPowerTweak.Value && Player.main.isNewBorn)
                     cell.powerSource.power = 0;
             }
-            if (damaged && Main.config.escapePodSmokeOut)
+            if (damaged && Main.configMain.escapePodSmokeOut)
                 LetSmokeOut(escapePod);
         }
 
@@ -135,7 +136,7 @@ namespace Tweaks_Fixes
             static bool StartPrefix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget Start");
-                if (Main.config.pickedUpFireExt)
+                if (Main.configMain.pickedUpFireExt)
                 {
                     __instance.extinguisherModel.SetActive(false);
                     UnityEngine.Object.Destroy(__instance.gameObject);
@@ -147,7 +148,7 @@ namespace Tweaks_Fixes
             static void StartPostfix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget UseVolume");
-                Main.config.pickedUpFireExt = true;
+                Main.configMain.pickedUpFireExt = true;
             }
         }
 

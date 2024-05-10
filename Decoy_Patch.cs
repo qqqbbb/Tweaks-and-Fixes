@@ -15,6 +15,12 @@ namespace Tweaks_Fixes
         public static ConditionalWeakTable<GameObject, string> pickupShinies = new ConditionalWeakTable<GameObject, string>();
         //static Dictionary<CyclopsDecoy, decoyData> decoys = new Dictionary<CyclopsDecoy, decoyData>();
 
+        public static void DestroyDecoys()
+        {
+            for (int i = decoysToDestroy.Count - 1; i >= 0; i--)
+                UnityEngine.Object.Destroy(decoysToDestroy[i]);
+        }
+
         public class DestroyOnDisable : MonoBehaviour
         {
             private void OnDisable()
@@ -135,16 +141,6 @@ namespace Tweaks_Fixes
                 //    Main.config.expiredDecoys.Add(ui.id);
                 decoysToDestroy.Add(__instance.gameObject);
                 return false;
-            }
-        }
-
-        //[HarmonyPatch(typeof(Inventory), "CanDropItemHere")]
-        class Inventory_CanDropItemHere_Patch
-        {
-            static void Postfix(Inventory __instance, Pickupable item, ref bool __result)
-            {
-                if (ConfigToEdit.decoyRequiresSub.Value && item.GetComponent<CyclopsDecoy>())
-                   __result = false;
             }
         }
 

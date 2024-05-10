@@ -99,16 +99,16 @@ namespace Tweaks_Fixes
                     crushTime = Time.time;
                     Crush_Damage.CrushDamagePlayer();
                 }
-                if (Main.config.medKitHPtoHeal > 0 && Time.time > healTime)
+                if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
                 //if (Main.config.medKitHPtoHeal > 0 && DayNightCycle.main.timePassedAsFloat > healTime)
                 { // not checking savegame slot
                     healTime = Time.time + 1.0f;
                     //healTime = DayNightCycle.main.timePassedAsFloat + 1f;
                     __instance.liveMixin.AddHealth(ConfigToEdit.medKitHPperSecond.Value);
                     //AddDebug("AddHealth " + Main.config.medKitHPperSecond);
-                    Main.config.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
-                    if (Main.config.medKitHPtoHeal < 0)
-                        Main.config.medKitHPtoHeal = 0;
+                    Main.configMain.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
+                    if (Main.configMain.medKitHPtoHeal < 0)
+                        Main.configMain.medKitHPtoHeal = 0;
                 }
 
                 if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.gameLoaded)

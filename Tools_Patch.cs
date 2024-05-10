@@ -71,13 +71,13 @@ namespace Tweaks_Fixes
                     __instance.transform.localPosition = new Vector3(pos.x -= .07f, pos.y += .03f, pos.z += .07f); 
                     return;
                 }
-                if (Main.config.lightIntensity.ContainsKey(tt))
+                if (Main.configMain.lightIntensity.ContainsKey(tt))
                 {
                     Light[] lights = __instance.GetComponentsInChildren<Light>(true);
                     //AddDebug(tt + " Lights " + lights.Length);
                     foreach (Light l in lights)
                     {
-                        l.intensity = Main.config.lightIntensity[tt];
+                        l.intensity = Main.configMain.lightIntensity[tt];
                         //AddDebug("Light Intensity Down " + l.intensity);
                     }
                 }
@@ -198,7 +198,7 @@ namespace Tweaks_Fixes
                 if (pickupable)
                 {
                     TechType techType = pickupable.GetTechType();
-                    if (Main.config.notPickupableResources.Contains(techType))
+                    if (Main.configMain.notPickupableResources.Contains(techType))
                     {
                         Rigidbody rb = pickupable.GetComponent<Rigidbody>();
                         if (rb && rb.isKinematic)  // attached to wall
@@ -207,47 +207,46 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("GiveResourceOnDamage")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("GiveResourceOnDamage")]
             public static void GiveResourceOnDamagePostfix(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
             {
                 if (isAlive || wasAlive)
                     return;
 
-                TechType techType = CraftData.GetTechType(target);
-                string name = techType.AsString();
-                if (Main.config.deadCreatureLoot.ContainsKey(name))
-                {
-                    Creature creature = target.GetComponent<Creature>();
-                    if (creature == null)
-                        return;
+                //TechType techType = CraftData.GetTechType(target);
+                //string name = techType.AsString();
+                //if (Main.config.deadCreatureLoot.ContainsKey(name))
+                //{
+                //    Creature creature = target.GetComponent<Creature>();
+                //    if (creature == null)
+                //        return;
 
-                    if (deadCreatureLoot.ContainsKey(creature))
-                    {
-                        foreach (var pair in Main.config.deadCreatureLoot[name])
-                        {
-                            TechType loot = pair.Key;
-                            int max = pair.Value;
-                            if (deadCreatureLoot[creature].ContainsKey(loot) && deadCreatureLoot[creature][loot] < max)
-                            {
-                                CraftData.AddToInventory(loot);
-                                deadCreatureLoot[creature][loot]++;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (var pair in Main.config.deadCreatureLoot[name])
-                        {
-                            CraftData.AddToInventory(pair.Key);
-                            deadCreatureLoot.Add(creature, new Dictionary<TechType, int> { { pair.Key, 1 } });
-                        }
-                    }
-                }
+                //    if (deadCreatureLoot.ContainsKey(creature))
+                //    {
+                //        foreach (var pair in Main.config.deadCreatureLoot[name])
+                //        {
+                //            TechType loot = pair.Key;
+                //            int max = pair.Value;
+                //            if (deadCreatureLoot[creature].ContainsKey(loot) && deadCreatureLoot[creature][loot] < max)
+                //            {
+                //                CraftData.AddToInventory(loot);
+                //                deadCreatureLoot[creature][loot]++;
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        foreach (var pair in Main.config.deadCreatureLoot[name])
+                //        {
+                //            CraftData.AddToInventory(pair.Key);
+                //            deadCreatureLoot.Add(creature, new Dictionary<TechType, int> { { pair.Key, 1 } });
+                //        }
+                //    }
+                //}
             }
         }
         
-
         [HarmonyPatch(typeof(MapRoomCamera))]
         class MapRoomCamera_Patch
         {
@@ -258,10 +257,10 @@ namespace Tweaks_Fixes
                 //AddDebug("MapRoomCamera ControlCamera");
                 Vehicle_patch.currentVehicleTT = TechType.MapRoomCamera;
                 Vehicle_patch.currentLights = __instance.GetComponentsInChildren<Light>(true);
-                if (Main.config.lightIntensity.ContainsKey(TechType.MapRoomCamera))
+                if (Main.configMain.lightIntensity.ContainsKey(TechType.MapRoomCamera))
                 {
                     foreach (Light l in Vehicle_patch.currentLights)
-                        l.intensity = Main.config.lightIntensity[TechType.MapRoomCamera];
+                        l.intensity = Main.configMain.lightIntensity[TechType.MapRoomCamera];
                 }
             }
             [HarmonyPostfix]
@@ -309,7 +308,7 @@ namespace Tweaks_Fixes
 
                     l.intensity += step;
                     //AddDebug("Light Intensity " + l.intensity);
-                    Main.config.lightIntensity[TechType.MapRoomCamera] = l.intensity;
+                    Main.configMain.lightIntensity[TechType.MapRoomCamera] = l.intensity;
                 }
                 return false;
             }
@@ -599,13 +598,15 @@ namespace Tweaks_Fixes
 
         public static void SaveSeaglideState(Seaglide seaglide)
         {
-            //AddDebug("SaveSeaglideState lightsActive " + seaglideLights.lightsActive);
             var seaglideMap = seaglide.GetComponent<VehicleInterface_MapController>();
             if (seaglideMap && seaglideMap.miniWorld)
-                Main.config.seaglideMap = seaglideMap.miniWorld.active;
+                Main.configMain.seaglideMap = seaglideMap.miniWorld.active;
 
             if (seaglide.toggleLights)
-                Main.config.seaglideLights = seaglide.toggleLights.lightsActive;
+                Main.configMain.seaglideLights = seaglide.toggleLights.lightsActive;
+
+            //AddDebug("SaveSeaglideState");
+            //Main.configMain.Save();
         }
 
         public static IEnumerator LoadSeaglideState(Seaglide seaglide)
@@ -616,8 +617,7 @@ namespace Tweaks_Fixes
             if (seaglide.toggleLights == null)
                 yield return null;
             
-            //AddDebug("LoadSeaglideState Lights" + Main.config.seaglideLights);
-            seaglide.toggleLights.SetLightsActive(Main.config.seaglideLights);
+            seaglide.toggleLights.SetLightsActive(Main.configMain.seaglideLights);
             var map = seaglide.GetComponent<VehicleInterface_MapController>();
             if (map == null)
                 yield break;
@@ -625,7 +625,7 @@ namespace Tweaks_Fixes
             if (map.miniWorld == null)
                 yield return null;
 
-            map.miniWorld.active = Main.config.seaglideMap;
+            map.miniWorld.active = Main.configMain.seaglideMap;
         }
 
         [HarmonyPatch(typeof(Seaglide))]
@@ -651,7 +651,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix]
             [HarmonyPatch("OnHolster")]
             public static void OnHolsterPostfix(Seaglide __instance)
-            { // fires when saving
+            { // fires when saving, after nautilus SaveEvent
               //AddDebug("Seaglide OnHolster " + __instance.toggleLights.lightsActive);
                 SaveSeaglideState(__instance);
             }
@@ -811,39 +811,89 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        //[HarmonyPatch(typeof(Inventory), "OnAddItem")]
-            class Inventory_OnAddItem_Patch
+        [HarmonyPatch(typeof(BuilderTool), "HasEnergyOrInBase")]
+        class BuilderTool_HasEnergyOrInBase_Patch
         {
-            public static void Postfix(Inventory __instance, InventoryItem item)
+            static void Postfix(BuilderTool __instance, ref bool __result)
             {
-                if (item != null && item.item && item.item.GetTechType() == TechType.SmallStorage)
+                if (!ConfigToEdit.builderToolBuildsInsideWithoutPower.Value && __instance.energyMixin.charge <= 0)
                 {
-                    //AddDebug("Inventory OnAddItem SmallStorage");
-                    Transform label = item.item.transform.Find("LidLabel");
-                    if (label)
-                    {
-                        label.localPosition = new Vector3(0.02f, 0.04f, -0.04f);
-                    }
+                    __result = false;
                 }
             }
         }
 
-        //[HarmonyPatch(typeof(Bullet), "Deactivate")]
-        public class Bullet_Deactivate_Patch
+        [HarmonyPatch(typeof(VFXController))]
+        class VFXController_SpawnFX_Patch
         {
-            public static void Prefix(Bullet __instance)
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Play")]
+            static bool PlayPostfix(VFXController __instance, int i)
             {
-                //AddDebug("Deactivate");
-                //Light[] lights = __instance.GetComponentsInChildren<Light>(true);
-                //for (int i = lights.Length - 1; i >= 0; i--)
-                //{
-                //    if (lights[i].type == LightType.Point)
-                //        lights[i].enabled = false;
-                //}
+
+                return false;
+            }
+             
+            [HarmonyPrefix]
+            [HarmonyPatch("SpawnFX")]
+            static bool SpawnFXPrefix(VFXController __instance, int i)
+            {
+                if (__instance.emitters[i].fx == null)
+                    return false;
+
+                Transform parent = __instance.emitters[i].parented ? __instance.emitters[i].parentTransform : __instance.transform;
+                GameObject gameObject = Utils.SpawnPrefabAt(__instance.emitters[i].fx, parent, parent.position);
+                //AddDebug("SpawnFX " + gameObject.name);
+                if (__instance.emitters[i].fakeParent && __instance.emitters[i].parented)
+                {
+                    gameObject.AddComponent<VFXFakeParent>().Parent(__instance.emitters[i].parentTransform, __instance.emitters[i].posOffset, __instance.emitters[i].eulerOffset);
+                }
+                else
+                {
+                    gameObject.transform.localEulerAngles = __instance.emitters[i].eulerOffset;
+                    gameObject.transform.localPosition = __instance.emitters[i].posOffset;
+                }
+                if (__instance.emitters[i].lateTime)
+                    gameObject.AddComponent<VFXLateTimeParticles>();
+
+                if (!__instance.emitters[i].parented)
+                    gameObject.transform.parent = null;
+
+                __instance.emitters[i].instanceGO = gameObject;
+                __instance.emitters[i].fxPS = gameObject.GetComponent<ParticleSystem>();
+                gameObject.SetActive(true);
+                return false;
             }
         }
 
-   
+        static ParticleSystem[] heatBladeParticles;
+
+        [HarmonyPatch(typeof(VFXLateTimeParticles))]
+        public class VFXLateTimeParticles_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("Play")]
+            public static void PlayPostfix(VFXLateTimeParticles __instance)
+            { //  fix heatblade underwater particles play inside
+                if (__instance.name != "xHeatBlade_Bubbles(Clone)")
+                    return;
+
+                heatBladeParticles = __instance.psChildren;
+                FixHeatBlade();
+            }
+        }
+
+        public static void FixHeatBlade()
+        { //  fix heatblade underwater particles 
+            if (heatBladeParticles == null || heatBladeParticles.Length != 3 || heatBladeParticles[0] == null || heatBladeParticles[0].gameObject == null || !heatBladeParticles[0].gameObject.activeInHierarchy)
+                return;
+
+            //AddDebug("FixHeatBlade");
+            bool underwater = Player.main.isUnderwater.value;
+            heatBladeParticles[1].EnableEmission(!underwater); // xSmk
+            heatBladeParticles[0].EnableEmission(underwater); // xHeatBlade_Bubbles(Clone)
+            heatBladeParticles[2].EnableEmission(underwater); // xRefract
+        }
+
     }
 }

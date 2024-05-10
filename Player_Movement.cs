@@ -12,9 +12,12 @@ namespace Tweaks_Fixes
     class Player_Movement
     {
         static float oceanLevel;
+        static float invItemsMass;
         static Equipment equipment;
         public static float timeSprintStart = 0f;
         public static float timeSprinted = 0f;
+        public static bool invChanged = true;
+        static Dictionary<TechType, float> itemMassDic = new Dictionary<TechType, float>();
 
         [HarmonyPatch(typeof(Player), "Start")]
         class Player_Start_Patch
@@ -28,15 +31,46 @@ namespace Tweaks_Fixes
             }
         }
 
+        private static float GetInvItemsMass()
+        {
+            //AddDebug("Inventory.main.GetTotalItemCount " + Inventory.main.GetTotalItemCount());
+            float massTotal = 0;
+            foreach (InventoryItem inventoryItem in Inventory.main._container)
+            {
+                //AddDebug("inventoryItem " + inventoryItem._techType);
+                massTotal += GetItemMass(inventoryItem);
+            }
+            foreach (InventoryItem inventoryItem in (IItemsContainer)Inventory.main._equipment)
+            {
+                //AddDebug("equipment " + inventoryItem._techType);
+                massTotal += GetItemMass(inventoryItem);
+            }
+            invItemsMass = massTotal;
+            return massTotal;
+        }
+
+        private static float GetItemMass(InventoryItem inventoryItem)
+        {
+            if (itemMassDic.ContainsKey(inventoryItem._techType))
+                return itemMassDic[inventoryItem._techType];
+            else
+            {
+                Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
+                itemMassDic[inventoryItem._techType] = rb.mass;
+                return rb.mass;
+            }
+        }
+
         public static float GetInvMult()
         {
             float massTotal = 0f;
-            foreach (InventoryItem inventoryItem in Inventory.main.container)
+            if (invChanged)
             {
-                Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
-                if (rb)
-                    massTotal += rb.mass;
+                massTotal = GetInvItemsMass();
+                invChanged = false;
             }
+            else
+                massTotal = invItemsMass;
 
             float mult;
             if (Player.main.IsSwimming())
@@ -49,12 +83,31 @@ namespace Tweaks_Fixes
             return mult * .01f;
         }
 
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Inventory), "OnAddItem")]
+            static void OnAddItemPostfix(MainCameraControl __instance, InventoryItem item)
+            {
+                //AddDebug("OnAddItem");
+                invChanged = true;
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Inventory), "OnRemoveItem")]
+            static void OnRemoveItemPostfix(MainCameraControl __instance, InventoryItem item)
+            {
+                //AddDebug("OnRemoveItem");
+                invChanged = true;
+            }
+        }
+
         [HarmonyPatch(typeof(MainCameraControl), "GetCameraBob")]
         class MainCameraControl_GetCameraBob_Patch
         {
             static bool Prefix(MainCameraControl __instance, ref bool __result)
             {
-                if (!ConfigMenu.cameraBobbing.Value)
+                if (!ConfigToEdit.cameraBobbing.Value)
                 {
                     __result = false;
                     return false;
@@ -169,9 +222,9 @@ namespace Tweaks_Fixes
                         __result *= 0.7f;
                         //AddDebug("AlterMaxSpeed playerMoveTweaks tool " + __result);
                     }
-                    if (ConfigMenu.invMultWater.Value > 0f)
-                        __result *= GetInvMult();
                 }
+                if (ConfigMenu.invMultWater.Value > 0f)
+                    __result *= GetInvMult();
                 //__instance.currentPlayerSpeedMultipler = Mathf.MoveTowards(__instance.currentPlayerSpeedMultipler, __instance.playerSpeedModifier, 0.3f * Time.deltaTime);
                 //__instance.movementSpeed = __instance.playerController.velocity.magnitude / 5f;
                 //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;

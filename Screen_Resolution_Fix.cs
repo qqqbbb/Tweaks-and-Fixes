@@ -30,22 +30,17 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Initialize")]
             static void InitializePostfix(DisplayManager __instance)
             {
-                if (Main.config == null)
-                {
-                    Main.logger.LogMessage("DisplayManager Initialize configOld == null");
-                    return;
-                }
-                if (Main.config.screenRes.width == 0)
+                if (Main.configMain.screenRes.width == 0)
                     return;
 
-                if (Screen.currentResolution.width != Main.config.screenRes.width || Screen.currentResolution.height != Main.config.screenRes.height)
+                if (Screen.currentResolution.width != Main.configMain.screenRes.width || Screen.currentResolution.height != Main.configMain.screenRes.height)
                 {
                     Resolution[] resolutions = Screen.resolutions;
                     for (int i = 0; i < resolutions.Length; i++)
                     {
-                        if (resolutions[i].width == Main.config.screenRes.width && resolutions[i].height == Main.config.screenRes.height)
+                        if (resolutions[i].width == Main.configMain.screenRes.width && resolutions[i].height == Main.configMain.screenRes.height)
                         {
-                            Screen.SetResolution(Main.config.screenRes.width, Main.config.screenRes.height, Main.config.screenRes.fullscreen);
+                            Screen.SetResolution(Main.configMain.screenRes.width, Main.configMain.screenRes.height, Main.configMain.screenRes.fullscreen);
                             break;
                         }
                     }

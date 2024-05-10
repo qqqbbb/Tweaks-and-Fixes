@@ -57,7 +57,7 @@ namespace Tweaks_Fixes
 
                 l.intensity += step;
                 //AddDebug("Light Intensity " + l.intensity);
-                Main.config.lightIntensity[currentVehicleTT] = l.intensity;
+                Main.configMain.lightIntensity[currentVehicleTT] = l.intensity;
             }
         }
 
@@ -130,10 +130,10 @@ namespace Tweaks_Fixes
             //AddDebug(tt + " Awake lights " + lights.Length);
             Tools_Patch.lightOrigIntensity[tt] = lights[0].intensity;
             Tools_Patch.lightIntensityStep[tt] = lights[0].intensity * .1f;
-            if (Main.config.lightIntensity.ContainsKey(tt))
+            if (Main.configMain.lightIntensity.ContainsKey(tt))
             {
                 foreach (Light l in lights)
-                    l.intensity = Main.config.lightIntensity[tt];
+                    l.intensity = Main.configMain.lightIntensity[tt];
             }
         }
 
@@ -1056,7 +1056,7 @@ namespace Tweaks_Fixes
             so.path = "event:/sub/seamoth/impact_solid_soft";
             so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
             collisionSound.hitSoundSlow = so;
-            SetLights(__instance, Main.config.exosuitLights);
+            SetLights(__instance, Main.configMain.exosuitLights);
             exosuitStarted = true;
         }
 
@@ -1229,12 +1229,12 @@ namespace Tweaks_Fixes
                 if (!lightsT.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
                 {
                     lightsT.gameObject.SetActive(true);
-                    Main.config.exosuitLights = true;
+                    Main.configMain.exosuitLights = true;
                 }
                 else if (lightsT.gameObject.activeSelf)
                 {
                     lightsT.gameObject.SetActive(false);
-                    Main.config.exosuitLights = false;
+                    Main.configMain.exosuitLights = false;
                 }
                 //AddDebug("lights " + lightsT.gameObject.activeSelf);
             }

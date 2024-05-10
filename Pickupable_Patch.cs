@@ -208,7 +208,7 @@ namespace Tweaks_Fixes
                         else
                         {
                             //AddDebug("Time.timeScale " + Time.timeScale);
-                            Main.config.medKitHPtoHeal = ConfigMenu.medKitHP.Value;
+                            Main.configMain.medKitHPtoHeal = ConfigMenu.medKitHP.Value;
                             Player_Patches.healTime = Time.time;
                             //Player_Patches.healTime = DayNightCycle.main.timePassedAsFloat;
                         }

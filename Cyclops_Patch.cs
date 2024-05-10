@@ -86,10 +86,12 @@ namespace Tweaks_Fixes
                     return;
                 //if (Player.main.currentSub && Player.main.currentSub == __instance.subRoot)
                 {
-                    bool powerOn = __instance.subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
                     //AddDebug("powerOn " + powerOn);
-                    //__instance.hudActive = powerOn && Player.main.currentSub && Player.main.currentSub == __instance.subRoot;
-                    __instance.hudActive = powerOn;
+                    if (ConfigToEdit.cyclopsHUDalwaysOn.Value)
+                    {
+                        bool powerOn = __instance.subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
+                        __instance.hudActive = powerOn;
+                    }
                     if (__instance.motorMode.engineOn) // hide speed selector when engine off
                         __instance.engineToggleAnimator.SetTrigger("EngineOn");
                     else
@@ -97,6 +99,7 @@ namespace Tweaks_Fixes
                     //cyclopsHelmHUDManager = __instance;
                     //AddDebug("hudActive " + __instance.hudActive);
                     //__instance.canvasGroup.alpha = 0f;
+                    //__instance.hornObject.SetActive(true);
                 }
             }
           
@@ -143,9 +146,9 @@ namespace Tweaks_Fixes
                 CyclopsMotorMode cyclopsMotorMode = __instance.GetComponent<CyclopsMotorMode>();
                 if (cyclopsMotorMode)
                 {
-                    Main.config.subThrottleIndex = (int)cyclopsMotorMode.cyclopsMotorMode;
+                    Main.configMain.subThrottleIndex = (int)cyclopsMotorMode.cyclopsMotorMode;
                     //AddDebug("save subThrottleIndex");
-                    Main.configMenu.Save();
+                    //Main.configMenu.Save();
                 }
             }
 
@@ -164,10 +167,10 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(CyclopsMotorModeButton __instance)
             {
-                if (Main.config.subThrottleIndex != -1)
+                if (Main.configMain.subThrottleIndex != -1)
                 {
                     //AddDebug("restore  subThrottleIndex");
-                    SetCyclopsMotorMode(__instance, (CyclopsMotorMode.CyclopsMotorModes)Main.config.subThrottleIndex);
+                    SetCyclopsMotorMode(__instance, (CyclopsMotorMode.CyclopsMotorModes)Main.configMain.subThrottleIndex);
                 }
             }
         }
@@ -206,10 +209,10 @@ namespace Tweaks_Fixes
                 Tools_Patch.lightIntensityStep[TechType.Cyclops] = .2f;
                 Light[] lights = __instance.transform.Find("Floodlights").GetComponentsInChildren<Light>(true);
                 //AddDebug("SubControl.Start lights intensity " + lights[0].intensity);
-                if (Main.config.lightIntensity.ContainsKey(TechType.Cyclops))
+                if (Main.configMain.lightIntensity.ContainsKey(TechType.Cyclops))
                 {
                     foreach (Light l in lights)
-                        l.intensity = Main.config.lightIntensity[TechType.Cyclops];
+                        l.intensity = Main.configMain.lightIntensity[TechType.Cyclops];
                 }
 
             }
@@ -366,16 +369,16 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(VehicleDockingBay))]
         public class VehicleDockingBay_LaunchbayAreaEnter_Patch
         { // dont play sfx if another vehicle docked
-            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaEnter))]
             [HarmonyPrefix]
+            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaEnter))]
             public static bool LaunchbayAreaEnterPrefix(VehicleDockingBay __instance)
             {
                 if (__instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
                     return false;
                 return !__instance._dockedVehicle;
             }
-            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaExit))]
             [HarmonyPrefix]
+            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaExit))]
             public static bool LaunchbayAreaExitPrefix(VehicleDockingBay __instance)
             {
                 if (__instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
@@ -523,10 +526,10 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("ToggleFloodlights " + __instance.floodlightsOn);
                 //Main.config.cyclopsFloodtLights = __instance.floodlightsOn;
-                if (Main.config.cyclopsFloodLights)
+                if (Main.configMain.cyclopsFloodLights)
                     TurnOnFloodlights(__instance);
 
-                if (!Main.config.cyclopsLighting)
+                if (!Main.configMain.cyclopsLighting)
                     TurnOffInternalLighting(__instance);
             }
             [HarmonyPostfix]
@@ -534,14 +537,14 @@ namespace Tweaks_Fixes
             static void ToggleFloodlightsPostfix(CyclopsLightingPanel __instance)
             {
                 //AddDebug("ToggleFloodlights " + __instance.floodlightsOn);
-                Main.config.cyclopsFloodLights = __instance.floodlightsOn;
+                Main.configMain.cyclopsFloodLights = __instance.floodlightsOn;
             }
             [HarmonyPostfix]
             [HarmonyPatch("ToggleInternalLighting")]
             static void ToggleInternalLightingPostfix(CyclopsLightingPanel __instance)
             {
                 //AddDebug("ToggleFloodlights " + __instance.floodlightsOn);
-                Main.config.cyclopsLighting = __instance.lightingOn;
+                Main.configMain.cyclopsLighting = __instance.lightingOn;
             }
 
             [HarmonyPrefix]
