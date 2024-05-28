@@ -1,9 +1,9 @@
 ﻿using HarmonyLib;
-using UnityEngine;
 using System;
 using System.Collections.Generic;
-using static ErrorMessage;
 using System.Runtime.CompilerServices;
+using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -15,9 +15,7 @@ namespace Tweaks_Fixes
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static ConditionalWeakTable<SwimBehaviour, string> reefbackSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static ConditionalWeakTable<SwimBehaviour, string> gasopodSBs = new ConditionalWeakTable<SwimBehaviour, string>();
-        public static HashSet<TechType> notRespawningCreatures;
-        public static HashSet<TechType> notRespawningCreaturesIfKilledByPlayer;
-        public static Dictionary<TechType, int> respawnTime = new Dictionary<TechType, int>();
+
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
@@ -26,7 +24,7 @@ namespace Tweaks_Fixes
             {
                 if (ConfigMenu.CreatureFleeChance.Value == 100 && !ConfigMenu.creatureFleeChanceBasedOnHealth.Value && ConfigMenu.creatureFleeUseDamageThreshold.Value)
                     return true;
-                
+
                 if (!__instance.enabled)
                     return false;
 
@@ -36,10 +34,10 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.creatureFleeChanceBasedOnHealth.Value && liveMixin && liveMixin.IsAlive())
                 {
                     int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
-                    int rnd1 = Main.rndm.Next(0, maxHealth+1);
+                    int rnd1 = Main.rndm.Next(0, maxHealth + 1);
                     int health = Mathf.RoundToInt(liveMixin.health);
                     //if (__instance.gameObject == Testing.goToTest)
-                        //AddDebug(__instance.name + " max Health " + maxHealth + " Health " + health);
+                    //AddDebug(__instance.name + " max Health " + maxHealth + " Health " + health);
                     if (health < rnd1)
                     {
                         //if (__instance.gameObject == Testing.goToTest)
@@ -75,7 +73,7 @@ namespace Tweaks_Fixes
                 }
                 return false;
             }
-             
+
             public static void Postfix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
                 CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
@@ -86,7 +84,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(Stalker))]
         public static class Stalker_Patch
         {
@@ -122,14 +120,14 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-        
+
         [HarmonyPatch(typeof(Creature))]
         public static class Creature_Patch
         {
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             public static void StartPostfix(Creature __instance)
-            {               
+            {
                 VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 vFXSurface.surfaceType = VFXSurfaceTypes.organic;
                 if (__instance is Spadefish || __instance is Jumper)
@@ -165,7 +163,7 @@ namespace Tweaks_Fixes
 
             [HarmonyPrefix]
             [HarmonyPatch("IsInFieldOfView")]
-            public static bool GetCanSeeObjectPrefix(Creature __instance, GameObject go, ref bool __result)
+            public static bool IsInFieldOfViewPrefix(Creature __instance, GameObject go, ref bool __result)
             { // ray does not hit terrain if cast from underneath. Cast from player to avoid it.
                 __result = false;
                 if (go == null)
@@ -185,60 +183,30 @@ namespace Tweaks_Fixes
                 }
                 return false;
             }
-        }
-        
-        [HarmonyPatch(typeof(CreatureDeath))]
-        class CreatureDeath_Patch
-        {
 
-            //static HashSet<TechType> creatureDeaths = new HashSet<TechType>();
             [HarmonyPostfix]
-            [HarmonyPatch("Start")]
-            static void StartPostfix(CreatureDeath __instance)
+            [HarmonyPatch("OnKill")]
+            public static void OnKillPostfix(Creature __instance)
             {
-                TechType techType = CraftData.GetTechType(__instance.gameObject);
-                //if (!creatureDeaths.Contains(techType))
-                //{
-                //    creatureDeaths.Add(techType);
-                //    Main.logger.LogMessage("CreatureDeath " + techType + " respawns " + __instance.respawn + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature + " respawnInterval " + __instance.respawnInterval);
-                //}
-                __instance.respawn = !notRespawningCreatures.Contains(techType);
-                __instance.respawnOnlyIfKilledByCreature = notRespawningCreaturesIfKilledByPlayer.Contains(techType);
-                //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawn " + __instance.respawn);
-                //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
-                if (respawnTime.ContainsKey(techType))
-                    __instance.respawnInterval = respawnTime[techType] * Main.dayLengthSeconds;
+                if (__instance is Peeper)
+                {
+                    //AddDebug("Peeper OnKill ");
+                    FixPeeperLOD(__instance, false);
+                }
             }
+
             [HarmonyPostfix]
-            [HarmonyPatch("OnTakeDamage")]
-            static void OnTakeDamagePostfix(CreatureDeath __instance, DamageInfo damageInfo)
+            [HarmonyPatch("OnDrop")]
+            public static void OnDropPostfix(Creature __instance)
             {
-                //AddDebug(__instance.name + " OnTakeDamage " + damageInfo.dealer.name);
-                if (!ConfigToEdit.heatBladeCooks.Value && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
-                    __instance.lastDamageWasHeat = false;
-            }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnKill")]
-            static void OnKillPrefix(CreatureDeath __instance)
-            {
-                //AddDebug(__instance.name + " OnKill");
-            }
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnKill")]
-            static void OnKillPostfix(CreatureDeath __instance)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (tt != TechType.Peeper)
-                    return;
-                LODGroup lod = __instance.GetComponentInChildren<LODGroup>(true);
-                lod.enabled = false;
-                SkinnedMeshRenderer[] renderers = __instance.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-                //AddDebug("Peeper OnKill " + renderers.Length);
-                //for (int i = 1; i < renderers.Length; i++)
-                renderers[0].enabled = false;
+                if (__instance is Peeper)
+                {
+                    //AddDebug("Peeper OnDrop ");
+                    FixPeeperLOD(__instance);
+                }
             }
         }
-        
+
         [HarmonyPatch(typeof(SeaTreaderSounds))]
         class SeaTreaderSounds_patch
         {
@@ -280,7 +248,7 @@ namespace Tweaks_Fixes
                 return true;
             }
         }
-        
+
         [HarmonyPatch(typeof(ReefbackLife), "OnEnable")]
         class ReefbackLife_OnEnable_patch
         {
@@ -342,7 +310,7 @@ namespace Tweaks_Fixes
 
             }
         }
-        
+
         [HarmonyPatch(typeof(SwimBehaviour), "SwimToInternal")]
         class SwimBehaviour_SwimToInternal_patch
         {
@@ -372,10 +340,10 @@ namespace Tweaks_Fixes
                     { // dont allow them to surface
                         //AddDebug("Fix reefback y pos");
                         targetPosition.y = -15f;
-                        reefbackSBs.Add(__instance, "" );
+                        reefbackSBs.Add(__instance, "");
                     }
                     else if (tt == TechType.Gasopod && targetPosition.y > -1f)
-                    { 
+                    {
                         targetPosition.y = Main.rndm.Next(-11, -1);
                         //AddDebug("Gasopod Swim To " + targetPosition.y);
                         gasopodSBs.Add(__instance, "");
@@ -383,7 +351,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
 
 
         [HarmonyPatch(typeof(CollectShiny))]
@@ -590,7 +557,41 @@ namespace Tweaks_Fixes
             }
         }
 
+        public static void FixPeeperLOD(Creature peeper, bool alive = true)
+        {// fix: they close eyes when near player
+            if (alive)
+                alive = peeper.GetComponent<LiveMixin>().IsAlive();
 
+            Transform tr = peeper.transform.Find("model/peeper");
+            LODGroup lODGroup = tr.GetComponentInChildren<LODGroup>(true);
+            lODGroup.enabled = false;
+            Transform tr1 = tr.Find("aqua_bird");
+            tr1.gameObject.SetActive(!alive);
+            tr1 = tr.Find("aqua_bird_LOD1");
+            tr1.gameObject.SetActive(alive);
+        }
+
+        [HarmonyPatch(typeof(Peeper), "Start")]
+        class Peeper_Start_patch
+        {
+            public static void Postfix(Peeper __instance)
+            {
+                FixPeeperLOD(__instance);
+            }
+        }
+
+        //[HarmonyPatch(typeof(CreatureDeath), "OnKill")]
+        class CreatureDeath_OnKill_patch
+        {
+            public static void Postfix(CreatureDeath __instance)
+            {
+                if (__instance.GetComponent<Peeper>())
+                {
+                    //AddDebug("CreatureDeath Peeper OnKill ");
+
+                }
+            }
+        }
 
 
 

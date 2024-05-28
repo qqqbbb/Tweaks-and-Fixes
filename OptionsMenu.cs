@@ -47,7 +47,7 @@ namespace Tweaks_Fixes
             ModSliderOption craftedBatteryChargeSlider = ConfigMenu.craftedBatteryCharge.ToModSliderOption(0, 100, 1);
             ModSliderOption invMultWaterSlider = ConfigMenu.invMultWater.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
             ModSliderOption invMultLandSlider = ConfigMenu.invMultLand.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
-
+            ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
 
             AddItem(timeFlowSpeedSlider);
             AddItem(playerSpeedSlider);
@@ -71,6 +71,7 @@ namespace Tweaks_Fixes
             AddItem(cyclopsAutoHealSlider);
             AddItem(crushDamageSlider);
             AddItem(vehicleCrushDamageSlider);
+            AddItem(baseHullStrengthSlider);
             AddItem(ConfigMenu.emptyVehiclesCanBeAttacked.ToModChoiceOption());
             AddItem(hungerUpdateIntervalSlider);
             AddItem(ConfigMenu.newHungerSystem.ToModToggleOption());

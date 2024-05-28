@@ -1,0 +1,23 @@
+{
+  "TF_toggle_base_lights": "Toggle lights",
+  "TF_crush_depth_equipment": "Increases your safe diving depth by ",
+  "TF_crush_damage_equipment": "Reduces your crush damage by ",
+  "TF_meters": " meters.",
+  "TF_mass": "mass ",
+  "TF_kg": " kg",
+  "TF_throw_flare": "Throw",
+  "TF_light_and_throw_flare": "Light and throw",
+  "TF_light_flare": "Light",
+  "TF_burnt_out_flare": "Burnt out ",
+  "TF_lit_flare": "Lit ",
+  "TF_push_seamoth": "Push ",
+  "TF_need_knife_to_break_outcrop": "Need a knife to break it",
+  "TF_need_knife_to_break_free_resource": "Need a knife to break it free",
+  "TF_seamoth_defence_press": ". Press and hold ",
+  "TF_seamoth_defence_charge": " to charge the shot",
+  "TF_change_torpedo": " Change torpedo type ",
+  "TF_swivel_chair_left": "Swivel left",
+  "TF_swivel_chair_right": "Swivel right",
+  "TF_bladderfish_tooltip": " Provides some oxygen when consumed raw.",
+  "TF_propulsion_cannon_release": "Release "
+}

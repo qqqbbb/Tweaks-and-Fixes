@@ -1,17 +1,17 @@
 ﻿
 using HarmonyLib;
-using System.Reflection;
-using System;
 using Nautilus.Handlers;
+using Nautilus.Options;
+using Nautilus.Options.Attributes;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using System.Text;
-using static ErrorMessage;
 using System.Linq;
+using System.Reflection;
+using System.Text;
+using UnityEngine;
 using UWE;
-using Nautilus.Options.Attributes;
-using Nautilus.Options;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -67,7 +67,7 @@ namespace Tweaks_Fixes
                 //if (transform2 == null)
                 if (resultHit.collider == null || hit.distance < resultHit.distance)
                     resultHit = hit;
-                
+
             }
             if (resultHit.collider != null)
             {
@@ -105,7 +105,7 @@ namespace Tweaks_Fixes
             Vector3 position = transform.position;
             Vector3 forward = transform.forward;
             Ray ray = new Ray(position, forward);
-            int layerMask = ~(1 << LayerID.Trigger  | 1 << LayerID.OnlyVehicle);
+            int layerMask = ~(1 << LayerID.Trigger | 1 << LayerID.OnlyVehicle);
             QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Collide;
             int numHits1 = UWE.Utils.RaycastIntoSharedBuffer(ray, maxDistance, layerMask, queryTriggerInteraction);
             DebugTargetConsoleCommand.radius = -1f;
@@ -133,23 +133,27 @@ namespace Tweaks_Fixes
             return flag;
         }
 
-        //[HarmonyPatch(typeof(CraftData), "Start")]
-        class CraftData_Start_Patch
+        //[HarmonyPatch(typeof(WaterClipProxy), "Start")]
+        class WaterClipProxy_UpdateDamage_Patch
         {
-            static void Prefix(CraftData __instance)
+            static void Postfix(WaterClipProxy __instance)
             {
+                if (__instance.transform.parent.name == "BaseRoom(Clone)")
+                {
+                    AddDebug("WaterClipProxy Start " + __instance.name);
+
+                }
+
             }
         }
 
-        //[HarmonyPatch(typeof(MoveTowardsTarget), "IsValidTarget")]
-        class CraftData_IsValidTarget_Patch
+        //[HarmonyPatch(typeof(Creature), "OnProtoDeserialize")]
+        class Creature_OnProtoDeserialize_Patch
         {
-            static void Postfix(MoveTowardsTarget __instance, IEcoTarget target, bool __result)
+            static void Postfix(Creature __instance)
             {
-                if (__instance.targetType == EcoTargetType.Whale)
-                {
-                    AddDebug(__instance.name + " MoveTowardsTarget IsValidTarget " + target.GetName() + " " + __result);
-                }
+                Main.logger.LogMessage("Creature OnProtoDeserialize " + __instance.name);
+                AddDebug("Creature OnProtoDeserialize " + __instance.name);
             }
         }
 
@@ -267,7 +271,7 @@ namespace Tweaks_Fixes
                 AddDebug("vfxSurfaceTypes " + vfxSurfaceTypes);
             }
             else
-                AddDebug("no terrain " );
+                AddDebug("no terrain ");
         }
 
         public static void printTarget()
@@ -307,12 +311,12 @@ namespace Tweaks_Fixes
                 //Rigidbody rb = lwe.GetComponent<Rigidbody>();
                 //if (rb)
                 //    AddDebug(" mass " + rb.mass + " drag " + rb.drag + " ang drag " + rb.angularDrag);
-                
+
                 //AddDebug("PDAScanner isValid " + PDAScanner.scanTarget.isValid);
                 //AddDebug("PDAScanner CanScan " + PDAScanner.CanScan());
                 //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
 
-                
+
                 //AddDebug(" cellLevel " + lwe.cellLevel);
                 AddDebug("vfxSurfaceType  " + vfxSurfaceType);
                 //LiveMixin lm = lwe.GetComponent<LiveMixin>();
@@ -460,7 +464,7 @@ namespace Tweaks_Fixes
                         //mr.material.mainTextureOffset = new Vector2(.5f, 1.5f);
                         //AddDebug("color " + mr.material.color);
                     }
-                   
+
                 }
 
             }
@@ -477,7 +481,7 @@ namespace Tweaks_Fixes
                 debug.name = "Debug";
                 debug.GetComponent<SphereCollider>().enabled = false;
                 debug.transform.SetParent(go.transform, false);
-                debug.GetComponent<MeshRenderer>().material.color = new Color(1f,0f,0f);
+                debug.GetComponent<MeshRenderer>().material.color = new Color(1f, 0f, 0f);
                 AddDebug("Creating debug sphere for: " + go.name);
                 //debug.transform.localScale = Vector3.one * 0.1f;
             }

@@ -70,9 +70,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<DropItemsOnDeath> dropItemsOnDeath;
         public static ConfigEntry<float> invMultWater;
         public static ConfigEntry<float> invMultLand;
+        public static ConfigEntry<float> baseHullStrengthMult;
 
-
-        
 
         public static void Bind()
         {  // “ ” ‛
@@ -92,6 +91,8 @@ namespace Tweaks_Fixes
             toolEnergyConsMult = Main.configMenu.Bind("", "Tool power consumption multiplier", 1f, "Amount of power consumed by your tools will be multiplied by this.");
             vehicleEnergyConsMult = Main.configMenu.Bind("", "Vehicle power consumption multiplier", 1f, "Amount of power consumed by your vehicles will be multiplied by this.");
             baseEnergyConsMult = Main.configMenu.Bind("", "Base power consumption multiplier", 1f, "Amount of power consumed by your things in your base will be multiplied by this.");
+
+            baseHullStrengthMult = Main.configMenu.Bind("", "Base hull strength multiplier", 1f, "");
             knifeRangeMult = Main.configMenu.Bind("", "Knife range multiplier", 1f, "Applies to knife and thermoblade. You have to reequip your knife after changing this.");
             knifeDamageMult = Main.configMenu.Bind("", "Knife damage multiplier", 1f, "Applies to knife and thermoblade. You have to reequip your knife after changing this.");
             medKitHP = Main.configMenu.Bind("", "First aid kit HP", 50, "HP restored when using first aid kit.");
@@ -124,7 +125,7 @@ namespace Tweaks_Fixes
             noFishCatching = Main.configMenu.Bind("", "Can not catch fish with bare hands", false, "To catch fish you will have to use knife, propulsion cannon, stasis rifle or grav trap. Does not apply if you are inside alien containment.");
             noBreakingWithHand = Main.configMenu.Bind("", "Can not break outcrop with bare hands", false, "You will have to use a knife, repulsion cannon or propulsion cannon to break outcrops or collect resources attached to rock or seabed.");
             damageImpactEffect = Main.configMenu.Bind("", "Player impact damage screen effects", true, "This toggles cracks on your swimming mask when you take damage.");
-            damageScreenFX = Main.configMenu.Bind("", "Player damage screen effects", true, "This toggles red screen effects when you take damage.");
+            damageScreenFX = Main.configMenu.Bind("", "Player damage screen effects", true, "This toggles red screen effect when you take damage.");
             stalkerLoseToothChance = Main.configMenu.Bind("", "Chance percent for stalker to lose its tooth", 50, "Probability percent for stalker to lose its tooth when it bites something hard.");
             realOxygenCons = Main.configMenu.Bind("", "Realistic oxygen consumption", false, "Vanilla oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth above 100 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be equal to vanilla max oxygen consumption and will increase as you dive deeper.");
             decoyLifeTime = Main.configMenu.Bind("", "Creature decoy battery life time", 90, "Creature decoy stops working after this number of seconds.");
@@ -137,7 +138,7 @@ namespace Tweaks_Fixes
             invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on land", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
 
 
-
+            
         }
 
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }

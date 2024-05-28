@@ -18,25 +18,6 @@ namespace Tweaks_Fixes
             static int growUpdateTime = 0;
 
             //[HarmonyPostfix]
-            //[HarmonyPatch("OnEnable")]
-            public static void OnEnablePostfix(GrowingPlant __instance)
-            {
-                TechType tt = __instance.plantTechType;
-                //AddDebug(__instance.name + " GrowingPlant OnEnable " + tt);
-                string name = __instance.name;
-                if (tt == TechType.BulboTree || tt == TechType.PurpleVasePlant || tt == TechType.OrangePetalsPlant || tt == TechType.PinkMushroom || tt == TechType.PurpleRattle)
-                {
-                    LargeWorldEntity lwe = __instance.GetComponent<LargeWorldEntity>();
-                    if (lwe)
-                        LargeWorldEntity_Patch.DisableWavingShader(lwe);
-                }
-                else if (name == "GrowingMembrainTree(Clone)")
-                {   //  all LOD meshes look the same, render distance is too small
-                    LargeWorldEntity_Patch.ForceBestLODmesh(__instance.gameObject);
-                }
-            }
-
-            //[HarmonyPostfix]
             //[HarmonyPatch("SpawnGrownModel")]
             public static void SpawnGrownModelPostfix(GrowingPlant __instance)
             {
@@ -227,7 +208,6 @@ namespace Tweaks_Fixes
                     if (!newPickedState)
                         inactiveFruits -= 1;
                     //AddDebug("inactiveFruits " + inactiveFruits);
-            
                     light.intensity = creepVineSeedLightInt - inactiveFruits / (float)fp.fruits.Length * creepVineSeedLightInt;
                     //AddDebug("SetPickedState CreepvineSeed " + newPickedState + " " + light.intensity);
                 }

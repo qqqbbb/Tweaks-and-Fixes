@@ -604,25 +604,6 @@ namespace Tweaks_Fixes
         }
 
 
-        [HarmonyPatch(typeof(DamageFX), "AddHudDamage")]
-        class DamageFX_AddHudDamage_Patch
-        {
-            public static bool Prefix(DamageFX __instance, float damageScalar, Vector3 damageSource, DamageInfo damageInfo)
-            {
-                //Main.config.crushDamageScreenEffect = false;
-                //AddDebug("AddHudDamage " + damageInfo.type);
-                if (!ConfigToEdit.crushDamageScreenEffect.Value && damageInfo.type == DamageType.Pressure)
-                    return false;
-
-                if (ConfigMenu.damageImpactEffect.Value)
-                    __instance.CreateImpactEffect(damageScalar, damageSource, damageInfo.type);
-
-                if (ConfigMenu.damageScreenFX.Value)
-                    __instance.PlayScreenFX(damageInfo);
-
-                return false;
-            }
-        }
 
 
     }

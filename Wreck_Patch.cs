@@ -1,14 +1,14 @@
 ﻿using HarmonyLib;
+using ProtoBuf;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using ProtoBuf;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    static class Wreck_Door_Patch
+    static class Wreck_Patch
     {
         static HashSet<StarshipDoor> cutOpenedDoors = new HashSet<StarshipDoor>();
 
@@ -76,7 +76,7 @@ namespace Tweaks_Fixes
                 LaserCutObject laserCutObject = __instance.GetComponent<LaserCutObject>();
                 if (laserCutObject != null && laserCutObject.isCutOpen)
                 {
-                    cutOpenedDoors.Add (__instance);
+                    cutOpenedDoors.Add(__instance);
                     //if (Input.GetKey(KeyCode.Z))
                     //{ 
                     //	laserCutObject.cutObject.SetActive(true);

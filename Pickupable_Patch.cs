@@ -13,7 +13,8 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> shinies = new HashSet<TechType>();
         public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
-        
+        static FMODAsset eatSound;
+
         [HarmonyPatch(typeof(Pickupable))]
         public class Pickupable_Patch_
         {
@@ -176,7 +177,8 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-            
+
+
         [HarmonyPatch(typeof(Survival), "Use")]
         class Survival_Awake_Patch
         {
@@ -224,10 +226,14 @@ namespace Tweaks_Fixes
                         }
                     }
                     if (__result)
-                    { 
-                        FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
-                        so.path = CraftData.GetUseEatSound(techType);
-                        Utils.PlayFMODAsset(so, __instance.transform);
+                    {
+                        if (eatSound == null)
+                        {
+                            eatSound = ScriptableObject.CreateInstance<FMODAsset>();
+                            eatSound.path = CraftData.GetUseEatSound(techType);
+                        }
+                        if (eatSound)
+                            Utils.PlayFMODAsset(eatSound, __instance.transform);
                         //FMODUWE.PlayOneShot(CraftData.GetUseEatSound(techType), Player.main.transform.position);
                     }
                 }
@@ -258,7 +264,7 @@ namespace Tweaks_Fixes
                         return;
                     }
                     LiveMixin liveMixin = Player.main.GetComponent<LiveMixin>();
-                    if (liveMixin.maxHealth - liveMixin.health < 0.1f)
+                    if (liveMixin.maxHealth - liveMixin.health < 0.01f)
                         __result = ItemAction.None;
                 }
             }

@@ -1,0 +1,23 @@
+{
+  "TF_toggle_base_lights": "Alternar luzes",
+  "TF_crush_depth_equipment": "Aumenta sua profundidade segura de mergulho em ",
+  "TF_crush_damage_equipment": "Reduz o dano por esmagamento em ",
+  "TF_meters": " metros.",
+  "TF_mass": "massa ",
+  "TF_kg": " kg",
+  "TF_throw_flare": "Arremessar",
+  "TF_light_and_throw_flare": "Acender e arremessar",
+  "TF_light_flare": "Acender",
+  "TF_burnt_out_flare": "Queimado ",
+  "TF_lit_flare": "Aceso ",
+  "TF_push_seamoth": "Empurrar ",
+  "TF_need_knife_to_break_outcrop": "Necessário uma faca para quebrá-lo",
+  "TF_need_knife_to_break_free_resource": "Necessário uma faca para libertá-lo",
+  "TF_seamoth_defence_press": ". Pressione e segure ",
+  "TF_seamoth_defence_charge": " para carregar o tiro",
+  "TF_change_torpedo": " Mudar tipo de torpedo ",
+  "TF_swivel_chair_left": "Girar para a esquerda",
+  "TF_swivel_chair_right": "Girar para a direita",
+  "TF_bladderfish_tooltip": " Fornece algum oxigênio quando consumido cru.",
+  "TF_propulsion_cannon_release": "Solta "
+}

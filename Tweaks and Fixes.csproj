@@ -7,7 +7,7 @@
     <ProjectGuid>{B647499A-9F29-493E-8711-6D4F16D79E57}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Tweaks_and_Fixes</RootNamespace>
+    <RootNamespace>Tweaks_Fixes</RootNamespace>
     <AssemblyName>Tweaks and Fixes</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -32,19 +32,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp-firstpass_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\dll lib\Assembly-CSharp-firstpass_publicized.dll</HintPath>
+    <Reference Include="0Harmony">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\dll lib\Assembly-CSharp_publicized.dll</HintPath>
+    <Reference Include="Assembly-CSharp-firstpass_publicized">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\Assembly-CSharp-firstpass_publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp_publicized">
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\Assembly-CSharp_publicized.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\core\BepInEx.dll</HintPath>
-    </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="FMODUnity, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -57,11 +55,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\dll lib\Unity.Addressables.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\dll lib\Unity.ResourceManager.dll</HintPath>
+      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\Unity.Addressables.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\Unity.TextMeshPro.dll</HintPath>
@@ -103,6 +97,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="Camera_Patch.cs" />
+    <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="CyclopsDoorSaver.cs" />
     <Compile Include="ConfigMenu.cs" />
     <Compile Include="OptionsMenu.cs" />
@@ -119,7 +115,6 @@
     <Compile Include="Geyser_Patch.cs" />
     <Compile Include="Scanner_Patch.cs" />
     <Compile Include="Sound_Patch.cs" />
-    <Compile Include="Translation.cs" />
     <Compile Include="Cyclops_Collision.cs" />
     <Compile Include="TimeFlow_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
@@ -162,9 +157,17 @@
   <ItemGroup>
     <Compile Include="ConfigMain.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Localization\Russian.json" />
+    <None Include="Localization\English.json" />
+    <None Include="Localization\Portuguese %28Brazil%29.json" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
+    <PostBuildEvent>mkdir "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes"
+copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
+mkdir "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
+copy /Y "$(ProjectDir)\Localization\*.*" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
 	</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

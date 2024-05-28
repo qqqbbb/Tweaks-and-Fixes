@@ -1,0 +1,23 @@
+﻿{
+  "TF_toggle_base_lights": "свет",
+  "TF_crush_depth_equipment": "Увеличивает безопастную для погружения глубину на ",
+  "TF_crush_damage_equipment": "Уменьшает урон от давления воды на ",
+  "TF_meters": " метров.",
+  "TF_mass": "масса ",
+  "TF_kg": " кг",
+  "TF_throw_flare": "Бросить",
+  "TF_light_and_throw_flare": "Зажечь и бросить",
+  "TF_light_flare": "Зажечь",
+  "TF_burnt_out_flare": "Сгоревшая ",
+  "TF_lit_flare": "Зажженная ",
+  "TF_push_seamoth": "Толкнуть ",
+  "TF_need_knife_to_break_outcrop": "Требуется нож",
+  "TF_need_knife_to_break_free_resource": "Требуется нож",
+  "TF_seamoth_defence_press": ". Зажмите ",
+  "TF_seamoth_defence_charge": " чтобы увеличить заряд",
+  "TF_change_torpedo": " Поменять тип торпеды ",
+  "TF_swivel_chair_left": "Повернуться налево",
+  "TF_swivel_chair_right": "Повернуться направо",
+  "TF_bladderfish_tooltip": " Восполняет кислород при употребдении в сыром виде.",
+  "TF_propulsion_cannon_release": "Отпустить "
+}

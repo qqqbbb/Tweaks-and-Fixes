@@ -1,18 +1,18 @@
-﻿using Nautilus.Json;
-using Nautilus.Options.Attributes;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using BepInEx;
 using Nautilus.Commands;
 using Nautilus.Handlers;
+using Nautilus.Json;
 using Nautilus.Options;
+using Nautilus.Options.Attributes;
+using System.Collections.Generic;
 using System.IO;
-using BepInEx;
+using UnityEngine;
 using static ErrorMessage;
 
 
 namespace Tweaks_Fixes
 {
-    public class ConfigMain : JsonFile 
+    public class ConfigMain : JsonFile
     {
         public ConfigMain()
         {
@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
         public bool seaglideMap = false;
         public int subThrottleIndex = -1;
         public int activeSlot = -1;
-        public bool escapePodSmokeOut;
+        public HashSet<string> escapePodSmokeOut = new HashSet<string>();
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium , TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal  };
         public Dictionary<string, HashSet<Vector3Int>> openedWreckDoors = new Dictionary<string, HashSet<Vector3Int>>();
@@ -42,7 +42,7 @@ namespace Tweaks_Fixes
         //public List<string> biomesRemoveLight = new List<string> { };
 
         public Dictionary<TechType, float> lightIntensity = new Dictionary<TechType, float>();
-        public bool pickedUpFireExt = false;
+        public HashSet<string> pickedUpFireExt = new HashSet<string>();
         public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
         //public Dictionary<string, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<string, Dictionary<TechType, int>> { { "Stalker", new Dictionary<TechType, int> { { TechType.StalkerTooth, 2 } } }, { "Gasopod", new Dictionary<TechType, int> { { TechType.GasPod, 5 } } } };
 

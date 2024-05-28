@@ -5,13 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
     class LargeWorldEntity_Patch
     {
-        public static HashSet<TechType> removeLight = new HashSet<TechType> { };
         public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> techTypesToDespawn = new Dictionary<TechType, int> { };
@@ -19,6 +17,10 @@ namespace Tweaks_Fixes
         .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
         static HashSet<TechType> coralSurfaces = new HashSet<TechType> { TechType.BigCoralTubes, TechType.CoralShellPlate, TechType.GenericJeweledDisk, TechType.JeweledDiskPiece };
         static HashSet<string> plantsWithNoTechtype = new HashSet<string> { "Coral_reef_small_deco_03(Clone)", "Coral_reef_small_deco_05(Clone)", "Coral_reef_small_deco_08(Clone)" };
+        static HashSet<TechType> techTypesToMakeUnmovable = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleBrainCoral, TechType.HangingFruitTree, TechType.CrashHome, TechType.SpikePlant };
+        static HashSet<TechType> techTypesToRemoveWavingShader = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleVasePlant, TechType.OrangePetalsPlant, TechType.PinkMushroom, TechType.PurpleRattle, TechType.PinkFlower };
+        static HashSet<TechType> techTypesToAddFruits = new HashSet<TechType> { TechType.BloodRoot, TechType.BloodVine, TechType.Creepvine };
+        static GameObject droppedObject;
 
         public static void ForceBestLODmesh(GameObject go, TechType techType = TechType.None)
         {
@@ -47,7 +49,7 @@ namespace Tweaks_Fixes
             lwe.cellLevel = cellLevel;
         }
            
-        static void MakeImmuneToCannon(GameObject go)
+        static void MakeUnmovable(GameObject go)
         {
             Rigidbody rb = go.GetComponent<Rigidbody>();
             if (rb)
@@ -166,6 +168,18 @@ namespace Tweaks_Fixes
                 //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
                 //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                if (ConfigMenu.fruitGrowTime.Value > 0 && techTypesToAddFruits.Contains(tt))
+                { 
+                    Util.EnsureFruits(__instance.gameObject);
+                }
+                if (techTypesToMakeUnmovable.Contains(tt))
+                {
+                    MakeUnmovable(__instance.gameObject);
+                }
+                if (techTypesToRemoveWavingShader.Contains(tt))
+                {
+                    DisableWavingShader(__instance);
+                }
                 if (plantSurfaces.Contains(tt))
                 {
                     AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
@@ -205,41 +219,14 @@ namespace Tweaks_Fixes
                 //    AlwaysUseHiPolyMesh(__instance.gameObject, TechType.Boomerang);
                 //else if (tt == TechType.LargeFloater)
                 //    AlwaysUseHiPolyMesh(__instance.gameObject, TechType.LargeFloater);
-                else if (tt == TechType.BulboTree || tt == TechType.PurpleVasePlant || tt == TechType.OrangePetalsPlant || tt == TechType.PinkMushroom || tt == TechType.PurpleRattle)
-                {
-                    DisableWavingShader(__instance);
-                    if (tt == TechType.BulboTree)
-                    { 
-                        //AlwaysUseHiPolyMesh(__instance.gameObject);
-                        MakeImmuneToCannon(__instance.gameObject);
-                    }
-                    //else if (tt == TechType.PurpleVasePlant)
-                    //    AlwaysUseHiPolyMesh(__instance.gameObject);
-                }
-                else if (tt == TechType.PurpleBrainCoral || tt == TechType.HangingFruitTree )
-                {
-                    MakeImmuneToCannon(__instance.gameObject);
-                }
                 //else if (tt == TechType.WhiteMushroom)
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
-                else if (tt == TechType.BloodRoot || tt == TechType.BloodVine)
+                else if (tt == TechType.BloodVine)
                 {
-                    if (tt == TechType.BloodVine)
-                        RemoveLivemixin(__instance);
-                    
-                    if (ConfigMenu.fruitGrowTime.Value > 0)
-                        Util.EnsureFruits(__instance.gameObject);
-                }
-                else if (tt == TechType.Creepvine)
-                {
-                    if (ConfigMenu.fruitGrowTime.Value > 0)
-                        Util.EnsureFruits(__instance.gameObject);
+                    RemoveLivemixin(__instance);
                 }
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
-                    if (tt == TechType.CrashHome)
-                        MakeImmuneToCannon(__instance.gameObject);
-
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
                     int z = (int)__instance.transform.position.z;
@@ -272,10 +259,6 @@ namespace Tweaks_Fixes
                 {
                     AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.organic);
                 }
-                else if (tt == TechType.SpikePlant)
-                {
-                    MakeImmuneToCannon(__instance.gameObject);
-                }
                 else if (tt == TechType.PurpleFan) // veined nettle
                 { // disable collision, allow scanning
                     BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
@@ -291,7 +274,7 @@ namespace Tweaks_Fixes
                 }
                 else if (tt == TechType.FarmingTray && __instance.name == "Base_exterior_Planter_Tray_01_abandoned(Clone)")
                 {
-                    MakeImmuneToCannon(__instance.gameObject);
+                    MakeUnmovable(__instance.gameObject);
                 }
                 else if (tt == TechType.None)
                 {
@@ -430,7 +413,6 @@ namespace Tweaks_Fixes
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (tt == TechType.Titanium || tt == TechType.Copper || tt == TechType.Silver || tt == TechType.Gold || tt == TechType.Lead || tt == TechType.Diamond || tt == TechType.Lithium || tt == TechType.JeweledDiskPiece)
                 {
-              
                     return false;
                 }
                 if (Creature_Tweaks.pickupShinies.Contains(__instance.gameObject))
@@ -438,6 +420,8 @@ namespace Tweaks_Fixes
                     //AddDebug("StartFading pickupShinies " + __instance.name);
                     return false;
                 }
+                if (__instance.gameObject == droppedObject)
+                    return false;
                 //    AddDebug("StartFading " + __instance.name);
                 //else if (Tools_Patch.releasingGrabbedObject)
                 {
@@ -455,7 +439,15 @@ namespace Tweaks_Fixes
             }
         }
 
-        
-          
+        [HarmonyPatch(typeof(DropTool), "GetDropPosition")]
+        class DropTool_GetDropPosition_Patch
+        {
+            static void Postfix(DropTool __instance)
+            {
+                //AddDebug("DropTool GetDropPosition");
+                droppedObject = __instance.gameObject;
+            }
+        }
+
     }
 }

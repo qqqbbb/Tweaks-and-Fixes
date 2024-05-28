@@ -191,6 +191,13 @@ namespace Tweaks_Fixes
                 //AddDebug(__instance.name + " IsTargetValid " + target.name + " " + __result);
                 if (__result)
                 {
+                    if (ConfigMenu.aggrMult.Value == 0 && target == Player.main.gameObject)
+                    {
+                        //AddDebug(__instance.name + " IsTargetValid player " + __result);
+
+                        __result = false;
+                        return;
+                    }
                     if (CreatureData.GetBehaviourType(__instance.myTechType) == BehaviourType.Leviathan)
                     { // prevent leviathan attacking player on land
                       //AddDebug("Player.depthLevel " + Player.main.depthLevel);
@@ -621,6 +628,22 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(AggressiveWhenSeePlayer))]
+        class AggressiveWhenSeePlayer_Patch
+        {
+            //[HarmonyPrefix]
+            //[HarmonyPatch("GetAggressionTarget")]
+            public static bool SGetAggressionTargetPrefix(AggressiveWhenSeePlayer __instance)
+            {
+                return false;
+            }
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnMeleeAttack")]
+            public static bool OnMeleeAttackPrefix(AggressiveWhenSeePlayer __instance)
+            {
+                return false;
+            }
+        }
         //[HarmonyPatch(typeof(EcoRegionManager), "FindNearestTarget", new Type[] { typeof(EcoTargetType), typeof(Vector3), typeof(float), typeof(EcoRegion.TargetFilter), typeof(int) }, new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal, ArgumentType.Normal })]
         class EcoRegionManager_FindNearestTarget_Patch
         {

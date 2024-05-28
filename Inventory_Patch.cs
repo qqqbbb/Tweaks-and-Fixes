@@ -12,6 +12,35 @@ namespace Tweaks_Fixes
         static InventoryItem selectedItem;
         public static GameInput.Button transferAllItemsButton;
         public static GameInput.Button transferSameItemsButton;
+        private static readonly Type[] componentsToRemoveFromDeadCreature = new Type[]
+{
+        typeof(CollectShiny),
+        typeof(CreatureFlinch),
+        typeof(CreatureDeath),
+        typeof(SwimInSchool),
+        typeof(SwimRandom),
+        typeof(StayAtLeashPosition),
+        typeof(Breach),
+        typeof(AvoidObstacles),
+        typeof(AvoidEscapePod),
+        typeof(AvoidTerrain),
+        typeof(FleeOnDamage),
+        typeof(FleeWhenScared),
+        typeof(MoveTowardsTarget),
+        typeof(SwimToVent),
+        typeof(SwimToHeroPeeper),
+        typeof(SwimToMeat),
+        typeof(SwimToTarget),
+        typeof(Scareable),
+        typeof(CreatureFear),
+        typeof(SwimBehaviour),
+        typeof(SplineFollowing),
+        typeof(Locomotion),
+
+
+
+};
+
 
         public static bool MoveAllItems(InventoryItem item)
         {
@@ -55,10 +84,43 @@ namespace Tweaks_Fixes
             return swapped;
         }
 
-        [HarmonyPatch(typeof(Inventory), "ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
-        class Inventory_ExecuteItemAction_Patch
+        private static void RemoveComponentsFromDeadCreature(GameObject go)
         {
-            public static bool Prefix(Inventory __instance, InventoryItem item, ItemAction action)
+            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
+            if (liveMixin == null || liveMixin.IsAlive())
+                return;
+            // removing CreatureDeath fixes equipped dead fish moving up
+            foreach (Type componentType in componentsToRemoveFromDeadCreature)
+            {
+                Component component = go.GetComponent(componentType);
+                if (component != null)
+                    UnityEngine.Object.Destroy(component);
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_Patch_
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnAddItem")]
+            public static void OnAddItemPostfix(Inventory __instance, InventoryItem item)
+            {
+                if (!Main.gameLoaded && item.item.GetComponent<Creature>())
+                    RemoveComponentsFromDeadCreature(item.item.gameObject);
+                //Creature creature = item.item.GetComponent<Creature>();
+                //FixPeeperLOD(Creature peeper, bool alive = false)
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("DropHeldItem")]
+            public static void DropHeldItemPostfix(Inventory __instance, bool applyForce)
+            {
+                //AddDebug("Inventory DropHeldItem ");
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
+            public static bool ExecuteItemActionPrefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
                 //AddDebug("ExecuteItemAction  " + item.techType);
                 //AddDebug("ExecuteItemAction action " + action);
@@ -76,11 +138,12 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
+
         }
 
         [HarmonyPatch(typeof(GamepadInputModule))]
         class GamepadInputModule_Patch
-        {          
+        {
             [HarmonyPostfix]
             [HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GamepadInputModule __instance)

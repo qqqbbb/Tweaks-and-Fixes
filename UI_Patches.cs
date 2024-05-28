@@ -1,10 +1,10 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
-using UnityEngine;
-using HarmonyLib;
 using System.Text;
-using static ErrorMessage;
 using TMPro;
+using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {

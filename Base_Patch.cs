@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
-using static VFXParticlesPool;
+
 
 namespace Tweaks_Fixes
 {
     public class Base_Patch
     {
         static int camerasToRemove = 0;
-        static Dictionary <BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
+        public static Dictionary <BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
 
         public static void ToggleBaseLight(SubRoot subRoot)
         {
@@ -75,10 +75,42 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(BaseHullStrength), "CrushDamageUpdate")]
-        class BaseHullStrength_SpawnDefaultAsync_Patch
+        [HarmonyPatch(typeof(BaseHullStrength))]
+        class BaseHullStrength_Patch
         {
-            static bool Prefix(BaseHullStrength __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("OnPostRebuildGeometry")]
+            static bool OnPostRebuildGeometryPrefix(BaseHullStrength __instance)
+            {
+                if (ConfigMenu.baseHullStrengthMult.Value == 1)
+                    return true;
+
+                if (!GameModeUtils.RequiresReinforcements())
+                    return false;
+
+                float strength = BaseHullStrength.InitialStrength * ConfigMenu.baseHullStrengthMult.Value;
+                __instance.victims.Clear();
+                foreach (Int3 cell in __instance.baseComp.AllCells)
+                {
+                    if (__instance.baseComp.GridToWorld(cell).y < 0)
+                    {
+                        Transform cellObject = __instance.baseComp.GetCellObject(cell);
+                        if (cellObject != null)
+                        {
+                            __instance.victims.Add(cellObject.GetComponent<LiveMixin>());
+                            strength += __instance.baseComp.GetHullStrength(cell);
+                        }
+                    }
+                }
+                if (!WaitScreen.IsWaiting && !Util.Approximately(strength, __instance.totalStrength) )
+                    AddMessage(Language.main.GetFormat("BaseHullStrChanged", strength - __instance.totalStrength, strength));
+
+                __instance.totalStrength = strength;
+                return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("CrushDamageUpdate")]
+            static bool CrushDamageUpdatePrefix(BaseHullStrength __instance)
             {
                 if (!GameModeUtils.RequiresReinforcements() || __instance.totalStrength >= 0 || __instance.victims.Count <= 0)
                     return false;

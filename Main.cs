@@ -1,23 +1,23 @@
 ﻿
+using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
-using System;
-using Nautilus.Handlers;
 using Nautilus.Assets;
-using Nautilus.Utility;
-using Nautilus.Assets.PrefabTemplates;
 using Nautilus.Assets.Gadgets;
+using Nautilus.Assets.PrefabTemplates;
+using Nautilus.Handlers;
+using Nautilus.Options;
+using Nautilus.Utility;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using BepInEx;
-using BepInEx.Logging;
-using BepInEx.Bootstrap;
-using static ErrorMessage;
-using UWE;
-using BepInEx.Configuration;
 using System.IO;
 using System.Text;
-using Nautilus.Options;
+using UnityEngine;
+using UWE;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.07.0";
+            VERSION = "3.08.0";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -48,7 +48,7 @@ namespace Tweaks_Fixes
         public const float dayLengthSeconds = 1200f;
 
         public static ConfigMain configMain = new ConfigMain();
-        internal static OptionsMenu options ;
+        internal static OptionsMenu options;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
 
@@ -79,7 +79,8 @@ namespace Tweaks_Fixes
             Coffee_Patch.spawnedCoffeeTime.Clear();
             UI_Patches.planters.Clear();
             Creature_Tweaks.pickupShinies.Clear();
-            //Tools_Patch.seaglideLightsLoaded = false;
+            Base_Patch.baseHullStrengths.Clear();
+            CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
             configMain.Load();
         }
 
@@ -91,8 +92,10 @@ namespace Tweaks_Fixes
             if (ConfigToEdit.fixMelons.Value)
                 CraftData.itemSizes[TechType.MelonPlant] = new Vector2int(2, 2);
 
-            gameLoaded = true;
-
+            if (PDAScanner.mapping.ContainsKey(TechType.Creepvine))
+            { // unlock fibermesh by scanning creepvine
+                PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
+            }
             if (ConfigToEdit.bloodColor.Value.x != 0.784f || ConfigToEdit.bloodColor.Value.y != 1f || ConfigToEdit.bloodColor.Value.z != 0.157f)
             {
                 Damage_Patch.SetBloodColor();
@@ -118,30 +121,49 @@ namespace Tweaks_Fixes
             Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(OnPlayerUnderwaterChanged));
             //AddDebug("LoadedGameSetup ");
             //logger.LogMessage("LoadedGameSetup ");
+            CreatureDeath_Patch.TryRemoveCorpses();
+            Escape_Pod_Patch.EscapePodInit();
+            gameLoaded = true;
+        }
+
+        [HarmonyPatch(typeof(MainMenuLoadButton), "Delete")]
+        class MainMenuLoadButton_Delete_Patch
+        {
+            static void Postfix(MainMenuLoadButton __instance)
+            {
+                //AddDebug("MainMenuLoadButton Delete " + __instance.saveGame);
+                DeleteSaveSlotData(__instance.saveGame);
+            }
+        }
+
+        public static void DeleteSaveSlotData(string slotName)
+        {
+            //AddDebug("DeleteSaveSlotData " + slotName);
+            configMain.openedWreckDoors.Remove(slotName);
+            configMain.lockerNames.Remove(slotName);
+            configMain.baseLights.Remove(slotName);
+            configMain.cyclopsDoors.Remove(slotName);
+            //config.objectsSurvidedDespawn.Remove(slotName);
+            configMain.escapePodSmokeOut.Remove(slotName);
+            configMain.pickedUpFireExt.Remove(slotName);
+            configMain.Save();
         }
 
         [HarmonyPatch(typeof(SaveLoadManager))]
         class SaveLoadManager_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch( "ClearSlotAsync")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("ClearSlotAsync")]
             public static void ClearSlotAsyncPostfix(SaveLoadManager __instance, string slotName)
-            {
-                //AddDebug("ClearSlotAsync " + slotName);
-                configMain.openedWreckDoors.Remove(slotName);
-                configMain.lockerNames.Remove(slotName);
-                configMain.baseLights.Remove(slotName);
-                configMain.cyclopsDoors.Remove(slotName);
-                //config.objectsSurvidedDespawn.Remove(slotName);
-                configMain.Save();
+            { // runs when starting new game
+                AddDebug("ClearSlotAsync " + slotName);
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("CreateSlotAsync", new Type[0])]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("CreateSlotAsync", new Type[0])]
             public static void CreateSlotAsyncPostfix(SaveLoadManager __instance)
             {
                 //AddDebug("SaveLoadManager CreateSlotAsync ");
-                configMain.pickedUpFireExt = false;
             }
             [HarmonyPostfix]
             [HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
@@ -259,7 +281,7 @@ namespace Tweaks_Fixes
             CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["4f59199f-7049-4e13-9e57-5ee82c8732c5"] = TechType.Cyclops;
 
-            
+
         }
 
         public static void ParseFromConfig()

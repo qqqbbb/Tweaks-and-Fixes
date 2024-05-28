@@ -129,14 +129,36 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
-            public static void StartPostfix(SubRoot __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("OnCollisionEnter")]
+            public static bool StartPostfix(SubRoot __instance, Collision col)
             {
-                //AddDebug("SubRoot Start " + __instance.powerRelay.GetPowerStatus());
-                if (__instance.isCyclops)
+                if (col.gameObject.CompareTag("Player"))
+                    return false;
+
+                Rigidbody rb = col.gameObject.GetComponent<Rigidbody>();
+                if (rb && rb.mass <= 6) // fishschool mass is 6
                 {
+                    //AddDebug(col.gameObject.name + "OnCollisionEnter Rigidbody mass < 6");
+                    return false;
                 }
+                GameObject root = Util.GetEntityRoot(col.gameObject);
+                if (root == null)
+                {
+                    //AddDebug(col.gameObject.name + " OnCollisionEnter root null");
+                    return true;
+                }
+                rb = root.GetComponent<Rigidbody>();
+                if (rb && rb.mass <= 6)
+                {
+                    //AddDebug(col.gameObject.name + "OnCollisionEnter Rigidbody mass < 6");
+                    return false;
+                }
+                //if (__instance.isCyclops)
+                //{
+                //    AddDebug(col.gameObject.name + " OnCollisionEnter " + rb.mass + " mag " + col.relativeVelocity.magnitude);
+                //}
+                return true;
             }
 
             [HarmonyPostfix]
@@ -180,6 +202,52 @@ namespace Tweaks_Fixes
         {
             static int numBallastWeight;
 
+            [HarmonyPrefix]
+            [HarmonyPatch("UpdateAnimation")]
+            public static bool UpdateAnimationPrefix(SubControl __instance)
+            { // fix steering wheel animation
+                if (!Main.gameLoaded)
+                    return false;
+
+                float steeringWheelYaw = 0f;
+                float steeringWheelPitch = 0f;
+                //AddDebug("throttle x " + __instance.throttle.x.ToString("0.0"));
+                //AddDebug("throttle y " + __instance.throttle.y.ToString("0.0"));
+                float throttleX = __instance.throttle.x;
+                float throttleY = __instance.throttle.y;
+                if (Mathf.Abs(throttleX) > 0.0001)
+                {
+                    ShipSide useShipSide;
+                    if (throttleX > 0)
+                    {
+                        useShipSide = ShipSide.Port;
+                        steeringWheelYaw = throttleX;
+                    }
+                    else
+                    {
+                        useShipSide = ShipSide.Starboard;
+                        steeringWheelYaw = throttleX;
+                    }
+                    if (throttleX < -0.1 || throttleX > 0.1)
+                    {
+                        for (int index = 0; index < __instance.turnHandlers.Length; ++index)
+                            __instance.turnHandlers[index].OnSubTurn(useShipSide);
+                    }
+                }
+                if (Mathf.Abs(throttleY) > 0.0001)
+                    steeringWheelPitch = throttleY;
+
+                __instance.steeringWheelYaw = Mathf.Lerp(__instance.steeringWheelYaw, steeringWheelYaw, Time.deltaTime * __instance.steeringReponsiveness);
+                __instance.steeringWheelPitch = Mathf.Lerp(__instance.steeringWheelPitch, steeringWheelPitch, Time.deltaTime * __instance.steeringReponsiveness);
+                if (__instance.mainAnimator)
+                { 
+                    __instance.mainAnimator.SetFloat("view_yaw", __instance.steeringWheelYaw * 100f);
+                    __instance.mainAnimator.SetFloat("view_pitch", __instance.steeringWheelPitch * 100f);
+                    //Player.main.playerAnimator.SetFloat("cyclops_yaw", __instance.steeringWheelYaw);
+                    //Player.main.playerAnimator.SetFloat("cyclops_pitch", __instance.steeringWheelPitch);
+                }
+                return false;
+            }
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             public static void StartPostfix(SubControl __instance)
@@ -221,7 +289,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Update")]
             public static bool UpdatePrefix(SubControl __instance)
             { // fix diagonal speed 
-                if (!__instance.LOD.IsFull())
+                if (!Main.gameLoaded || !__instance.LOD.IsFull())
                     return false;
 
                 if (!ConfigMenu.cyclopsMoveTweaks.Value || Main.cyclopsDockingLoaded)
@@ -704,6 +772,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(CyclopsProximitySensors __instance)
             {
                 //Main.config.disableCyclopsProximitySensor = true;
+                //AddDebug ("CyclopsProximitySensors OnPlayerModeChange " + ConfigToEdit.disableCyclopsProximitySensor.Value);
                 return !ConfigToEdit.disableCyclopsProximitySensor.Value;
             }
         }
@@ -769,13 +838,16 @@ namespace Tweaks_Fixes
                 }
                 if (__instance.subControl.appliedThrottle && __instance.cyclopsMotorMode.cyclopsMotorMode == CyclopsMotorMode.CyclopsMotorModes.Flank)
                 {
-                    if (__instance.engineOverheatValue > 75)
+                    if (ConfigMenu.cyclopsFireChance.Value > 0)
                     {
-                        __instance.subRoot.voiceNotificationManager.PlayVoiceNotification(__instance.subRoot.engineOverheatCriticalNotification);
-                    }
-                    else if (__instance.engineOverheatValue > 50)
-                    {
-                        __instance.subRoot.voiceNotificationManager.PlayVoiceNotification(__instance.subRoot.engineOverheatNotification);
+                        if (__instance.engineOverheatValue > 75)
+                        {
+                            __instance.subRoot.voiceNotificationManager.PlayVoiceNotification(__instance.subRoot.engineOverheatCriticalNotification);
+                        }
+                        else if (__instance.engineOverheatValue > 50)
+                        {
+                            __instance.subRoot.voiceNotificationManager.PlayVoiceNotification(__instance.subRoot.engineOverheatNotification);
+                        }
                     }
                 }
                 int overheatMinValue = GetEngineOverheatMinValue(__instance);

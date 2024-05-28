@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using BepInEx.Configuration;
+﻿using BepInEx.Configuration;
 using Nautilus.Json;
 using Nautilus.Options;
 using Nautilus.Options.Attributes;
 using Oculus.Platform;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace Tweaks_Fixes
@@ -94,6 +94,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> cameraBobbing;
         public static ConfigEntry<bool> disableHints;
         public static ConfigEntry<bool> cyclopsHUDalwaysOn;
+        public static ConfigEntry<bool> cameraShake;
+        public static ConfigEntry<bool> removeDeadCreaturesOnLoad;
+        public static ConfigEntry<bool> sunlightAffectsEscapePodLighting;
 
 
 
@@ -139,7 +142,7 @@ namespace Tweaks_Fixes
             disableCyclopsProximitySensor = Main.configToEdit.Bind("", "Disable cyclops proximity sensor", false);
             builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("", "Builder tool placing mode when finished building", true, "If false your builder tool will exit placing mode when you finish building.");
             crushDamageScreenEffect = Main.configToEdit.Bind("", "Crush damage screen effect", true, "If false there will be no screen effects when player takes crush damage.");
-            removeCookedFishOnReload = Main.configToEdit.Bind("", "Remove cooked fish on reload", false, "If true cooked fish will be removed from the world (not from containers) when the game loads.");
+            removeCookedFishOnReload = Main.configToEdit.Bind("", "Remove cooked fish when loading saved game", false, "Cooked fish will be removed from the world (not from containers) when loading saved game if this is true.");
             disableGravityForExosuit = Main.configToEdit.Bind("", "Disable gravity for prawn suit", false, "If true prawn suit will ignore gravity when you are not piloting it. Use this if your prawn suit falls through the ground.");
             replaceDealDamageOnImpactScript = Main.configToEdit.Bind("", "Replace DealDamageOnImpact script", true, "If false the game will use vanilla script when vehicles collide with objects.");
             cyclopsDealDamageMinSpeed = Main.configToEdit.Bind("", "Cyclops min speed to deal damage", 2f, "Min speed in meters per second at which cyclops deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
@@ -180,6 +183,11 @@ namespace Tweaks_Fixes
             cameraBobbing = Main.configToEdit.Bind("", "Camera bobbing when swimming", false);
             disableHints = Main.configToEdit.Bind("", "Disable tutorial messages", true, "This disables messages that tell you to 'eat something', 'break limestone', etc.");
             cyclopsHUDalwaysOn = Main.configToEdit.Bind("", "Cyclops HUD always on", false);
+            cameraShake = Main.configToEdit.Bind("", "Camera shake", true, "This toggles camera shaking when cyclops takes damage.");
+            removeDeadCreaturesOnLoad = Main.configToEdit.Bind("", "Remove dead creatures when loading saved game", true, "");
+            sunlightAffectsEscapePodLighting = Main.configToEdit.Bind("", "Sunlight affects lighting in your life pod", false, "");
+
+
 
             transferAllItemsButton = Main.configToEdit.Bind("", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             transferSameItemsButton = Main.configToEdit.Bind("", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
@@ -188,7 +196,7 @@ namespace Tweaks_Fixes
 
 
         }
-        
+
 
         private static Dictionary<TechType, int> ParseIntDicFromString(string input)
         {
@@ -289,9 +297,9 @@ namespace Tweaks_Fixes
             LargeWorldEntity_Patch.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
             LargeWorldEntity_Patch.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
             Escape_Pod_Patch.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
-            Creature_Tweaks.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
-            Creature_Tweaks.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
-            Creature_Tweaks.respawnTime = ParseIntDicFromString(respawnTime.Value);
+            CreatureDeath_Patch.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
+            CreatureDeath_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
+            CreatureDeath_Patch.respawnTime = ParseIntDicFromString(respawnTime.Value);
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
 
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);

@@ -1,13 +1,10 @@
 ﻿
-using UnityEngine;
 using HarmonyLib;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
-using static GameInput;
-using static RootMotion.FinalIK.GrounderQuadruped;
-using System;
 
 namespace Tweaks_Fixes
 {
@@ -21,34 +18,45 @@ namespace Tweaks_Fixes
     {
         public static Dictionary<TechType, int> newGameLoot = new Dictionary<TechType, int>();
 
-        public static void LetSmokeOut(EscapePod escapePod)
+        public static void EscapePodInit()
         {
-            //AddDebug("LetSmokeOut");
-            if (escapePod.vfxSpawner.spawnedObj != null)
+            SetMaxPower();
+            if (ConfigToEdit.sunlightAffectsEscapePodLighting.Value)
+                AllowSunlight();
+
+            if (Main.configMain.escapePodSmokeOut.Contains(SaveLoadManager.main.currentSlot))
+                StopSmoke();
+        }
+
+        static void StopSmoke()
+        {
+            //AddDebug("StopSmoke");
+            if (EscapePod.main.vfxSpawner.spawnedObj != null)
             {
-                ParticleSystem particleSystem = escapePod.vfxSpawner.spawnedObj.GetComponent<ParticleSystem>();
+                ParticleSystem particleSystem = EscapePod.main.vfxSpawner.spawnedObj.GetComponent<ParticleSystem>();
                 if (particleSystem != null)
                     particleSystem.Stop();
             }
-            for (int index = 0; index < escapePod.lightingController.skies.Length; ++index)
-            {
-                LightingController.MultiStatesSky sky = escapePod.lightingController.skies[index];
-                sky.sky.AffectedByDayNightCycle = true;
-            }
             //AddDebug("currentSlot " + SaveLoadManager.main.currentSlot);
-            Main.configMain.escapePodSmokeOut = true;
+            Main.configMain.escapePodSmokeOut.Add(SaveLoadManager.main.currentSlot);
             //Main.configMain.Save();
         }
 
-        static IEnumerator SetMaxPower(EscapePod escapePod)
+        static void AllowSunlight()
         {
-            //yield return new WaitForSeconds(waitTime);
-            while (!Main.gameLoaded)
-                yield return null;
-            
+            //AddDebug("AllowSunlight");
+            for (int index = 0; index < EscapePod.main.lightingController.skies.Length; ++index)
+            {
+                LightingController.MultiStatesSky sky = EscapePod.main.lightingController.skies[index];
+                sky.sky.AffectedByDayNightCycle = true;
+            }
+        }
+
+        static void SetMaxPower()
+        {
             float maxPower = ConfigMenu.escapePodMaxPower.Value;
-            bool damaged = escapePod.damageEffectsShowing || Player.main.isNewBorn;
-            foreach (RegeneratePowerSource cell in escapePod.GetAllComponentsInChildren<RegeneratePowerSource>())
+            bool damaged = EscapePod.main.damageEffectsShowing || Player.main.isNewBorn;
+            foreach (RegeneratePowerSource cell in EscapePod.main.GetAllComponentsInChildren<RegeneratePowerSource>())
             {
                 if (ConfigToEdit.escapePodPowerTweak.Value && damaged)
                     cell.powerSource.maxPower = maxPower * .5f;
@@ -65,22 +73,20 @@ namespace Tweaks_Fixes
                 if (ConfigToEdit.escapePodPowerTweak.Value && Player.main.isNewBorn)
                     cell.powerSource.power = 0;
             }
-            if (damaged && Main.configMain.escapePodSmokeOut)
-                LetSmokeOut(escapePod);
         }
 
         [HarmonyPatch(typeof(EscapePod))]
         class EscapePod_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
             public static void StartPostfix(EscapePod __instance)
             {
                 //RegeneratePowerSource[] cells = EscapePod.main.gameObject.GetAllComponentsInChildren<RegeneratePowerSource>();
                 //if (cells != null)
                 {
                     //AddDebug("EscapePod start cells " + cells.Length);
-                    Player.main.StartCoroutine(SetMaxPower(__instance));
+                    //Player.main.StartCoroutine(SetMaxPower(__instance));
                 }
             }
 
@@ -111,7 +117,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("OnTopHatchCinematicEnd ");
                 if (__instance.escapePod.damageEffectsShowing)
-                    LetSmokeOut(__instance.escapePod);
+                    StopSmoke();
             }
         }
 
@@ -123,20 +129,20 @@ namespace Tweaks_Fixes
               //AddDebug("position.y " + gameObject.transform.position.y);
                 if (Player.main.currentEscapePod && EscapePod.main.damageEffectsShowing && gameObject.transform.position.y > 2f)
                 {
-                    LetSmokeOut(EscapePod.main);
+                    StopSmoke();
                 }
             }
         }
 
         [HarmonyPatch(typeof(IntroFireExtinguisherHandTarget))]
         class IntroFireExtinguisherHandTarget_Patch
-        { // not checking save slot
+        {
             [HarmonyPrefix]
             [HarmonyPatch("Start")]
             static bool StartPrefix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget Start");
-                if (Main.configMain.pickedUpFireExt)
+                if (Main.configMain.pickedUpFireExt.Contains(SaveLoadManager.main.currentSlot))
                 {
                     __instance.extinguisherModel.SetActive(false);
                     UnityEngine.Object.Destroy(__instance.gameObject);
@@ -148,7 +154,7 @@ namespace Tweaks_Fixes
             static void StartPostfix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget UseVolume");
-                Main.configMain.pickedUpFireExt = true;
+                Main.configMain.pickedUpFireExt.Add(SaveLoadManager.main.currentSlot);
             }
         }
 
