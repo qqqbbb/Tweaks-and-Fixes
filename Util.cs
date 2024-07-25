@@ -1,15 +1,17 @@
-﻿using HarmonyLib;
-using System.Reflection;
+﻿using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Logging;
+using HarmonyLib;
+using Nautilus.Handlers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using BepInEx;
-using BepInEx.Logging;
-using BepInEx.Bootstrap;
-using static ErrorMessage;
-using Tweaks_Fixes;
 using System.Linq;
+using System.Reflection;
+using Tweaks_Fixes;
+using UnityEngine;
+using static ErrorMessage;
+using static Nautilus.Assets.CustomModelData;
 
 namespace Tweaks_Fixes
 {
@@ -20,6 +22,21 @@ namespace Tweaks_Fixes
         {
             //return Physics.Raycast(startPos, dir, out hitInfo, distance, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore);
             return Physics.Raycast(startPos, dir, out hitInfo, distance);
+        }
+
+
+        public static IEnumerator SetParent(GameObject go, Transform parent, int framesToWait = 1)
+        {
+            while (framesToWait >= 0)
+            {
+                framesToWait--;
+                yield return null;
+                if (framesToWait == 0)
+                {
+                    go.transform.SetParent(parent);
+                    AddDebug("SetParent ");
+                }
+            }
         }
 
         public static IEnumerator Cook(GameObject go)
@@ -90,6 +107,7 @@ namespace Tweaks_Fixes
             return !cantEat;
         }
 
+
         public static void FreezeObject(GameObject go, bool state)
         {
             WorldForces wf = go.GetComponent<WorldForces>();
@@ -158,6 +176,19 @@ namespace Tweaks_Fixes
                 return false;
 
             return go.GetComponent<Eatable>();
+        }
+
+        public static bool IsCreatureAlive(GameObject go)
+        {
+            Creature creature = go.GetComponent<Creature>();
+            if (creature == null)
+                return false;
+
+            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
+            if (liveMixin == null)
+                return false;
+
+            return liveMixin.IsAlive();
         }
 
         public static void MakeEatable(GameObject go, float food)
@@ -353,6 +384,25 @@ namespace Tweaks_Fixes
         { // Mathf.Approximately does not work when compare to 0
             return (Mathf.Abs(a - b) < tolerance);
         }
+
+        public static IEnumerator Spawn(TechType techType, IOut<GameObject> result, int num = 1)
+        {
+            //AddDebug("Spawn " + techType + " " + num);
+            for (int i = 0; i < num; ++i)
+            {
+                TaskResult<GameObject> currentResult = new TaskResult<GameObject>();
+                yield return CraftData.GetPrefabForTechTypeAsync(techType, false, currentResult);
+                GameObject prefab = currentResult.Get();
+                GameObject target = !(prefab != null) ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
+                if (target != null)
+                {
+                    target.transform.position = MainCamera.camera.transform.position + MainCamera.camera.transform.forward * 2;
+                    CrafterLogic.NotifyCraftEnd(target, techType);
+                    result.Set(target);
+                }
+            }
+        }
+
 
     }
 }

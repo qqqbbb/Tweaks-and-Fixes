@@ -24,10 +24,13 @@ namespace Tweaks_Fixes
             foreach (var cd in creatureDeathsToDestroy)
             {
                 Pickupable pickupable = cd.GetComponent<Pickupable>();
-                if (pickupable && pickupable.inventoryItem != null)
+                if (pickupable)
                 {
-                    //AddDebug("try RemoveCorpse inventoryItem " + cd.name);
-                    continue;
+                    if (pickupable._isInSub || pickupable.inventoryItem != null)
+                    {
+                        //AddDebug("try RemoveCorpse inventoryItem " + cd.name);
+                        continue;
+                    }
                 }
                 //AddDebug("RemoveCorpse " + cd.name);
                 if (ConfigToEdit.removeDeadCreaturesOnLoad.Value)

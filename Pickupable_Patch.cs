@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using System.Text;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -18,19 +18,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Pickupable))]
         public class Pickupable_Patch_
         {
-            //[HarmonyPrefix]
-            //[HarmonyPatch("Awake")]
-            static bool AwakePrefix(Pickupable __instance)
-            {
-                EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
-                if (ecoTarget && ecoTarget.type == EcoTargetType.Fragment)
-                {
-                    UnityEngine.Object.Destroy(__instance);
-                    return false;
-                }
-                return true;
-            }
-             
             [HarmonyPostfix]
             [HarmonyPatch("Awake")]
             static void AwakePostfix(Pickupable __instance)
@@ -58,13 +45,7 @@ namespace Tweaks_Fixes
                     EcoTarget[] ets = __instance.gameObject.GetComponents<EcoTarget>();
                     foreach (EcoTarget et in ets)
                     {
-                        if (et && et.type == EcoTargetType.Shiny)
-                            return;
-                    }
-                    EcoTarget[] ecoTargets = __instance.GetComponents<EcoTarget>();
-                    foreach (EcoTarget e in ecoTargets)
-                    {
-                        if (e.type == EcoTargetType.Shiny)
+                        if (et.type == EcoTargetType.Shiny)
                             return;
                     }
                     EcoTarget ecoTarget1 = __instance.gameObject.AddComponent<EcoTarget>();
@@ -72,6 +53,14 @@ namespace Tweaks_Fixes
                 }
 
             }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnHandClick")]
+            static void OnHandHoverPostfix(Pickupable __instance, GUIHand hand)
+            {
+                AddDebug("Pickupable OnHandClick");
+            }
+
 
             //[HarmonyPrefix]
             //[HarmonyPatch("OnHandHover")]
@@ -83,6 +72,7 @@ namespace Tweaks_Fixes
                 TechType techType = __instance.GetTechType();
                 HandReticle handReticle = HandReticle.main;
                 //AddDebug("Pickupable OnHandHover " + techType);
+                //return false;
                 if (__instance.AllowedToPickUp())
                 {
                     string text1 = string.Empty;
@@ -148,11 +138,11 @@ namespace Tweaks_Fixes
                     HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
                     HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
                 }
-                
+
                 return false;
             }
         }
-            
+
         //[HarmonyPatch(typeof(BeaconLabel))]
         class BeaconLabel_Patch
         {
@@ -270,6 +260,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        
-        }
+
     }
+}

@@ -31,7 +31,7 @@ namespace Tweaks_Fixes
             var saved = Main.configMain.cyclopsDoors[SaveLoadManager.main.currentSlot];
             return saved.ContainsKey(prefabIdentifier.id) && saved[prefabIdentifier.id].Contains(openable.name);
         }
-         
+
         [HarmonyPatch(typeof(Openable), "Start")]
         class Openable_Start_Patch
         {

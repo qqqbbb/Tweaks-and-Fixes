@@ -97,6 +97,10 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> cameraShake;
         public static ConfigEntry<bool> removeDeadCreaturesOnLoad;
         public static ConfigEntry<bool> sunlightAffectsEscapePodLighting;
+        public static ConfigEntry<bool> scannerFX;
+        public static ConfigEntry<EscapePodMedkitCabinetWorks> escapePodMedkitCabinetWorks;
+        public static ConfigEntry<bool> dropItemsAnywhere;
+        //public static ConfigEntry<bool> spawnItemsWhenAddingToFullInventory;
 
 
 
@@ -174,7 +178,7 @@ namespace Tweaks_Fixes
             escapePodPowerTweak = Main.configToEdit.Bind("", "Life pod power tweaks", false, "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod power cells are not charged.");
             stalkersGrabShinyTool = Main.configToEdit.Bind("", "Stalkers grab tools from player hands when playing", false, "Stalkers can grab only things that are in the ‛Items stalkers can grab‛ list.");
             stalkerPlayThings = Main.configToEdit.Bind("", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
-            dropHeldTool = Main.configToEdit.Bind("", "Drop tool in your hands when taking damage", false, "Chance to drop your tool is equal to amount of damage taken.");
+            dropHeldTool = Main.configToEdit.Bind("", "Drop tool in your hands when taking damage", false, "Chance percent to drop your tool is equal to amount of damage taken.");
             newPoisonSystem = Main.configToEdit.Bind("", "New poison damage system", false, "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.");
             freeTorpedos = Main.configToEdit.Bind("", "Free torpedos", 2, new ConfigDescription("Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.", freeTorpedosRange));
             lowOxygenWarning = Main.configToEdit.Bind("", "Low oxygen onscreen warning", true);
@@ -186,6 +190,11 @@ namespace Tweaks_Fixes
             cameraShake = Main.configToEdit.Bind("", "Camera shake", true, "This toggles camera shaking when cyclops takes damage.");
             removeDeadCreaturesOnLoad = Main.configToEdit.Bind("", "Remove dead creatures when loading saved game", true, "");
             sunlightAffectsEscapePodLighting = Main.configToEdit.Bind("", "Sunlight affects lighting in your life pod", false, "");
+            scannerFX = Main.configToEdit.Bind("", "Wierd visual effect on objects being scanned", true, "");
+            escapePodMedkitCabinetWorks = Main.configToEdit.Bind("", "Medkit kit fabricator in your life pod produces first aid kit", EscapePodMedkitCabinetWorks.Always, "");
+            dropItemsAnywhere = Main.configToEdit.Bind("", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except cyclops and grab items in your base with propulsion cannon.");
+            //spawnItemsWhenAddingToFullInventory = Main.configToEdit.Bind("", "Spawn items when harvesting with knife and your inventory if full ", false, "");
+
 
 
 
@@ -311,6 +320,7 @@ namespace Tweaks_Fixes
         }
 
         public enum SeaTreaderOutcrop { Vanilla, Only_when_stomping_ground, Never }
+        public enum EscapePodMedkitCabinetWorks { Always, After_repairing_life_pod, Never }
 
         public enum Button
         {

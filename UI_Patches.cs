@@ -53,6 +53,7 @@ namespace Tweaks_Fixes
         static public string toggleBaseLightsString = string.Empty;
         static public string propCannonEatString = string.Empty;
         static public string pickupString = string.Empty;
+        static public string constructorString = string.Empty;
 
 
 
@@ -83,6 +84,7 @@ namespace Tweaks_Fixes
             beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             beaconPickString = "(" + leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + altToolButton + ")\n";
+            constructorString = Language.main.Get("Climb") + "(" + leftHandButton + "), " + LanguageCache.GetPackUpText(TechType.Constructor) + " (" + rightHandButton + ")";
             changeTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + altToolButton + ")";
             exosuitChangeLeftTorpedoButton = changeTorpedoButton;
             exosuitChangeRightTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + deconstructButton + ")";

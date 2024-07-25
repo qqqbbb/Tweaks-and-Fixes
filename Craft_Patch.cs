@@ -43,8 +43,8 @@ namespace Tweaks_Fixes
                 {
                     //Main.logger.LogDebug("CrafterLogic NotifyCraftEnd battery capacity " + battery._capacity);
                     //AddDebug("crafterOpen");
-                    if (ConfigMenu.batteryChargeMult.Value != 1f)
-                        battery._capacity *= ConfigMenu.batteryChargeMult.Value;
+                    //if (ConfigMenu.batteryChargeMult.Value != 1f)
+                    //    battery._capacity *= ConfigMenu.batteryChargeMult.Value;
 
                     if (ConfigMenu.craftedBatteryCharge.Value != 1)
                     {
@@ -114,8 +114,6 @@ namespace Tweaks_Fixes
                 __result *= ConfigMenu.buildTimeMult.Value;
             }
         }
-
-
 
         [HarmonyPatch(typeof(EnergyMixin), "OnCraftEnd")]
         public class NoBattery

@@ -1,9 +1,9 @@
 ﻿using HarmonyLib;
-using UnityEngine;
 using System;
-using System.Text;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -19,6 +19,7 @@ namespace Tweaks_Fixes
         public static float changeTorpedoTimeLeft = 0;
         public static float changeTorpedoTimeRight = 0;
         public static float changeTorpedoInterval = .5f;
+        public static HashSet<TechType> vehicleTechTypes = new HashSet<TechType> { TechType.Cyclops };
 
         public static void UpdateLights()
         {
@@ -122,6 +123,7 @@ namespace Tweaks_Fixes
             //Light l1 = __instance.transform.Find("lights_parent/light_left").gameObject.GetComponent<Light>();
             //Light l2 = __instance.transform.Find("lights_parent/light_right").gameObject.GetComponent<Light>();
             TechType tt = CraftData.GetTechType(__instance.gameObject);
+            vehicleTechTypes.Add(tt);
             //if (l1)
             //AddDebug( " Vehicle.Awake " + tt);
             //if (l2)
@@ -200,7 +202,7 @@ namespace Tweaks_Fixes
             else
                 return true;
         }
-     
+
         [HarmonyPostfix]
         [HarmonyPatch("TorpedoShot")]
         public static void TorpedoShotPostfix(Vehicle __instance, ItemsContainer container, ref TorpedoType torpedoType, Transform muzzle)
@@ -1476,7 +1478,7 @@ namespace Tweaks_Fixes
                 __result = target.gameObject;
         }
         [HarmonyPrefix]
-        [HarmonyPatch("TryUse", new Type[] { typeof(float)}, new[] {ArgumentType.Out})]
+        [HarmonyPatch("TryUse", new Type[] { typeof(float) }, new[] { ArgumentType.Out })]
         static bool TryUsePrefix(ExosuitClawArm __instance, ref float cooldownDuration, ref bool __result)
         { // open supply crates
             if (Time.time - __instance.timeUsed >= __instance.cooldownTime)
@@ -1729,6 +1731,9 @@ namespace Tweaks_Fixes
             else if (col.gameObject.GetComponent<Creature>())
                 asset = __instance.hitSoundSmall;// fish splat sound
             else
+                asset = __instance.hitSoundSlow;
+
+            if (col.gameObject.tag == "Player")
                 asset = __instance.hitSoundSlow;
 
             if (asset)

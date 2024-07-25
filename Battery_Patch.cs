@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace Tweaks_Fixes
         public static HashSet<PowerRelay> subPowerRelays = new HashSet<PowerRelay>();
         static EnergyMixin PlayerToolEM;
         static EnergyInterface propCannonEI;
+        static Dictionary<string, float> defaultBatteryCharge = new Dictionary<string, float>();
 
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
@@ -68,7 +70,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(SubControl), "Start")]
         class PowerRelay_Start_Patch
         {
@@ -80,7 +81,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-                
+
         [HarmonyPatch(typeof(PowerSystem), "ConsumeEnergy")]
         class PowerSystem_ConsumeEnergy_Patch
         {
@@ -96,26 +97,35 @@ namespace Tweaks_Fixes
                     amount *= ConfigMenu.vehicleEnergyConsMult.Value;
                 }
                 else
-                { 
+                {
                     //AddDebug("base Consume Energy ");
                     amount *= ConfigMenu.baseEnergyConsMult.Value;
                 }
             }
         }
 
+
         [HarmonyPatch(typeof(Battery))]
         class Battery_Patch_
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnProtoDeserialize")]
-            static void OnProtoDeserializePostfix(Battery __instance)
+            [HarmonyPostfix] // runs for new batteries too
+            [HarmonyPatch("OnAfterDeserialize")]
+            static void OnAfterDeserializePostfix(Battery __instance)
             {
-                __instance._capacity *= ConfigMenu.batteryChargeMult.Value;
-                if (__instance.charge > __instance._capacity)
-                    __instance.charge = __instance._capacity;
-                //Main.logger.LogDebug("Battery OnProtoDeserialize " + __instance._capacity);
-                //if (Main.gameLoaded)
-                //    AddDebug("Battery OnProtoDeserialize " + __instance._capacity);
+                if (ConfigMenu.batteryChargeMult.Value == 1f || __instance.name.IsNullOrWhiteSpace())
+                    return;
+
+                //AddDebug(__instance.name + " Battery OnAfterDeserialize " + __instance._capacity);
+                if (!defaultBatteryCharge.ContainsKey(__instance.name))
+                {
+                    defaultBatteryCharge[__instance.name] = __instance._capacity;
+                }
+                if (defaultBatteryCharge.ContainsKey(__instance.name))
+                {
+                    __instance._capacity = defaultBatteryCharge[__instance.name] * ConfigMenu.batteryChargeMult.Value;
+                    if (__instance.charge > __instance._capacity)
+                        __instance.charge = __instance._capacity;
+                }
             }
         }
 
@@ -135,7 +145,7 @@ namespace Tweaks_Fixes
                 //}
             }
         }
-     
+
         //[HarmonyPatch(typeof(Charger), "IsAllowedToAdd")]
         class Charger_IsAllowedToAdd_Patch
         {
@@ -165,6 +175,6 @@ namespace Tweaks_Fixes
         }
 
 
-        
+
     }
 }

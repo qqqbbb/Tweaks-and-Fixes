@@ -1,4 +1,5 @@
 ﻿
+using BepInEx;
 using HarmonyLib;
 using Nautilus.Handlers;
 using Nautilus.Options;
@@ -22,7 +23,6 @@ namespace Tweaks_Fixes
 
         static bool GetScanTarget(float distance, out GameObject result)
         {
-
             bool flag = false;
             Transform transform = MainCamera.camera.transform;
             Vector3 position = transform.position;
@@ -133,27 +133,17 @@ namespace Tweaks_Fixes
             return flag;
         }
 
-        //[HarmonyPatch(typeof(WaterClipProxy), "Start")]
-        class WaterClipProxy_UpdateDamage_Patch
-        {
-            static void Postfix(WaterClipProxy __instance)
+        //[HarmonyPatch(typeof(GasPod), "Detonate")]
+        class SubRoot_FixedUpdate_Patch
+        { // bfe8345c-fe3c-4c2b-9a03-51bcc5a2a782
+            static bool Prefix(GasPod __instance)
             {
-                if (__instance.transform.parent.name == "BaseRoom(Clone)")
+                //if (Player.main.currentSub && Player.main.currentSub == __instance)
                 {
-                    AddDebug("WaterClipProxy Start " + __instance.name);
-
+                    //AddDebug("SubRoot FixedUpdate");
+                    return false;
                 }
-
-            }
-        }
-
-        //[HarmonyPatch(typeof(Creature), "OnProtoDeserialize")]
-        class Creature_OnProtoDeserialize_Patch
-        {
-            static void Postfix(Creature __instance)
-            {
-                Main.logger.LogMessage("Creature OnProtoDeserialize " + __instance.name);
-                AddDebug("Creature OnProtoDeserialize " + __instance.name);
+                //return true;
             }
         }
 
@@ -165,9 +155,15 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded)
                     return;
 
-                //AddDebug("isUnderwater " + Player.main.isUnderwater.value);
-                //AddDebug("GetBiomeString " + Player.main.GetBiomeString());
-                //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(__instance.transform.position));
+
+                if (__instance.currentSub)
+                {
+                    //AddDebug("IsLeaking " + __instance.currentSub.IsLeaking());
+                }
+                //AddDebug("camera transform forward " + MainCamera.camera.transform.forward);
+                //AddDebug("isUnderwaterForSwimming " + Player.main.isUnderwaterForSwimming.value);
+                //AddDebug("motorMode " + Player.main.motorMode);
+                //AddDebug("precursorOutOfWater " + Player.main.precursorOutOfWater);
                 //AddDebug(PlatformUtils.main.GetServices().GetRichPresence());
                 //if (Input.GetKey(KeyCode.LeftShift))
                 //    AddDebug("timePassed " + DayNightCycle.main.timePassedAsFloat);
@@ -189,6 +185,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
@@ -292,6 +289,11 @@ namespace Tweaks_Fixes
             if (root)
                 target = root;
 
+            WorldForces worldForces = target.GetComponent<WorldForces>();
+            if (worldForces != null)
+            {
+                AddDebug("WorldForces IsAboveWater " + worldForces.IsAboveWater());
+            }
             VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
             TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
             if (tcpc)
@@ -315,8 +317,6 @@ namespace Tweaks_Fixes
                 //AddDebug("PDAScanner isValid " + PDAScanner.scanTarget.isValid);
                 //AddDebug("PDAScanner CanScan " + PDAScanner.CanScan());
                 //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
-
-
                 //AddDebug(" cellLevel " + lwe.cellLevel);
                 AddDebug("vfxSurfaceType  " + vfxSurfaceType);
                 //LiveMixin lm = lwe.GetComponent<LiveMixin>();

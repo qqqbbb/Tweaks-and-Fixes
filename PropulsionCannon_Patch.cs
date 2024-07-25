@@ -1,13 +1,12 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using HarmonyLib;
 using static ErrorMessage;
 using static HandReticle;
-using UnityEngine.AddressableAssets;
-using System.Collections;
 
 namespace Tweaks_Fixes
 {
@@ -28,7 +27,7 @@ namespace Tweaks_Fixes
             grabbingResource = false;
             resource.BreakIntoResources();
         }
-      
+
         private static IEnumerator SpawnFruitAsync(PickPrefab pickPrefab, PropulsionCannon cannon)
         {
             if (!pickPrefab.gameObject.activeInHierarchy || pickPrefab.isAddingToInventory)
@@ -80,15 +79,23 @@ namespace Tweaks_Fixes
         {
             [HarmonyPrefix]
             [HarmonyPatch("GetCustomUseText")]
-            public static bool StartPostfix(PropulsionCannonWeapon __instance, ref string __result)
+            public static bool GetCustomUseTextPostfix(PropulsionCannonWeapon __instance, ref string __result)
             {
                 bool isGrabbingObject = __instance.propulsionCannon.IsGrabbingObject();
                 bool hasChargeForShot = __instance.propulsionCannon.HasChargeForShot();
-                if (__instance.usingPlayer == null || __instance.usingPlayer.IsInSub() || !(isGrabbingObject | hasChargeForShot))
+                bool inSub = __instance.usingPlayer.currentSub;
+                bool checkInSub = inSub && ConfigToEdit.dropItemsAnywhere.Value && (targetObject || isGrabbingObject);
+                //AddDebug("GetCustomUseText checkInSub " + checkInSub);
+                if (inSub || __instance.usingPlayer == null || !(isGrabbingObject | hasChargeForShot))
                 {
-                    __result = string.Empty;
-                    return false;
+                    if (!checkInSub)
+                    {
+                        __result = string.Empty;
+                        return false;
+                    }
                 }
+                //AddDebug("GetCustomUseText  ");
+
                 StringBuilder sb = new StringBuilder();
                 if (isGrabbingObject)
                 {
@@ -109,17 +116,69 @@ namespace Tweaks_Fixes
                 else
                 {
                     if (targetObject)
+                    {
+                        //AddDebug("GetCustomUseText targetObject " + targetObject.name);
                         sb.Append(LanguageCache.GetButtonFormat("PropulsionCannonToGrab", GameInput.Button.RightHand) + ", ");
-
-                    sb.Append(LanguageCache.GetButtonFormat("PropulsionCannonToLoad", GameInput.Button.AltTool));
+                        //AddDebug("GetCustomUseText GetButtonFormat PropulsionCannonToGrab: " + LanguageCache.GetButtonFormat("PropulsionCannonToGrab", GameInput.Button.RightHand));
+                    }
+                    if (__instance.usingPlayer.currentSub == null)
+                        sb.Append(LanguageCache.GetButtonFormat("PropulsionCannonToLoad", GameInput.Button.AltTool));
                 }
                 string finalText = sb.ToString();
                 if (finalText != __instance.cachedPrimaryUseText)
                     __instance.cachedCustomUseText = finalText;
-                
+
                 __result = __instance.cachedCustomUseText;
+                //AddDebug("GetCustomUseText 111 ");
                 return false;
             }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("UpdateEquipped")]
+            public static void OnRightHandDownPostfix(PropulsionCannonWeapon __instance, GameObject sender, string slot)
+            {
+                if (Player.main.currentSub && ConfigToEdit.dropItemsAnywhere.Value)
+                {
+                    __instance.propulsionCannon.usingCannon = GameInput.GetButtonHeld(GameInput.Button.RightHand);
+                    __instance.propulsionCannon.UpdateActive();
+                    SafeAnimator.SetBool(Player.main.armsController.GetComponent<Animator>(), "cangrab_propulsioncannon", __instance.propulsionCannon.canGrab || __instance.propulsionCannon.grabbedObject != null);
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnRightHandDown")]
+            public static void OnRightHandDownPostfix(PropulsionCannonWeapon __instance, ref bool __result)
+            {
+                if (Player.main.currentSub && ConfigToEdit.dropItemsAnywhere.Value && !__instance.propulsionCannon.grabbedObject)
+                {
+                    //AddDebug("PropulsionCannonWeapon OnRightHandDown");
+                    if (__instance.firstUseAnimationStarted)
+                        __instance.OnFirstUseAnimationStop();
+
+                    __result = __instance.propulsionCannon.OnShoot();
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnAltDown")]
+            public static void OnAltDownPostfix(PropulsionCannonWeapon __instance, ref bool __result)
+            {
+                if (Player.main.currentSub && ConfigToEdit.dropItemsAnywhere.Value)
+                {
+                    //AddDebug("PropulsionCannonWeapon OnAltDown");
+                    if (__instance.firstUseAnimationStarted)
+                        __instance.OnFirstUseAnimationStop();
+
+                    if (__instance.propulsionCannon.grabbedObject)
+                        __instance.propulsionCannon.ReleaseGrabbedObject();
+                    //else if (__instance.propulsionCannon.HasChargeForShot())
+                    //{
+                    //    if (!__instance.propulsionCannon.OnReload(new List<IItemsContainer>() { Inventory.main.container }))
+                    //        AddMessage(Language.main.Get("PropulsionCannonNoItems"));
+                    //}
+                }
+            }
+
 
         }
 
@@ -133,9 +192,9 @@ namespace Tweaks_Fixes
                 if (spawningFruit)
                     return false;
 
+                //AddDebug("TraceForGrabTarget Prefix");
                 return true;
             }
-
 
             [HarmonyPostfix]
             [HarmonyPatch("TraceForGrabTarget")]
@@ -144,16 +203,21 @@ namespace Tweaks_Fixes
                 if (spawningFruit)
                     return;
 
+                targetObject = null;
                 //if (__result)
                 //    AddDebug("TraceForGrabTarget default " + __result.name);
 
+                //if (__result && __result.GetComponent<PlaceTool>())
+                //{
+                //AddDebug("TraceForGrabTargetPostfix placeTool ");
+                //        __result = null;
+                //}
                 Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
                 //RaycastHit hitInfo = new RaycastHit();
                 //bool gotTarget = Util.GetPlayerTarget(__instance.pickupDistance, out hitInfo);
                 //AddDebug("TraceForGrabTarget gotTarget " + gotTarget);
                 if (!target)
                 {
-                    targetObject = null;
                     return;
                 }
                 //Transform parent = target.transform.parent;
@@ -172,6 +236,7 @@ namespace Tweaks_Fixes
                     return;
                 }
                 //AddDebug("TraceForGrabTargetPostfix target " + go.name);
+
                 FruitPlant fruitPlant = go.GetComponent<FruitPlant>();
                 //if (fruitPlant != null)
                 //    AddDebug("TraceForGrabTargetPostfix fruitPlant ");
@@ -192,9 +257,6 @@ namespace Tweaks_Fixes
                 }
                 else
                     fruitToPickUp = null;
-
-                //if (fruitToPickUp)
-                //    AddDebug("TraceForGrabTarget pickPrefab ");
 
                 targetObject = __result;
             }
@@ -261,19 +323,25 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-          
+
             [HarmonyPostfix]
             [HarmonyPatch("GrabObject")]
             static void GrabObjectPostfix(PropulsionCannon __instance, GameObject target)
             {
-                if (!ConfigToEdit.newUIstrings.Value || __instance.grabbedObject == null)
+                if (!ConfigToEdit.newUIstrings.Value || __instance.grabbedObject == null || !ConfigToEdit.dropItemsAnywhere.Value)
                     return;
+
 
                 //TechType tt = CraftData.GetTechType(__instance.grabbedObject);
                 //grabbedObjectName = Language.main.Get(tt.ToString());
                 releaseString = Language.main.Get("TF_propulsion_cannon_release") + "(" + UI_Patches.altToolButton + ")";
                 grabbedEatable = target.GetComponent<Eatable>();
                 Pickupable pickupable = target.GetComponent<Pickupable>();
+                if (pickupable && target.GetComponent<PlaceTool>())
+                {
+                    //AddDebug("PropulsionCannon GrabObject placeTool ");
+                    pickupable.Unplace();
+                }
                 if (pickupable != null && Inventory.main._container.HasRoomFor(pickupable))
                 {
                     //grabbedObjectPickupText = LanguageCache.GetPickupText(tt) + " (" + UI_Patches.leftHandButton + "), ";
@@ -282,8 +350,16 @@ namespace Tweaks_Fixes
                 else
                     grabbedObjectPickupText = "";
 
-                grabbedObjectPickupText += LanguageCache.GetButtonFormat("PropulsionCannonToShoot", GameInput.Button.RightHand);
+                if (Player.main.currentSub == null)
+                    grabbedObjectPickupText += LanguageCache.GetButtonFormat("PropulsionCannonToShoot", GameInput.Button.RightHand);
+
                 grabbedObjectPickupText += ", ";
+                //if (ConfigToEdit.dropItemsAnywhere.Value)
+                //{ // they drop below floor when released
+                //    WorldForces wf = target.GetComponent<WorldForces>();
+                //    if (wf)
+                //        wf.handleGravity = true;
+                //}
             }
 
             [HarmonyPrefix]
@@ -337,9 +413,12 @@ namespace Tweaks_Fixes
                     MainGameController.Instance.RegisterHighFixedTimestepBehavior(__instance);
                 else
                     MainGameController.Instance.DeregisterHighFixedTimestepBehavior(__instance);
-                
+
                 return false;
             }
+
+
         }
+
     }
 }

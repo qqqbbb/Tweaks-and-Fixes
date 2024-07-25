@@ -1,11 +1,11 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using HarmonyLib;
-using static ErrorMessage;
-using System.Collections;
-using UWE;
 using UnityEngine.XR;
+using UWE;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -68,7 +68,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("spadefish");
                     Vector3 pos = __instance.transform.localPosition;
-                    __instance.transform.localPosition = new Vector3(pos.x -= .07f, pos.y += .03f, pos.z += .07f); 
+                    __instance.transform.localPosition = new Vector3(pos.x -= .07f, pos.y += .03f, pos.z += .07f);
                     return;
                 }
                 if (Main.configMain.lightIntensity.ContainsKey(tt))
@@ -114,7 +114,11 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
+        public static bool giveResourceOnDamage;
+        public static bool spawning;
+        static Vector3 targetPos;
+
         [HarmonyPatch(typeof(Knife))]
         class Knife_Patch
         {
@@ -128,9 +132,9 @@ namespace Tweaks_Fixes
 
                 //if (closestObj)
                 //{
-                    //AddDebug("OnToolUseAnim closestObj " + closestObj.name);
-                    //AddDebug("OnToolUseAnim closestObj parent " + closestObj.transform.parent.name);
-                    //AddDebug("OnToolUseAnim closestObj parent parent " + closestObj.transform.parent.parent.name);
+                //AddDebug("OnToolUseAnim closestObj " + closestObj.name);
+                //AddDebug("OnToolUseAnim closestObj parent " + closestObj.transform.parent.name);
+                //AddDebug("OnToolUseAnim closestObj parent parent " + closestObj.transform.parent.parent.name);
                 //}
                 //else
                 //    AddDebug("OnToolUseAnim closestObj null");
@@ -207,9 +211,25 @@ namespace Tweaks_Fixes
                 }
             }
 
+            [HarmonyPrefix]
+            [HarmonyPatch("GiveResourceOnDamage")]
+            public static void GiveResourceOnDamagePrefix(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
+            {
+                //AddDebug("GiveResourceOnDamage ");
+                giveResourceOnDamage = true;
+                targetPos = target.transform.position;
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("GiveResourceOnDamage")]
+            public static void GiveResourceOnDamagePostfix(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
+            {
+                giveResourceOnDamage = false;
+            }
+
             //[HarmonyPostfix]
             //[HarmonyPatch("GiveResourceOnDamage")]
-            public static void GiveResourceOnDamagePostfix(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
+            public static void GiveResourceOnDamageMy(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
             {
                 if (isAlive || wasAlive)
                     return;
@@ -246,7 +266,44 @@ namespace Tweaks_Fixes
                 //}
             }
         }
-        
+
+        public static IEnumerator Spawn(TechType techType, IOut<GameObject> result, int num = 1)
+        {
+            //AddDebug("AddToInventoryOrSpawn " + techType + " " + num);
+            for (int i = 0; i < num; ++i)
+            {
+                TaskResult<GameObject> currentResult = new TaskResult<GameObject>();
+                yield return CraftData.GetPrefabForTechTypeAsync(techType, false, currentResult);
+                GameObject prefab = currentResult.Get();
+                GameObject target = !(prefab != null) ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
+                if (target != null)
+                {
+                    spawning = true;
+                    float x = Mathf.Lerp(targetPos.x, MainCamera.camera.transform.position.x, .5f);
+                    float y = MainCamera.camera.transform.position.y + MainCamera.camera.transform.forward.y * 3f; // fix for creepvine 
+                    float z = Mathf.Lerp(targetPos.z, MainCamera.camera.transform.position.z, .5f);
+                    target.transform.position = new Vector3(x, y, z);
+                    CrafterLogic.NotifyCraftEnd(target, techType);
+                    result.Set(target);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(CraftData), "AddToInventory")]
+        class CraftData_AddToInventory_Patch
+        {
+            static bool Prefix(CraftData __instance, TechType techType, int num = 1, bool noMessage = false, bool spawnIfCantAdd = true)
+            {
+                if (giveResourceOnDamage && !Inventory.main.HasRoomFor(techType))
+                {
+                    //AddDebug("AddToInventory Prefix giveResourceOnDamage " + techType + " " + num);
+                    CoroutineHost.StartCoroutine(Spawn(techType, DiscardTaskResult<GameObject>.Instance, num));
+                    return false;
+                }
+                return true;
+            }
+        }
+
         [HarmonyPatch(typeof(MapRoomCamera))]
         class MapRoomCamera_Patch
         {
@@ -313,7 +370,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-        
+
         [HarmonyPatch(typeof(Beacon))]
         class Beacon_Patch
         {
@@ -331,7 +388,7 @@ namespace Tweaks_Fixes
         class StasisSphere_Patch
         {
             static bool updateFrame;
-            
+
             private static bool isBigger(StasisSphere stasisSphere, GameObject go)
             {// does not work reliably for boneshark
                 float stasisSphereVolume = UWE.Utils.GetAABBVolume(stasisSphere.gameObject);
@@ -360,7 +417,7 @@ namespace Tweaks_Fixes
                 updateFrame = !updateFrame;
                 if (!updateFrame)
                     return false;
-                
+
                 __instance.fieldEnergy -= Time.deltaTime / __instance.time;
                 //AddDebug("fieldEnergy " + __instance.fieldEnergy.ToString("0.00"));
                 float fieldRadius = __instance.fieldRadius;
@@ -459,7 +516,7 @@ namespace Tweaks_Fixes
                         Collider collider = UWE.Utils.sharedColliderBuffer[index];
                         //if (collider.bounds.size.magnitude < fieldRadius && __instance.Freeze(collider, ref target))
                         //    rigidbodyList.Add(target);
-                        if ( __instance.Freeze(collider, ref target))
+                        if (__instance.Freeze(collider, ref target))
                         {
                             //AddDebug("Freeze " + target.name + " size.magnitude " + (int)collider.bounds.size.magnitude);
                             rigidbodyList.Add(target);
@@ -613,10 +670,10 @@ namespace Tweaks_Fixes
         {
             if (seaglide == null)
                 yield break;
-            
+
             if (seaglide.toggleLights == null)
                 yield return null;
-            
+
             seaglide.toggleLights.SetLightsActive(Main.configMain.seaglideLights);
             var map = seaglide.GetComponent<VehicleInterface_MapController>();
             if (map == null)
@@ -676,8 +733,6 @@ namespace Tweaks_Fixes
                 //AddDebug("MainCameraControl OnUpdate " + Inventory.main.quickSlots.activeToolName);
                 float deltaTime = Time.deltaTime;
                 __instance.swimCameraAnimation = !__instance.underWaterTracker.isUnderWater ? Mathf.Clamp01(__instance.swimCameraAnimation - deltaTime) : Mathf.Clamp01(__instance.swimCameraAnimation + deltaTime);
-                double minimumY = __instance.minimumY;
-                double maximumY = __instance.maximumY;
                 Vector3 velocity = __instance.playerController.velocity;
                 bool pdaInUse = false;
                 bool flag2 = false;
@@ -833,7 +888,7 @@ namespace Tweaks_Fixes
 
                 return false;
             }
-             
+
             [HarmonyPrefix]
             [HarmonyPatch("SpawnFX")]
             static bool SpawnFXPrefix(VFXController __instance, int i)
@@ -894,6 +949,17 @@ namespace Tweaks_Fixes
             heatBladeParticles[0].EnableEmission(underwater); // xHeatBlade_Bubbles(Clone)
             heatBladeParticles[2].EnableEmission(underwater); // xRefract
         }
+
+        [HarmonyPatch(typeof(ScannerTool), "PlayScanFX")]
+        class ScannerTool_PlayScanFX_Patch
+        {
+            static bool Prefix(ScannerTool __instance)
+            {
+                //AddDebug("ScannerTool PlayScanFX ");
+                return ConfigToEdit.scannerFX.Value;
+            }
+        }
+
 
     }
 }

@@ -120,7 +120,7 @@ namespace Tweaks_Fixes
             creatureSpeedMult = Main.configMenu.Bind("", "Creature speed multiplier", 1f, "Swimming speed of creatures that you can not catch will be multiplied by this.");
             CreatureFleeChance = Main.configMenu.Bind("", "Creature flee chance percent", 100, "Creature's flee chance percent when it is under attack and its flee damage threshold is reached.");
             creatureFleeUseDamageThreshold = Main.configMenu.Bind("", "Damage threshold for fleeing creatures", true, "Most creatures have damage threshold that has to be reached before they start fleeing. When this is off, every creature will flee if it takes any damage.");
-            creatureFleeChanceBasedOnHealth = Main.configMenu.Bind("", "Creature flee chance depends on its health", false, "Only creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both 'Creature flee chance percent' and 'Damage threshold for fleeing creatures'.");
+            creatureFleeChanceBasedOnHealth = Main.configMenu.Bind("", "Creature flee chance depends on its health", false, "Creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both 'Creature flee chance percent' and 'Damage threshold for fleeing creatures'.");
             waterparkCreaturesBreed = Main.configMenu.Bind("", "Creatures in alien containment can breed", true);
             noFishCatching = Main.configMenu.Bind("", "Can not catch fish with bare hands", false, "To catch fish you will have to use knife, propulsion cannon, stasis rifle or grav trap. Does not apply if you are inside alien containment.");
             noBreakingWithHand = Main.configMenu.Bind("", "Can not break outcrop with bare hands", false, "You will have to use a knife, repulsion cannon or propulsion cannon to break outcrops or collect resources attached to rock or seabed.");
@@ -138,7 +138,7 @@ namespace Tweaks_Fixes
             invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on land", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
 
 
-            
+
         }
 
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }

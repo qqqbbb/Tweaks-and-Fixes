@@ -20,7 +20,7 @@ namespace Tweaks_Fixes
         static HashSet<TechType> techTypesToMakeUnmovable = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleBrainCoral, TechType.HangingFruitTree, TechType.CrashHome, TechType.SpikePlant };
         static HashSet<TechType> techTypesToRemoveWavingShader = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleVasePlant, TechType.OrangePetalsPlant, TechType.PinkMushroom, TechType.PurpleRattle, TechType.PinkFlower };
         static HashSet<TechType> techTypesToAddFruits = new HashSet<TechType> { TechType.BloodRoot, TechType.BloodVine, TechType.Creepvine };
-        static GameObject droppedObject;
+        public static GameObject droppedObject;
 
         public static void ForceBestLODmesh(GameObject go, TechType techType = TechType.None)
         {
@@ -48,7 +48,7 @@ namespace Tweaks_Fixes
 
             lwe.cellLevel = cellLevel;
         }
-           
+
         static void MakeUnmovable(GameObject go)
         {
             Rigidbody rb = go.GetComponent<Rigidbody>();
@@ -65,7 +65,7 @@ namespace Tweaks_Fixes
             VFXSurface vFXSurface = go.EnsureComponent<VFXSurface>();
             vFXSurface.surfaceType = type;
         }
-    
+
         private static void RemoveLivemixin(GameObject go)
         {
             LiveMixin lm = go.GetComponent<LiveMixin>();
@@ -93,6 +93,7 @@ namespace Tweaks_Fixes
         }
 
 
+
         //[HarmonyPatch(typeof(UniqueIdentifier), "Awake")]
         class UniqueIdentifier_Awake_patch
         {
@@ -100,7 +101,7 @@ namespace Tweaks_Fixes
             {
                 //if (!Main.gameLoaded)
                 //    return true;
-                
+
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (!techTypesToDespawn.ContainsKey(tt))
                     return true;
@@ -121,10 +122,10 @@ namespace Tweaks_Fixes
                 //int rnd = Main.rndm.Next(0, 101);
                 //if (techTypesToDespawn[tt] >= rnd)
                 //{
-                    //Main.logger.LogMessage("Destroy UniqueIdentifier " + tt);
-                    //Main.config.objectsDespawned.Add(__instance.id);
-                    //UnityEngine.Object.Destroy(__instance.gameObject);
-                    //return false;
+                //Main.logger.LogMessage("Destroy UniqueIdentifier " + tt);
+                //Main.config.objectsDespawned.Add(__instance.id);
+                //UnityEngine.Object.Destroy(__instance.gameObject);
+                //return false;
                 //}
                 //else
                 //{
@@ -169,7 +170,7 @@ namespace Tweaks_Fixes
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
                 //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
                 if (ConfigMenu.fruitGrowTime.Value > 0 && techTypesToAddFruits.Contains(tt))
-                { 
+                {
                     Util.EnsureFruits(__instance.gameObject);
                 }
                 if (techTypesToMakeUnmovable.Contains(tt))
@@ -246,14 +247,14 @@ namespace Tweaks_Fixes
                 {
                     //SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
-                //else if (tt == TechType.CreepvineSeedCluster)
+                //else if (tt == TechType.HangingStinger)
                 //{
-                        //Util.MakeEatable(__instance.gameObject, creepVineSeedFood * .5f, creepVineSeedFood, false);
+                //    EnableCreepvineShader(__instance);
                 //}
                 //else if (tt == TechType.CoralShellPlate)
                 //{
-                    //AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
-                    //MakeImmuneToCannon(__instance.gameObject);
+                //AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
+                //MakeImmuneToCannon(__instance.gameObject);
                 //}
                 else if (tt == TechType.Floater)
                 {
@@ -263,7 +264,7 @@ namespace Tweaks_Fixes
                 { // disable collision, allow scanning
                     BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
                     bc.gameObject.layer = LayerID.Useable;
-                    bc.isTrigger  = true;
+                    bc.isTrigger = true;
                 }
                 else if (tt == TechType.PurpleTentacle) // writhing weed
                 { // disable collision, allow scanning
@@ -311,7 +312,7 @@ namespace Tweaks_Fixes
                         AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
                     }
                     else if (plantsWithNoTechtype.Contains(__instance.name))
-                    { 
+                    {
                         BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
                         if (bc)
                         {
@@ -409,20 +410,40 @@ namespace Tweaks_Fixes
             {
                 if (!Main.gameLoaded)
                     return false;
-                //AddDebug("StartFading " + __instance.name);
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (tt == TechType.Titanium || tt == TechType.Copper || tt == TechType.Silver || tt == TechType.Gold || tt == TechType.Lead || tt == TechType.Diamond || tt == TechType.Lithium || tt == TechType.JeweledDiskPiece)
+
+                if (Tools_Patch.spawning)
                 {
+                    Tools_Patch.spawning = false;
                     return false;
                 }
+                //AddDebug("StartFading " + __instance.name);
+
                 if (Creature_Tweaks.pickupShinies.Contains(__instance.gameObject))
                 {
                     //AddDebug("StartFading pickupShinies " + __instance.name);
                     return false;
                 }
                 if (__instance.gameObject == droppedObject)
+                {
+                    //AddDebug("StartFading droppedObject " + __instance.name);
+                    droppedObject = null;
                     return false;
-                //    AddDebug("StartFading " + __instance.name);
+                }
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                switch (tt)
+                {
+                    case TechType.Titanium:
+                    case TechType.Copper:
+                    case TechType.Silver:
+                    case TechType.Gold:
+                    case TechType.Lead:
+                    case TechType.Diamond:
+                    case TechType.Lithium:
+                    case TechType.JeweledDiskPiece:
+                        return false;
+                        //default:
+                        //    break;
+                }
                 //else if (Tools_Patch.releasingGrabbedObject)
                 {
                     //Tools_Patch.releasingGrabbedObject = false;
@@ -439,15 +460,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(DropTool), "GetDropPosition")]
-        class DropTool_GetDropPosition_Patch
-        {
-            static void Postfix(DropTool __instance)
-            {
-                //AddDebug("DropTool GetDropPosition");
-                droppedObject = __instance.gameObject;
-            }
-        }
+
 
     }
 }

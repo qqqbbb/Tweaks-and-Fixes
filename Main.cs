@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.08.0";
+            VERSION = "3.10.0";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -46,12 +46,10 @@ namespace Tweaks_Fixes
         static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public const float dayLengthSeconds = 1200f;
-
         public static ConfigMain configMain = new ConfigMain();
         internal static OptionsMenu options;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
-
 
         public static void CleanUp()
         {
@@ -81,6 +79,9 @@ namespace Tweaks_Fixes
             Creature_Tweaks.pickupShinies.Clear();
             Base_Patch.baseHullStrengths.Clear();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
+            Drop_items_anywhere.droppedInBase.Clear();
+            Drop_items_anywhere.droppedInEscapePod.Clear();
+
             configMain.Load();
         }
 
@@ -123,6 +124,7 @@ namespace Tweaks_Fixes
             //logger.LogMessage("LoadedGameSetup ");
             CreatureDeath_Patch.TryRemoveCorpses();
             Escape_Pod_Patch.EscapePodInit();
+            Drop_items_anywhere.OnGameLoadingFinished();
             gameLoaded = true;
         }
 
@@ -165,9 +167,16 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("SaveLoadManager CreateSlotAsync ");
             }
+            [HarmonyPrefix]
+            [HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
+            public static void SaveToDeepStorageAsyncprefix(SaveLoadManager __instance)
+            { // runs after nautilus SaveEvent
+                //AddDebug("SaveToDeepStorageAsync");
+                //Drop_items_anywhere.SavedroppedInBase();
+            }
             [HarmonyPostfix]
             [HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
-            public static void SaveToDeepStorageAsyncostfix(SaveLoadManager __instance)
+            public static void SaveToDeepStorageAsyncpostfix(SaveLoadManager __instance)
             { // runs after nautilus SaveEvent
                 //AddDebug("SaveToDeepStorageAsync");
                 SaveData();

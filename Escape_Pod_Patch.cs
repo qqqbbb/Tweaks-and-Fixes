@@ -104,6 +104,7 @@ namespace Tweaks_Fixes
                     cell.regenerationThreshhold = maxPower;
                     cell.powerSource.maxPower = maxPower;
                 }
+                Medical_Cabinet_Patch.OnEscapePodRepair();
             }
 
         }

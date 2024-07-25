@@ -13,33 +13,30 @@ namespace Tweaks_Fixes
         public static GameInput.Button transferAllItemsButton;
         public static GameInput.Button transferSameItemsButton;
         private static readonly Type[] componentsToRemoveFromDeadCreature = new Type[]
-{
-        typeof(CollectShiny),
-        typeof(CreatureFlinch),
-        typeof(CreatureDeath),
-        typeof(SwimInSchool),
-        typeof(SwimRandom),
-        typeof(StayAtLeashPosition),
-        typeof(Breach),
-        typeof(AvoidObstacles),
-        typeof(AvoidEscapePod),
-        typeof(AvoidTerrain),
-        typeof(FleeOnDamage),
-        typeof(FleeWhenScared),
-        typeof(MoveTowardsTarget),
-        typeof(SwimToVent),
-        typeof(SwimToHeroPeeper),
-        typeof(SwimToMeat),
-        typeof(SwimToTarget),
-        typeof(Scareable),
-        typeof(CreatureFear),
-        typeof(SwimBehaviour),
-        typeof(SplineFollowing),
-        typeof(Locomotion),
-
-
-
-};
+        {
+            typeof(CollectShiny),
+            typeof(CreatureFlinch),
+            typeof(CreatureDeath),
+            typeof(SwimInSchool),
+            typeof(SwimRandom),
+            typeof(StayAtLeashPosition),
+            typeof(Breach),
+            typeof(AvoidObstacles),
+            typeof(AvoidEscapePod),
+            typeof(AvoidTerrain),
+            typeof(FleeOnDamage),
+            typeof(FleeWhenScared),
+            typeof(MoveTowardsTarget),
+            typeof(SwimToVent),
+            typeof(SwimToHeroPeeper),
+            typeof(SwimToMeat),
+            typeof(SwimToTarget),
+            typeof(Scareable),
+            typeof(CreatureFear),
+            typeof(SwimBehaviour),
+            typeof(SplineFollowing),
+            typeof(Locomotion),
+        };
 
 
         public static bool MoveAllItems(InventoryItem item)
@@ -110,14 +107,6 @@ namespace Tweaks_Fixes
                 //Creature creature = item.item.GetComponent<Creature>();
                 //FixPeeperLOD(Creature peeper, bool alive = false)
             }
-
-            //[HarmonyPostfix]
-            //[HarmonyPatch("DropHeldItem")]
-            public static void DropHeldItemPostfix(Inventory __instance, bool applyForce)
-            {
-                //AddDebug("Inventory DropHeldItem ");
-            }
-
             [HarmonyPrefix]
             [HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
             public static bool ExecuteItemActionPrefix(Inventory __instance, InventoryItem item, ItemAction action)

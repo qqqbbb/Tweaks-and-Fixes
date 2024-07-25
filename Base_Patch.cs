@@ -2,17 +2,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Text;
+using UnityEngine;
 using static ErrorMessage;
 
 
 namespace Tweaks_Fixes
 {
+    // only IsLeaking works to check if base is flooded
     public class Base_Patch
     {
         static int camerasToRemove = 0;
-        public static Dictionary <BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
+        public static Dictionary<BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
 
         public static void ToggleBaseLight(SubRoot subRoot)
         {
@@ -102,7 +103,7 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                if (!WaitScreen.IsWaiting && !Util.Approximately(strength, __instance.totalStrength) )
+                if (!WaitScreen.IsWaiting && !Util.Approximately(strength, __instance.totalStrength))
                     AddMessage(Language.main.GetFormat("BaseHullStrChanged", strength - __instance.totalStrength, strength));
 
                 __instance.totalStrength = strength;
@@ -172,7 +173,7 @@ namespace Tweaks_Fixes
                 //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
                 if (!ConfigToEdit.builderPlacingWhenFinishedBuilding.Value)
                     Player.main.StartCoroutine(BuilderEnd(2));
-                
+
                 if (!ConfigToEdit.mapRoomFreeCameras.Value && __instance.techType == TechType.BaseMapRoom)
                     camerasToRemove = 2;
                 else
@@ -232,7 +233,7 @@ namespace Tweaks_Fixes
             static bool Prefix(FMOD_CustomEmitter __instance)
             {
                 if (ConfigToEdit.silentReactor.Value && __instance.asset && __instance.asset.path == "event:/sub/base/nuke_gen_loop")
-                { 
+                {
                     //AddDebug(__instance.name + " FMOD_CustomEmitter Awake ");
                     __instance.asset = null;
                     return false;
