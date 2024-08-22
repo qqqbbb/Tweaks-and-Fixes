@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
-using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -71,6 +70,9 @@ namespace Tweaks_Fixes
         static void OnHandHoverPostfix(CinematicModeTrigger __instance, GUIHand hand)
         {
             Transform parent = __instance.transform.parent;
+            if (parent == null || parent.parent == null || parent.parent.parent == null)
+                return;
+
             if (cmtSet.Contains(__instance))
             {
                 //AddDebug("CinematicModeTrigger OnHandHover");
@@ -84,7 +86,7 @@ namespace Tweaks_Fixes
                         constructor.pickupable.OnHandClick(hand);
                 }
             }
-            else if (parent && parent.parent && parent.parent.parent && parent.parent.parent.name == "Constructor(Clone)")
+            else if (parent.parent.parent.name == "Constructor(Clone)")
             {
                 cmtSet.Add(__instance);
             }

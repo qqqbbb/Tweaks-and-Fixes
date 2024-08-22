@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using static DebugTargetConsoleCommand;
 using static ErrorMessage;
+using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -56,11 +58,33 @@ namespace Tweaks_Fixes
 
             //[HarmonyPostfix]
             //[HarmonyPatch("OnHandClick")]
-            static void OnHandHoverPostfix(Pickupable __instance, GUIHand hand)
+            static void OnHandClickPostfix(Pickupable __instance, GUIHand hand)
             {
                 AddDebug("Pickupable OnHandClick");
             }
 
+            [HarmonyPostfix]
+            [HarmonyPatch("OnHandHover")]
+            public static void OnHandHoverPostfix(Pickupable __instance, GUIHand hand)
+            {
+                if (!hand.IsFreeToInteract())
+                    return;
+
+                TechType techType = __instance.GetTechType();
+                if (techType == TechType.Beacon)
+                {
+                    //AddDebug("Beacon ");
+                    Beacon beacon = __instance.GetComponent<Beacon>();
+                    if (beacon)
+                    {
+                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                            uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
+
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, UI_Patches.beaconPickString, false);
+                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, beacon.beaconLabel.labelName, false);
+                    }
+                }
+            }
 
             //[HarmonyPrefix]
             //[HarmonyPatch("OnHandHover")]

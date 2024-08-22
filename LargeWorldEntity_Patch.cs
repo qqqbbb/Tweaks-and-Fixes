@@ -411,13 +411,13 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded)
                     return false;
 
-                if (Tools_Patch.spawning)
+                //AddDebug("StartFading " + __instance.name);
+                if (Util.spawning)
                 {
-                    Tools_Patch.spawning = false;
+                    //AddDebug("spawning " + __instance.name);
+                    Util.spawning = false;
                     return false;
                 }
-                //AddDebug("StartFading " + __instance.name);
-
                 if (Creature_Tweaks.pickupShinies.Contains(__instance.gameObject))
                 {
                     //AddDebug("StartFading pickupShinies " + __instance.name);

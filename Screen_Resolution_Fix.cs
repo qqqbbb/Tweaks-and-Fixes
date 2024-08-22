@@ -2,9 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static ErrorMessage;
 using UnityEngine;
-using static OVRHaptics;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -30,22 +29,22 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Initialize")]
             static void InitializePostfix(DisplayManager __instance)
             {
-                if (Main.configMain.screenRes.width == 0)
+                if (!ConfigToEdit.fixScreenResolution.Value || Main.configMain.screenRes.width == 0)
                     return;
 
-                if (Screen.currentResolution.width != Main.configMain.screenRes.width || Screen.currentResolution.height != Main.configMain.screenRes.height)
+                if (Screen.currentResolution.width == Main.configMain.screenRes.width && Screen.currentResolution.height == Main.configMain.screenRes.height)
+                    return;
+
+                Resolution[] resolutions = Screen.resolutions;
+                for (int i = 0; i < resolutions.Length; i++)
                 {
-                    Resolution[] resolutions = Screen.resolutions;
-                    for (int i = 0; i < resolutions.Length; i++)
+                    if (resolutions[i].width == Main.configMain.screenRes.width && resolutions[i].height == Main.configMain.screenRes.height)
                     {
-                        if (resolutions[i].width == Main.configMain.screenRes.width && resolutions[i].height == Main.configMain.screenRes.height)
-                        {
-                            Screen.SetResolution(Main.configMain.screenRes.width, Main.configMain.screenRes.height, Main.configMain.screenRes.fullscreen);
-                            break;
-                        }
+                        Screen.SetResolution(Main.configMain.screenRes.width, Main.configMain.screenRes.height, Main.configMain.screenRes.fullscreen);
+                        break;
                     }
-                    Main.logger.LogMessage("Resolution fixed " + Screen.currentResolution.width);
                 }
+                Main.logger.LogMessage("Resolution fixed " + Screen.currentResolution.width);
             }
         }
 

@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.10.0";
+            VERSION = "3.11.0";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -119,7 +119,7 @@ namespace Tweaks_Fixes
                     Destroy(p.gameObject);
             }
             Food_Patch.cookedFish.Clear();
-            Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(OnPlayerUnderwaterChanged));
+            Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_Patch.OnPlayerUnderwaterChanged));
             //AddDebug("LoadedGameSetup ");
             //logger.LogMessage("LoadedGameSetup ");
             CreatureDeath_Patch.TryRemoveCorpses();
@@ -189,11 +189,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        static void OnPlayerUnderwaterChanged(Utils.MonitoredValue<bool> isUnderwaterForSwimming)
-        {
-            //AddDebug(" OnPlayerUnderwaterChanged " + Player.main.IsUnderwater());
-            Tools_Patch.FixHeatBlade();
-        }
+
 
         static void SaveData()
         {
@@ -235,12 +231,6 @@ namespace Tweaks_Fixes
             //CustomPrefab stone = new CustomPrefab( "TF_Stone", "TF_Stone", "");
             //stone.SetSpawns(new SpawnLocation(new Vector3(0.67f, -14.11f, -323.3f), new Vector3(0f, 310f, 329f)));
             //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
-        }
-
-        private void TestSave()
-        {
-            //AddDebug("TestSave ");
-            throw new Exception();
         }
 
         private void Start()

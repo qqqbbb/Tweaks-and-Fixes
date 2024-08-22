@@ -56,8 +56,6 @@ namespace Tweaks_Fixes
                     //Main.logger.LogMessage(tt + " lightOrigIntensity " + lights[0].intensity);
                 }
             }
-            static float knifeRangeDefault = 0f;
-            static float knifeDamageDefault = 0f;
 
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
@@ -81,19 +79,6 @@ namespace Tweaks_Fixes
                         //AddDebug("Light Intensity Down " + l.intensity);
                     }
                 }
-                Knife knife = __instance as Knife;
-                if (knife)
-                {
-                    if (knifeRangeDefault == 0f)
-                        knifeRangeDefault = knife.attackDist;
-                    if (knifeDamageDefault == 0f)
-                        knifeDamageDefault = knife.damage;
-
-                    knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
-                    knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
-                    //AddDebug(" attackDist  " + knife.attackDist);
-                    //AddDebug(" damage  " + knife.damage);
-                }
                 //LEDLight ledLight = __instance as LEDLight;
                 //if (ledLight)
                 //    ledLight.SetLightsActive(Main.config.LEDLightWorksInHand);
@@ -115,194 +100,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static bool giveResourceOnDamage;
-        public static bool spawning;
-        static Vector3 targetPos;
 
-        [HarmonyPatch(typeof(Knife))]
-        class Knife_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("OnToolUseAnim")]
-            public static bool OnToolUseAnimPrefix(Knife __instance, GUIHand hand)
-            {
-                Vector3 position = new Vector3();
-                GameObject closestObj = null;
-                UWE.Utils.TraceFPSTargetPosition(Player.main.gameObject, __instance.attackDist, ref closestObj, ref position);
-
-                //if (closestObj)
-                //{
-                //AddDebug("OnToolUseAnim closestObj " + closestObj.name);
-                //AddDebug("OnToolUseAnim closestObj parent " + closestObj.transform.parent.name);
-                //AddDebug("OnToolUseAnim closestObj parent parent " + closestObj.transform.parent.parent.name);
-                //}
-                //else
-                //    AddDebug("OnToolUseAnim closestObj null");
-
-                if (closestObj == null)
-                {
-                    InteractionVolumeUser ivu = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
-                    if (ivu != null && ivu.GetMostRecent() != null)
-                    {
-                        closestObj = ivu.GetMostRecent().gameObject;
-                        //AddDebug("OnToolUseAnim GetMostRecent " + closestObj.name);
-                    }
-                }
-                if (closestObj)
-                {
-                    Utils.PlayFMODAsset(__instance.attackSound, __instance.transform);
-                    VFXSurface vfxSurface = closestObj.GetComponentInParent<VFXSurface>();
-                    //if (vfxSurface)
-                    //    AddDebug("OnToolUseAnim vfxSurface " + vfxSurface.surfaceType);
-                    //else
-                    //    AddDebug("OnToolUseAnim no vfxSurface ");
-                    Vector3 euler = MainCameraControl.main.transform.eulerAngles + new Vector3(300f, 90f, 0f);
-                    ParticleSystem particleSystem = VFXSurfaceTypeManager.main.Play(vfxSurface, __instance.vfxEventType, position, Quaternion.Euler(euler), Player.main.transform);
-
-                    LiveMixin liveMixin = closestObj.GetComponentInParent<LiveMixin>();
-                    bool validTarget = liveMixin == null || Knife.IsValidTarget(liveMixin);
-                    //AddDebug("OnToolUseAnim IsValidTarget " + validTarget);
-                    if (validTarget)
-                    {
-                        if (liveMixin)
-                        {
-                            bool wasAlive = liveMixin.IsAlive();
-                            liveMixin.TakeDamage(__instance.damage, position, __instance.damageType, Player.main.gameObject);
-                            __instance.GiveResourceOnDamage(closestObj, liveMixin.IsAlive(), wasAlive);
-                        }
-                    }
-                    else
-                        closestObj = null;
-                }
-                if (closestObj || hand.GetActiveTarget())
-                    return false;
-
-                if (Player.main.IsUnderwater())
-                    Utils.PlayFMODAsset(__instance.underwaterMissSound, __instance.transform);
-                else
-                    Utils.PlayFMODAsset(__instance.surfaceMissSound, __instance.transform);
-
-                return false;
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("OnToolUseAnim")]
-            public static void OnToolUseAnimPostfix(Knife __instance)
-            {
-                if (!Player.main.guiHand.activeTarget)
-                    return;
-
-                BreakableResource breakableResource = Player.main.guiHand.activeTarget.GetComponent<BreakableResource>();
-                if (breakableResource)
-                {
-                    breakableResource.BreakIntoResources();
-                    //AddDebug("BreakableResource");
-                }
-                Pickupable pickupable = Player.main.guiHand.activeTarget.GetComponent<Pickupable>();
-                if (pickupable)
-                {
-                    TechType techType = pickupable.GetTechType();
-                    if (Main.configMain.notPickupableResources.Contains(techType))
-                    {
-                        Rigidbody rb = pickupable.GetComponent<Rigidbody>();
-                        if (rb && rb.isKinematic)  // attached to wall
-                            pickupable.OnHandClick(Player.main.guiHand);
-                    }
-                }
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("GiveResourceOnDamage")]
-            public static void GiveResourceOnDamagePrefix(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
-            {
-                //AddDebug("GiveResourceOnDamage ");
-                giveResourceOnDamage = true;
-                targetPos = target.transform.position;
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("GiveResourceOnDamage")]
-            public static void GiveResourceOnDamagePostfix(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
-            {
-                giveResourceOnDamage = false;
-            }
-
-            //[HarmonyPostfix]
-            //[HarmonyPatch("GiveResourceOnDamage")]
-            public static void GiveResourceOnDamageMy(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
-            {
-                if (isAlive || wasAlive)
-                    return;
-
-                //TechType techType = CraftData.GetTechType(target);
-                //string name = techType.AsString();
-                //if (Main.config.deadCreatureLoot.ContainsKey(name))
-                //{
-                //    Creature creature = target.GetComponent<Creature>();
-                //    if (creature == null)
-                //        return;
-
-                //    if (deadCreatureLoot.ContainsKey(creature))
-                //    {
-                //        foreach (var pair in Main.config.deadCreatureLoot[name])
-                //        {
-                //            TechType loot = pair.Key;
-                //            int max = pair.Value;
-                //            if (deadCreatureLoot[creature].ContainsKey(loot) && deadCreatureLoot[creature][loot] < max)
-                //            {
-                //                CraftData.AddToInventory(loot);
-                //                deadCreatureLoot[creature][loot]++;
-                //            }
-                //        }
-                //    }
-                //    else
-                //    {
-                //        foreach (var pair in Main.config.deadCreatureLoot[name])
-                //        {
-                //            CraftData.AddToInventory(pair.Key);
-                //            deadCreatureLoot.Add(creature, new Dictionary<TechType, int> { { pair.Key, 1 } });
-                //        }
-                //    }
-                //}
-            }
-        }
-
-        public static IEnumerator Spawn(TechType techType, IOut<GameObject> result, int num = 1)
-        {
-            //AddDebug("AddToInventoryOrSpawn " + techType + " " + num);
-            for (int i = 0; i < num; ++i)
-            {
-                TaskResult<GameObject> currentResult = new TaskResult<GameObject>();
-                yield return CraftData.GetPrefabForTechTypeAsync(techType, false, currentResult);
-                GameObject prefab = currentResult.Get();
-                GameObject target = !(prefab != null) ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
-                if (target != null)
-                {
-                    spawning = true;
-                    float x = Mathf.Lerp(targetPos.x, MainCamera.camera.transform.position.x, .5f);
-                    float y = MainCamera.camera.transform.position.y + MainCamera.camera.transform.forward.y * 3f; // fix for creepvine 
-                    float z = Mathf.Lerp(targetPos.z, MainCamera.camera.transform.position.z, .5f);
-                    target.transform.position = new Vector3(x, y, z);
-                    CrafterLogic.NotifyCraftEnd(target, techType);
-                    result.Set(target);
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(CraftData), "AddToInventory")]
-        class CraftData_AddToInventory_Patch
-        {
-            static bool Prefix(CraftData __instance, TechType techType, int num = 1, bool noMessage = false, bool spawnIfCantAdd = true)
-            {
-                if (giveResourceOnDamage && !Inventory.main.HasRoomFor(techType))
-                {
-                    //AddDebug("AddToInventory Prefix giveResourceOnDamage " + techType + " " + num);
-                    CoroutineHost.StartCoroutine(Spawn(techType, DiscardTaskResult<GameObject>.Instance, num));
-                    return false;
-                }
-                return true;
-            }
-        }
 
         [HarmonyPatch(typeof(MapRoomCamera))]
         class MapRoomCamera_Patch
@@ -375,10 +173,24 @@ namespace Tweaks_Fixes
         class Beacon_Patch
         {
             [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPostfix(Beacon __instance)
+            {
+                Transform label = __instance.transform.Find("label");
+                if (label)
+                {
+                    BoxCollider boxCollider = label.GetComponent<BoxCollider>();
+                    if (boxCollider)
+                        UnityEngine.Object.Destroy(boxCollider);
+                    //AddDebug("Beacon Start  label");
+                    //label.gameObject.SetActive(false);
+                }
+            }
+            [HarmonyPostfix]
             [HarmonyPatch("Throw")]
             static void ThrowPostfix(Beacon __instance)
             {
-                // x and z does not matter, it will stabilize itself
+                // x and z do not matter, it will stabilize itself
                 __instance.gameObject.transform.rotation = Camera.main.transform.rotation;
                 __instance.transform.Rotate(0f, 180f, 0f);
             }
@@ -919,35 +731,6 @@ namespace Tweaks_Fixes
                 gameObject.SetActive(true);
                 return false;
             }
-        }
-
-        static ParticleSystem[] heatBladeParticles;
-
-        [HarmonyPatch(typeof(VFXLateTimeParticles))]
-        public class VFXLateTimeParticles_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("Play")]
-            public static void PlayPostfix(VFXLateTimeParticles __instance)
-            { //  fix heatblade underwater particles play inside
-                if (__instance.name != "xHeatBlade_Bubbles(Clone)")
-                    return;
-
-                heatBladeParticles = __instance.psChildren;
-                FixHeatBlade();
-            }
-        }
-
-        public static void FixHeatBlade()
-        { //  fix heatblade underwater particles 
-            if (heatBladeParticles == null || heatBladeParticles.Length != 3 || heatBladeParticles[0] == null || heatBladeParticles[0].gameObject == null || !heatBladeParticles[0].gameObject.activeInHierarchy)
-                return;
-
-            //AddDebug("FixHeatBlade");
-            bool underwater = Player.main.isUnderwater.value;
-            heatBladeParticles[1].EnableEmission(!underwater); // xSmk
-            heatBladeParticles[0].EnableEmission(underwater); // xHeatBlade_Bubbles(Clone)
-            heatBladeParticles[2].EnableEmission(underwater); // xRefract
         }
 
         [HarmonyPatch(typeof(ScannerTool), "PlayScanFX")]

@@ -100,7 +100,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> scannerFX;
         public static ConfigEntry<EscapePodMedkitCabinetWorks> escapePodMedkitCabinetWorks;
         public static ConfigEntry<bool> dropItemsAnywhere;
-        //public static ConfigEntry<bool> spawnItemsWhenAddingToFullInventory;
+        public static ConfigEntry<bool> showTempFahrenhiet;
+        public static ConfigEntry<bool> fixScreenResolution;
 
 
 
@@ -193,7 +194,8 @@ namespace Tweaks_Fixes
             scannerFX = Main.configToEdit.Bind("", "Wierd visual effect on objects being scanned", true, "");
             escapePodMedkitCabinetWorks = Main.configToEdit.Bind("", "Medkit kit fabricator in your life pod produces first aid kit", EscapePodMedkitCabinetWorks.Always, "");
             dropItemsAnywhere = Main.configToEdit.Bind("", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except cyclops and grab items in your base with propulsion cannon.");
-            //spawnItemsWhenAddingToFullInventory = Main.configToEdit.Bind("", "Spawn items when harvesting with knife and your inventory if full ", false, "");
+            showTempFahrenhiet = Main.configToEdit.Bind("", "Show temperature in Fahrenhiet instead of Celcius", false, "");
+            fixScreenResolution = Main.configToEdit.Bind("", "Fix screen resolution", false, "The game sometimes resets screen resolution to desktop one. Set this to true to fix it.");
 
 
 

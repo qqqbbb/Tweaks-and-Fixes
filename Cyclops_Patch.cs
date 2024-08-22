@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,7 +18,7 @@ namespace Tweaks_Fixes
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
         static float vertSpeedMult = .5f;
         static float backwardSpeedMult = .5f;
-        
+
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -29,7 +30,7 @@ namespace Tweaks_Fixes
             else
                 instance.image.sprite = instance.inactiveSprite;
         }
-        
+
         static void AddCyclopsCollisionExclusion(GameObject go)
         {
             //AddDebug(__instance.name + " in cyclops");
@@ -63,7 +64,7 @@ namespace Tweaks_Fixes
             //AddDebug("fire Count " + fireCount);
             return fireCount;
         }
-      
+
         static int GetEngineOverheatMinValue(SubFire subFire)
         {
             int overheatValue = GetFireCountInEngineRoom(subFire) * 10;
@@ -102,7 +103,7 @@ namespace Tweaks_Fixes
                     //__instance.hornObject.SetActive(true);
                 }
             }
-          
+
             [HarmonyPostfix]
             [HarmonyPatch("StartPiloting")]
             public static void StartPilotingPostfix(CyclopsHelmHUDManager __instance)
@@ -125,7 +126,7 @@ namespace Tweaks_Fixes
                 //AddDebug("StopPiloting  ");
             }
         }
-        
+
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
         {
@@ -183,7 +184,7 @@ namespace Tweaks_Fixes
                 //AddDebug("SubRoot ForceLightingState " + lightingOn);
             }
         }
-        
+
         [HarmonyPatch(typeof(CyclopsMotorModeButton), "Start")]
         class CyclopsMotorModeButton_Start_Patch
         {
@@ -196,7 +197,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(SubControl))]
         class SubControl_Patch
         {
@@ -240,7 +241,7 @@ namespace Tweaks_Fixes
                 __instance.steeringWheelYaw = Mathf.Lerp(__instance.steeringWheelYaw, steeringWheelYaw, Time.deltaTime * __instance.steeringReponsiveness);
                 __instance.steeringWheelPitch = Mathf.Lerp(__instance.steeringWheelPitch, steeringWheelPitch, Time.deltaTime * __instance.steeringReponsiveness);
                 if (__instance.mainAnimator)
-                { 
+                {
                     __instance.mainAnimator.SetFloat("view_yaw", __instance.steeringWheelYaw * 100f);
                     __instance.mainAnimator.SetFloat("view_pitch", __instance.steeringWheelPitch * 100f);
                     //Player.main.playerAnimator.SetFloat("cyclops_yaw", __instance.steeringWheelYaw);
@@ -376,15 +377,15 @@ namespace Tweaks_Fixes
                 }
                 if (__instance.canAccel)
                 {
-                     if (__instance.throttle.z > 0.0001f)
-                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel *  __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
+                    if (__instance.throttle.z > 0.0001f)
+                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
                     else if (__instance.throttle.z < -0.0001f)
                         cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * backwardSpeedMult * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
                 }
                 return false;
             }
         }
-        
+
         [HarmonyPatch(typeof(CyclopsEntryHatch), "OnTriggerEnter")]
         class CyclopsEntryHatch_Start_Patch
         { // OnTriggerExit does not fire if you use closest ladder so hatch does not close
@@ -397,7 +398,7 @@ namespace Tweaks_Fixes
                 //cyclopsHelmHUDManager.hudActive = true;
             }
         }
-        
+
         [HarmonyPatch(typeof(CinematicModeTriggerBase), "OnHandClick")]
         class CinematicModeTriggerBase_OnHandClick_Patch
         {
@@ -414,7 +415,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(CyclopsSilentRunningAbilityButton), "SilentRunningIteration")]
         class CyclopsSilentRunningAbilityButton_SilentRunningIteration_Patch
         {
@@ -513,7 +514,7 @@ namespace Tweaks_Fixes
                     AddCyclopsCollisionExclusion(__instance.gameObject);
             }
         }
-        
+
         [HarmonyPatch(typeof(CyclopsHolographicHUD))]
         class CyclopsHolographicHUD_Patch
         {
@@ -535,7 +536,7 @@ namespace Tweaks_Fixes
                         //__instance.gameObject.SetActive(false);
                         CyclopsCompassHUD cyclopsCompassHUD = subRoot.GetComponentInChildren<CyclopsCompassHUD>();
                         foreach (Transform child in cyclopsCompassHUD.transform)
-                                child.gameObject.SetActive(false);
+                            child.gameObject.SetActive(false);
 
                         CyclopsDecoyScreenHUDManager cdshudm = subRoot.GetComponentInChildren<CyclopsDecoyScreenHUDManager>();
                         cdshudm.gameObject.SetActive(false);
@@ -551,7 +552,7 @@ namespace Tweaks_Fixes
                         //__instance.gameObject.SetActive(true);
                         CyclopsCompassHUD cyclopsCompassHUD = subRoot.GetComponentInChildren<CyclopsCompassHUD>();
                         foreach (Transform child in cyclopsCompassHUD.transform)
-                                child.gameObject.SetActive(true);
+                            child.gameObject.SetActive(true);
                         CyclopsDecoyScreenHUDManager cdshudm = subRoot.GetComponentInChildren<CyclopsDecoyScreenHUDManager>(true);
                         cdshudm.gameObject.SetActive(true);
                         CyclopsVehicleStorageTerminalManager cvstm = subRoot.GetComponentInChildren<CyclopsVehicleStorageTerminalManager>();
@@ -743,7 +744,7 @@ namespace Tweaks_Fixes
                 __instance.subLiveMixin.Kill();
                 //AddDebug("CyclopsDestructionEvent DestroyCyclops IsAlive " + __instance.subLiveMixin.IsAlive());
             }
-           
+
             [HarmonyPrefix]
             [HarmonyPatch("SwapToDamagedModels")]
             static bool SwapToDamagedModelsPrefix(CyclopsDestructionEvent __instance)
@@ -791,12 +792,14 @@ namespace Tweaks_Fixes
 
                 return true;
             }
+
             [HarmonyPrefix]
             [HarmonyPatch("Update")]
             static bool UpdatePrefix(SubFire __instance)
             {
                 return Main.gameLoaded;
             }
+
             [HarmonyPrefix]
             [HarmonyPatch("EngineOverheatSimulation")]
             static bool EngineOverheatSimulationPrefix(SubFire __instance)
@@ -805,7 +808,7 @@ namespace Tweaks_Fixes
                 //AddDebug("SubFire position " + __instance.transform.position);
                 if (!__instance.gameObject.activeInHierarchy || !__instance.LOD.IsFull())
                     return false;
-         
+
                 //AddDebug("engineOverheatValue " + __instance.engineOverheatValue);
                 //AddDebug("appliedThrottle " + __instance.subControl.appliedThrottle);
                 //AddDebug("engineOn " + __instance.cyclopsMotorMode.engineOn);

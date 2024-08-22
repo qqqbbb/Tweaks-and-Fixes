@@ -185,7 +185,6 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);

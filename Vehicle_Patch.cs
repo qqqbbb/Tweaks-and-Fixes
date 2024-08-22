@@ -981,6 +981,7 @@ namespace Tweaks_Fixes
         public static void OnPilotModeBeginPostfix(Exosuit __instance)
         {
             //AddDebug("OnPilotModeBegin");
+
             if (!Main.exosuitTorpedoDisplayLoaded)
             {
                 torpedoStorageLeft = null;
@@ -1015,11 +1016,15 @@ namespace Tweaks_Fixes
         static void StartPostfix(Exosuit __instance)
         {
             //__instance.StartCoroutine(PlayClip(__instance.mainAnimator, "exo_docked"));
-            //AddDebug("Start currentLeftArmType " + __instance.currentLeftArmType);
+            //AddDebug("Exosuit Start currentLeftArmType " + __instance.currentLeftArmType);
             //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
             //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
-            //exosuitName = Language.main.Get("Exosuit");
             //GetArmNames(__instance);
+            if (exosuitName == null)
+            {
+                //AddDebug("Start exosuitName == null");
+                exosuitName = Language.main.Get("Exosuit");
+            }
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
             {
                 Vehicle.DockType dockType = Vehicle_patch.dockedVehicles[__instance];
@@ -1338,7 +1343,7 @@ namespace Tweaks_Fixes
             //AddDebug("OnUpgradeModuleChange " + techType + " " + added + " " + slotID);
             if (!exosuitStarted)
                 return;
-
+            //AddDebug("OnUpgradeModuleChange " + techType + " " + added + " " + slotID);
             if (!added)
             {
                 if (slotID == 0)

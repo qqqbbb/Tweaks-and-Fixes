@@ -5,6 +5,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using static ErrorMessage;
+using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -82,7 +83,7 @@ namespace Tweaks_Fixes
             lightAndThrowFlareString = Language.main.Get("TF_light_and_throw_flare") + " (" + rightHandButton + ")";
             swivelText = Language.main.Get("TF_swivel_chair_left") + " (" + moveLeftButton + ")  " + Language.main.Get("TF_swivel_chair_right") + " (" + moveRightButton + ")";
             beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
-            beaconPickString = "(" + leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
+            beaconPickString = LanguageCache.GetPickupText(TechType.Beacon) + "(" + leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + altToolButton + ")\n";
             constructorString = Language.main.Get("Climb") + "(" + leftHandButton + "), " + LanguageCache.GetPackUpText(TechType.Constructor) + " (" + rightHandButton + ")";
             changeTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + altToolButton + ")";
@@ -998,6 +999,58 @@ namespace Tweaks_Fixes
             }
         }
 
+
+        [HarmonyPatch(typeof(uGUI_ExosuitHUD), "Update")]
+        public static class uGUI_ExosuitHUD_Patch
+        {
+            static string tempSuffix;
+            static int lastTemperature = int.MinValue;
+            public static void Postfix(uGUI_ExosuitHUD __instance)
+            {
+                if (ConfigToEdit.showTempFahrenhiet.Value && Player.main.currentMountedVehicle is Exosuit)
+                {
+                    if (__instance.lastTemperature == lastTemperature)
+                        return;
+
+                    __instance.textTemperature.text = IntStringCache.GetStringForInt((int)Util.CelciusToFahrenhiet(__instance.lastTemperature));
+                    if (tempSuffix == null)
+                    {
+                        __instance.textTemperatureSuffix.text = __instance.textTemperatureSuffix.text.Replace("°C", "°F");
+                        tempSuffix = __instance.textTemperatureSuffix.text;
+                    }
+                    else
+                        __instance.textTemperatureSuffix.text = tempSuffix;
+
+                    lastTemperature = __instance.lastTemperature;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(uGUI_SeamothHUD), "Update")]
+        public static class uuGUI_SeamothHUD_Patch
+        {
+            static string tempSuffix;
+            static int lastTemperature = int.MinValue;
+            public static void Postfix(uGUI_SeamothHUD __instance)
+            {
+                if (ConfigToEdit.showTempFahrenhiet.Value && Player.main.currentMountedVehicle is SeaMoth)
+                {
+                    if (__instance.lastTemperature == lastTemperature)
+                        return;
+
+                    __instance.textTemperature.text = IntStringCache.GetStringForInt((int)Util.CelciusToFahrenhiet(__instance.lastTemperature));
+                    if (tempSuffix == null)
+                    {
+                        __instance.textTemperatureSuffix.text = __instance.textTemperatureSuffix.text.Replace("°C", "°F");
+                        tempSuffix = __instance.textTemperatureSuffix.text;
+                    }
+                    else
+                        __instance.textTemperatureSuffix.text = tempSuffix;
+
+                    lastTemperature = __instance.lastTemperature;
+                }
+            }
+        }
 
 
     }

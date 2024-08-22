@@ -17,6 +17,8 @@ namespace Tweaks_Fixes
 {
     public static class Util
     {
+        static Dictionary<TechType, GameObject> prefabs = new Dictionary<TechType, GameObject>();
+        public static bool spawning;
 
         public static bool GetTarget(Vector3 startPos, Vector3 dir, float distance, out RaycastHit hitInfo)
         {
@@ -385,22 +387,40 @@ namespace Tweaks_Fixes
             return (Mathf.Abs(a - b) < tolerance);
         }
 
-        public static IEnumerator Spawn(TechType techType, IOut<GameObject> result, int num = 1)
+        public static IEnumerator Spawn(TechType techType, Vector3 pos = default, bool fadeIn = false)
         {
-            //AddDebug("Spawn " + techType + " " + num);
-            for (int i = 0; i < num; ++i)
+            //AddDebug("Spawn " + techType);
+            GameObject prefab;
+            if (prefabs.ContainsKey(techType))
+                prefab = prefabs[techType];
+            else
             {
-                TaskResult<GameObject> currentResult = new TaskResult<GameObject>();
-                yield return CraftData.GetPrefabForTechTypeAsync(techType, false, currentResult);
-                GameObject prefab = currentResult.Get();
-                GameObject target = !(prefab != null) ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
-                if (target != null)
-                {
-                    target.transform.position = MainCamera.camera.transform.position + MainCamera.camera.transform.forward * 2;
-                    CrafterLogic.NotifyCraftEnd(target, techType);
-                    result.Set(target);
-                }
+                TaskResult<GameObject> result = new TaskResult<GameObject>();
+                yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
+                prefab = result.Get();
+                prefabs[techType] = prefab;
             }
+            if (!fadeIn)
+                spawning = true;
+
+            GameObject go = prefab == null ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
+            if (go != null)
+            {
+                if (pos == default)
+                {
+                    Transform camTr = MainCamera.camera.transform;
+                    go.transform.position = camTr.position + camTr.forward * 3f;
+                }
+                go.transform.position = pos;
+                //AddDebug("Spawn " + techType + " " + pos);
+                CrafterLogic.NotifyCraftEnd(go, techType);
+            }
+            spawning = false;
+        }
+
+        public static float CelciusToFahrenhiet(float celcius)
+        {
+            return celcius * 1.8f + 32f;
         }
 
 
