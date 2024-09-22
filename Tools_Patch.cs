@@ -181,9 +181,9 @@ namespace Tweaks_Fixes
                 {
                     BoxCollider boxCollider = label.GetComponent<BoxCollider>();
                     if (boxCollider)
-                        UnityEngine.Object.Destroy(boxCollider);
-                    //AddDebug("Beacon Start  label");
-                    //label.gameObject.SetActive(false);
+                        //    UnityEngine.Object.Destroy(boxCollider);
+                        //AddDebug("Beacon Start  label");
+                        label.gameObject.SetActive(false);
                 }
             }
             [HarmonyPostfix]

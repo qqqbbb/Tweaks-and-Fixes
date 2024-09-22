@@ -80,9 +80,9 @@ namespace Tweaks_Fixes
                 UnityEngine.Object.Destroy(lm);
         }
 
-        public static void DisableWavingShader(LargeWorldEntity __instance)
+        public static void DisableWavingShader(Component component)
         {
-            foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
+            foreach (MeshRenderer mr in component.GetComponentsInChildren<MeshRenderer>())
             {
                 foreach (Material m in mr.materials)
                 {
