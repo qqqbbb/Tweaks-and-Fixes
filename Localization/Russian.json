@@ -19,5 +19,6 @@
   "TF_swivel_chair_left": "Повернуться налево",
   "TF_swivel_chair_right": "Повернуться направо",
   "TF_bladderfish_tooltip": " Восполняет кислород при употребдении в сыром виде.",
-  "TF_propulsion_cannon_release": "Отпустить "
+  "TF_propulsion_cannon_release": "Отпустить ",
+  "TF_VehicleArmorPlating_install_message": "Физический урон будет снижен до 70%"
 }

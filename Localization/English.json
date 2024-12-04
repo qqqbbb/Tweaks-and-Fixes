@@ -19,5 +19,6 @@
   "TF_swivel_chair_left": "Swivel left",
   "TF_swivel_chair_right": "Swivel right",
   "TF_bladderfish_tooltip": " Provides some oxygen when consumed raw.",
-  "TF_propulsion_cannon_release": "Release "
+  "TF_propulsion_cannon_release": "Release ",
+  "TF_VehicleArmorPlating_install_message": "Incoming physical damage will be reduced to 70%"
 }

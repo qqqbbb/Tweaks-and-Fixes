@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -378,19 +379,35 @@ namespace Tweaks_Fixes
             if (techType != TechType.VehicleArmorPlating)
                 return;
 
-            int armorUpgrades = 0;
+            if (!Main.gameLoaded)
+                return;
+
+            int armorUpgrades = GetNumModules(__instance, TechType.VehicleArmorPlating);
+            if (armorUpgrades == 0)
+                return;
+
+            string msg = Language.main.Get("TF_VehicleArmorPlating_install_message");
+            if (msg.IsNullOrWhiteSpace())
+                return;
+
+            if (armorUpgrades == 2)
+                msg = msg.Replace("70", "50");
+            else if (armorUpgrades > 2)
+                msg = msg.Replace("70", "40");
+
+            AddDebug(msg);
+        }
+
+        private static int GetNumModules(Vehicle __instance, TechType ttToFind)
+        {
+            int cound = 0;
             for (int i = 0; i < __instance.slotIDs.Length; ++i)
             {
                 TechType tt = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[i]);
-                if (tt == TechType.VehicleArmorPlating)
-                    armorUpgrades++;
+                if (tt == ttToFind)
+                    cound++;
             }
-            if (armorUpgrades == 1)
-                AddDebug("Incoming physical damage will be reduced to 70%");
-            else if (armorUpgrades == 2)
-                AddDebug("Incoming physical damage will be reduced to 50%");
-            else if (armorUpgrades > 2)
-                AddDebug("Incoming physical damage will be reduced to 40%");
+            return cound;
         }
 
         [HarmonyPrefix]

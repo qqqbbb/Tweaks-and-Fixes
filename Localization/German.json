@@ -19,5 +19,6 @@
   "TF_swivel_chair_left": "Schwenken links",
   "TF_swivel_chair_right": "Schwenken rechts",
   "TF_bladderfish_tooltip": " Liefert bei Rohverzehr etwas Sauerstoff.",
-  "TF_propulsion_cannon_release": "Release "
+  "TF_propulsion_cannon_release": "Release ",
+  "TF_VehicleArmorPlating_install_message": "Eingehender physischer Schaden wird auf 70 % reduziert"
 }
