@@ -66,16 +66,25 @@ namespace Tweaks_Fixes
                     __instance.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
                 }
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("Initialize")]
+            [HarmonyPrefix]
+            [HarmonyPatch("Initialize")]
             public static void InitializePrefix(FruitPlant __instance)
             {
-                if (__instance.inactiveFruits == null)
-                    AddDebug("inactiveFruits == null");
                 if (__instance.fruits == null)
-                    AddDebug("fruits == null");
-                if (__instance.fruits.Length > 0 && __instance.fruits[0].pickedEvent == null)
-                    AddDebug("pickedEvent == null");
+                {
+                    //AddDebug("fruits == null " + __instance.name);
+                    __instance.fruits = __instance.GetComponentsInChildren<PickPrefab>(true);
+                    if (__instance.fruits.Length == 0)
+                    {
+                        //AddDebug("fruits == null Destroy FruitPlant " + __instance.name);
+                        UnityEngine.Object.Destroy(__instance);
+                        return;
+                    }
+                    //else
+                    //    AddDebug("fruits ! " + __instance.fruits.Length + " " + __instance.name);
+                }
+                //if (__instance.fruits.Length > 0 && __instance.fruits[0].pickedEvent == null)
+                //    AddDebug("pickedEvent == null");
             }
 
             [HarmonyPostfix]

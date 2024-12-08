@@ -1,10 +1,12 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 using UWE;
+using static DebugTargetConsoleCommand;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -179,6 +181,9 @@ namespace Tweaks_Fixes
                 Transform label = __instance.transform.Find("label");
                 if (label)
                 {
+                    if (__instance.beaconLabel.stringBeaconSubmit.IsNullOrWhiteSpace())
+                        __instance.beaconLabel.stringBeaconSubmit = Language.main.Get("BeaconSubmit");
+
                     BoxCollider boxCollider = label.GetComponent<BoxCollider>();
                     if (boxCollider)
                         //    UnityEngine.Object.Destroy(boxCollider);

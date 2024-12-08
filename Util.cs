@@ -423,6 +423,11 @@ namespace Tweaks_Fixes
             return celcius * 1.8f + 32f;
         }
 
+        public static bool IsGraphicsPresetHighDetail()
+        {
+            return GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()].detail == 2;
+        }
+
 
     }
 }

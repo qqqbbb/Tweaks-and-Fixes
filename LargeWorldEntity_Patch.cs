@@ -13,6 +13,10 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> techTypesToDespawn = new Dictionary<TechType, int> { };
+        static HashSet<TechType> drillables = new HashSet<TechType> { TechType.DrillableAluminiumOxide, TechType.DrillableCopper, TechType.DrillableDiamond, TechType.DrillableGold, TechType.DrillableKyanite, TechType.DrillableLead, TechType.DrillableLithium, TechType.DrillableMagnetite, TechType.DrillableMercury, TechType.DrillableNickel, TechType.DrillableQuartz, TechType.DrillableSalt, TechType.DrillableSilver, TechType.DrillableSulphur, TechType.DrillableTitanium, TechType.DrillableUranium };
+
+
+
         static HashSet<TechType> plantSurfaces = new HashSet<TechType> {TechType.BloodRoot, TechType.BloodOil, TechType.BloodVine, TechType.BluePalm, TechType.KooshChunk, TechType.HugeKoosh, TechType.LargeKoosh, TechType.MediumKoosh, TechType.SmallKoosh, TechType.BulboTreePiece, TechType.BulboTree, TechType.PurpleBranches, TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.AcidMushroom, TechType.WhiteMushroom, TechType.EyesPlant, TechType.FernPalm, TechType.RedRollPlant, TechType.GabeSFeather, TechType.RedGreenTentacle, TechType.JellyPlant, TechType.OrangeMushroom, TechType.SnakeMushroom, TechType.OrangePetalsPlant, TechType.SpikePlant, TechType.MembrainTree, TechType.Melon, TechType.SmallMelon, TechType.MelonPlant, TechType
         .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
         static HashSet<TechType> coralSurfaces = new HashSet<TechType> { TechType.BigCoralTubes, TechType.CoralShellPlate, TechType.GenericJeweledDisk, TechType.JeweledDiskPiece };
@@ -24,8 +28,8 @@ namespace Tweaks_Fixes
 
         public static void ForceBestLODmesh(GameObject go, TechType techType = TechType.None)
         {
-            if (!ConfigToEdit.tweaksAffectingGPU.Value)
-                return;
+            //if (!ConfigToEdit.tweaksAffectingGPU.Value)
+            //    return;
             //AddDebug("AlwaysUseHiPolyMesh " + go.name);
             if (techType == TechType.Boomerang)// dont disable FP model
                 go = go.transform.Find("model").gameObject;
@@ -43,9 +47,7 @@ namespace Tweaks_Fixes
 
         public static void SetCellLevel(LargeWorldEntity lwe, LargeWorldEntity.CellLevel cellLevel)
         {
-            if (!ConfigToEdit.tweaksAffectingGPU.Value && cellLevel > lwe.cellLevel)
-                return;
-
+            //if (!ConfigToEdit.tweaksAffectingGPU.Value)
             lwe.cellLevel = cellLevel;
         }
 
@@ -173,6 +175,11 @@ namespace Tweaks_Fixes
                 {
                     Util.EnsureFruits(__instance.gameObject);
                 }
+                else if (drillables.Contains(tt))
+                {
+                    if (Util.IsGraphicsPresetHighDetail())
+                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Medium);
+                }
                 if (techTypesToMakeUnmovable.Contains(tt))
                 {
                     MakeUnmovable(__instance.gameObject);
@@ -234,14 +241,15 @@ namespace Tweaks_Fixes
                     if ((x == 280 && y == -40 && z == -195) || (x == 272 && y == -41 && z == -199))
                         __instance.transform.Rotate(90, 0, 0);
                 }
-                else if (tt == TechType.PurpleBranches)
-                { // tall purple plant in shroom cave
-                    SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                else if (tt == TechType.PurpleBranches || tt == TechType.SnakeMushroom || tt == TechType.PurpleStalk)
+                { // things in shroom cave
+                    if (Util.IsGraphicsPresetHighDetail())
+                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
-                else if (tt == TechType.SnakeMushroom)
+                else if (tt == TechType.CoralShellPlate)
                 {
-                    SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
-                    //RemoveLivemixing(__instance);
+                    if (Util.IsGraphicsPresetHighDetail())
+                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Medium);
                 }
                 else if (tt == TechType.FloatingStone) // ?
                 {
@@ -251,11 +259,7 @@ namespace Tweaks_Fixes
                 //{
                 //    EnableCreepvineShader(__instance);
                 //}
-                //else if (tt == TechType.CoralShellPlate)
-                //{
-                //AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
-                //MakeImmuneToCannon(__instance.gameObject);
-                //}
+
                 else if (tt == TechType.Floater)
                 {
                     AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.organic);
@@ -291,7 +295,7 @@ namespace Tweaks_Fixes
                     //    AlwaysUseHiPolyMesh(__instance.gameObject);
                     if (__instance.name == "Land_tree_01(Clone)")
                     {
-                        ForceBestLODmesh(__instance.gameObject);
+                        //ForceBestLODmesh(__instance.gameObject);
                         foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
                         {
                             foreach (Material m in mr.materials)
@@ -300,12 +304,14 @@ namespace Tweaks_Fixes
                     }
                     else if (__instance.name.StartsWith("Crab_snake_mushrooms"))
                     { // small shrooms have no techtype
-                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                        if (Util.IsGraphicsPresetHighDetail())
+                            SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                     }
                     else if (__instance.name.StartsWith("coral_reef_Stalactite"))
                     { // Stalactites in shroom cave
-                        //AddDebug(__instance.name + " cellLevel " + __instance.cellLevel);
-                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                      //AddDebug(__instance.name + " cellLevel " + __instance.cellLevel);
+                        if (Util.IsGraphicsPresetHighDetail())
+                            SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                     }
                     else if (__instance.name.StartsWith("ExplorableWreck_"))
                     {

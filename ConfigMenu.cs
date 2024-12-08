@@ -79,8 +79,8 @@ namespace Tweaks_Fixes
             transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
             quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot. This works only with controller.");
             lightButton = Main.configMenu.Bind("", "Light intensity button", KeyCode.None, "When holding a tool in your hand or driving a vehicle press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to change the tool or vehicle light intensity. This works only with controller.");
-            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab. This works only with keyboard.");
-            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab. This works only with keyboard.");
+            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab.");
+            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab.");
 
             timeFlowSpeed = Main.configMenu.Bind("", "Time flow speed multiplier", 1f, "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time.");
             playerSpeedMult = Main.configMenu.Bind("", "Player speed multiplier", 1f, "Your swimming, walking and running speed will be multiplied by this.");

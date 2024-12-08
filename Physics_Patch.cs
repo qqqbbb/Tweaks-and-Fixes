@@ -1,8 +1,8 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using HarmonyLib;
 
 namespace Tweaks_Fixes
 {
@@ -19,11 +19,15 @@ namespace Tweaks_Fixes
                 if (lm && lm.health > 0)
                     return;
 
-                __instance.underwaterDrag = 1;
+                if (__instance.GetComponent<Projectile>())
+                    return;
+
+                if (__instance.underwaterDrag == 0)
+                    __instance.underwaterDrag = 1;
             }
         }
 
 
-            
+
     }
 }

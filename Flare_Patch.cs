@@ -1,7 +1,7 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using HarmonyLib;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
         static float originalRange;
         static float lowEnergy;
         public static bool intensityChanged = false;
-            
+
         public static void LightFlare(Flare flare)
         {
             //AddDebug("LightFlare ");
@@ -31,7 +31,7 @@ namespace Tweaks_Fixes
             flare.light.enabled = true;
             flare.isLightFadinfIn = true;
             //flare.isThrowing = true;
-            flare.hasBeenThrown = true; 
+            flare.hasBeenThrown = true;
             flare.flareActivateTime = DayNightCycle.main.timePassedAsFloat;
             flare.flareActiveState = true;
             flare.throwDuration = .1f;
@@ -96,6 +96,9 @@ namespace Tweaks_Fixes
             if (Main.flareRepairLoaded)
                 return true;
 
+            if (!ConfigToEdit.flareTweaks.Value)
+                return true;
+
             if (intensityChanged)
             {
                 //AddDebug("intensityChaned ");
@@ -110,7 +113,7 @@ namespace Tweaks_Fixes
                 if (burnTime < 0.1f)
                     return false;
 
-                float num2 = burnTime / __instance.flickerInterval;
+                float num2 = burnTime / __instance.flickerInterval / DayNightCycle.main._dayNightSpeed;
                 float num3 = __instance.originalIntensity * (0.45f + 0.55f * Mathf.PerlinNoise(num2, 0f));
                 float num4 = (__instance.originalrange * 0.65f + 0.35f * Mathf.Sin(num2));
                 if (burnTime < 0.43f)
@@ -136,20 +139,29 @@ namespace Tweaks_Fixes
             }
             return false;
         }
+
         [HarmonyPrefix]
         [HarmonyPatch(nameof(Flare.OnDraw))]
-        static void OnDrawPostfix(Flare __instance, Player p)
+        static bool OnDrawPostfix(Flare __instance, Player p)
         {
             //AddDebug("OnDraw originalRange " + originalRange);
             //AddDebug("OnDraw originalIntensity " + originalIntensity);
+            if (!ConfigToEdit.flareTweaks.Value)
+                return true;
+
             if (!Main.flareRepairLoaded)
                 intensityChanged = false;
+
+            return true;
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(nameof(Flare.OnRightHandDown))]
         static bool OnRightHandDownPostfix(Flare __instance)
         { // fix: can throw flare in base
+            if (!ConfigToEdit.flareTweaks.Value)
+                return true;
+
             bool canThrow = Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
             //AddDebug("OnRightHandDown CanDropItemHere " + canThrow);
             return canThrow;
@@ -159,6 +171,9 @@ namespace Tweaks_Fixes
         [HarmonyPatch(nameof(Flare.OnToolUseAnim))]
         static bool OnToolUseAnimPostfix(Flare __instance)
         { // fix: can throw flare in base
+            if (!ConfigToEdit.flareTweaks.Value)
+                return true;
+
             bool canThrow = Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
             //AddDebug("OnToolUseAnim CanDropItemHere " + canThrow);
             return canThrow;

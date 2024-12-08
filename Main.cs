@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.11.1";
+            VERSION = "3.13.0";
 
         public static ManualLogSource logger;
         public static Survival survival;
@@ -167,8 +167,8 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("SaveLoadManager CreateSlotAsync ");
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
             public static void SaveToDeepStorageAsyncprefix(SaveLoadManager __instance)
             { // runs after nautilus SaveEvent
                 //AddDebug("SaveToDeepStorageAsync");

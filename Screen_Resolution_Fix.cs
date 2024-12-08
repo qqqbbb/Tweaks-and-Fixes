@@ -22,13 +22,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(DisplayManager))]
-        class DisplayManager_Patch
+        [HarmonyPatch(typeof(GameSettings))]
+        class GameSettings_Patch
         {
             [HarmonyPostfix]
-            [HarmonyPatch("Initialize")]
-            static void InitializePostfix(DisplayManager __instance)
+            [HarmonyPatch("LoadAsync", new Type[] { })]
+            static void InitializePostfix(GameSettings __instance)
             {
+                //Main.logger.LogMessage("GameSettings LoadAsync");
                 if (!ConfigToEdit.fixScreenResolution.Value || Main.configMain.screenRes.width == 0)
                     return;
 

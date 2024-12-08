@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -290,7 +291,7 @@ namespace Tweaks_Fixes
                 {
                     Flare flare = tool as Flare;
                     InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
-                    if (flare && !Main.flareRepairLoaded)
+                    if (flare && !Main.flareRepairLoaded && ConfigToEdit.flareTweaks.Value)
                     {
                         bool lit = flare.flareActivateTime > 0;
                         bool canThrow = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
@@ -315,10 +316,10 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
                     }
                     Beacon beacon = tool as Beacon;
-                    if (beacon)
+                    if (beacon && beacon.beaconLabel)
                     {
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, beaconToolString);
-                        if (beacon.beaconLabel && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                         {
                             uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
                         }

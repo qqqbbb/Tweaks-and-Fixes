@@ -47,7 +47,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> removeFragmentCrate;
         public static ConfigEntry<bool> creepvineLights;
         public static ConfigEntry<bool> newUIstrings;
-        public static ConfigEntry<bool> tweaksAffectingGPU;
+        //public static ConfigEntry<bool> tweaksAffectingGPU;
         public static ConfigEntry<bool> disableUseText;
         public static ConfigEntry<bool> craftWithoutBattery;
         public static ConfigEntry<bool> disableCyclopsProximitySensor;
@@ -102,6 +102,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> dropItemsAnywhere;
         public static ConfigEntry<bool> showTempFahrenhiet;
         public static ConfigEntry<bool> fixScreenResolution;
+        public static ConfigEntry<bool> flareTweaks;
 
 
 
@@ -113,7 +114,7 @@ namespace Tweaks_Fixes
         {  // “ ” ‛
             heatBladeCooks = Main.configToEdit.Bind("", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("", "Do not spawn fragments for unlocked blueprints", false);
-            cantScanExosuitClawArm = Main.configToEdit.Bind("", "Unlock prawn suit only by scanning prawn suit", true, "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arms fragments.");
+            cantScanExosuitClawArm = Main.configToEdit.Bind("", "Unlock prawn suit only by scanning prawn suit", true, "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arm fragments.");
             mapRoomFreeCameras = Main.configToEdit.Bind("", "Free camera drones for scanner room", true, "Scanner room will be built without camera drones if this is false.");
             decoyRequiresSub = Main.configToEdit.Bind("", "Creature decoy does not work when dropped from inventory", false);
             noKillParticles = Main.configToEdit.Bind("", "No particles when creature dies", false, "No yellow cloud particles will spawn when a creature dies.");
@@ -123,33 +124,33 @@ namespace Tweaks_Fixes
 
             gameStartWarningText = Main.configToEdit.Bind("", "Game start warning text", "", "Text shown when the game starts. If this field is empty the warning will be skipped.");
             newGameLoot = Main.configToEdit.Bind("", "Life pod items", "FilteredWater 2, NutrientBlock 2, Flare 2", "Items you find in your life pod when you start a new game. The format is item ID, space, number of items. Every entry is separated by comma.");
-            crushDepthEquipment = Main.configToEdit.Bind("", "Crush depth equipment", "ReinforcedDiveSuit 0", "Allows you to make your equipment increase your crush depth. The format is: item ID, space, number of meters that will be added to your crush depth. Every entry is separated by comma.");
-            crushDamageEquipment = Main.configToEdit.Bind("", "Crush damage equipment", "ReinforcedDiveSuit 0", "Allows you to make your equipment reduce your crush damage. The format is: item ID, space, crush damage percent that will be blocked. Every entry is separated by comma.");
+            crushDepthEquipment = Main.configToEdit.Bind("", "Crush depth equipment", "ReinforcedDiveSuit 0", "Equipment in this list increases your safe diving depth. The format is: item ID, space, number of meters that will be added to your safe diving depth. Every entry is separated by comma.");
+            crushDamageEquipment = Main.configToEdit.Bind("", "Crush damage equipment", "ReinforcedDiveSuit 0", "Equipment in this list reduces your crush damage. The format is: item ID, space, crush damage percent that will be blocked. Every entry is separated by comma.");
             itemMass = Main.configToEdit.Bind("", "Item mass", "PrecursorKey_Blue 5, PrecursorKey_Orange 5, PrecursorKey_Purple 5, PrecursorKey_Red 5, PrecursorKey_White 5", "Allows you to change mass of pickupable items. The format is: item ID, space, item mass in kg as a decimal point number. Every entry is separated by comma.");
             unmovableItems = Main.configToEdit.Bind("", "Unmovable items", "", "Contains pickupable items that can not be moved by bumping into them. You will always find them where you dropped them.  Every entry is separated by comma.");
             bloodColor = Main.configToEdit.Bind("", "Blood color", new Vector3(0.784f, 1f, 0.157f), "Lets you change the color of creatures‛ blood. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             gravTrappable = Main.configToEdit.Bind("", "Gravtrappable items", "seaglide, airbladder, flare, flashlight, builder, lasercutter, ledlight, divereel, propulsioncannon, welder, repulsioncannon, scanner, stasisrifle, knife, heatblade, precursorkey_blue, precursorkey_orange, precursorkey_purple, precursorkey_red, precursorkey_white, compass, fins, fireextinguisher, firstaidkit, doubletank, plasteeltank, radiationsuit, radiationhelmet, radiationgloves, rebreather, reinforceddivesuit, maproomhudchip, tank, stillsuit, swimchargefins, ultraglidefins, highcapacitytank,", "List of items affected by grav trap.");
-            medKitHPperSecond = Main.configToEdit.Bind("", "Amount of HP restored by first aid kit every second", 100f, new ConfigDescription("Set this to a low number to slowly restore HP after using first aid kit.", medKitHPperSecondRange));
+            medKitHPperSecond = Main.configToEdit.Bind("", "Amount of HP restored by first aid kit every second", 100f, new ConfigDescription("Set this to a small number to slowly restore HP after using first aid kit.", medKitHPperSecondRange));
             silentCreatures = Main.configToEdit.Bind("", "Silent creatures", "", "List of creature IDs separated by comma. Creatures in this list will be silent.");
 
             eatableFoodValue = Main.configToEdit.Bind("", "Eatable component food value", "CreepvineSeedCluster 5", "Items from this list will be made eatable. The format is: item ID, space, food value. Every entry is separated by comma.");
             eatableWaterValue = Main.configToEdit.Bind("", "Eatable component water value", "CreepvineSeedCluster 10", "Items from this list will be made eatable. The format is: item ID, space, water value. Every entry is separated by comma.");
             fixMelons = Main.configToEdit.Bind("", "Fix melons", false, "If true you will be able to plant only 1 melon in a pot and only 4 in a planter.");
-            randomPlantRotation = Main.configToEdit.Bind("", "Random plant rotation", true, "If true plants in planters will have random rotation.");
-            silentReactor = Main.configToEdit.Bind("", "Silent nuclear reactor", false, "If true nuclear reactor will be silent.");
+            randomPlantRotation = Main.configToEdit.Bind("", "Random plant rotation", true, "Plants in planters will have random rotation if this is true.");
+            silentReactor = Main.configToEdit.Bind("", "Silent nuclear reactor", false, "Nuclear reactor will be silent if this is true.");
             removeFragmentCrate = Main.configToEdit.Bind("", "Remove fragment crate", false, "When you scan a blueprint fragment, the crate holding the fragment will be removed if this is true.");
-            creepvineLights = Main.configToEdit.Bind("", "Real creepvine lights", true, "If true creepvine seed cluster light intensity will depend on number of seed clusters on the vine.");
-            newUIstrings = Main.configToEdit.Bind("", "New UI text", true, "If false new UI elements added by the mod wil be disabled.");
-            newStorageUI = Main.configToEdit.Bind("", "New storage UI", true);
-            tweaksAffectingGPU = Main.configToEdit.Bind("", "Tweaks affecting GPU", true, "If false changes that may affect GPU performance (LOD edits, edits that increase popping in distance for objects) will be disabled.");
-            disableUseText = Main.configToEdit.Bind("", "Disable quickslots text", false, "If true text above your quickslots will be disabled.");
-            craftWithoutBattery = Main.configToEdit.Bind("", "Craft without battery", false, "If true your newly crafted tools and vehicles will not have batteries in them.");
+            creepvineLights = Main.configToEdit.Bind("", "Real creepvine lights", true, "Creepvine seed cluster light intensity will depend on number of seed clusters on the vine if this is true.");
+            newUIstrings = Main.configToEdit.Bind("", "New UI text", true, "New UI elements added by the mod wil be disabled if this is false.");
+            newStorageUI = Main.configToEdit.Bind("", "New storage UI", true, "New UI for storage containers");
+            //tweaksAffectingGPU = Main.configToEdit.Bind("", "Tweaks affecting GPU", true, "If false changes that may affect GPU performance (LOD edits, edits that increase popping in distance for objects) will be disabled.");
+            disableUseText = Main.configToEdit.Bind("", "Disable quickslots text", false, "Text above your quickslots will be disabled if this is true.");
+            craftWithoutBattery = Main.configToEdit.Bind("", "Craft without battery", false, "Your newly crafted tools and vehicles will not have batteries in them if this is true.");
             disableCyclopsProximitySensor = Main.configToEdit.Bind("", "Disable cyclops proximity sensor", false);
-            builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("", "Builder tool placing mode when finished building", true, "If false your builder tool will exit placing mode when you finish building.");
-            crushDamageScreenEffect = Main.configToEdit.Bind("", "Crush damage screen effect", true, "If false there will be no screen effects when player takes crush damage.");
+            builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("", "Builder tool placing mode when finished building", true, "Your builder tool will exit placing mode when you finish building if this is false .");
+            crushDamageScreenEffect = Main.configToEdit.Bind("", "Crush damage screen effect", true, "There will be no screen effects when player takes crush damage if this is false.");
             removeCookedFishOnReload = Main.configToEdit.Bind("", "Remove cooked fish when loading saved game", false, "Cooked fish will be removed from the world (not from containers) when loading saved game if this is true.");
-            disableGravityForExosuit = Main.configToEdit.Bind("", "Disable gravity for prawn suit", false, "If true prawn suit will ignore gravity when you are not piloting it. Use this if your prawn suit falls through the ground.");
-            replaceDealDamageOnImpactScript = Main.configToEdit.Bind("", "Replace DealDamageOnImpact script", false, "If false the game will use vanilla script when vehicles collide with objects.");
+            disableGravityForExosuit = Main.configToEdit.Bind("", "Disable gravity for prawn suit", false, "Prawn suit will ignore gravity when you are not piloting it if this is true. Use this if your prawn suit falls through the ground.");
+            replaceDealDamageOnImpactScript = Main.configToEdit.Bind("", "Replace DealDamageOnImpact script", false, "The game will use vanilla script when vehicles collide with objects if this is false.");
             cyclopsDealDamageMinSpeed = Main.configToEdit.Bind("", "Cyclops min speed to deal damage", 2f, "Min speed in meters per second at which cyclops deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             cyclopsTakeDamageMinSpeed = Main.configToEdit.Bind("", "Cyclops min speed to take damage", 2f, "Min speed in meters per second at which cyclops takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             cyclopsTakeDamageMinMass = Main.configToEdit.Bind("", "Min mass that can damage cyclops", 200f, "Min mass in kg for objects that can damage cyclops when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
@@ -163,9 +164,9 @@ namespace Tweaks_Fixes
             lavaGeyserEruptionInterval = Main.configToEdit.Bind("", "Lava geyser eruption interval", 12f, "Time in seconds between lava geyser eruptions including 5.5 seconds of eruption.");
             removeLavaGeyserRockParticles = Main.configToEdit.Bind("", "Remove rock particles from lava geysers", false, "Rock particles will be removed from lava geyser eruptions if this is true.");
             solarPanelMaxDepth = Main.configToEdit.Bind("", "Solar panel max depth", 250f, "Depth in meters below which solar panel does not produce power.");
-            stalkerLooseToothSound = Main.configToEdit.Bind("", "Stalker losing tooth sound", true, "If false there will be no sound effect when a stalker loses its tooth.");
+            stalkerLooseToothSound = Main.configToEdit.Bind("", "Stalker losing tooth sound", true, "There will be no sound effect when a stalker loses its tooth if this false.");
             canReplantMelon = Main.configToEdit.Bind("", "Can replant melon", true, "Gel sack and melon can not be replanted if this is false.");
-            removeCookedFishFromBlueprints = Main.configToEdit.Bind("", "Remove cooked fish recipes from blueprints PDA tab.", false);
+            removeCookedFishFromBlueprints = Main.configToEdit.Bind("", "Remove fish recipes from blueprints PDA tab.", false);
             removeWaterFromBlueprints = Main.configToEdit.Bind("", "Remove water recipes from blueprints PDA tab.", false);
             disableFootstepClickSound = Main.configToEdit.Bind("", "Disable clicking sound when walking on metal surface", true);
             notRespawningCreatures = Main.configToEdit.Bind("", "Not respawning creatures", "Warper, GhostLeviathan, GhostLeviathanJuvenile, ReaperLeviathan, Reefback, SeaTreader", "Comma separated list of creature IDs that will not respawn when killed.");
@@ -175,7 +176,7 @@ namespace Tweaks_Fixes
             propulsionCannonGrabFX = Main.configToEdit.Bind("", "Propulsion cannon sphere effect", true, "Blue sphere visual effect you see when holding an object with propulsion cannon will be disabled if this is false.");
             fixCuteFish = Main.configToEdit.Bind("", "Fix cuddlefish", false, "You will be able to interact with cuddlefish only when swimming if this is true.");
             seaTreaderOutcrop = Main.configToEdit.Bind("", "Outcrop from seatreader", SeaTreaderOutcrop.Vanilla, "");
-            shroomDamageChance = Main.configToEdit.Bind("", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed.", percentRange));
+            shroomDamageChance = Main.configToEdit.Bind("", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed. The script to do it was always in the game but was disabled.", percentRange));
             escapePodPowerTweak = Main.configToEdit.Bind("", "Life pod power tweaks", false, "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod power cells are not charged.");
             stalkersGrabShinyTool = Main.configToEdit.Bind("", "Stalkers grab tools from player hands when playing", false, "Stalkers can grab only things that are in the ‛Items stalkers can grab‛ list.");
             stalkerPlayThings = Main.configToEdit.Bind("", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
@@ -185,10 +186,10 @@ namespace Tweaks_Fixes
             lowOxygenWarning = Main.configToEdit.Bind("", "Low oxygen onscreen warning", true);
             lowOxygenAudioWarning = Main.configToEdit.Bind("", "Low oxygen audio warning", true);
             builderToolBuildsInsideWithoutPower = Main.configToEdit.Bind("", "Builder tool does not need power when building inside", true);
-            cameraBobbing = Main.configToEdit.Bind("", "Camera bobbing when swimming", false);
+            cameraBobbing = Main.configToEdit.Bind("", "Screen bobbing when swimming", true);
             disableHints = Main.configToEdit.Bind("", "Disable tutorial messages", true, "This disables messages that tell you to 'eat something', 'break limestone', etc.");
             cyclopsHUDalwaysOn = Main.configToEdit.Bind("", "Cyclops HUD always on", false);
-            cameraShake = Main.configToEdit.Bind("", "Camera shake", true, "This toggles camera shaking when cyclops takes damage.");
+            cameraShake = Main.configToEdit.Bind("", "Screen shakes when cyclops takes damage", true);
             removeDeadCreaturesOnLoad = Main.configToEdit.Bind("", "Remove dead creatures when loading saved game", true, "");
             sunlightAffectsEscapePodLighting = Main.configToEdit.Bind("", "Sunlight affects lighting in your life pod", false, "");
             scannerFX = Main.configToEdit.Bind("", "Wierd visual effect on objects being scanned", true, "");
@@ -196,6 +197,7 @@ namespace Tweaks_Fixes
             dropItemsAnywhere = Main.configToEdit.Bind("", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except cyclops and grab items in your base with propulsion cannon.");
             showTempFahrenhiet = Main.configToEdit.Bind("", "Show temperature in Fahrenhiet instead of Celcius", false, "");
             fixScreenResolution = Main.configToEdit.Bind("", "Fix screen resolution", false, "The game sometimes resets screen resolution to desktop one. Set this to true to fix it.");
+            flareTweaks = Main.configToEdit.Bind("", "Flare tweaks", true, "You will be able to light flares without throwing them. You will not be able to throw flares in locations which do not allow dropping items.");
 
 
 

@@ -200,6 +200,8 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    GraphicsPreset graphicsPreset = GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()];
+                    AddDebug("graphicsPreset.detail " + graphicsPreset.detail);
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
@@ -298,16 +300,16 @@ namespace Tweaks_Fixes
             if (!target)
                 return;
 
-            AddDebug("target  " + target.name);
+            //AddDebug("target  " + target.name);
             GameObject root = Util.GetEntityRoot(target);
             if (root)
                 target = root;
 
-            WorldForces worldForces = target.GetComponent<WorldForces>();
-            if (worldForces != null)
-            {
-                AddDebug("WorldForces IsAboveWater " + worldForces.IsAboveWater());
-            }
+            //WorldForces worldForces = target.GetComponent<WorldForces>();
+            //if (worldForces != null)
+            //{
+            //    AddDebug("WorldForces IsAboveWater " + worldForces.IsAboveWater());
+            //}
             VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
             TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
             if (tcpc)
@@ -319,8 +321,8 @@ namespace Tweaks_Fixes
             if (target)
                 vfxSurfaceType = Util.GetObjectSurfaceType(target);
 
-            //LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
-            //if (lwe)
+            LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+            if (lwe)
             {
                 //goToTest = lwe.gameObject;
                 //target = lwe.gameObject;
@@ -331,15 +333,15 @@ namespace Tweaks_Fixes
                 //AddDebug("PDAScanner isValid " + PDAScanner.scanTarget.isValid);
                 //AddDebug("PDAScanner CanScan " + PDAScanner.CanScan());
                 //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
-                //AddDebug(" cellLevel " + lwe.cellLevel);
-                AddDebug("vfxSurfaceType  " + vfxSurfaceType);
+                AddDebug(" cellLevel " + lwe.cellLevel);
+                //AddDebug("vfxSurfaceType  " + vfxSurfaceType);
                 //LiveMixin lm = lwe.GetComponent<LiveMixin>();
                 //if (lm)
                 //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
             }
             AddDebug(target.gameObject.name);
-            if (target.transform.parent)
-                AddDebug(target.transform.parent.name);
+            //if (target.transform.parent)
+            //    AddDebug(target.transform.parent.name);
 
             //AddDebug("parent " + target.transform.parent.gameObject.name);
             //if (target.transform.parent.parent)
@@ -351,7 +353,7 @@ namespace Tweaks_Fixes
             int x = (int)target.transform.position.x;
             int y = (int)target.transform.position.y;
             int z = (int)target.transform.position.z;
-            AddDebug(x + " " + y + " " + z);
+            //AddDebug(x + " " + y + " " + z);
         }
 
         private Vector3 ClipWithTerrain(GameObject go)
