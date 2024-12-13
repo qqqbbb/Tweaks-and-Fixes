@@ -10,6 +10,7 @@ namespace Tweaks_Fixes
     class Creature_Tweaks
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
+        public static HashSet<TechType> creatureTT = new HashSet<TechType> { };
         public static HashSet<GameObject> pickupShinies = new HashSet<GameObject>();
         public static ConditionalWeakTable<GameObject, Rigidbody> objectsRBs = new ConditionalWeakTable<GameObject, Rigidbody>();
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
@@ -136,6 +137,7 @@ namespace Tweaks_Fixes
                     __instance.GetComponent<Rigidbody>().mass = 4f;
                 }
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
+                creatureTT.Add(tt);
                 if (silentCreatures.Contains(tt))
                 {
                     //AddDebug("silent " + tt);

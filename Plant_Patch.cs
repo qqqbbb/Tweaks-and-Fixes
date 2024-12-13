@@ -71,7 +71,7 @@ namespace Tweaks_Fixes
             public static void InitializePrefix(FruitPlant __instance)
             {
                 if (__instance.fruits == null)
-                {
+                { // cam be null somehow after Util.EnsureFruits 
                     //AddDebug("fruits == null " + __instance.name);
                     __instance.fruits = __instance.GetComponentsInChildren<PickPrefab>(true);
                     if (__instance.fruits.Length == 0)

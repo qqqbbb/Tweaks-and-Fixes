@@ -1,7 +1,8 @@
 ﻿using HarmonyLib;
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -32,10 +33,14 @@ namespace Tweaks_Fixes
                 return;
 
             float mult = 1f - crushDamageResistance;
-            float damage = (depth - crushDepth) * ConfigMenu.crushDamageMult.Value * mult;
-            //AddDebug(" CrushDamageUpdate " + damage);
-            if (damage > 0f)
-                Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
+            float damage = ConfigMenu.crushDamage.Value * mult;
+            if (damage <= 0)
+                return;
+            //AddDebug(" Crush Damage " + damage);
+            if (ConfigMenu.crushDamageProgression.Value > 0f)
+                damage += (depth - crushDepth) * ConfigMenu.crushDamageProgression.Value;
+            //AddDebug(" crush Damage Progression " + damage);
+            Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
         [HarmonyPatch(typeof(Inventory))]
@@ -47,7 +52,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("crushDepthEquipment.Count " + crushDepthEquipment.Count);
                 TechType tt = item.item.GetTechType();
-                
+
                 if (crushDepthEquipment.ContainsKey(tt))
                 {
                     //Main.config.crushDepth += crushDepthEquipment[tt];
@@ -75,7 +80,7 @@ namespace Tweaks_Fixes
                     extraCrushDepth -= crushDepthEquipment[tt];
                     //AddDebug("crushDepth " + Main.config.crushDepth);
                 }
-                if(crushDamageEquipment.ContainsKey(tt))
+                if (crushDamageEquipment.ContainsKey(tt))
                 {
                     //AddDebug("crushDamageEquipment " + crushDamageEquipment[tt]);
                     crushDamageResistance -= crushDamageEquipment[tt];
@@ -84,7 +89,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(CrushDamage))]
         class DamageSystem_Patch
         { // player does not have this
@@ -92,7 +97,10 @@ namespace Tweaks_Fixes
             [HarmonyPatch("CrushDamageUpdate")]
             public static bool CrushDamageUpdatePrefix(CrushDamage __instance)
             {
-                if (ConfigMenu.vehicleCrushDamageMult.Value == 0f || !Main.gameLoaded)
+                if (!Main.gameLoaded)
+                    return false;
+
+                if (ConfigMenu.vehicleCrushDamageMult.Value == 1f && ConfigMenu.crushDamageProgression.Value == 0f)
                     return true;
 
                 if (!__instance.gameObject.activeInHierarchy || !__instance.enabled || !__instance.GetCanTakeCrushDamage() || __instance.depthCache == null)
@@ -102,8 +110,14 @@ namespace Tweaks_Fixes
                 if (depth < __instance.crushDepth)
                     return false;
 
-                float damage = (depth - __instance.crushDepth) * ConfigMenu.vehicleCrushDamageMult.Value;
+                float damage = __instance.damagePerCrush * ConfigMenu.vehicleCrushDamageMult.Value;
+                if (damage <= 0)
+                    return false;
+
                 //AddDebug("damage " + damage);
+                if (ConfigMenu.crushDamageProgression.Value > 0f)
+                    damage += (depth - __instance.crushDepth) * ConfigMenu.crushDamageProgression.Value;
+                //AddDebug("damage Progression " + damage);
                 __instance.liveMixin.TakeDamage(damage, __instance.transform.position, DamageType.Pressure);
                 if (__instance.soundOnDamage)
                     __instance.soundOnDamage.Play();
@@ -122,6 +136,6 @@ namespace Tweaks_Fixes
         }
 
 
-        
+
     }
 }

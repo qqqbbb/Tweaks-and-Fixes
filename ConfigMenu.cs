@@ -39,7 +39,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> cyclopsFireChance;
         public static ConfigEntry<int> cyclopsAutoHealHealthPercent;
         public static ConfigEntry<int> crushDepth;
-        public static ConfigEntry<float> crushDamageMult;
+        public static ConfigEntry<float> crushDamage;
         public static ConfigEntry<float> vehicleCrushDamageMult;
         public static ConfigEntry<EmptyVehiclesCanBeAttacked> emptyVehiclesCanBeAttacked;
         public static ConfigEntry<int> hungerUpdateInterval;
@@ -71,6 +71,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> invMultWater;
         public static ConfigEntry<float> invMultLand;
         public static ConfigEntry<float> baseHullStrengthMult;
+        public static ConfigEntry<float> drillDamageMult;
+        public static ConfigEntry<float> crushDamageProgression;
 
 
         public static void Bind()
@@ -104,9 +106,10 @@ namespace Tweaks_Fixes
             cyclopsMoveTweaks = Main.configMenu.Bind("", "Cyclops movement tweaks", false, "Cyclops does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and backward speed is halved.");
             cyclopsFireChance = Main.configMenu.Bind("", "Cyclops engine room fire chance percent", 50, "The game starts checking this when you get your first engine overheat warning. After that every 10 seconds chance to catch fire goes up by 10% if you don't slow down.");
             cyclopsAutoHealHealthPercent = Main.configMenu.Bind("", "Cyclops auto-repair threshold", 90, "Cyclops auto-repairs when it is not on fire and its HP percent is above this.");
-            crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage multiplier is 0.");
-            crushDamageMult = Main.configMenu.Bind("", "Crush damage multiplier", 0f, "Every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.");
-            vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 0f, "Every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.");
+            crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage slider is at 0.");
+            crushDamage = Main.configMenu.Bind("", "Crush damage", 0f, "Player takes this damage when below crush depth.");
+            crushDamageProgression = Main.configMenu.Bind("", "Crush damage progression", 0f, "This value will be added to player's and vrhicles' crush damage for every meter below crush depth.");
+            vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 1f, "Vehicle crush damage will be multiplied by this.");
             emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Vanilla, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
             hungerUpdateInterval = Main.configMenu.Bind("", "Hunger update interval", 10, "Time in seconds it takes your hunger and thirst to update.");
             newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "You do not regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
@@ -136,6 +139,7 @@ namespace Tweaks_Fixes
             dropItemsOnDeath = Main.configMenu.Bind("", "Drop items when you die", DropItemsOnDeath.Vanilla);
             invMultWater = Main.configMenu.Bind("", "Inventory weight multiplier in water", 0f, "When this is not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
             invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on land", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
+            drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "");
 
 
 

@@ -398,16 +398,16 @@ namespace Tweaks_Fixes
             AddDebug(msg);
         }
 
-        private static int GetNumModules(Vehicle __instance, TechType ttToFind)
+        private static int GetNumModules(Vehicle __instance, TechType ttToCount)
         {
-            int cound = 0;
+            int count = 0;
             for (int i = 0; i < __instance.slotIDs.Length; ++i)
             {
                 TechType tt = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[i]);
-                if (tt == ttToFind)
-                    cound++;
+                if (tt == ttToCount)
+                    count++;
             }
-            return cound;
+            return count;
         }
 
         [HarmonyPrefix]
@@ -1714,6 +1714,7 @@ namespace Tweaks_Fixes
             //AddDebug("OnUseUp ");
             __instance.loop.Stop();
         }
+
     }
 
     [HarmonyPatch(typeof(CollisionSound), "OnCollisionEnter")]

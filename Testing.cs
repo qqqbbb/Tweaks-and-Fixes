@@ -133,20 +133,6 @@ namespace Tweaks_Fixes
             return flag;
         }
 
-        //[HarmonyPatch(typeof(Projectile), "Shoot")]
-        class Projectile_Shoot_Patch
-        {
-            static bool Prefix(Projectile __instance, Vector3 direction)
-            { // -.4 .7 .6 
-                //if (Player.main.currentSub && Player.main.currentSub == __instance)
-                {
-                    AddDebug("Shoot " + direction);
-                    Main.logger.LogMessage("Projectile Shoot " + direction);
-                    //return false;
-                }
-                return true;
-            }
-        }
 
         //[HarmonyPatch(typeof(GasPod), "Detonate")]
         class SubRoot_FixedUpdate_Patch
@@ -162,7 +148,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Player), "Update")]
+        [HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)

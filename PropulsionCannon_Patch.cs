@@ -85,7 +85,8 @@ namespace Tweaks_Fixes
                 bool hasChargeForShot = __instance.propulsionCannon.HasChargeForShot();
                 bool inSub = __instance.usingPlayer.currentSub;
                 bool checkInSub = inSub && ConfigToEdit.dropItemsAnywhere.Value && (targetObject || isGrabbingObject);
-                //AddDebug("GetCustomUseText checkInSub " + checkInSub);
+                //AddDebug("GetCustomUseText isGrabbingObject " + isGrabbingObject);
+                //AddDebug("GetCustomUseText releaseString " + releaseString);
                 if (inSub || __instance.usingPlayer == null || !(isGrabbingObject | hasChargeForShot))
                 {
                     if (!checkInSub)
@@ -328,13 +329,14 @@ namespace Tweaks_Fixes
             [HarmonyPatch("GrabObject")]
             static void GrabObjectPostfix(PropulsionCannon __instance, GameObject target)
             {
-                if (!ConfigToEdit.newUIstrings.Value || __instance.grabbedObject == null || !ConfigToEdit.dropItemsAnywhere.Value)
+                if (!ConfigToEdit.newUIstrings.Value || __instance.grabbedObject == null)
                     return;
-
 
                 //TechType tt = CraftData.GetTechType(__instance.grabbedObject);
                 //grabbedObjectName = Language.main.Get(tt.ToString());
                 releaseString = Language.main.Get("TF_propulsion_cannon_release") + "(" + UI_Patches.altToolButton + ")";
+                //AddDebug("GrabObject releaseString " + releaseString);
+
                 grabbedEatable = target.GetComponent<Eatable>();
                 Pickupable pickupable = target.GetComponent<Pickupable>();
                 if (pickupable && target.GetComponent<PlaceTool>())

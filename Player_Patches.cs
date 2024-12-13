@@ -94,7 +94,7 @@ namespace Tweaks_Fixes
                 else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
                     Vehicle_patch.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (ConfigMenu.crushDamageMult.Value > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
+                if (ConfigMenu.crushDamage.Value > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
                     Crush_Damage.CrushDamagePlayer();

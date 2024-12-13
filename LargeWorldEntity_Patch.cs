@@ -246,11 +246,6 @@ namespace Tweaks_Fixes
                     if (Util.IsGraphicsPresetHighDetail())
                         SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
-                else if (tt == TechType.CoralShellPlate)
-                {
-                    if (Util.IsGraphicsPresetHighDetail())
-                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Medium);
-                }
                 else if (tt == TechType.FloatingStone) // ?
                 {
                     //SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
@@ -259,7 +254,6 @@ namespace Tweaks_Fixes
                 //{
                 //    EnableCreepvineShader(__instance);
                 //}
-
                 else if (tt == TechType.Floater)
                 {
                     AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.organic);
@@ -289,12 +283,8 @@ namespace Tweaks_Fixes
                     //    if (light && light.enabled && __instance.transform.childCount == 0)
                     //        light.enabled = false;
                     //}
-                    //else if (__instance.name == "coral_reef_small_deco_12(Clone)")
-                    //    AlwaysUseHiPolyMesh(__instance.gameObject);
-                    //else if (__instance.name == "Coral_reef_ball_clusters_01_Light(Clone)")
-                    //    AlwaysUseHiPolyMesh(__instance.gameObject);
                     if (__instance.name == "Land_tree_01(Clone)")
-                    {
+                    { // remove stupid light
                         //ForceBestLODmesh(__instance.gameObject);
                         foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
                         {

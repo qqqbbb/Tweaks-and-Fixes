@@ -253,7 +253,7 @@ namespace Tweaks_Fixes
                     visibleLockerInteriorLoaded = true;
                 //else if (metadata.GUID.Equals("PrawnSuitTorpedoDisplay"))
                 //    exosuitTorpedoDisplayLoaded = true;
-                else if (metadata.GUID == "com.ahk1221.baselightswitch")
+                else if (metadata.GUID == "com.ahk1221.baselightswitch" || metadata.GUID == "Cookie_BaseLightSwitch")
                     baseLightSwitchLoaded = true;
                 //else if (metadata.GUID.Equals("SeaglideMapControls"))
                 //    seaglideMapControlsLoaded = true;
