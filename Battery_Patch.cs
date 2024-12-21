@@ -135,16 +135,18 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Charger __instance)
             {
-                //if (Player.main.currentSub && Player.main.currentSub == __instance)
+                //AddDebug(__instance.name + " Charger Start");
+                foreach (TechType tt in notRechargableBatteries)
                 {
-                    AddDebug(__instance.name + " Charger Start");
-                    Main.logger.LogMessage(__instance.name + " Charger Start");
-                    foreach (var tt in __instance.allowedTech)
+                    if (__instance.allowedTech.Contains(tt))
                     {
-                        Main.logger.LogMessage(__instance.name + " allowedTech " + tt);
+                        __instance.allowedTech.Remove(tt);
+                        //AddDebug("remove " + tt + " from " + __instance.name);
                     }
-                    __instance.allowedTech.Remove(TechType.Accumulator);
                 }
+                //Main.logger.LogMessage(__instance.name + " Charger Start");
+                //foreach (var tt in __instance.allowedTech)
+                //    Main.logger.LogMessage(__instance.name + " allowedTech " + tt);
             }
         }
 
@@ -159,18 +161,22 @@ namespace Tweaks_Fixes
                     __result = false;
                     return false;
                 }
-                TechType t = pickupable.GetTechType();
-                string name = t.AsString();
-                TechTypeExtensions.FromString(name, out TechType tt, true);
-                TechType techType = pickupable.GetTechType();
-
-                //if (tt != TechType.None && Main.config.nonRechargeable.Contains(name) && tt == t)
-                //{
-                //    AddDebug("nonRechargeable " + name);
-                //    __result = false;
-                //    return false;
-                //}
-                if (__instance.allowedTech != null && __instance.allowedTech.Contains(techType))
+                TechType tt = pickupable.GetTechType();
+                //string name = t.AsString();
+                //TechTypeExtensions.FromString(name, out TechType tt, true);
+                //TechType techType = pickupable.GetTechType();
+                if (tt == TechType.None)
+                {
+                    __result = false;
+                    return false;
+                }
+                if (notRechargableBatteries.Contains(tt))
+                {
+                    AddDebug("nonRechargeable " + tt);
+                    __result = false;
+                    return false;
+                }
+                if (__instance.allowedTech != null && __instance.allowedTech.Contains(tt))
                     __result = true;
 
                 return false;

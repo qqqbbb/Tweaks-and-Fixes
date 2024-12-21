@@ -153,9 +153,8 @@ namespace Tweaks_Fixes
                         //AddDebug(otherLM.name + " max HP " + otherLM.maxHealth + " HP " + (int)otherLM.health);
                         if (vehicle && !ConfigToEdit.vehiclesHurtCreatures.Value && Creature_Tweaks.creatureTT.Contains(otherTT))
                         {
-                            AddDebug("vehicle hit creature");
+                            //AddDebug("vehicle hit creature");
                             return false;
-
                         }
                         VFXSurfaceTypes mySurfaceType = VFXSurfaceTypes.none;
                         if (vehicle)

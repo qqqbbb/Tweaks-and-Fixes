@@ -102,9 +102,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> dropItemsAnywhere;
         public static ConfigEntry<bool> showTempFahrenhiet;
         public static ConfigEntry<bool> fixScreenResolution;
-        public static ConfigEntry<bool> flareTweaks;
+        //public static ConfigEntry<bool> flareTweaks;
         public static ConfigEntry<bool> vehiclesHurtCreatures;
-        public static ConfigEntry<string> rechargableBatteries;
+        public static ConfigEntry<string> notRechargableBatteries;
 
 
 
@@ -147,7 +147,7 @@ namespace Tweaks_Fixes
             //tweaksAffectingGPU = Main.configToEdit.Bind("", "Tweaks affecting GPU", true, "If false changes that may affect GPU performance (LOD edits, edits that increase popping in distance for objects) will be disabled.");
             disableUseText = Main.configToEdit.Bind("", "Disable quickslots text", false, "Text above your quickslots will be disabled if this is true.");
 
-            rechargableBatteries = Main.configToEdit.Bind("", "Not rechargable batteries", "Battery, LithiumIonBattery, PrecursorIonBattery, PowerCell, PrecursorIonPowerCell", "Comma separated list of battery IDs. Batteries from this list can not be recharged");
+            notRechargableBatteries = Main.configToEdit.Bind("", "Not rechargable batteries", "", "Comma separated list of battery IDs. Batteries from this list can not be recharged");
             craftWithoutBattery = Main.configToEdit.Bind("", "Craft without battery", false, "Your newly crafted tools and vehicles will not have batteries in them if this is true.");
             disableCyclopsProximitySensor = Main.configToEdit.Bind("", "Disable cyclops proximity sensor", false);
             builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("", "Builder tool placing mode when finished building", true, "Your builder tool will exit placing mode when you finish building if this is false .");
@@ -202,7 +202,7 @@ namespace Tweaks_Fixes
             dropItemsAnywhere = Main.configToEdit.Bind("", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except cyclops and grab items in your base with propulsion cannon.");
             showTempFahrenhiet = Main.configToEdit.Bind("", "Show temperature in Fahrenhiet instead of Celcius", false, "");
             fixScreenResolution = Main.configToEdit.Bind("", "Fix screen resolution", false, "The game sometimes resets screen resolution to desktop one. Set this to true to fix it.");
-            flareTweaks = Main.configToEdit.Bind("", "Flare tweaks", true, "You will be able to light flares without throwing them. You will not be able to throw flares in locations that do not allow dropping items.");
+            //flareTweaks = Main.configToEdit.Bind("", "Flare tweaks", true, "You will be able to light flares without throwing them. You will not be able to throw flares in locations that do not allow dropping items.");
 
 
 
@@ -321,6 +321,7 @@ namespace Tweaks_Fixes
             CreatureDeath_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
             CreatureDeath_Patch.respawnTime = ParseIntDicFromString(respawnTime.Value);
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
+            Battery_Patch.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
 
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
             Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);

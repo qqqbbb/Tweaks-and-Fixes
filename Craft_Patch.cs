@@ -13,15 +13,14 @@ namespace Tweaks_Fixes
         static List<Battery> batteriesUsedForCrafting = new List<Battery>();
         static float timeDecayStart = 0f;
 
-        [HarmonyPatch(typeof(Crafter), "Craft")]
-        class Crafter_Craft_Patch
+        [HarmonyPatch(typeof(CrafterLogic), "Craft")]
+        class CrafterLogic_Craft_Patch
         {
-            static void Prefix(Crafter __instance, TechType techType, ref float duration)
+            static void Prefix(Crafter __instance, TechType techType, ref float craftTime)
             {
-                //AddDebug("CrafterLogic Craft " + techType);
-                //crafting = true;
+                //AddDebug("CrafterLogic Craft " + techType + " craftTime " + craftTime);
                 if (ConfigMenu.craftTimeMult.Value != 1f)
-                    duration *= ConfigMenu.craftTimeMult.Value;
+                    craftTime *= ConfigMenu.craftTimeMult.Value;
             }
         }
 

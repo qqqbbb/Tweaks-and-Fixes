@@ -232,23 +232,28 @@ namespace Tweaks_Fixes
                 }
                 if (equipment != null)
                 {
-                    //AddDebug(" equipment ");
-                    bool charger = equipment.GetCompatibleSlot(EquipmentType.BatteryCharger, out string s) || equipment.GetCompatibleSlot(EquipmentType.PowerCellCharger, out string ss);
+                    chargerOpen = equipment.GetCompatibleSlot(EquipmentType.BatteryCharger, out string s) || equipment.GetCompatibleSlot(EquipmentType.PowerCellCharger, out string ss);
                     //AddDebug("charger " + charger);
                     foreach (var pair in __instance.inventory.items)
                     {
-                        EquipmentType itemType = CraftData.GetEquipmentType(pair.Key.item.GetTechType());
+                        TechType tt = pair.Key.item.GetTechType();
+                        EquipmentType itemType = CraftData.GetEquipmentType(tt);
                         //AddDebug(pair.Key.item.GetTechType() + " " + itemType);
                         string slot = string.Empty;
                         if (equipment.GetCompatibleSlot(itemType, out slot))
                         {
-                            //AddDebug(__instance.name + " slot " + slot);
+                            //Main.logger.LogMessage(__instance.name + " GetCompatibleSlot " + tt);
                             //EquipmentType chargerType = Equipment.GetSlotType(slot);
                             //AddDebug(__instance.name + " " + chargerType);
                             //if (chargerType == EquipmentType.BatteryCharger || chargerType ==  EquipmentType.PowerCellCharger)
-                            if (charger)
+                            if (chargerOpen)
                             {
-                                chargerOpen = true;
+                                //chargerOpen = true;
+                                if (Battery_Patch.notRechargableBatteries.Contains(tt))
+                                {
+                                    pair.Value.SetChroma(0f);
+                                    continue;
+                                }
                                 Battery battery = pair.Key.item.GetComponent<Battery>();
                                 if (battery && battery.charge == battery.capacity)
                                     pair.Value.SetChroma(0f);
@@ -291,7 +296,7 @@ namespace Tweaks_Fixes
                 {
                     Flare flare = tool as Flare;
                     InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
-                    if (flare && !Main.flareRepairLoaded && ConfigToEdit.flareTweaks.Value)
+                    if (flare && !Main.flareRepairLoaded)
                     {
                         bool lit = flare.flareActivateTime > 0;
                         bool canThrow = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);

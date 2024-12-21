@@ -1,14 +1,14 @@
-﻿using System;
+﻿using FMOD;
+using FMOD.Studio;
+using FMODUnity;
+using HarmonyLib;
+using ProtoBuf;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UWE;
-using HarmonyLib;
-using ProtoBuf;
-using FMOD;
-using FMOD.Studio;
-using FMODUnity;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -74,23 +74,23 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
             static void StartPostfix(Player __instance)
             {
                 //__instance.StartCoroutine(Test());
                 Main.survival = __instance.GetComponent<Survival>();
-
             }
 
             [HarmonyPostfix]
             [HarmonyPatch("Update")]
             static void UpdatePostfix(Player __instance)
             {
+                if (!Main.gameLoaded)
+                    return;
+
                 if (__instance.currentMountedVehicle)
-                {
                     Vehicle_patch.UpdateLights();
-                }
                 else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
                     Vehicle_patch.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
@@ -110,8 +110,10 @@ namespace Tweaks_Fixes
                     if (Main.configMain.medKitHPtoHeal < 0)
                         Main.configMain.medKitHPtoHeal = 0;
                 }
+                if (Main.survival == null)
+                    Main.survival = __instance.GetComponent<Survival>();
 
-                if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.gameLoaded)
+                if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats)
                     return;
 
                 if (Food_Patch.hungerUpdateTime > Time.time)

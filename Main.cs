@@ -27,14 +27,14 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.13.1";
+            VERSION = "3.14.0";
 
         public static ManualLogSource logger;
         public static Survival survival;
         public static bool gameLoaded = false;  // WaitScreen.IsWaiting
         public static System.Random rndm = new System.Random();
         public static bool advancedInventoryLoaded = false;
-        public static bool flareRepairLoaded = false; // not updated
+        public static bool flareRepairLoaded = false;
         public static bool cyclopsDockingLoaded = false;
         public static bool vehicleLightsImprovedLoaded = false; // not updated
         public static bool pickupFullCarryallsLoaded = false;  // not updated
@@ -261,16 +261,14 @@ namespace Tweaks_Fixes
                     pickupFullCarryallsLoaded = true;
                 else if (metadata.GUID == "sn.advancedinventory.mod")
                     advancedInventoryLoaded = true;
-                //else if (metadata.GUID.Equals("Rm_FlareRepair"))
-                //    flareRepairLoaded = true;
+                else if (metadata.GUID == "com.remodor.rm_flarerepair")
+                    flareRepairLoaded = true;
                 else if (metadata.GUID == "com.osubmarin.cyclopsdockingmod")
                     cyclopsDockingLoaded = true;
                 //else if (metadata.GUID.Equals("Rm_VehicleLightsImproved"))
                 //    vehicleLightsImprovedLoaded = true;
                 else if (metadata.GUID == "com.TorpedoImprovements.mod")
                     torpedoImprovementsLoaded = true;
-                //else if (metadata.GUID.Equals("sn.oxygentank.mod"))
-                //    refillOxygenTankLoaded = true;
             }
         }
 

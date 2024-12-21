@@ -96,8 +96,8 @@ namespace Tweaks_Fixes
             if (Main.flareRepairLoaded)
                 return true;
 
-            if (!ConfigToEdit.flareTweaks.Value)
-                return true;
+            //if (!ConfigToEdit.flareTweaks.Value)
+            //    return true;
 
             if (intensityChanged)
             {
@@ -140,17 +140,20 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(nameof(Flare.OnDraw))]
+        //[HarmonyPrefix]
+        //[HarmonyPatch(nameof(Flare.OnDraw))]
         static bool OnDrawPostfix(Flare __instance, Player p)
         {
             //AddDebug("OnDraw originalRange " + originalRange);
             //AddDebug("OnDraw originalIntensity " + originalIntensity);
-            if (!ConfigToEdit.flareTweaks.Value)
+            if (Main.flareRepairLoaded)
                 return true;
 
-            if (!Main.flareRepairLoaded)
-                intensityChanged = false;
+            //if (!ConfigToEdit.flareTweaks.Value)
+            //    return true;
+
+            //if (!Main.flareRepairLoaded)
+            //    intensityChanged = false;
 
             return true;
         }
@@ -159,10 +162,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(nameof(Flare.OnRightHandDown))]
         static bool OnRightHandDownPostfix(Flare __instance)
         { // fix: can throw flare in base
-            if (!ConfigToEdit.flareTweaks.Value)
-                return true;
-
-            bool canThrow = Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
+            bool canThrow = ConfigToEdit.dropItemsAnywhere.Value || Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
             //AddDebug("OnRightHandDown CanDropItemHere " + canThrow);
             return canThrow;
         }
@@ -171,10 +171,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(nameof(Flare.OnToolUseAnim))]
         static bool OnToolUseAnimPostfix(Flare __instance)
         { // fix: can throw flare in base
-            if (!ConfigToEdit.flareTweaks.Value)
-                return true;
-
-            bool canThrow = Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
+            bool canThrow = ConfigToEdit.dropItemsAnywhere.Value || Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
             //AddDebug("OnToolUseAnim CanDropItemHere " + canThrow);
             return canThrow;
         }
