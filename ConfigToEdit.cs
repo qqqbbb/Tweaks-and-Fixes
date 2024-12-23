@@ -164,7 +164,7 @@ namespace Tweaks_Fixes
             seamothDealDamageMinSpeed = Main.configToEdit.Bind("", "Seamoth min speed to deal damage", 7f, "Min speed in meters per second at which seamoth deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             seamothTakeDamageMinSpeed = Main.configToEdit.Bind("", "Seamoth min speed to take damage", 7f, "Min speed in meters per second at which seamoth takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             seamothTakeDamageMinMass = Main.configToEdit.Bind("", "Min mass that can damage seamoth", 5f, "Min mass in kg for objects that can damage seamoth when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            vehiclesHurtCreatures = Main.configToEdit.Bind("", "Vehicles hurt creatures", true, "Vehicles will not hurt creatures when colliding with them if this is false. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            vehiclesHurtCreatures = Main.configToEdit.Bind("", "Vehicles hurt creatures", true, "Vehicles will not hurt creatures when colliding with them if this is false.");
             lavaGeyserEruptionForce = Main.configToEdit.Bind("", "Lava geyser eruption force", 20f, "Force  applied to objects by lava geysers.");
             lavaGeyserEruptionInterval = Main.configToEdit.Bind("", "Lava geyser eruption interval", 12f, "Time in seconds between lava geyser eruptions including 5.5 seconds of eruption.");
             removeLavaGeyserRockParticles = Main.configToEdit.Bind("", "Remove rock particles from lava geysers", false, "Rock particles will be removed from lava geyser eruptions if this is true.");

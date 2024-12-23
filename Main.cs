@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.14.0";
+            VERSION = "3.14.01";
 
         public static ManualLogSource logger;
         public static Survival survival;

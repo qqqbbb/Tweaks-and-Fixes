@@ -29,8 +29,6 @@ namespace Tweaks_Fixes
         public int subThrottleIndex = -1;
         public int activeSlot = -1;
         public HashSet<string> escapePodSmokeOut = new HashSet<string>();
-        public HashSet<TechType> notPickupableResources = new HashSet<TechType>
-        {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium , TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal  };
         public Dictionary<string, HashSet<Vector3Int>> openedWreckDoors = new Dictionary<string, HashSet<Vector3Int>>();
         public Dictionary<string, Dictionary<string, HashSet<string>>> cyclopsDoors = new Dictionary<string, Dictionary<string, HashSet<string>>>();
         public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();

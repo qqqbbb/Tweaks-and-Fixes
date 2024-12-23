@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CrafterLogic), "Craft")]
         class CrafterLogic_Craft_Patch
         {
-            static void Prefix(Crafter __instance, TechType techType, ref float craftTime)
+            static void Prefix(CrafterLogic __instance, TechType techType, ref float craftTime)
             {
                 //AddDebug("CrafterLogic Craft " + techType + " craftTime " + craftTime);
                 if (ConfigMenu.craftTimeMult.Value != 1f)

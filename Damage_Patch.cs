@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
+using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -13,7 +14,6 @@ namespace Tweaks_Fixes
         static float poisonDamageInterval = .8f;
         static float poisonDamage = .5f;
         public static HashSet<LiveMixin> tempDamageLMs = new HashSet<LiveMixin>();
-        static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
 
 
         public static void SetBloodColor()
@@ -151,10 +151,10 @@ namespace Tweaks_Fixes
                     if (otherLM && otherLM.health > 0)
                     {
                         //AddDebug(otherLM.name + " max HP " + otherLM.maxHealth + " HP " + (int)otherLM.health);
-                        if (vehicle && !ConfigToEdit.vehiclesHurtCreatures.Value && Creature_Tweaks.creatureTT.Contains(otherTT))
+                        //if (vehicle && !ConfigToEdit.vehiclesHurtCreatures.Value && Creature_Tweaks.creatureTT.Contains(otherTT))
                         {
                             //AddDebug("vehicle hit creature");
-                            return false;
+                            //return false;
                         }
                         VFXSurfaceTypes mySurfaceType = VFXSurfaceTypes.none;
                         if (vehicle)
@@ -522,21 +522,27 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    //if (damageMult.Count > 0)
+                    TechType targetTT = CraftData.GetTechType(target);
+                    if (targetTT == TechType.AcidMushroom || targetTT == TechType.WhiteMushroom)
                     {
-                        TechType tt = CraftData.GetTechType(target);
-                        //TechTag techTag = target.EnsureComponent<TechTag>();
-                        //techTag.type = tt;
-                        if (damageMult.ContainsKey(tt))
-                            __result *= damageMult[tt];
-
-                        if (tt == TechType.AcidMushroom || tt == TechType.WhiteMushroom)
+                        if (type == DamageType.Acid)
                         {
-                            if (type == DamageType.Acid)
-                                __result = 0f;
+                            __result = 0f;
+                            return;
                         }
                     }
+                    if (dealer && !ConfigToEdit.vehiclesHurtCreatures.Value && Creature_Tweaks.creatureTT.Contains(targetTT))
+                    {
+                        TechType dealerTT = CraftData.GetTechType(dealer);
+                        if (Vehicle_patch.vehicleTechTypes.Contains(dealerTT))
+                        {
+                            //AddDebug("CalculateDamage by vehicle " + dealerTT + " to " + targetTT);
+                            __result = 0;
+                        }
+                    }
+
                 }
+
             }
         }
 

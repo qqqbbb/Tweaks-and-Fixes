@@ -1,10 +1,12 @@
 ﻿using HarmonyLib;
+using System.Collections.Generic;
 using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    
+
+
     [HarmonyPatch(typeof(BreakableResource), "OnHandClick")]
     public static class OnHandClickPatch
     {
@@ -80,6 +82,8 @@ namespace Tweaks_Fixes
     public static class PickupablePatch
     {
         static bool cantPickUp = false;
+        public static HashSet<TechType> notPickupableResources = new HashSet<TechType>
+        {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium , TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal  };
 
         [HarmonyPrefix]
         [HarmonyPatch("AllowedToPickUp")]
@@ -90,7 +94,7 @@ namespace Tweaks_Fixes
 
             //cantPickUp = false;
             __result = __instance.isPickupable && Time.time - __instance.timeDropped > 1f && Player.main.HasInventoryRoom(__instance);
-            if (__result && !Player.main.inExosuit && Main.configMain.notPickupableResources.Contains(__instance.GetTechType()))
+            if (__result && !Player.main.inExosuit && notPickupableResources.Contains(__instance.GetTechType()))
             {
                 Rigidbody rb = __instance.GetComponent<Rigidbody>();
                 if (rb && rb.isKinematic && Inventory.main.GetHeldTool() as Knife == null)
@@ -103,12 +107,12 @@ namespace Tweaks_Fixes
             //AddDebug("Pickupable AllowedToPickUp " + __result);
             return false;
         }
-     
+
         [HarmonyPostfix]
         [HarmonyPatch("OnHandHover")]
         public static void PickupableOnHandHover(Pickupable __instance)
         {
-            if (ConfigMenu.noBreakingWithHand.Value && !__instance.AllowedToPickUp() && Main.configMain.notPickupableResources.Contains(__instance.GetTechType()))
+            if (ConfigMenu.noBreakingWithHand.Value && !__instance.AllowedToPickUp() && notPickupableResources.Contains(__instance.GetTechType()))
             {
                 HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource"));
             }
@@ -128,7 +132,7 @@ namespace Tweaks_Fixes
             if (exosuit && exosuit.HasClaw())
                 return true;
 
-            if (!Main.configMain.notPickupableResources.Contains(__instance.GetTechType()))
+            if (!notPickupableResources.Contains(__instance.GetTechType()))
                 return true;
 
             Rigidbody rb = __instance.GetComponent<Rigidbody>();
@@ -151,6 +155,6 @@ namespace Tweaks_Fixes
         }
     }
 
-    
+
 
 }
