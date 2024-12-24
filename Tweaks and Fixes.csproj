@@ -103,6 +103,7 @@
     <Compile Include="ConfigMenu.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
     <Compile Include="Knife_Patch.cs" />
+    <Compile Include="Light_Control.cs" />
     <Compile Include="Medical_Cabinet_Patch.cs" />
     <Compile Include="OptionsMenu.cs" />
     <Compile Include="Precurcor_Terminal_Patch.cs" />

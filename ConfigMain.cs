@@ -13,7 +13,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     public class ConfigMain : JsonFile
-    {
+    { // dint save enums, nautilus throws exc with certain mods 
         public ConfigMain()
         {
             this.Load();
@@ -39,7 +39,7 @@ namespace Tweaks_Fixes
         //public List<string> removeLight = new List<string> { };
         //public List<string> biomesRemoveLight = new List<string> { };
 
-        public Dictionary<TechType, float> lightIntensity = new Dictionary<TechType, float>();
+        public Dictionary<string, float> lightIntensity = new Dictionary<string, float>();
         public HashSet<string> pickedUpFireExt = new HashSet<string>();
         public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
         //public Dictionary<string, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<string, Dictionary<TechType, int>> { { "Stalker", new Dictionary<TechType, int> { { TechType.StalkerTooth, 2 } } }, { "Gasopod", new Dictionary<TechType, int> { { TechType.GasPod, 5 } } } };

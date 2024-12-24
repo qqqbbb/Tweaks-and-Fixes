@@ -186,8 +186,8 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    GraphicsPreset graphicsPreset = GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()];
-                    AddDebug("graphicsPreset.detail " + graphicsPreset.detail);
+                    //AddDebug("targetFrameRate " + Application.targetFrameRate);
+                    //Application.targetFrameRate = 11;
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);

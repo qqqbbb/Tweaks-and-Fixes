@@ -32,12 +32,12 @@ namespace Tweaks_Fixes
                 return;
             //Light[] lights = __instance.GetComponentsInChildren<Light>();
             //AddDebug("lights.Length  " + currentLights[0].gameObject.activeInHierarchy);
-            if (!Tools_Patch.lightIntensityStep.ContainsKey(currentVehicleTT))
+            if (!Light_Control.lightIntensityStep.ContainsKey(currentVehicleTT))
             {
                 AddDebug("lightIntensityStep missing " + currentVehicleTT);
                 return;
             }
-            if (!Tools_Patch.lightOrigIntensity.ContainsKey(currentVehicleTT))
+            if (!Light_Control.lightOrigIntensity.ContainsKey(currentVehicleTT))
             {
                 AddDebug("lightOrigIntensity missing " + currentVehicleTT);
                 return;
@@ -45,21 +45,21 @@ namespace Tweaks_Fixes
             float step = 0f;
             //AddDebug("UpdateLights currentVehicleTT " + currentVehicleTT);
             if (GameInput.GetButtonDown(GameInput.Button.CycleNext))
-                step = Tools_Patch.lightIntensityStep[currentVehicleTT];
+                step = Light_Control.lightIntensityStep[currentVehicleTT];
             else if (GameInput.GetButtonDown(GameInput.Button.CyclePrev))
-                step = -Tools_Patch.lightIntensityStep[currentVehicleTT];
+                step = -Light_Control.lightIntensityStep[currentVehicleTT];
 
             if (step == 0f)
                 return;
 
             foreach (Light l in currentLights)
             {
-                if (step > 0 && l.intensity > Tools_Patch.lightOrigIntensity[currentVehicleTT])
+                if (step > 0 && l.intensity > Light_Control.lightOrigIntensity[currentVehicleTT])
                     return;
 
                 l.intensity += step;
                 //AddDebug("Light Intensity " + l.intensity);
-                Main.configMain.lightIntensity[currentVehicleTT] = l.intensity;
+                Light_Control.SaveLightIntensity(currentVehicleTT, l.intensity);
             }
         }
 
@@ -131,12 +131,13 @@ namespace Tweaks_Fixes
             //    AddDebug(__instance.gameObject.name + " Awake light 2");
             Light[] lights = __instance.transform.Find("lights_parent").GetComponentsInChildren<Light>(true);
             //AddDebug(tt + " Awake lights " + lights.Length);
-            Tools_Patch.lightOrigIntensity[tt] = lights[0].intensity;
-            Tools_Patch.lightIntensityStep[tt] = lights[0].intensity * .1f;
-            if (Main.configMain.lightIntensity.ContainsKey(tt))
+            Light_Control.lightOrigIntensity[tt] = lights[0].intensity;
+            Light_Control.lightIntensityStep[tt] = lights[0].intensity * .1f;
+            if (Light_Control.IsLightSaved(tt))
             {
+                float intensity = Light_Control.GetLightIntensity(tt);
                 foreach (Light l in lights)
-                    l.intensity = Main.configMain.lightIntensity[tt];
+                    l.intensity = intensity;
             }
         }
 

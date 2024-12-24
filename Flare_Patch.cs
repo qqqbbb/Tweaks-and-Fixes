@@ -102,7 +102,7 @@ namespace Tweaks_Fixes
             if (intensityChanged)
             {
                 //AddDebug("intensityChaned ");
-                __instance.light.intensity = Main.configMain.lightIntensity[TechType.Flare];
+                __instance.light.intensity = Light_Control.GetLightIntensity(TechType.Flare);
                 __instance.originalIntensity = __instance.light.intensity;
                 //intensityChanged = false;
                 return false;

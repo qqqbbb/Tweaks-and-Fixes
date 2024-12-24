@@ -6,16 +6,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 using UWE;
-using static DebugTargetConsoleCommand;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class Tools_Patch
     {
-        public static Dictionary<TechType, float> lightIntensityStep = new Dictionary<TechType, float>();
-        public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
-
         //public static List<GameObject> repCannonGOs = new List<GameObject>();
         //static ToggleLights seaglideLights;
         //static VehicleInterface_MapController seaglideMap;
@@ -53,8 +49,8 @@ namespace Tweaks_Fixes
                     if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
                         return;
 
-                    lightOrigIntensity[tt] = lights[0].intensity;
-                    lightIntensityStep[tt] = lights[0].intensity * .1f;
+                    Light_Control.lightOrigIntensity[tt] = lights[0].intensity;
+                    Light_Control.lightIntensityStep[tt] = lights[0].intensity * .1f;
                     //Main.logger.LogMessage(tt + " lightOrigIntensity " + lights[0].intensity);
                 }
             }
@@ -71,13 +67,14 @@ namespace Tweaks_Fixes
                     __instance.transform.localPosition = new Vector3(pos.x -= .07f, pos.y += .03f, pos.z += .07f);
                     return;
                 }
-                if (Main.configMain.lightIntensity.ContainsKey(tt))
+                if (Light_Control.IsLightSaved(tt))
                 {
                     Light[] lights = __instance.GetComponentsInChildren<Light>(true);
                     //AddDebug(tt + " Lights " + lights.Length);
+                    float intensity = Light_Control.GetLightIntensity(tt);
                     foreach (Light l in lights)
                     {
-                        l.intensity = Main.configMain.lightIntensity[tt];
+                        l.intensity = intensity;
                         //AddDebug("Light Intensity Down " + l.intensity);
                     }
                 }
@@ -114,10 +111,11 @@ namespace Tweaks_Fixes
                 //AddDebug("MapRoomCamera ControlCamera");
                 Vehicle_patch.currentVehicleTT = TechType.MapRoomCamera;
                 Vehicle_patch.currentLights = __instance.GetComponentsInChildren<Light>(true);
-                if (Main.configMain.lightIntensity.ContainsKey(TechType.MapRoomCamera))
+                if (Light_Control.IsLightSaved(TechType.MapRoomCamera))
                 {
+                    float intensity = Light_Control.GetLightIntensity(TechType.MapRoomCamera);
                     foreach (Light l in Vehicle_patch.currentLights)
-                        l.intensity = Main.configMain.lightIntensity[TechType.MapRoomCamera];
+                        l.intensity = intensity;
                 }
             }
             [HarmonyPostfix]
@@ -126,48 +124,6 @@ namespace Tweaks_Fixes
             {
                 Vehicle_patch.currentLights[0] = null;
                 //AddDebug("MapRoomCamera FreeCamera");
-            }
-        }
-
-        [HarmonyPatch(typeof(MapRoomScreen), "CycleCamera")]
-        class MapRoomScreen_CycleCamera_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("CycleCamera")]
-            static bool CycleCameraPrefix(MapRoomScreen __instance, int direction)
-            {
-                if (!Input.GetKey(ConfigMenu.lightButton.Value))
-                    return true;
-
-                if (Vehicle_patch.currentLights.Length == 0)
-                {
-                    //AddDebug("lights.Length == 0 ");
-                    return true;
-                }
-                if (!lightIntensityStep.ContainsKey(TechType.MapRoomCamera))
-                {
-                    AddDebug("lightIntensityStep missing " + TechType.MapRoomCamera);
-                    return false;
-                }
-                if (!lightOrigIntensity.ContainsKey(TechType.MapRoomCamera))
-                {
-                    AddDebug("lightOrigIntensity missing " + TechType.MapRoomCamera);
-                    return false;
-                }
-                float step = lightIntensityStep[TechType.MapRoomCamera];
-                if (direction < 0)
-                    step = -step;
-
-                foreach (Light l in Vehicle_patch.currentLights)
-                {
-                    if (step > 0 && l.intensity > lightOrigIntensity[TechType.MapRoomCamera])
-                        return false;
-
-                    l.intensity += step;
-                    //AddDebug("Light Intensity " + l.intensity);
-                    Main.configMain.lightIntensity[TechType.MapRoomCamera] = l.intensity;
-                }
-                return false;
             }
         }
 

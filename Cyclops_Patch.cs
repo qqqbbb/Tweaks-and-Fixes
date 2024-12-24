@@ -270,18 +270,18 @@ namespace Tweaks_Fixes
 
                 numBallastWeight = __instance.gameObject.GetComponentsInChildren<BallastWeight>().Length;
                 //AddDebug("Start numBallastWeight " + numBallastWeight);
-                tr = __instance.transform.Find("Headlights");
-                if (tr) // not used
-                    UnityEngine.Object.Destroy(tr.gameObject);
+                //tr = __instance.transform.Find("Headlights");
+                //if (tr) // not used
+                //    UnityEngine.Object.Destroy(tr.gameObject);
 
-                Tools_Patch.lightOrigIntensity[TechType.Cyclops] = 2f;
-                Tools_Patch.lightIntensityStep[TechType.Cyclops] = .2f;
-                Light[] lights = __instance.transform.Find("Floodlights").GetComponentsInChildren<Light>(true);
-                //AddDebug("SubControl.Start lights intensity " + lights[0].intensity);
-                if (Main.configMain.lightIntensity.ContainsKey(TechType.Cyclops))
+                Light_Control.lightOrigIntensity[TechType.Cyclops] = 2f;
+                Light_Control.lightIntensityStep[TechType.Cyclops] = .2f;
+
+                if (Light_Control.IsLightSaved(TechType.Cyclops))
                 {
-                    foreach (Light l in lights)
-                        l.intensity = Main.configMain.lightIntensity[TechType.Cyclops];
+                    float intensity = Light_Control.GetLightIntensity(TechType.Cyclops);
+                    foreach (Light l in __instance.transform.Find("Floodlights").GetComponentsInChildren<Light>(true))
+                        l.intensity = intensity;
                 }
 
             }

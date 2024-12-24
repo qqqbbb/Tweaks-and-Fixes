@@ -105,6 +105,7 @@ namespace Tweaks_Fixes
         //public static ConfigEntry<bool> flareTweaks;
         public static ConfigEntry<bool> vehiclesHurtCreatures;
         public static ConfigEntry<string> notRechargableBatteries;
+        public static ConfigEntry<int> targetFrameRate;
 
 
 
@@ -114,6 +115,7 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
+            targetFrameRate = Main.configToEdit.Bind("", "Target framerate", 0, "Use this to limit number of frames the game renders every second. Numbers smaller than 10 are ignored.");
             heatBladeCooks = Main.configToEdit.Bind("", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("", "Do not spawn fragments for unlocked blueprints", false);
             cantScanExosuitClawArm = Main.configToEdit.Bind("", "Unlock prawn suit only by scanning prawn suit", true, "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arm fragments.");
@@ -326,7 +328,7 @@ namespace Tweaks_Fixes
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
             Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
             Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
-            Enum.TryParse(lightButton.Value.ToString(), out QuickSlots_Patch.lightButton);
+            Enum.TryParse(lightButton.Value.ToString(), out Light_Control.lightButton);
             //Main.logger.LogDebug("transferAllItemsButton " + Inventory_Patch.transferAllItemsButton);
             //Main.logger.LogDebug("transferSameItemsButton " + Inventory_Patch.transferSameItemsButton);
         }

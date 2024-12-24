@@ -1,21 +1,20 @@
 ﻿
-using System;
-using UnityEngine;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class QuickSlots_Patch
     {
-        static HashSet<TechType> eqiupped ;
+        static HashSet<TechType> eqiupped;
         static Queue<InventoryItem> toEqiup;
         static HashSet<TechType> toEqiupTT;
         public static GameInput.Button quickslotButton;
-        public static GameInput.Button lightButton;
-        public static bool invChanged = true; 
+        public static bool invChanged = true;
 
         public static void GetTools()
         {
@@ -74,7 +73,7 @@ namespace Tweaks_Fixes
         class Inventory_OnAddItem_Patch
         { // this called during loading and tools returned are wrong
             [HarmonyPostfix]
-            [HarmonyPatch( "OnAddItem")]
+            [HarmonyPatch("OnAddItem")]
             public static void OnAddItemPostfix(Inventory __instance, InventoryItem item)
             {
                 if (item != null && item.isBindable)
@@ -122,69 +121,6 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                else if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(lightButton))
-                {
-                    //AddDebug("lightButton");
-                    Pickupable p = Inventory.main.GetHeld();
-                    if (!p)
-                    //if (!p && Player.main.currentSub)
-                    {
-                        //AddDebug("currentSub " + Player.main.currentSub.lightControl.skies.Length);
-                        //foreach (LightingController.MultiStatesSky mss in Player.main.currentSub.lightControl.skies)
-                        //{
-                        //AddDebug("MultiStatesSky " + Main.GetGameObjectPath(mss.sky.gameObject) + " " + mss.masterIntensities[0] + " " + mss.masterIntensities[1] + " " + mss.masterIntensities[2]);
-                        //    mss.sky.SpecIntensity -= .1f;
-                        //    AddDebug("SpecIntensity " + mss.sky.SpecIntensity);
-                        //}
-                        return true;
-                    }
-                    else
-                    {
-                        Light[] lights = p.GetComponentsInChildren<Light>();
-                        //AddDebug("lights.Length  " + lights.Length);
-                        if (lights.Length == 0 || !lights[0].gameObject.activeInHierarchy)
-                            return true;
-
-                        TechType tt = CraftData.GetTechType(p.gameObject);
-                        //AddDebug("lights TechType " + tt);
-                        if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
-                            return true;
-
-                        if (!Tools_Patch.lightIntensityStep.ContainsKey(tt))
-                        {
-                            AddDebug("lightIntensityStep missing " + tt);
-                            return false;
-                        }
-                        if (!Tools_Patch.lightOrigIntensity.ContainsKey(tt))
-                        {
-                            AddDebug("lightOrigIntensity missing " + tt);
-                            return false;
-                        }
-                        float origIntensity = Tools_Patch.lightOrigIntensity[tt];
-                        //AddDebug("origIntensity " + origIntensity);
-                        //float step = origIntensity / 15f;
-                        Flare flare = p.GetComponent<Flare>();
-                        if (flare && flare.flareActivateTime == 0)
-                            return true;
-
-                        foreach (Light l in lights)
-                        {
-                            if (l.intensity < origIntensity)
-                            {
-                                l.intensity += Tools_Patch.lightIntensityStep[tt];
-                                //AddDebug("Light Intensity Up " + l.intensity);
-                                Main.configMain.lightIntensity[tt] = l.intensity;
-                            }
-                            if (flare)
-                            {
-                                Flare_Patch.intensityChanged = true;
-                                Flare_Patch.originalIntensity = l.intensity;
-                                Flare_Patch.halfOrigIntensity = Flare_Patch.originalIntensity * .5f;
-                            }
-                        }
-                        return false;
-                    }
-                }
                 return true;
             }
             [HarmonyPrefix]
@@ -198,55 +134,6 @@ namespace Tweaks_Fixes
                     if (pickupable != null)
                     {
                         EquipNextTool();
-                        return false;
-                    }
-                }
-                else if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(lightButton))
-                {
-                    Pickupable p = Inventory.main.GetHeld();
-                    if (!p)
-                        return true;
-                    else
-                    {
-                        Light[] lights = p.GetComponentsInChildren<Light>();
-                        //AddDebug("lights.Length  " + lights.Length);
-                        if (lights.Length == 0)
-                        {
-                            //AddDebug("lights.Length == 0 ");
-                            return true;
-                        }
-                        TechType tt = CraftData.GetTechType(p.gameObject);
-                        if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
-                            return true;
-                        if (!Tools_Patch.lightIntensityStep.ContainsKey(tt))
-                        {
-                            AddDebug("lightIntensityStep missing " + tt);
-                            return false;
-                        }
-                        if (!Tools_Patch.lightOrigIntensity.ContainsKey(tt))
-                        {
-                            AddDebug("lightOrigIntensity missing " + tt);
-                            return false;
-                        }
-                        //float origIntensity = Tools_Patch.lightOrigIntensity[CraftData.GetTechType(p.gameObject)];
-                        //float step = origIntensity / 15f;
-                        Flare flare = p.GetComponent<Flare>();
-                        if (flare && flare.flareActivateTime == 0)
-                            return true;
-
-                        foreach (Light l in lights)
-                        {
-                            l.intensity -= Tools_Patch.lightIntensityStep[tt];
-                            //AddDebug("Light Intensity Down " + l.intensity);
-                            //AddDebug("Light Intensity Step " + Tools_Patch.lightIntensityStep[tt]);
-                            Main.configMain.lightIntensity[tt] = l.intensity;
-                            if (flare)
-                            {
-                                Flare_Patch.intensityChanged = true;
-                                Flare_Patch.originalIntensity = l.intensity;
-                                Flare_Patch.halfOrigIntensity = Flare_Patch.originalIntensity * .5f;
-                            }
-                        }
                         return false;
                     }
                 }

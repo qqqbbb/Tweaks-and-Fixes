@@ -27,22 +27,22 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.14.01";
+            VERSION = "3.15.0";
 
         public static ManualLogSource logger;
         public static Survival survival;
-        public static bool gameLoaded = false;  // WaitScreen.IsWaiting
+        public static bool gameLoaded;  // WaitScreen.IsWaiting
         public static System.Random rndm = new System.Random();
-        public static bool advancedInventoryLoaded = false;
-        public static bool flareRepairLoaded = false;
-        public static bool cyclopsDockingLoaded = false;
-        public static bool vehicleLightsImprovedLoaded = false; // not updated
-        public static bool pickupFullCarryallsLoaded = false;  // not updated
-        public static bool seaglideMapControlsLoaded = false;  // not updated
-        public static bool baseLightSwitchLoaded = false;
+        public static bool advancedInventoryLoaded;
+        public static bool flareRepairLoaded;
+        public static bool cyclopsDockingLoaded;
+        public static bool vehicleLightsImprovedLoaded; // not updated
+        public static bool pickupFullCarryallsLoaded;  // not updated
+        public static bool seaglideMapControlsLoaded;  // not updated
+        public static bool baseLightSwitchLoaded;
         public static bool visibleLockerInteriorLoaded;
-        public static bool exosuitTorpedoDisplayLoaded = false; // not updated
-        public static bool torpedoImprovementsLoaded = false;
+        public static bool exosuitTorpedoDisplayLoaded; // not updated
+        public static bool torpedoImprovementsLoaded;
         static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public const float dayLengthSeconds = 1200f;
@@ -125,6 +125,9 @@ namespace Tweaks_Fixes
             CreatureDeath_Patch.TryRemoveCorpses();
             Escape_Pod_Patch.EscapePodInit();
             Drop_items_anywhere.OnGameLoadingFinished();
+            if (ConfigToEdit.targetFrameRate.Value > 9)
+                Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
+
             gameLoaded = true;
         }
 
@@ -135,6 +138,20 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("MainMenuLoadButton Delete " + __instance.saveGame);
                 DeleteSaveSlotData(__instance.saveGame);
+            }
+        }
+
+        //[HarmonyPatch(typeof(MainMenuMusic), "Start")]
+        class MainMenuLoadButton_Start_Patch
+        {
+            static void Postfix(MainMenuMusic __instance)
+            {
+                //DeleteSaveSlotData(__instance.saveGame);
+                logger.LogMessage("MainMenuMusic Start " + Application.targetFrameRate);
+                if (ConfigToEdit.targetFrameRate.Value > 9)
+                {
+                    Application.targetFrameRate = 11;
+                }
             }
         }
 
@@ -167,13 +184,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("SaveLoadManager CreateSlotAsync ");
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
-            public static void SaveToDeepStorageAsyncprefix(SaveLoadManager __instance)
-            { // runs after nautilus SaveEvent
-                //AddDebug("SaveToDeepStorageAsync");
-                //Drop_items_anywhere.SavedroppedInBase();
-            }
+
             [HarmonyPostfix]
             [HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
             public static void SaveToDeepStorageAsyncpostfix(SaveLoadManager __instance)
@@ -222,6 +233,11 @@ namespace Tweaks_Fixes
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
             AddTechTypesToClassIDtable();
+            logger.LogMessage("targetFrameRate " + ConfigToEdit.targetFrameRate.Value);
+            if (ConfigToEdit.targetFrameRate.Value > 9)
+            {
+                //Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
+            }
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
