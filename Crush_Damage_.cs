@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
-    public class Crush_Damage
+    public class Crush_Damage_
     {
         public static float crushInterval = 3f;
         public static float crushDamageResistance = 0f;
@@ -21,18 +20,22 @@ namespace Tweaks_Fixes
 
             float depth = Ocean.GetDepthOf(Player.mainObject);
             string biome = Player.main.biomeString;
+            //AddDebug("CrushDamagePlayer biomeString " + biome);
             if (biome.StartsWith("Prison_Aquarium"))
                 depth -= 1450;
             else if (biome.StartsWith("Precursor_Gun"))
                 depth -= 95;
             //else if (biome.StartsWith("ILZCastle"))
             //    depth -= 1140;
-
             float crushDepth = ConfigMenu.crushDepth.Value + extraCrushDepth;
+            //AddDebug("CrushDamagePlayer depth " + depth);
+            //AddDebug("CrushDamagePlayer extraCrushDepth " + extraCrushDepth);
+            //AddDebug("CrushDamagePlayer crushDepth " + crushDepth);
             if (depth < crushDepth)
                 return;
 
             float mult = 1f - crushDamageResistance;
+            //AddDebug("crushDamageResistance " + crushDamageResistance);
             float damage = ConfigMenu.crushDamage.Value * mult;
             if (damage <= 0)
                 return;
@@ -107,6 +110,8 @@ namespace Tweaks_Fixes
                     return false;
 
                 float depth = __instance.depthCache.Get();
+                //AddDebug("CrushDamageUpdate depth " + depth);
+                //AddDebug("CrushDamageUpdate crushDepth " + __instance.crushDepth);
                 if (depth < __instance.crushDepth)
                     return false;
 

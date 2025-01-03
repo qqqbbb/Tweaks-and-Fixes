@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
 
         //[HarmonyPatch(typeof(GameModeUtils), "IsInvisible")]
         class GameModeUtils_IsInvisible_Patch
-        { 
+        {
             public static void Postfix(ref bool __result)
             {
                 if (ConfigMenu.aggrMult.Value == 0)
@@ -131,7 +131,7 @@ namespace Tweaks_Fixes
                 if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy || !__instance.enabled)
                     return false;
 
-                if ( __instance.targetType != EcoTargetType.Shark || ConfigMenu.aggrMult.Value == 1f)
+                if (__instance.targetType != EcoTargetType.Shark || ConfigMenu.aggrMult.Value == 1f)
                     return true;
 
                 if (__instance.creature && __instance.creature.Hunger.Value < __instance.hungerThreshold && ConfigMenu.aggrMult.Value == 1f)
@@ -180,7 +180,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-            
+
                 return true;
             }
 
@@ -214,7 +214,7 @@ namespace Tweaks_Fixes
                         __result = CanVehicleBeAttacked(vehicle);
                     }
                 }
-             }
+            }
         }
 
         public static bool CanAttackSub(AttackCyclops attackCyclops)
@@ -459,7 +459,7 @@ namespace Tweaks_Fixes
                 Vehicle vehicle = target.GetGameObject().GetComponent<Vehicle>();
                 if (vehicle)
                     __result = CanVehicleBeAttacked(vehicle);
-                
+
             }
         }
 

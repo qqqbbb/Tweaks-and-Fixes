@@ -6,7 +6,6 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using static ErrorMessage;
-using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -632,17 +631,17 @@ namespace Tweaks_Fixes
 
                     }
                 }
-                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                if (Crush_Damage_.crushDepthEquipment.ContainsKey(techType) && Crush_Damage_.crushDepthEquipment[techType] > 0)
                 {
                     StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_crush_depth_equipment"));
-                    sb_.Append(Crush_Damage.crushDepthEquipment[techType]);
+                    sb_.Append(Crush_Damage_.crushDepthEquipment[techType]);
                     sb_.Append(Language.main.Get("TF_meters"));
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
-                if (Crush_Damage.crushDamageEquipment.ContainsKey(techType) && Crush_Damage.crushDamageEquipment[techType] > 0)
+                if (Crush_Damage_.crushDamageEquipment.ContainsKey(techType) && Crush_Damage_.crushDamageEquipment[techType] > 0)
                 {
                     StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_crush_damage_equipment"));
-                    sb_.Append(Crush_Damage.crushDepthEquipment[techType]);
+                    sb_.Append(Crush_Damage_.crushDepthEquipment[techType]);
                     sb_.Append("%");
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
@@ -881,6 +880,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(HandReticle __instance, HandReticle.TextType type, string text)
             {
+                //return false;
                 //AddDebug("SetTextRaw " + type + " " + text);
                 if (ConfigToEdit.disableUseText.Value && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
                 {
@@ -1007,7 +1007,7 @@ namespace Tweaks_Fixes
 
 
         [HarmonyPatch(typeof(uGUI_ExosuitHUD), "Update")]
-        public static class uGUI_ExosuitHUD_Patch
+        public static class uGUI_ExosuitHUD_Update_Patch
         {
             static string tempSuffix;
             static int lastTemperature = int.MinValue;
@@ -1033,7 +1033,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(uGUI_SeamothHUD), "Update")]
-        public static class uuGUI_SeamothHUD_Patch
+        public static class uuGUI_SeamothHUD_Update_Patch
         {
             static string tempSuffix;
             static int lastTemperature = int.MinValue;
@@ -1055,6 +1055,30 @@ namespace Tweaks_Fixes
 
                     lastTemperature = __instance.lastTemperature;
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(ThermalPlant))]
+        public static class ThermalPlant_Patch
+        {
+            [HarmonyPostfix, HarmonyPatch("UpdateUI")]
+            public static void UpdateUIPostfix(ThermalPlant __instance)
+            {
+                if (ConfigToEdit.showTempFahrenhiet.Value)
+                {
+                    __instance.temperatureText.text = (int)Util.CelciusToFahrenhiet(__instance.temperature) + "°F";
+                }
+            }
+            [HarmonyPrefix, HarmonyPatch("OnHandHover")]
+            public static bool OnHandHoverPrefix(ThermalPlant __instance, GUIHand hand)
+            {
+                if (!__instance.constructable.constructed)
+                    return false;
+
+                HandReticle.main.SetText(HandReticle.TextType.Hand, Language.main.GetFormat<int, int>("ThermalPlantStatus", Mathf.RoundToInt(__instance.powerSource.GetPower()), Mathf.RoundToInt(__instance.powerSource.GetMaxPower())), false);
+                HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
+                //HandReticle.main.SetIcon(HandReticle.IconType.Interact);
+                return false;
             }
         }
 

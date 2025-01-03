@@ -83,11 +83,11 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnPostRebuildGeometry")]
             static bool OnPostRebuildGeometryPrefix(BaseHullStrength __instance)
             {
-                if (ConfigMenu.baseHullStrengthMult.Value == 1)
-                    return true;
-
                 if (!GameModeUtils.RequiresReinforcements())
                     return false;
+
+                if (ConfigMenu.baseHullStrengthMult.Value == 1)
+                    return true;
 
                 float strength = BaseHullStrength.InitialStrength * ConfigMenu.baseHullStrengthMult.Value;
                 __instance.victims.Clear();
@@ -95,9 +95,12 @@ namespace Tweaks_Fixes
                 {
                     if (__instance.baseComp.GridToWorld(cell).y < 0)
                     {
+                        //int cellIndex = __instance.baseComp.GetCellIndex(cell);
+                        //AddDebug("OnPostRebuildGeometry cell " + __instance.baseComp.cells[cellIndex]);
                         Transform cellObject = __instance.baseComp.GetCellObject(cell);
                         if (cellObject != null)
                         {
+                            //AddDebug("OnPostRebuildGeometry cellObject " + cellObject.name);
                             __instance.victims.Add(cellObject.GetComponent<LiveMixin>());
                             strength += __instance.baseComp.GetHullStrength(cell);
                         }
@@ -313,6 +316,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
+
 
 
 

@@ -4,12 +4,14 @@ using HarmonyLib;
 using Nautilus.Handlers;
 using Nautilus.Options;
 using Nautilus.Options.Attributes;
+using Nautilus.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using TMPro;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -133,18 +135,40 @@ namespace Tweaks_Fixes
             return flag;
         }
 
+        static void PrintRawBiomeNames()
+        {
+            AddDebug("RawBiomeName " + Util.GetRawBiomeName());
+            AddDebug("Player biomeString " + Player.main.biomeString);
+            //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(Player.main.transform.position));
+            //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
+        }
 
-        //[HarmonyPatch(typeof(GasPod), "Detonate")]
-        class SubRoot_FixedUpdate_Patch
-        { // bfe8345c-fe3c-4c2b-9a03-51bcc5a2a782
-            static bool Prefix(GasPod __instance)
+        //[HarmonyPatch(typeof(AnteChamber))]
+        class AnteChamber_Patch
+        {
+            //[HarmonyPostfix, HarmonyPatch("Start")]
+            static void StartPostfix(AnteChamber __instance)
             {
-                //if (Player.main.currentSub && Player.main.currentSub == __instance)
-                {
-                    //AddDebug("SubRoot FixedUpdate");
-                    return false;
-                }
-                //return true;
+                AddDebug("AnteChamber Start");
+                if (__instance.drillable == null)
+                    AddDebug("AnteChamber Start drillable == null");
+
+                //__instance.drillable.onDrilled += new Drillable.OnDrilled(this.OnDrilled);
+            }
+            [HarmonyPostfix, HarmonyPatch("OnCrystalScanBegin")]
+            static void OnCrystalScanBeginPostfix(AnteChamber __instance)
+            {
+                AddDebug("AnteChamber OnCrystalScanBegin");
+            }
+            //[HarmonyPostfix, HarmonyPatch("UpdatePillar")]
+            static void UpdatePillarPostfix(AnteChamber __instance)
+            {
+                AddDebug("AnteChamber UpdatePillar");
+            }
+            //[HarmonyPostfix, HarmonyPatch("OnCrystalRestored")]
+            static void OnCrystalRestoredPostfix(AnteChamber __instance)
+            {
+                AddDebug("AnteChamber OnCrystalScanBegin");
             }
         }
 
@@ -155,19 +179,8 @@ namespace Tweaks_Fixes
             {
                 if (!Main.gameLoaded)
                     return;
-
-
-                if (__instance.currentSub)
-                {
-                    //AddDebug("IsLeaking " + __instance.currentSub.IsLeaking());
-                }
-                //AddDebug("camera transform forward " + MainCamera.camera.transform.forward);
+                //PrintRawBiomeNames();
                 //AddDebug("isUnderwaterForSwimming " + Player.main.isUnderwaterForSwimming.value);
-                //AddDebug("motorMode " + Player.main.motorMode);
-                //AddDebug("precursorOutOfWater " + Player.main.precursorOutOfWater);
-                //AddDebug(PlatformUtils.main.GetServices().GetRichPresence());
-                //if (Input.GetKey(KeyCode.LeftShift))
-                //    AddDebug("timePassed " + DayNightCycle.main.timePassedAsFloat);
                 if (Input.GetKeyDown(KeyCode.B))
                 {
                     //if (Player.main.IsInBase())
@@ -186,8 +199,14 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    //AddDebug("targetFrameRate " + Application.targetFrameRate);
-                    //Application.targetFrameRate = 11;
+                    foreach (var pair in Crush_Damage_.crushDepthEquipment)
+                    {
+                        AddDebug("crushDepthEquipment " + pair.Key);
+                    }
+                    foreach (var pair in Crush_Damage_.crushDamageEquipment)
+                    {
+                        AddDebug("crushDamageEquipment " + pair.Key);
+                    }
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);

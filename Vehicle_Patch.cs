@@ -21,6 +21,7 @@ namespace Tweaks_Fixes
         public static float changeTorpedoTimeRight = 0;
         public static float changeTorpedoInterval = .5f;
         public static HashSet<TechType> vehicleTechTypes = new HashSet<TechType> { TechType.Cyclops };
+        public static string exosuitName;
 
         public static void UpdateLights()
         {
@@ -377,10 +378,7 @@ namespace Tweaks_Fixes
         public static void OnUpgradeModuleChangePostfix(Vehicle __instance, TechType techType)
         {
             //AddDebug("OnUpgradeModuleChange");
-            if (techType != TechType.VehicleArmorPlating)
-                return;
-
-            if (!Main.gameLoaded)
+            if (!Main.gameLoaded || Language.isQuitting || techType != TechType.VehicleArmorPlating)
                 return;
 
             int armorUpgrades = GetNumModules(__instance, TechType.VehicleArmorPlating);
@@ -724,8 +722,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Update")]
         public static bool UpdatePrefix(SeaMoth __instance)
         {    // seamoth does not consume more energy when moving diagonally. Upgrade module UI
-            //if (!Main.config.seamothMoveTweaks)
-            //    return true;
+            if (!Main.gameLoaded)
+                return false;
             //AddDebug("SeaMoth Update");
             Vehicle_patch.VehicleUpdate(__instance as Vehicle);
             __instance.UpdateSounds();
@@ -763,6 +761,9 @@ namespace Tweaks_Fixes
         public static void UpdatePostfix(SeaMoth __instance)
         {
             //AddDebug("UpdatePostfix");
+            if (!Main.gameLoaded)
+                return;
+
             if (!Main.torpedoImprovementsLoaded && torpedoModuleActive && GameInput.GetButtonDown(GameInput.Button.AltTool))
             {
                 if (Time.time - changeTorpedoTime > changeTorpedoInterval)
@@ -959,9 +960,9 @@ namespace Tweaks_Fixes
             if (torpedos != null || torpedos.Count == 0)
                 return "";
             string name = Language.main.Get(TechType.ExosuitTorpedoArmModule);
-            name = name.Replace(exosuitName, "");
-            name = name.TrimStart();
-            name = name[0].ToString().ToUpper() + name.Substring(1);
+            if (Language.main.GetCurrentLanguage() == "English")
+                name = ShortenArmName(name);
+
             return name;
         }
 
@@ -976,9 +977,8 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("GetNames TooltipFactory.stringLeftHand " + uGUI.FormatButton(GameInput.Button.LeftHand));
                 leftArm = Language.main.Get(exosuit.currentLeftArmType);
-                leftArm = leftArm.Replace(exosuitName, "");
-                leftArm = leftArm.TrimStart();
-                leftArm = leftArm[0].ToString().ToUpper() + leftArm.Substring(1);
+                if (Language.main.GetCurrentLanguage() == "English")
+                    leftArm = ShortenArmName(leftArm);
             }
             if (exosuit.currentRightArmType == TechType.ExosuitTorpedoArmModule)
             {
@@ -988,10 +988,17 @@ namespace Tweaks_Fixes
             else
             {
                 rightArm = Language.main.Get(exosuit.currentRightArmType);
-                rightArm = rightArm.Replace(exosuitName, "");
-                rightArm = rightArm.TrimStart();
-                rightArm = rightArm[0].ToString().ToUpper() + rightArm.Substring(1);
+                if (Language.main.GetCurrentLanguage() == "English")
+                    rightArm = ShortenArmName(rightArm);
             }
+        }
+
+        private static string ShortenArmName(string armName)
+        {
+            armName = armName.Replace(exosuitName, "");
+            armName = armName.Trim();
+            armName = armName[0].ToString().ToUpper() + armName.Substring(1);
+            return armName;
         }
 
         [HarmonyPostfix]
@@ -1091,6 +1098,9 @@ namespace Tweaks_Fixes
         {    // thrusters consumes 2x energy
              // no limit on thrusters
              //  strafing disabled in ApplyPhysicsMoveExosuit
+            if (!Main.gameLoaded)
+                return false;
+
             if (!ConfigMenu.exosuitMoveTweaks.Value)
                 return true;
 
@@ -1216,7 +1226,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Update")]
         public static void UpdatePostfix(Exosuit __instance)
         {
-            if (Main.vehicleLightsImprovedLoaded)
+            if (!Main.gameLoaded || Main.vehicleLightsImprovedLoaded)
                 return;
 
             CheckExosuitButtons(__instance);
@@ -1282,6 +1292,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("UpdateUIText")]
         public static bool UpdateUITextPrefix(Exosuit __instance, bool hasPropCannon)
         {
+            //return false;
             if (Main.vehicleLightsImprovedLoaded || !ConfigToEdit.newUIstrings.Value)
                 return true;
 
@@ -1367,12 +1378,14 @@ namespace Tweaks_Fixes
                 if (slotID == 0)
                 {
                     leftArm = Language.main.Get(TechType.ExosuitClawArmModule);
-                    leftArm = leftArm.Replace(exosuitName, "");
+                    if (Language.main.GetCurrentLanguage() == "English")
+                        leftArm = ShortenArmName(leftArm);
                 }
                 else if (slotID == 1)
                 {
                     rightArm = Language.main.Get(TechType.ExosuitClawArmModule);
-                    rightArm = rightArm.Replace(exosuitName, "");
+                    if (Language.main.GetCurrentLanguage() == "English")
+                        rightArm = ShortenArmName(rightArm);
                 }
             }
             else if (added)
@@ -1387,7 +1400,8 @@ namespace Tweaks_Fixes
                     else
                     {
                         leftArm = Language.main.Get(techType);
-                        leftArm = leftArm.Replace(exosuitName, "");
+                        if (Language.main.GetCurrentLanguage() == "English")
+                            leftArm = ShortenArmName(leftArm);
                     }
                 }
                 else if (slotID == 1)
@@ -1400,7 +1414,8 @@ namespace Tweaks_Fixes
                     else
                     {
                         rightArm = Language.main.Get(techType);
-                        rightArm = rightArm.Replace(exosuitName, "");
+                        if (Language.main.GetCurrentLanguage() == "English")
+                            rightArm = ShortenArmName(rightArm);
                     }
                 }
             }

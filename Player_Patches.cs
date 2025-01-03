@@ -74,10 +74,10 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
             static void StartPostfix(Player __instance)
-            {
+            { // this does not run for some users
                 //__instance.StartCoroutine(Test());
                 Main.survival = __instance.GetComponent<Survival>();
             }
@@ -94,10 +94,10 @@ namespace Tweaks_Fixes
                 else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
                     Vehicle_patch.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (ConfigMenu.crushDamage.Value > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
+                if (ConfigMenu.crushDamage.Value > 0f && Crush_Damage_.crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
-                    Crush_Damage.CrushDamagePlayer();
+                    Crush_Damage_.CrushDamagePlayer();
                 }
                 if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
                 //if (Main.config.medKitHPtoHeal > 0 && DayNightCycle.main.timePassedAsFloat > healTime)
@@ -241,7 +241,6 @@ namespace Tweaks_Fixes
                     asset = __instance.landSound;
                     volume = __instance.landSoundVolume;
                 }
-                //asset = test;
                 EventInstance evt = FMODUWE.GetEvent(asset);
                 if (!evt.isValid())
                     return false;
@@ -274,10 +273,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(VoiceNotification __instance)
             {
                 //AddDebug("VoiceNotification Play");
-                if (!Main.gameLoaded)
-                    return false;
-
-                return true;
+                return Main.gameLoaded;
             }
         }
 
@@ -287,10 +283,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(SoundQueue __instance, string sound)
             {
                 //AddDebug(" PlayQueued  " + sound);
-                if (!Main.gameLoaded)
-                    return false;
-
-                return true;
+                return Main.gameLoaded;
             }
         }
 

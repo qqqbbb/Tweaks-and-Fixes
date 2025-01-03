@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
-using static HandReticle;
 
 namespace Tweaks_Fixes
 {

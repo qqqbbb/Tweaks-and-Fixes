@@ -1,10 +1,10 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.XR;
 using UWE;
-using HarmonyLib;
-using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -533,96 +533,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GroundMotor), "ApplyInputVelocityChange")]
         class GroundMotor_ApplyInputVelocityChange_Patch
         {// can sprint only if moving forward, sideways and backward speed is halved 
-            public static bool PrefixOld(GroundMotor __instance, ref Vector3 __result, Vector3 velocity)
-            {
-                // if (!Main.config.playerMoveSpeedTweaks)
-                // return true;
-
-
-                if (__instance.playerController == null || __instance.playerController.forwardReference == null)
-                {
-                    __result = Vector3.zero;
-                    return false;
-                }
-                Quaternion quaternion = !__instance.underWater || !__instance.canSwim ? Quaternion.Euler(0.0f, __instance.playerController.forwardReference.rotation.eulerAngles.y, 0.0f) : __instance.playerController.forwardReference.rotation;
-                Vector3 input = __instance.movementInputDirection;
-                if (ConfigMenu.playerMoveTweaks.Value)
-                {
-                    input.Normalize();
-                    input.x *= .5f;
-                    if (input.z < 0f)
-                        input.z *= .5f;
-                }
-                float num1 = Mathf.Min(1f, input.magnitude);
-                float num2 = !__instance.underWater || !__instance.canSwim ? 0.0f : input.y;
-                input.y = 0.0f;
-                input = quaternion * input;
-                input.y += num2;
-                input.Normalize();
-                Vector3 hVelocity;
-                if (__instance.grounded && !__instance.underWater && (__instance.TooSteep() && __instance.sliding.enabled))
-                {
-                    Vector3 normalized = new Vector3(__instance.groundNormal.x, 0.0f, __instance.groundNormal.z).normalized;
-                    Vector3 vector3_3 = Vector3.Project(__instance.movementInputDirection, normalized);
-                    hVelocity = (normalized + vector3_3 * __instance.sliding.speedControl + (__instance.movementInputDirection - vector3_3) * __instance.sliding.sidewaysControl) * __instance.sliding.slidingSpeed;
-                }
-                else
-                {
-                    float maxSpeed = ConfigMenu.playerSpeedMult.Value;
-                    //Utils.AdjustSpeedScalarFromWeakness(ref maxSpeed);
-                    //AddDebug("maxSpeed " + maxSpeed);
-                    if (ConfigMenu.playerMoveTweaks.Value)
-                        maxSpeed = AdjustGroundSpeed(maxSpeed);
-                    if (ConfigMenu.invMultLand.Value > 0f)
-                        maxSpeed *= GetInvMult();
-
-                    if (!__instance.underWater && __instance.sprintPressed)
-                    {
-                        if (!ConfigMenu.playerMoveTweaks.Value || ConfigMenu.playerMoveTweaks.Value && __instance.movementInputDirection.z > 0f)
-                            //maxSpeed *= __instance.sprintModifier;
-                            __instance.sprinting = true;
-
-                        if (timeSprintStart == 0f)
-                            timeSprintStart = DayNightCycle.main.timePassedAsFloat;
-
-                        timeSprinted = DayNightCycle.main.timePassedAsFloat - timeSprintStart;
-                    }
-                    else
-                        timeSprintStart = 0f;
-                    //if (__instance.sprinting)
-                    //    survival.UpdateStats(survival.kUpdateHungerInterval * .333f);
-
-                    hVelocity = input * __instance.forwardMaxSpeed * maxSpeed * num1;
-                }
-                //if (!__instance.underWater && XRSettings.enabled)
-                //    hVelocity *= VROptions.groundMoveScale;
-                if (!__instance.underWater && __instance.movingPlatform.enabled && __instance.movingPlatform.movementTransfer == GroundMotor.MovementTransferOnJump.PermaTransfer)
-                {
-                    hVelocity += __instance.movement.frameVelocity;
-                    hVelocity.y = 0.0f;
-                }
-                if (!__instance.underWater)
-                {
-                    if (__instance.grounded)
-                        hVelocity = __instance.AdjustGroundVelocityToNormal(hVelocity, __instance.groundNormal);
-                    else
-                        velocity.y = 0.0f;
-                }
-                float num3 = __instance.GetMaxAcceleration(__instance.grounded) * Time.deltaTime;
-                Vector3 vector3_5 = hVelocity - velocity;
-                if (vector3_5.sqrMagnitude > num3 * num3)
-                    vector3_5 = vector3_5.normalized * num3;
-                if (__instance.grounded || __instance.canControl)
-                    velocity += vector3_5;
-                if (__instance.grounded && !__instance.underWater)
-                    velocity.y = Mathf.Min(velocity.y, 0.0f);
-                __result = velocity;
-                //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;
-                //float  ms = Player.main.rigidBody.velocity.magnitude;
-                //Main.Message("movementSpeed  " + ms);
-                return false;
-            }
-
             public static bool Prefix(GroundMotor __instance, ref Vector3 __result, Vector3 velocity)
             {
                 if (__instance.playerController == null || __instance.playerController.forwardReference == null)

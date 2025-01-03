@@ -133,7 +133,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix]
             [HarmonyPatch("OnCollisionEnter")]
             public static bool StartPostfix(SubRoot __instance, Collision col)
-            {
+            { // do not play bang sound fx when fish bumps into cyclops
                 if (col.gameObject.CompareTag("Player"))
                     return false;
 
@@ -206,7 +206,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix]
             [HarmonyPatch("UpdateAnimation")]
             public static bool UpdateAnimationPrefix(SubControl __instance)
-            { // fix steering wheel animation
+            { // fix steering wheel binary animation
                 if (!Main.gameLoaded)
                     return false;
 
@@ -725,12 +725,12 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PilotingChair))]
         public class PilotingChair_Patch
         {
-            [HarmonyPrefix]
+            [HarmonyPostfix]
             [HarmonyPatch("IsValidHandTarget")]
-            public static bool IsValidHandTargetPrefix(PilotingChair __instance, GUIHand hand, ref bool __result)
+            public static void IsValidHandTargetPrefix(PilotingChair __instance, GUIHand hand, ref bool __result)
             {
-                __result = hand.IsFreeToInteract() && hand.player && hand.player.GetCurrentSub() == __instance.subRoot && hand.player.GetMode() == Player.Mode.Normal && __instance.subRoot.powerRelay.IsPowered();
-                return false;
+                if (!__instance.subRoot.powerRelay.IsPowered())
+                    __result = false;
             }
         }
 
@@ -806,6 +806,9 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("SubFire EngineOverheatSimulation activeInHierarchy " + __instance.gameObject.activeInHierarchy);
                 //AddDebug("SubFire position " + __instance.transform.position);
+                if (Main.cyclopsOverheatLoaded)
+                    return true;
+
                 if (!__instance.gameObject.activeInHierarchy || !__instance.LOD.IsFull())
                     return false;
 

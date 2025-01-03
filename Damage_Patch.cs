@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
-using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -13,29 +12,8 @@ namespace Tweaks_Fixes
         public static float healTempDamageTime = 0;
         static float poisonDamageInterval = .8f;
         static float poisonDamage = .5f;
-        public static HashSet<LiveMixin> tempDamageLMs = new HashSet<LiveMixin>();
 
 
-        public static void SetBloodColor()
-        {
-            foreach (GameObject go in Util.FindAllRootGameObjects())
-            {
-                if (go.name == "xKnifeHit_Organic" || go.name == "GenericCreatureHit" || go.name == "xExoDrill_Organic")
-                {
-                    ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
-                    //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
-                    //Main.Log("SetBloodColor " + go.name );
-                    foreach (ParticleSystem ps in pss)
-                    {
-                        //ps.startColor = new Color(1f, 0f, 0f);
-                        ParticleSystem.MainModule psMain = ps.main;
-                        //Main.Log("startColor " + psMain.startColor.color);
-                        Color newColor = new Color(ConfigToEdit.bloodColor.Value.x, ConfigToEdit.bloodColor.Value.y, ConfigToEdit.bloodColor.Value.z, psMain.startColor.color.a);
-                        psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
-                    }
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_patch
@@ -253,12 +231,6 @@ namespace Tweaks_Fixes
                     //__instance.data.damageEffect = null;
                     __instance.data.deathEffect = null;
                 }
-                if (!Main.gameLoaded && __instance.tempDamage > 0)
-                { // __instance.tempDamage is -1
-                    tempDamageLMs.Add(__instance);
-                    //AddDebug("tempDamage " + __instance.tempDamage);
-                    //Main.Log("tempDamage " + __instance.tempDamage);
-                }
             }
 
             [HarmonyPrefix]
@@ -307,7 +279,6 @@ namespace Tweaks_Fixes
                         //AddDebug("old Poison System ");
                         __instance.health = Mathf.Max(0f, __instance.health - damage);
                         __instance.tempDamage += damage;
-                        //AddDebug(__instance.name + " tempDamage " + __instance.tempDamage);
                         __instance.SyncUpdatingState();
                     }
                 }
@@ -614,49 +585,32 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Drillable), "OnDrill")]
-        class Drillable_OnDrill_Patch
+        [HarmonyPatch(typeof(Drillable))]
+        class Drillable_Start_Patch
         {
-            static void Postfix(Drillable __instance, Vector3 position, Exosuit exo)
-            { // cant replace prefix bc it invokes event
-                float totalStartHealth = 0f;
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            static void StartPostfix(Drillable __instance)
+            {
                 for (int index = 0; index < __instance.health.Length; ++index)
-                    totalStartHealth += __instance.health[index];
-
-                __instance.drillingExo = exo;
-                Vector3 center = Vector3.zero;
-                int closestMesh = __instance.FindClosestMesh(position, out center);
-                //hitObject = __instance.renderers[closestMesh].gameObject;
-                __instance.timeLastDrilled = Time.time;
-                if (totalStartHealth > 0)
                 {
-                    float drillDamage = 5f * ConfigMenu.drillDamageMult.Value;
-                    float closestChunkHealth = __instance.health[closestMesh];
-                    __instance.health[closestMesh] = Mathf.Max(0f, __instance.health[closestMesh] - drillDamage);
-                    float healthLeft = totalStartHealth - (closestChunkHealth - __instance.health[closestMesh]);
-                    if (closestChunkHealth > 0 && __instance.health[closestMesh] <= 0)
-                    {
-                        __instance.renderers[closestMesh].gameObject.SetActive(false);
-                        __instance.SpawnFX(__instance.breakFX, center);
-                        if (__instance.resources.Length != 0)
-                            __instance.StartCoroutine(__instance.SpawnLootAsync(center));
-                    }
-                    if (healthLeft <= 0)
-                    {
-                        __instance.SpawnFX(__instance.breakAllFX, center);
-                        if (__instance.deleteWhenDrilled)
-                        {
-                            ResourceTracker rt = __instance.GetComponent<ResourceTracker>();
-                            if (rt)
-                                rt.OnBreakResource();
-
-                            __instance.Invoke("DestroySelf", __instance.lootPinataOnSpawn ? 6f : 0f);
-                        }
-                    }
+                    __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
+                    //AddDebug("Drillable Start " + __instance.health[index]);
                 }
-                BehaviourUpdateUtils.Register(__instance);
+            }
+            [HarmonyPostfix, HarmonyPatch("Restore")]
+            static void Restoreostfix(Drillable __instance)
+            {
+                for (int index = 0; index < __instance.health.Length; ++index)
+                {
+                    __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
+                    //AddDebug("Drillable Restore " + __instance.health[index]);
+                }
             }
         }
+
+
+
+
 
     }
 }

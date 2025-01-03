@@ -1,0 +1,25 @@
+{
+  "TF_toggle_base_lights": "Lumi\u00e8res On\/Off",
+  "TF_crush_depth_equipment": "Augmente la profondeur de plong\u00e9e en toute s\u00e9curit\u00e9 de ",
+  "TF_crush_damage_equipment": "R\u00e9duit les d\u00e9g\u00e2ts d\u2019\u00e9crasement de ",
+  "TF_meters": " m\u00e8tres.",
+  "TF_mass": "masse ",
+  "TF_kg": " kg",
+  "TF_throw_flare": "Lancer",
+  "TF_light_and_throw_flare": "\u00c9clairer et lancer",
+  "TF_light_flare": "\u00c9clairer",
+  "TF_burnt_out_flare": "Br\u00fbl\u00e9 ",
+  "TF_lit_flare": "Allumer ",
+  "TF_push_seamoth": "Pousser ",
+  "TF_need_knife_to_break_outcrop": "Besoin d\u2019un couteau pour le casser",
+  "TF_need_knife_to_break_free_resource": "Besoin d\u2019un couteau pour le d\u00e9gager",
+  "TF_seamoth_defence_press": ". Appuyer et maintenir ",
+  "TF_seamoth_defence_charge": " pour charger le tir",
+  "TF_change_torpedo": " Changer le type de torpille ",
+  "TF_swivel_chair_left": "Pivoter \u00e0 gauche",
+  "TF_swivel_chair_right": "Pivoter \u00e0 droite",
+  "TF_bladderfish_tooltip": " Fournit un peu d\u2019oxyg\u00e8ne lorsqu\u2019il est consomm\u00e9 cru.",
+  "TF_propulsion_cannon_release": "Lib\u00e9rer ",
+  "TF_VehicleArmorPlating_install_message": "Les d\u00e9g\u00e2ts physiques sont r\u00e9duits \u00e0 70%."
+
+}

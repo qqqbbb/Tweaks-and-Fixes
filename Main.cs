@@ -14,6 +14,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 using UWE;
@@ -27,10 +28,9 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.15.0";
+            VERSION = "3.16.0";
 
         public static ManualLogSource logger;
-        public static Survival survival;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
         public static System.Random rndm = new System.Random();
         public static bool advancedInventoryLoaded;
@@ -43,6 +43,7 @@ namespace Tweaks_Fixes
         public static bool visibleLockerInteriorLoaded;
         public static bool exosuitTorpedoDisplayLoaded; // not updated
         public static bool torpedoImprovementsLoaded;
+        public static bool cyclopsOverheatLoaded;
         static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public const float dayLengthSeconds = 1200f;
@@ -50,6 +51,7 @@ namespace Tweaks_Fixes
         internal static OptionsMenu options;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
+        public static Survival survival;
 
         public static void CleanUp()
         {
@@ -57,8 +59,8 @@ namespace Tweaks_Fixes
             gameLoaded = false;
             QuickSlots_Patch.invChanged = true;
             Databox_Light_Patch.databoxLights.Clear();
-            Crush_Damage.extraCrushDepth = 0;
-            Crush_Damage.crushDamageResistance = 0;
+            Crush_Damage_.extraCrushDepth = 0;
+            Crush_Damage_.crushDamageResistance = 0;
             Cyclops_Patch.ceh = null;
             Cyclops_Patch.collidersInSub.Clear();
             Geyser_Patch.eruptionForce.Clear();
@@ -70,7 +72,6 @@ namespace Tweaks_Fixes
             Vehicle_patch.dockedVehicles.Clear();
             Exosuit_Patch.exosuitStarted = false;
             Damage_Patch.healTempDamageTime = 0;
-            Damage_Patch.tempDamageLMs.Clear();
             Storage_Patch.savedSigns.Clear();
             Storage_Patch.labelledLockers.Clear();
             Battery_Patch.subPowerRelays.Clear();
@@ -97,15 +98,7 @@ namespace Tweaks_Fixes
             { // unlock fibermesh by scanning creepvine
                 PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
             }
-            if (ConfigToEdit.bloodColor.Value.x != 0.784f || ConfigToEdit.bloodColor.Value.y != 1f || ConfigToEdit.bloodColor.Value.z != 0.157f)
-            {
-                Damage_Patch.SetBloodColor();
-            }
-            foreach (LiveMixin lm in Damage_Patch.tempDamageLMs)
-            {
-                //AddDebug("uGUI_SceneLoading End " + lm.tempDamage);
-                lm.SyncUpdatingState();
-            }
+            IteratePrefabs();
             //AddDebug("LoadedGameSetup activeSlot " + config.activeSlot);
             if (configMain.activeSlot != -1 && Player.main.mode == Player.Mode.Normal)
                 Inventory.main.quickSlots.SelectImmediate(configMain.activeSlot);
@@ -125,10 +118,32 @@ namespace Tweaks_Fixes
             CreatureDeath_Patch.TryRemoveCorpses();
             Escape_Pod_Patch.EscapePodInit();
             Drop_items_anywhere.OnGameLoadingFinished();
-            if (ConfigToEdit.targetFrameRate.Value > 9)
-                Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
 
             gameLoaded = true;
+        }
+
+        private static void IteratePrefabs()
+        {
+            if (ConfigToEdit.bloodColor.Value.x == 0.784f && ConfigToEdit.bloodColor.Value.y == 1f && ConfigToEdit.bloodColor.Value.z == 0.157f)
+                return;
+
+            foreach (GameObject go in Util.FindAllRootGameObjects())
+            {
+                if (go.name == "xKnifeHit_Organic" || go.name == "GenericCreatureHit" || go.name == "xExoDrill_Organic")
+                {
+                    Util.SetBloodColor(go);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
+        class uGUI_MainMenu_Start_Patch
+        {
+            static void Postfix(uGUI_MainMenu __instance)
+            {
+                if (ConfigToEdit.targetFrameRate.Value >= 10)
+                    Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
+            }
         }
 
         [HarmonyPatch(typeof(MainMenuLoadButton), "Delete")]
@@ -206,6 +221,16 @@ namespace Tweaks_Fixes
         {
             configMain.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
             configMain.activeSlot = Inventory.main.quickSlots.activeSlot;
+            InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
+            if (heldItem != null)
+            {
+                PlaceTool pt = heldItem.item.GetComponent<PlaceTool>();
+                if (pt)
+                {
+                    //AddDebug(" heldItem PlaceTool");
+                    configMain.activeSlot = -1;
+                }
+            }
             Decoy_Patch.DestroyDecoys();
             configMain.Save();
             //AddDebug("Save configMain " + Inventory.main.quickSlots.activeSlot);
@@ -233,11 +258,6 @@ namespace Tweaks_Fixes
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
             AddTechTypesToClassIDtable();
-            logger.LogMessage("targetFrameRate " + ConfigToEdit.targetFrameRate.Value);
-            if (ConfigToEdit.targetFrameRate.Value > 9)
-            {
-                //Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
-            }
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
@@ -281,8 +301,8 @@ namespace Tweaks_Fixes
                     flareRepairLoaded = true;
                 else if (metadata.GUID == "com.osubmarin.cyclopsdockingmod")
                     cyclopsDockingLoaded = true;
-                //else if (metadata.GUID.Equals("Rm_VehicleLightsImproved"))
-                //    vehicleLightsImprovedLoaded = true;
+                else if (metadata.GUID.Equals("CyclopsOverheat"))
+                    cyclopsOverheatLoaded = true;
                 else if (metadata.GUID == "com.TorpedoImprovements.mod")
                     torpedoImprovementsLoaded = true;
             }

@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using FMOD.Studio;
 using HarmonyLib;
-using FMOD.Studio;
-using System.Text;
 using RootMotion.FinalIK;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
 using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class PDA_Patch
-    { 
+    {
         //static ConditionRules conditionRules;
         //static int ruleToRemove;
 

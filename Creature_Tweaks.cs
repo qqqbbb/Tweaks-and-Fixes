@@ -19,7 +19,7 @@ namespace Tweaks_Fixes
 
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
-        class FleeOnDamage_OnTakeDamage_Postfix_Patch
+        class FleeOnDamage_OnTakeDamage_Patch
         {
             public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {

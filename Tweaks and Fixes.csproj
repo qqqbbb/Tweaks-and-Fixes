@@ -96,6 +96,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base_Collision.cs" />
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="Camera_Patch.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
@@ -105,8 +106,9 @@
     <Compile Include="Knife_Patch.cs" />
     <Compile Include="Light_Control.cs" />
     <Compile Include="Medical_Cabinet_Patch.cs" />
+    <Compile Include="Menu_Buttons.cs" />
     <Compile Include="OptionsMenu.cs" />
-    <Compile Include="Precurcor_Terminal_Patch.cs" />
+    <Compile Include="Precurcor_Patch.cs" />
     <Compile Include="PropulsionCannon_Patch.cs" />
     <Compile Include="Cutefish_Patch.cs" />
     <Compile Include="Constructor_Patch.cs" />
@@ -121,7 +123,7 @@
     <Compile Include="Scanner_Patch.cs" />
     <Compile Include="Sound_Patch.cs" />
     <Compile Include="Cyclops_Collision.cs" />
-    <Compile Include="TimeFlow_Patch.cs" />
+    <Compile Include="DayNightCycle_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Base_Patch.cs" />
     <Compile Include="Randomize.cs" />
@@ -141,7 +143,7 @@
     <Compile Include="Craft_Patch.cs" />
     <Compile Include="Damage_Patch.cs" />
     <Compile Include="Databox_Light_Patch.cs" />
-    <Compile Include="Crush_Damage.cs" />
+    <Compile Include="Crush_Damage_.cs" />
     <Compile Include="Creature_Tweaks.cs" />
     <Compile Include="HangingStinger.cs" />
     <Compile Include="Escape_Pod_Patch.cs" />
@@ -163,10 +165,12 @@
     <Compile Include="ConfigMain.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Localization\French.json" />
     <None Include="Localization\German.json" />
     <None Include="Localization\Russian.json" />
     <None Include="Localization\English.json" />
     <None Include="Localization\Portuguese %28Brazil%29.json" />
+    <None Include="Localization\SpanishLatin America.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

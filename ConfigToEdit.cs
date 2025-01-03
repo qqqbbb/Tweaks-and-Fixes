@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using static uGUI_ResourceTracker;
 
 namespace Tweaks_Fixes
 {
@@ -106,6 +107,13 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> vehiclesHurtCreatures;
         public static ConfigEntry<string> notRechargableBatteries;
         public static ConfigEntry<int> targetFrameRate;
+        public static ConfigEntry<bool> removeCreditsButton;
+        public static ConfigEntry<bool> removeRedeemButton;
+        public static ConfigEntry<bool> removeTroubleshootButton;
+        public static ConfigEntry<bool> removeUnstuckButton;
+        public static ConfigEntry<bool> removeFeedbackButton;
+        public static ConfigEntry<bool> enableDevButton;
+        public static ConfigEntry<bool> disableIonCubeFabricator;
 
 
 
@@ -115,7 +123,7 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
-            targetFrameRate = Main.configToEdit.Bind("", "Target framerate", 0, "Use this to limit number of frames the game renders every second. Numbers smaller than 10 are ignored.");
+            targetFrameRate = Main.configToEdit.Bind("", "Frame rate limiter", 0, "Number of frames the game renders every second will be limited to this. Numbers smaller than 10 are ignored.");
             heatBladeCooks = Main.configToEdit.Bind("", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("", "Do not spawn fragments for unlocked blueprints", false);
             cantScanExosuitClawArm = Main.configToEdit.Bind("", "Unlock prawn suit only by scanning prawn suit", true, "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arm fragments.");
@@ -139,14 +147,14 @@ namespace Tweaks_Fixes
 
             eatableFoodValue = Main.configToEdit.Bind("", "Eatable component food value", "CreepvineSeedCluster 5", "Items from this list will be made eatable. The format is: item ID, space, food value. Every entry is separated by comma.");
             eatableWaterValue = Main.configToEdit.Bind("", "Eatable component water value", "CreepvineSeedCluster 10", "Items from this list will be made eatable. The format is: item ID, space, water value. Every entry is separated by comma.");
-            fixMelons = Main.configToEdit.Bind("", "Fix melons", false, "If true you will be able to plant only 1 melon in a pot and only 4 in a planter.");
+            fixMelons = Main.configToEdit.Bind("", "Fix melons", false, "You will be able to plant only 1 melon in a pot and only 4 in a planter if this is true.");
             randomPlantRotation = Main.configToEdit.Bind("", "Random plant rotation", true, "Plants in planters will have random rotation if this is true.");
             silentReactor = Main.configToEdit.Bind("", "Silent nuclear reactor", false, "Nuclear reactor will be silent if this is true.");
             removeFragmentCrate = Main.configToEdit.Bind("", "Remove fragment crate", false, "When you scan a blueprint fragment, the crate holding the fragment will be removed if this is true.");
             creepvineLights = Main.configToEdit.Bind("", "Real creepvine lights", true, "Creepvine seed cluster light intensity will depend on number of seed clusters on the vine if this is true.");
             newUIstrings = Main.configToEdit.Bind("", "New UI text", true, "New UI elements added by the mod wil be disabled if this is false.");
             newStorageUI = Main.configToEdit.Bind("", "New storage UI", true, "New UI for storage containers");
-            //tweaksAffectingGPU = Main.configToEdit.Bind("", "Tweaks affecting GPU", true, "If false changes that may affect GPU performance (LOD edits, edits that increase popping in distance for objects) will be disabled.");
+
             disableUseText = Main.configToEdit.Bind("", "Disable quickslots text", false, "Text above your quickslots will be disabled if this is true.");
 
             notRechargableBatteries = Main.configToEdit.Bind("", "Not rechargable batteries", "", "Comma separated list of battery IDs. Batteries from this list can not be recharged");
@@ -182,7 +190,7 @@ namespace Tweaks_Fixes
             //spawnChance = Main.configB.Bind("", "Spawn chance", "", "Chance for a object ID to spawn. The format is: object ID, space, chance to spawn percent. Can be used only to reduce chances to spawn. Every entry is separated by comma.");
             propulsionCannonGrabFX = Main.configToEdit.Bind("", "Propulsion cannon sphere effect", true, "Blue sphere visual effect you see when holding an object with propulsion cannon will be disabled if this is false.");
             fixCuteFish = Main.configToEdit.Bind("", "Fix cuddlefish", false, "You will be able to interact with cuddlefish only when swimming if this is true.");
-            seaTreaderOutcrop = Main.configToEdit.Bind("", "Outcrop from seatreader", SeaTreaderOutcrop.Vanilla, "");
+            seaTreaderOutcrop = Main.configToEdit.Bind("", "Outcrop from seatreader", SeaTreaderOutcrop.Vanilla, "if Only_when_stomping_ground is selected they dig up outcrop only when they try to step on you");
             shroomDamageChance = Main.configToEdit.Bind("", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed. The script to do it was always in the game but was disabled.", percentRange));
             escapePodPowerTweak = Main.configToEdit.Bind("", "Life pod power tweaks", false, "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod power cells are not charged.");
             stalkerPlayThings = Main.configToEdit.Bind("", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
@@ -202,10 +210,17 @@ namespace Tweaks_Fixes
             scannerFX = Main.configToEdit.Bind("", "Wierd visual effect on objects being scanned", true, "");
             escapePodMedkitCabinetWorks = Main.configToEdit.Bind("", "Medical kit fabricator in your life pod produces first aid kit", EscapePodMedkitCabinetWorks.Always, "");
             dropItemsAnywhere = Main.configToEdit.Bind("", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except cyclops and grab items in your base with propulsion cannon.");
+            //disableIonCubeFabricator = Main.configToEdit.Bind("", "Disable ion cube fabricator at the Primary containment facility", false);
             showTempFahrenhiet = Main.configToEdit.Bind("", "Show temperature in Fahrenhiet instead of Celcius", false, "");
-            fixScreenResolution = Main.configToEdit.Bind("", "Fix screen resolution", false, "The game sometimes resets screen resolution to desktop one. Set this to true to fix it.");
-            //flareTweaks = Main.configToEdit.Bind("", "Flare tweaks", true, "You will be able to light flares without throwing them. You will not be able to throw flares in locations that do not allow dropping items.");
 
+
+            fixScreenResolution = Main.configToEdit.Bind("", "Fix screen resolution", false, "The game sometimes resets screen resolution to desktop one. Set this to true to fix it.");
+            removeCreditsButton = Main.configToEdit.Bind("", "Remove credits button from main menu", false);
+            removeRedeemButton = Main.configToEdit.Bind("", "Remove redeem key button from options menu", false);
+            removeTroubleshootButton = Main.configToEdit.Bind("", "Remove troubleshooting button from options menu", false);
+            removeUnstuckButton = Main.configToEdit.Bind("", "Remove unstuck button from pause menu", false);
+            removeFeedbackButton = Main.configToEdit.Bind("", "Remove feedback button from pause menu", false);
+            enableDevButton = Main.configToEdit.Bind("", "Enable developer button in pause menu", false);
 
 
 
@@ -309,8 +324,8 @@ namespace Tweaks_Fixes
 
         public static void ParseFromConfig()
         {
-            Crush_Damage.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
-            Crush_Damage.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
+            Crush_Damage_.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
+            Crush_Damage_.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
             Pickupable_Patch.itemMass = ParseFloatDicFromString(itemMass.Value);
             Pickupable_Patch.unmovableItems = ParseSetFromString(unmovableItems.Value);
             Gravsphere_Patch.gravTrappable = ParseSetFromString(gravTrappable.Value);
@@ -334,6 +349,7 @@ namespace Tweaks_Fixes
         }
 
         public enum SeaTreaderOutcrop { Vanilla, Only_when_stomping_ground, Never }
+
         public enum EscapePodMedkitCabinetWorks { Always, After_repairing_life_pod, Never }
 
         public enum Button

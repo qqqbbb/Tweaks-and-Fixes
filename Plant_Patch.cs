@@ -31,8 +31,7 @@ namespace Tweaks_Fixes
                 if (!ConfigToEdit.fixMelons.Value)
                     return true;
 
-                TechType tt = __instance.seed.plantTechType;
-                if (tt == TechType.MelonPlant)
+                if (__instance.seed.plantTechType == TechType.MelonPlant)
                 {
                     float mult = 1.2f;
                     float x = __instance.isIndoor ? __instance.growthWidthIndoor.Evaluate(progress) : __instance.growthWidth.Evaluate(progress);
@@ -167,8 +166,6 @@ namespace Tweaks_Fixes
                 return true;
             }
         }
-
-
 
         [HarmonyPatch(typeof(PickPrefab))]
         class PickPrefab_Patch

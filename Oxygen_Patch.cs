@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
@@ -32,7 +32,7 @@ namespace Tweaks_Fixes
             if (intermittentInstantiate)
                 UnityEngine.Object.Destroy(intermittentInstantiate);
         }
-         
+
         [HarmonyPatch(typeof(CoralBlendWhite))]
         class CoralBlendWhite_OnEnable_Patch
         {
@@ -81,20 +81,21 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(Player))]
-        class Player_GetOxygenPerBreath_Patch
+        class Player_Patch
         { // vanilla script returns wrong value at depth 200-100
-            [HarmonyPrefix]
-            [HarmonyPatch("GetOxygenPerBreath")]
+            [HarmonyPrefix, HarmonyPatch("GetOxygenPerBreath")]
             static bool GetOxygenPerBreathPrefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
             {
-                if (GameModeUtils.RequiresOxygen())
-                    __result = ConfigMenu.oxygenPerBreath.Value;
-                else
-                    __result = 0f;
-
+                __result = 1f;
+                if (Inventory.main.equipment.GetCount(TechType.Rebreather) == 0 && __instance.mode != Player.Mode.Piloting && __instance.mode != Player.Mode.LockedPiloting)
+                {
+                    if (GameModeUtils.RequiresOxygen())
+                        __result = ConfigMenu.oxygenPerBreath.Value;
+                    else
+                        __result = 0;
+                }
                 //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
                 //AddDebug("GetOxygenPerBreath  " + __result);
-
                 return false;
             }
             [HarmonyPrefix]

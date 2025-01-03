@@ -6,6 +6,7 @@ using Nautilus.Handlers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Reflection;
 using Tweaks_Fixes;
@@ -26,6 +27,21 @@ namespace Tweaks_Fixes
             return Physics.Raycast(startPos, dir, out hitInfo, distance);
         }
 
+
+        public static void SetBloodColor(GameObject go)
+        {
+            ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
+            //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
+            //Main.Log("SetBloodColor " + go.name );
+            foreach (ParticleSystem ps in pss)
+            {
+                //ps.startColor = new Color(1f, 0f, 0f);
+                ParticleSystem.MainModule psMain = ps.main;
+                //Main.Log("startColor " + psMain.startColor.color);
+                Color newColor = new Color(ConfigToEdit.bloodColor.Value.x, ConfigToEdit.bloodColor.Value.y, ConfigToEdit.bloodColor.Value.z, psMain.startColor.color.a);
+                psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
+            }
+        }
 
         public static IEnumerator SetParent(GameObject go, Transform parent, int framesToWait = 1)
         {
@@ -426,6 +442,19 @@ namespace Tweaks_Fixes
         public static bool IsGraphicsPresetHighDetail()
         {
             return GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()].detail == 2;
+        }
+
+        public static string GetRawBiomeName()
+        {
+            AtmosphereDirector atmosphereDirector = AtmosphereDirector.main;
+            if (atmosphereDirector)
+            {
+                string biomeOverride = atmosphereDirector.GetBiomeOverride();
+                if (!string.IsNullOrEmpty(biomeOverride))
+                    return biomeOverride;
+            }
+            LargeWorld largeWorld = LargeWorld.main;
+            return largeWorld && Player.main ? largeWorld.GetBiome(Player.main.transform.position) : "<unknown>";
         }
 
 
