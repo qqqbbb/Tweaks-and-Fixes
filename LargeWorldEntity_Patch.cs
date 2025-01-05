@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
         .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
         static HashSet<TechType> coralSurfaces = new HashSet<TechType> { TechType.BigCoralTubes, TechType.CoralShellPlate, TechType.GenericJeweledDisk, TechType.JeweledDiskPiece };
         static HashSet<string> plantsWithNoTechtype = new HashSet<string> { "Coral_reef_small_deco_03(Clone)", "Coral_reef_small_deco_05(Clone)", "Coral_reef_small_deco_08(Clone)" };
-        static HashSet<TechType> techTypesToMakeUnmovable = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleBrainCoral, TechType.HangingFruitTree, TechType.CrashHome, TechType.SpikePlant };
+        static HashSet<TechType> techTypesToMakeUnmovable = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleBrainCoral, TechType.HangingFruitTree, TechType.CrashHome, TechType.SpikePlant, TechType.HangingStinger };
         static HashSet<TechType> techTypesToRemoveWavingShader = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleVasePlant, TechType.OrangePetalsPlant, TechType.PinkMushroom, TechType.PurpleRattle, TechType.PinkFlower };
         static HashSet<TechType> techTypesToAddFruits = new HashSet<TechType> { TechType.BloodRoot, TechType.BloodVine, TechType.Creepvine };
         public static GameObject droppedObject;
@@ -68,19 +68,6 @@ namespace Tweaks_Fixes
             vFXSurface.surfaceType = type;
         }
 
-        private static void RemoveLivemixin(GameObject go)
-        {
-            LiveMixin lm = go.GetComponent<LiveMixin>();
-            if (lm)
-                UnityEngine.Object.Destroy(lm);
-        }
-
-        private static void RemoveLivemixin(Component component)
-        {
-            LiveMixin lm = component.GetComponent<LiveMixin>();
-            if (lm)
-                UnityEngine.Object.Destroy(lm);
-        }
 
         public static void DisableWavingShader(Component component)
         {
@@ -160,6 +147,8 @@ namespace Tweaks_Fixes
             Main.logger.LogMessage("Test end !!! ");
         }
 
+        static public HashSet<TechType> decoPlants = new HashSet<TechType>();
+        static public Dictionary<string, TechType> decoPlantsDic = new Dictionary<string, TechType>();
         [HarmonyPatch(typeof(LargeWorldEntity))]
         class LargeWorldEntity_Awake_Patch
         {
@@ -171,11 +160,16 @@ namespace Tweaks_Fixes
                 //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
                 //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                //if (Util.IsDecoPlant(__instance.gameObject))
+                //{
+                //    decoPlantsDic[__instance.name] = tt;
+                //}
                 if (ConfigMenu.fruitGrowTime.Value > 0 && techTypesToAddFruits.Contains(tt))
                 {
                     Util.EnsureFruits(__instance.gameObject);
+                    //fff.Add(__instance.gameObject);
                 }
-                else if (drillables.Contains(tt))
+                if (drillables.Contains(tt))
                 {
                     if (Util.IsGraphicsPresetHighDetail())
                         SetCellLevel(__instance, LargeWorldEntity.CellLevel.Medium);
@@ -231,7 +225,9 @@ namespace Tweaks_Fixes
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
                 else if (tt == TechType.BloodVine)
                 {
-                    RemoveLivemixin(__instance);
+                    LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                    if (lm)
+                        UnityEngine.Object.Destroy(lm);
                 }
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
@@ -274,6 +270,14 @@ namespace Tweaks_Fixes
                 else if (tt == TechType.FarmingTray && __instance.name == "Base_exterior_Planter_Tray_01_abandoned(Clone)")
                 {
                     MakeUnmovable(__instance.gameObject);
+                }
+                else if (tt == TechType.PurpleVegetablePlant)
+                {
+                    PickPrefab pickPrefab = __instance.GetComponent<PickPrefab>();
+                    if (pickPrefab)
+                    { //this is not used and my prop cannon will destroy the plant when grabbing this
+                        UnityEngine.Object.Destroy(pickPrefab);
+                    }
                 }
                 else if (tt == TechType.None)
                 {

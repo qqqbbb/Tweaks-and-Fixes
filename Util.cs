@@ -125,6 +125,25 @@ namespace Tweaks_Fixes
             return !cantEat;
         }
 
+        public static bool IsDecoPlant(GameObject go)
+        {
+            if (go.GetComponent<Creature>())
+                return false;
+
+            if (go.GetComponent<Pickupable>())
+                return false;
+
+            if (go.GetComponent<SpawnOnKill>())
+                return false;
+
+            if (go.GetComponent<FruitPlant>())
+                return false;
+
+            if (!go.GetComponent<Rigidbody>())
+                return false;
+
+            return go.GetComponent<LiveMixin>();
+        }
 
         public static void FreezeObject(GameObject go, bool state)
         {
@@ -328,15 +347,16 @@ namespace Tweaks_Fixes
 
         public static void EnsureFruits(GameObject go)
         {
+            //AddDebug("EnsureFruits " + go.name);
             PickPrefab[] pickPrefabs = go.GetComponentsInChildren<PickPrefab>(true);
             if (pickPrefabs.Length == 0)
                 return;
-
+            //AddDebug("EnsureFruits !!! " + go.name);
             FruitPlant fp = go.EnsureComponent<FruitPlant>();
             fp.fruitSpawnEnabled = true;
             //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
             // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-            fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
+            fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.kDayLengthSeconds;
             //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
             if (fp.fruitSpawnInterval == 0f)
                 fp.fruitSpawnInterval = 1f;

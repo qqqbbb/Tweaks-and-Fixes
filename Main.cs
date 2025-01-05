@@ -19,6 +19,7 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -28,7 +29,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.16.0";
+            VERSION = "3.17.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -46,7 +47,6 @@ namespace Tweaks_Fixes
         public static bool cyclopsOverheatLoaded;
         static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
-        public const float dayLengthSeconds = 1200f;
         public static ConfigMain configMain = new ConfigMain();
         internal static OptionsMenu options;
         public static ConfigFile configMenu;
@@ -133,6 +133,7 @@ namespace Tweaks_Fixes
                 {
                     Util.SetBloodColor(go);
                 }
+
             }
         }
 

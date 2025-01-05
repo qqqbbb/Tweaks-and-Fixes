@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using static uGUI_ResourceTracker;
 
 namespace Tweaks_Fixes
 {
@@ -113,6 +112,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> removeUnstuckButton;
         public static ConfigEntry<bool> removeFeedbackButton;
         public static ConfigEntry<bool> enableDevButton;
+        public static ConfigEntry<bool> propCannonGrabsDecoPlants;
         public static ConfigEntry<bool> disableIonCubeFabricator;
 
 
@@ -221,6 +221,7 @@ namespace Tweaks_Fixes
             removeUnstuckButton = Main.configToEdit.Bind("", "Remove unstuck button from pause menu", false);
             removeFeedbackButton = Main.configToEdit.Bind("", "Remove feedback button from pause menu", false);
             enableDevButton = Main.configToEdit.Bind("", "Enable developer button in pause menu", false);
+            propCannonGrabsDecoPlants = Main.configToEdit.Bind("", "Propulsion cannon can grab every plant", true, "Propulsion cannon will not grab plants you can not eat or use in crafting if this is false");
 
 
 

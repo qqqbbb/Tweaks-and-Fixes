@@ -118,7 +118,7 @@ namespace Tweaks_Fixes
             cantEatUnderwater = Main.configMenu.Bind("", "Can not eat underwater", false, "You will not be able to eat or drink when swimming underwater if this is on.");
             cantUseMedkitUnderwater = Main.configMenu.Bind("", "Can not use first aid kit underwater", false, "You will not be able to use first aid kit when swimming underwater if this is on.");
             foodDecayRateMult = Main.configMenu.Bind("", "Food decay rate multiplier", 1f, "Food decay rate will be multiplied by this. You have to reload the game after changing this.");
-            fruitGrowTime = Main.configMenu.Bind("", "Fruit growth time", 0, "Time in days it takes a lantern tree fruit, creepvine seeds, blood oil to grow. Vanilla values will be used if this is 0. You have to reload your game after changing this.");
+            fruitGrowTime = Main.configMenu.Bind("", "Fruit growth time", 0, "Time in days it takes a lantern tree fruit, creepvine seeds, blood oil to grow. Vanilla values will be used if this is 0: fruits from wild plants will never grow back after ypu pick them, fruits from your plants will grow in less than a day. You have to reload your game after changing this.");
             fishSpeedMult = Main.configMenu.Bind("", "Catchable fish speed multiplier", 1f, "Swimming speed of fish that you can catch will be multiplied by this.");
             creatureSpeedMult = Main.configMenu.Bind("", "Creature speed multiplier", 1f, "Swimming speed of creatures that you can not catch will be multiplied by this.");
             CreatureFleeChance = Main.configMenu.Bind("", "Creature flee chance percent", 100, "Creature's flee chance percent when it is under attack and its flee damage threshold is reached.");

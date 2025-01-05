@@ -62,7 +62,7 @@ namespace Tweaks_Fixes
                 {
                     __instance.fruitSpawnEnabled = true;
                     // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-                    __instance.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
+                    __instance.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.kDayLengthSeconds;
                 }
             }
             [HarmonyPrefix]

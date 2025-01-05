@@ -598,7 +598,7 @@ namespace Tweaks_Fixes
                 }
             }
             [HarmonyPostfix, HarmonyPatch("Restore")]
-            static void Restoreostfix(Drillable __instance)
+            static void RestorePostfix(Drillable __instance)
             {
                 for (int index = 0; index < __instance.health.Length; ++index)
                 {

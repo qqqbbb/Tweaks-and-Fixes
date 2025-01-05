@@ -82,21 +82,16 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(Player))]
         class Player_Patch
-        { // vanilla script returns wrong value at depth 200-100
-            [HarmonyPrefix, HarmonyPatch("GetOxygenPerBreath")]
-            static bool GetOxygenPerBreathPrefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
-            {
-                __result = 1f;
-                if (Inventory.main.equipment.GetCount(TechType.Rebreather) == 0 && __instance.mode != Player.Mode.Piloting && __instance.mode != Player.Mode.LockedPiloting)
-                {
-                    if (GameModeUtils.RequiresOxygen())
-                        __result = ConfigMenu.oxygenPerBreath.Value;
-                    else
-                        __result = 0;
-                }
+        {
+            [HarmonyPostfix, HarmonyPatch("GetOxygenPerBreath")]
+            static void GetOxygenPerBreathPostfix(Player __instance, ref float __result, float breathingInterval, int depthClass)
+            {// vanilla script returns wrong value at depth 200-100
+                __result = 0f;
+                if (GameModeUtils.RequiresOxygen())
+                    __result = ConfigMenu.oxygenPerBreath.Value;
                 //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
                 //AddDebug("GetOxygenPerBreath  " + __result);
-                return false;
+                //return false;
             }
             [HarmonyPrefix]
             [HarmonyPatch("GetBreathPeriod")]

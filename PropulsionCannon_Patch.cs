@@ -27,6 +27,16 @@ namespace Tweaks_Fixes
             resource.BreakIntoResources();
         }
 
+        private static IEnumerator AddToInventoryRoutine(PickPrefab pickPrefab)
+        {
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.AddToInventoryAsync(pickPrefab.pickTech, (IOut<GameObject>)result, spawnIfCantAdd: false);
+            if (result.Get())
+                pickPrefab.SetPickedUp();
+
+            pickPrefab.isAddingToInventory = false;
+        }
+
         private static IEnumerator SpawnFruitAsync(PickPrefab pickPrefab, PropulsionCannon cannon)
         {
             if (!pickPrefab.gameObject.activeInHierarchy || pickPrefab.isAddingToInventory)
@@ -39,8 +49,15 @@ namespace Tweaks_Fixes
             GameObject fruit = result.Get();
             if (fruit)
             {
-                fruit.transform.position = pickPrefab.transform.position;
-                //AddDebug("spawned fruit from pickPrefab " + fruit.transform.position);
+                //AddDebug("SpawnFruitAsync fruit");
+                if (pickPrefab.pickTech == TechType.CreepvineSeedCluster)
+                { // they spawn close to ground, some below ground
+                    fruit.transform.position = new Vector3(pickPrefab.transform.position.x, cannon.transform.position.y, pickPrefab.transform.position.z);
+                }
+                else
+                    fruit.transform.position = pickPrefab.transform.position;
+
+                //AddDebug("spawned fruit " + pickPrefab.pickTech);
                 pickPrefab.SetPickedUp();
                 spawningFruit = false;
                 cannon.GrabObject(fruit);
@@ -63,6 +80,7 @@ namespace Tweaks_Fixes
 
         private static PickPrefab GetFruit(FruitPlant fruitPlant)
         {
+            //AddDebug("GetFruit " + fruitPlant.fruits.Length);
             foreach (PickPrefab pickPrefab in fruitPlant.fruits)
             {
                 if (!pickPrefab.pickedState)
@@ -215,11 +233,9 @@ namespace Tweaks_Fixes
                 Targeting.GetTarget(Player.main.gameObject, __instance.pickupDistance, out GameObject target, out float targetDist);
                 //RaycastHit hitInfo = new RaycastHit();
                 //bool gotTarget = Util.GetPlayerTarget(__instance.pickupDistance, out hitInfo);
-                //AddDebug("TraceForGrabTarget gotTarget " + gotTarget);
+                //AddDebug("TraceForGrabTarget  " + target.name);
                 if (!target)
-                {
                     return;
-                }
                 //Transform parent = target.transform.parent;
                 //AddDebug("TraceForGrabTarget GetTarget " + target.name);
                 Transform parent = target.transform.parent;
@@ -236,28 +252,30 @@ namespace Tweaks_Fixes
                     return;
                 }
                 //AddDebug("TraceForGrabTargetPostfix target " + go.name);
-
                 FruitPlant fruitPlant = go.GetComponent<FruitPlant>();
                 //if (fruitPlant != null)
                 //    AddDebug("TraceForGrabTargetPostfix fruitPlant ");
 
                 PickPrefab pickPrefab = go.GetComponent<PickPrefab>();
+
                 if (pickPrefab)
                 {
-                    //AddDebug("TraceForGrabTargetPostfix PickPrefab");
+                    //AddDebug("TraceForGrabTargetPostfix PickPrefab " + pickPrefab.pickTech);
                     fruitToPickUp = pickPrefab;
                     __result = go;
                     //UWE.CoroutineHost.StartCoroutine(SpawnFruitAsync(pickPrefab));
                 }
                 else if (fruitPlant)
                 {
-                    //AddDebug("TraceForGrabTargetPostfix fruitPlant");
+                    //AddDebug("TraceForGrabTargetPostfix fruitPlant " + go.name);
                     fruitToPickUp = GetFruit(fruitPlant);
                     __result = fruitToPickUp ? fruitToPickUp.gameObject : null;
                 }
                 else
+                {
                     fruitToPickUp = null;
-
+                    //AddDebug("TraceForGrabTargetPostfix no fruitPlant no pickPrefab");
+                }
                 targetObject = __result;
             }
 
@@ -297,8 +315,10 @@ namespace Tweaks_Fixes
 
                 if (fruitToPickUp)
                 {
-                    //AddDebug("StartCoroutine SpawnFruitAsync ");
+                    //AddDebug("SpawnFruitAsync position " + (int)fruitToPickUp.transform.position.y);
+                    //AddDebug("player pos  " + (int)Player.main.transform.position.y);
                     UWE.CoroutineHost.StartCoroutine(SpawnFruitAsync(fruitToPickUp, __instance));
+                    //UWE.CoroutineHost.StartCoroutine(AddToInventoryRoutine(fruitToPickUp));
                     fruitToPickUp = null;
                     return false;
                 }

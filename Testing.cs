@@ -172,6 +172,14 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(Player), "GetOxygenPerBreath")]
+        class PickPrefab_SetPickedState_Patch
+        {
+            static void Postfix(Player __instance, float __result)
+            {
+                AddDebug("GetOxygenPerBreath " + __result);
+            }
+        }
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -199,13 +207,11 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    foreach (var pair in Crush_Damage_.crushDepthEquipment)
+                    AddDebug("decoPlants " + LargeWorldEntity_Patch.decoPlantsDic.Count);
+                    foreach (var kv in LargeWorldEntity_Patch.decoPlantsDic)
                     {
-                        AddDebug("crushDepthEquipment " + pair.Key);
-                    }
-                    foreach (var pair in Crush_Damage_.crushDamageEquipment)
-                    {
-                        AddDebug("crushDamageEquipment " + pair.Key);
+                        //AddDebug("decoPlant " + tt);
+                        Main.logger.LogMessage("decoPlant " + kv.Key + " " + kv.Value);
                     }
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
@@ -224,7 +230,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    //AddDebug("techTypesToDespawn Count " + LargeWorldEntity_Patch.techTypesToDespawn.Count());
+
                     //AddDebug("RightHand " + GameInput.GetBinding(GameInput.Device.Controller, GameInput.Button.RightHand, GameInput.BindingSet.Primary));
                     //AddDebug("LeftHand " + GameInput.GetBinding(GameInput.Device.Controller, GameInput.Button.RightHand, GameInput.BindingSet.Primary));
                     //AddDebug("ControllerLeftTrigger index " + GameInput.GetInputIndex("ControllerLeftTrigger")); // 179
@@ -338,13 +344,14 @@ namespace Tweaks_Fixes
                 //AddDebug("PDAScanner isValid " + PDAScanner.scanTarget.isValid);
                 //AddDebug("PDAScanner CanScan " + PDAScanner.CanScan());
                 //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
-                AddDebug(" cellLevel " + lwe.cellLevel);
+                //AddDebug(" cellLevel " + lwe.cellLevel);
                 //AddDebug("vfxSurfaceType  " + vfxSurfaceType);
                 //LiveMixin lm = lwe.GetComponent<LiveMixin>();
                 //if (lm)
                 //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
             }
-            AddDebug(target.gameObject.name);
+            //AddDebug(target.name);
+            AddDebug(target.name + " IsDecoPlant " + Util.IsDecoPlant(target));
             //if (target.transform.parent)
             //    AddDebug(target.transform.parent.name);
 
@@ -352,6 +359,17 @@ namespace Tweaks_Fixes
             //if (target.transform.parent.parent)
             //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);
             TechType techType = CraftData.GetTechType(target);
+            FruitPlant fruitPlant = target.GetComponent<FruitPlant>();
+            if (fruitPlant != null)
+            {
+                if (!fruitPlant.fruitSpawnEnabled)
+                    AddDebug("fruitPlant fruit Spawn disabled ");
+
+                AddDebug("fruitPlant SpawnInterval " + fruitPlant.fruitSpawnInterval);
+                PickPrefab[] pickPrefabs = target.GetComponentsInChildren<PickPrefab>(true);
+                AddDebug("fruitPlant pickPrefabs " + pickPrefabs.Length);
+
+            }
             if (techType != TechType.None)
                 AddDebug("TechType  " + techType);
 
