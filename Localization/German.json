@@ -1,6 +1,6 @@
-{
+ï»¿{
   "TF_toggle_base_lights": "Lichter umschalten",
-  "TF_crush_depth_equipment": "Erhöht deine sichere Tauchtiefe um ",
+  "TF_crush_depth_equipment": "ErhÑ†ht deine sichere Tauchtiefe um ",
   "TF_crush_damage_equipment": "Verringert deinen Druckschaden um ",
   "TF_meters": " Meter.",
   "TF_mass": "Masse ",
@@ -10,16 +10,17 @@
   "TF_light_flare": "Licht",
   "TF_burnt_out_flare": "Ausgebrannt ",
   "TF_lit_flare": "Lit ",
-  "TF_push_seamoth": "Drücken ",
-  "TF_need_knife_to_break_outcrop": "Benötigt ein Messer, um es zu brechen",
-  "TF_need_knife_to_break_free_resource": "Benötigt ein Messer, um es zu befreien",
-  "TF_seamoth_defence_press": ". Drücken und halten ",
+  "TF_push_seamoth": "DrÑŒcken ",
+  "TF_need_knife_to_break_outcrop": "BenÑ†tigt ein Messer, um es zu brechen",
+  "TF_need_knife_to_break_free_resource": "BenÑ†tigt ein Messer, um es zu befreien",
+  "TF_seamoth_defence_press": ". DrÑŒcken und halten ",
   "TF_seamoth_defence_charge": " zum Aufladen des Schusses",
-  "TF_change_torpedo": " Torpedotyp ändern ",
+  "TF_change_torpedo": " Torpedotyp Ð´ndern ",
   "TF_swivel_chair_left": "Schwenken links",
   "TF_swivel_chair_right": "Schwenken rechts",
   "TF_bladderfish_tooltip": " Liefert bei Rohverzehr etwas Sauerstoff.",
   "TF_propulsion_cannon_release": "Release ",
-  "TF_VehicleArmorPlating_install_message": "Der physische Schaden wird auf 70 % reduziert."
+  "TF_VehicleArmorPlating_install_message": "Der physische Schaden wird auf 70 % reduziert.",
+  "TF_too_much_weight_message": "Du trÃ¤gst zu viel Gewicht"
 											 
 }

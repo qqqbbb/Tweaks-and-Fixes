@@ -264,10 +264,16 @@ namespace Tweaks_Fixes
                 if (droppedInBase.ContainsKey(__instance.gameObject) || droppedInEscapePod.ContainsKey(__instance.gameObject))
                     return;
 
+                if (__instance.GetComponentInParent<WaterPark>())
+                {
+                    //AddDebug(__instance.name + " Pickupable Awake WaterPark");
+                    return;
+                }
                 SubRoot subRoot = __instance.GetComponentInParent<SubRoot>();
                 PlaceTool placeTool = __instance.GetComponent<PlaceTool>();
                 if (subRoot)
                 {
+                    //AddDebug(__instance.name + " Pickupable Awake subRoot");
                     if (subRoot.isBase && placeTool == null)
                     {
                         //AddDebug(__instance.name + " Pickupable Awake in base ");
@@ -293,7 +299,7 @@ namespace Tweaks_Fixes
 
             [HarmonyPrefix]
             [HarmonyPatch("Unplace")]
-            static bool UnplacePostfix(Pickupable __instance)
+            static bool UnplacePrefix(Pickupable __instance)
             {
                 if (!ConfigToEdit.dropItemsAnywhere.Value)
                     return true;
@@ -308,7 +314,7 @@ namespace Tweaks_Fixes
 
             [HarmonyPrefix]
             [HarmonyPatch("Place")]
-            static bool PlacePostfix(Pickupable __instance)
+            static bool PlacePrefix(Pickupable __instance)
             {
                 if (!ConfigToEdit.dropItemsAnywhere.Value)
                     return true;
@@ -344,6 +350,11 @@ namespace Tweaks_Fixes
                 if (!ConfigToEdit.dropItemsAnywhere.Value)
                     return true;
 
+                if (Player.main.currentWaterPark)
+                {
+                    //AddDebug("Dropped in waterpark ");
+                    return true;
+                }
                 PlaceTool placeTool = __instance.GetComponent<PlaceTool>();
                 if (placeTool && Player.main.currentEscapePod == null)
                     return true;
@@ -635,7 +646,7 @@ namespace Tweaks_Fixes
                 LargeWorldEntity lwe = __instance.GetComponent<LargeWorldEntity>();
                 bool lwe_ = lwe && lwe.isActiveAndEnabled;
                 string parent = __instance.transform.parent == null ? "null" : __instance.transform.parent.name;
-                AddDebug(__instance.name + " _isInSub " + __instance._isInSub + " LargeWorldEntity " + lwe_ + " parent " + parent + " droppedInBase " + droppedInBase.ContainsKey(__instance.gameObject));
+                //AddDebug(__instance.name + " _isInSub " + __instance._isInSub + " LargeWorldEntity " + lwe_ + " parent " + parent + " droppedInBase " + droppedInBase.ContainsKey(__instance.gameObject));
             }
         }
 

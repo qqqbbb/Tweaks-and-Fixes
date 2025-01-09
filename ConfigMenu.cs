@@ -19,7 +19,10 @@ namespace Tweaks_Fixes
         public static ConfigEntry<KeyCode> nextPDATabKey;
         public static ConfigEntry<KeyCode> previousPDATabKey;
         public static ConfigEntry<float> timeFlowSpeed;
-        public static ConfigEntry<float> playerSpeedMult;
+        public static ConfigEntry<float> playerWaterSpeedMult;
+        public static ConfigEntry<float> playerGroundSpeedMult;
+
+        public static ConfigEntry<float> seaglideSpeedMult;
         public static ConfigEntry<float> playerDamageMult;
         public static ConfigEntry<float> vehicleDamageMult;
         public static ConfigEntry<float> aggrMult;
@@ -32,7 +35,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> medKitHP;
         public static ConfigEntry<float> craftTimeMult;
         public static ConfigEntry<float> buildTimeMult;
-        public static ConfigEntry<bool> playerMoveTweaks;
         public static ConfigEntry<bool> seamothMoveTweaks;
         public static ConfigEntry<bool> exosuitMoveTweaks;
         public static ConfigEntry<bool> cyclopsMoveTweaks;
@@ -74,7 +76,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> drillDamageMult;
         public static ConfigEntry<float> crushDamageProgression;
 
-
         public static void Bind()
         {  // “ ” ‛
             transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
@@ -85,7 +86,8 @@ namespace Tweaks_Fixes
             nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab.");
 
             timeFlowSpeed = Main.configMenu.Bind("", "Time flow speed multiplier", 1f, "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time.");
-            playerSpeedMult = Main.configMenu.Bind("", "Player speed multiplier", 1f, "Your swimming, walking and running speed will be multiplied by this.");
+            playerWaterSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier in water", 1f);
+            playerGroundSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier on ground", 1f);
             playerDamageMult = Main.configMenu.Bind("", "Player damage multiplier", 1f, "Amount of damage player takes will be multiplied by this.");
             vehicleDamageMult = Main.configMenu.Bind("", "Vehicle damage multiplier", 1f, "Amount of damage your vehicles take will be multiplied by this.");
             aggrMult = Main.configMenu.Bind("", "Predator aggression multiplier", 1f, "The higher it is the more aggressive predators are towards you. When it is 0, you and your vehicles will never be attacked. When it's more than 1 predators attack you from greater distance and more often.");
@@ -100,7 +102,7 @@ namespace Tweaks_Fixes
             medKitHP = Main.configMenu.Bind("", "First aid kit HP", 50, "HP restored when using first aid kit.");
             craftTimeMult = Main.configMenu.Bind("", "Crafting time multiplier", 1f, "Crafting time will be multiplied by this when crafting things with fabricator or modification station.");
             buildTimeMult = Main.configMenu.Bind("", "Building time multiplier", 1f, "Building time will be multiplied by this when using builder tool.");
-            playerMoveTweaks = Main.configMenu.Bind("", "Player movement tweaks", false, "Player swimming speed is reduced to 70%. Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 5% on land and in water. Fins reduce your speed by 10% on land. Lightweight high capacity tank reduces your speed by 5% on land. Every other tank reduces your speed by 10% on land and by 5% in water. No speed reduction when near wrecks. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%. Game has to be reloaded after changing this.");
+            seaglideSpeedMult = Main.configMenu.Bind("Player movement", "Seaglide speed multiplier", 1f, "");
             seamothMoveTweaks = Main.configMenu.Bind("", "Seamoth movement tweaks", false, "Seamoth does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and sideways speed is halved. Its backward speed is reduced to 25%. Game has to be reloaded after changing this.");
             exosuitMoveTweaks = Main.configMenu.Bind("", "Prawn suit movement tweaks", false, "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power than walking. Game has to be reloaded after changing this.");
             cyclopsMoveTweaks = Main.configMenu.Bind("", "Cyclops movement tweaks", false, "Cyclops does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and backward speed is halved.");

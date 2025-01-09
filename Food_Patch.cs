@@ -176,14 +176,14 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                int rndFood = Main.rndm.Next(minFood, maxFood);
+                int rndFood = Main.random.Next(minFood, maxFood);
                 float finalFood = Mathf.Min(food, rndFood);
                 if (ConfigMenu.newHungerSystem.Value && __instance.food > 100f && finalFood > 0)
                 {
                     float mult = (playerMaxFood - __instance.food) * .01f;
                     finalFood *= mult;
                 }
-                int rndWater = Main.rndm.Next(minWater, maxWater);
+                int rndWater = Main.random.Next(minWater, maxWater);
                 float finalWater = Mathf.Min(water, rndWater);
                 if (ConfigMenu.newHungerSystem.Value && __instance.water > 100f && finalWater > 0)
                 {

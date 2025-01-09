@@ -20,6 +20,8 @@
   "TF_swivel_chair_right": "Swivel right",
   "TF_bladderfish_tooltip": " Provides some oxygen when consumed raw.",
   "TF_propulsion_cannon_release": "Release ",
-  "TF_VehicleArmorPlating_install_message": "Physical damage will be reduced to 70%"
+  "TF_VehicleArmorPlating_install_message": "Physical damage will be reduced to 70%",
+  "TF_too_much_weight_message": "You are carrying too much weight."
 
+  
 }

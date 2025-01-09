@@ -19,7 +19,6 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -29,11 +28,11 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.17.0";
+            VERSION = "3.18.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
-        public static System.Random rndm = new System.Random();
+        public static System.Random random = new System.Random();
         public static bool advancedInventoryLoaded;
         public static bool flareRepairLoaded;
         public static bool cyclopsDockingLoaded;
@@ -118,15 +117,18 @@ namespace Tweaks_Fixes
             CreatureDeath_Patch.TryRemoveCorpses();
             Escape_Pod_Patch.EscapePodInit();
             Drop_items_anywhere.OnGameLoadingFinished();
+            Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
 
             gameLoaded = true;
         }
 
         private static void IteratePrefabs()
         {
-            if (ConfigToEdit.bloodColor.Value.x == 0.784f && ConfigToEdit.bloodColor.Value.y == 1f && ConfigToEdit.bloodColor.Value.z == 0.157f)
+            if (ConfigToEdit.bloodColor.Value == "0.784 1 0.157")
+            {
+                //logger.LogDebug("bloodColor is default ");
                 return;
-
+            }
             foreach (GameObject go in Util.FindAllRootGameObjects())
             {
                 if (go.name == "xKnifeHit_Organic" || go.name == "GenericCreatureHit" || go.name == "xExoDrill_Organic")
@@ -217,7 +219,6 @@ namespace Tweaks_Fixes
         }
 
 
-
         static void SaveData()
         {
             configMain.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
@@ -255,7 +256,7 @@ namespace Tweaks_Fixes
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             LanguageHandler.RegisterLocalizationFolder();
             GetLoadedMods();
-            ConfigToEdit.ParseFromConfig();
+            ConfigToEdit.ParseConfig();
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
             AddTechTypesToClassIDtable();

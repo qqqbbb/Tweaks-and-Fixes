@@ -20,6 +20,7 @@
   "TF_swivel_chair_right": "Pivoter \u00e0 droite",
   "TF_bladderfish_tooltip": " Fournit un peu d\u2019oxyg\u00e8ne lorsqu\u2019il est consomm\u00e9 cru.",
   "TF_propulsion_cannon_release": "Lib\u00e9rer ",
-  "TF_VehicleArmorPlating_install_message": "Les d\u00e9g\u00e2ts physiques sont r\u00e9duits \u00e0 70%."
+  "TF_VehicleArmorPlating_install_message": "Les d\u00e9g\u00e2ts physiques sont r\u00e9duits \u00e0 70%.",
+    "TF_over_encumbered_message": "Vous portez trop de poids."
 
 }

@@ -112,6 +112,7 @@
     <Compile Include="PropulsionCannon_Patch.cs" />
     <Compile Include="Cutefish_Patch.cs" />
     <Compile Include="Constructor_Patch.cs" />
+    <Compile Include="SeaTreader_Patch.cs" />
     <Compile Include="Start_Warning_Patch.cs" />
     <Compile Include="ConfigToEdit.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />

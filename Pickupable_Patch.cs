@@ -70,6 +70,9 @@ namespace Tweaks_Fixes
                 if (!hand.IsFreeToInteract())
                     return;
 
+                //if (!__instance.AllowedToPickUp())
+                //    return;
+
                 TechType techType = __instance.GetTechType();
                 if (techType == TechType.Beacon)
                 {
@@ -86,84 +89,25 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnHandHover")]
+
+            [HarmonyPrefix, HarmonyPatch("OnHandHover")]
             public static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)
             {
                 if (!hand.IsFreeToInteract())
                     return false;
 
-                TechType techType = __instance.GetTechType();
-                HandReticle handReticle = HandReticle.main;
-                //AddDebug("Pickupable OnHandHover " + techType);
-                //return false;
-                if (__instance.AllowedToPickUp())
+                //if (!__instance.AllowedToPickUp())
+                //    return false;
+
+                Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
+                if (exosuit)
                 {
-                    string text1 = string.Empty;
-                    string text2 = string.Empty;
-                    Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
-                    bool canPickUp = exosuit == null || exosuit.HasClaw();
-                    if (canPickUp)
-                    {
-                        //AddDebug("canPickUp");
-                        ISecondaryTooltip component = __instance.gameObject.GetComponent<ISecondaryTooltip>();
-                        if (component != null)
-                            text2 = component.GetSecondaryTooltip();
+                    bool hasClawArm = exosuit.leftArmType == TechType.ExosuitClawArmModule || exosuit.rightArmType == TechType.ExosuitClawArmModule;
 
-                        text1 = __instance.usePackUpIcon ? LanguageCache.GetPackUpText(techType) : LanguageCache.GetPickupText(techType);
-                        //AddDebug("text2 " + text2);
-                        handReticle.SetIcon(__instance.usePackUpIcon ? HandReticle.IconType.PackUp : HandReticle.IconType.Hand);
-                    }
-                    if (exosuit)
-                    {
-                        //AddDebug("exosuit");
-                        GameInput.Button button = canPickUp ? GameInput.Button.LeftHand : GameInput.Button.None;
-                        if (exosuit.leftArmType != TechType.ExosuitClawArmModule)
-                            button = GameInput.Button.RightHand;
-
-                        HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, button);
-                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
-                    }
-                    else
-                    {
-                        if (techType == TechType.Beacon)
-                        {
-                            //AddDebug("Beacon ");
-                            BeaconLabel beaconLabel = __instance.GetComponentInChildren<BeaconLabel>();
-                            if (beaconLabel)
-                            {
-                                if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                                    uGUI.main.userInput.RequestString(beaconLabel.stringBeaconLabel, beaconLabel.stringBeaconSubmit, beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beaconLabel.SetLabel));
-                                text2 = beaconLabel.labelName;
-                            }
-                            text1 = "(" + UI_Patches.leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
-                            StringBuilder stringBuilder = new StringBuilder(text1);
-                            stringBuilder.Append(UI_Patches.beaconPickString);
-
-                            HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), false, GameInput.Button.LeftHand);
-                            HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
-
-                            //handReticle.SetInteractTextRaw(stringBuilder.ToString(), text2);
-                        }
-                        else
-                        {
-                            HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, GameInput.Button.LeftHand);
-                            HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
-                        }
-                    }
+                    if (!hasClawArm)
+                        return false;
                 }
-                else if (__instance.isPickupable && !Player.main.HasInventoryRoom(__instance))
-                {
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
-                    HandReticle.main.SetText(HandReticle.TextType.HandSubscript, "InventoryFull", true);
-                }
-                else
-                {
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
-                    HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
-                }
-
-                return false;
+                return true;
             }
         }
 

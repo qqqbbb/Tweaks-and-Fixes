@@ -875,6 +875,22 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(HandReticle), "SetText")]
+        class HandReticle_SetText_Patch
+        {
+            static bool Prefix(HandReticle __instance, HandReticle.TextType type, string text, GameInput.Button button)
+            {
+                //HandReticle.main.SetText(HandReticle.TextType.Hand)
+                //return false;
+                AddDebug("SetText " + type + " text " + text + " button " + button);
+                //if (ConfigToEdit.disableUseText.Value && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
+                //{
+                //    return false;
+                //}
+                return true;
+            }
+        }
+
         [HarmonyPatch(typeof(HandReticle), "SetTextRaw")]
         class HandReticle_SetTextRaw_Patch
         {

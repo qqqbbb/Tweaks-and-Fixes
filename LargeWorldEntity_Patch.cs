@@ -160,10 +160,17 @@ namespace Tweaks_Fixes
                 //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
                 //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
-                //if (Util.IsDecoPlant(__instance.gameObject))
-                //{
-                //    decoPlantsDic[__instance.name] = tt;
-                //}
+                if (!ConfigToEdit.propCannonGrabsAnyPlant.Value)
+                {
+                    if (tt != TechType.Creepvine && tt != TechType.Cyclops && tt != TechType.BigCoralTubes && tt != TechType.None && tt != TechType.BloodVine)
+                    {
+                        if (Util.IsDecoPlant(__instance.gameObject))
+                        {
+                            //decoPlantsDic[__instance.name] = tt;
+                            MakeUnmovable(__instance.gameObject);
+                        }
+                    }
+                }
                 if (ConfigMenu.fruitGrowTime.Value > 0 && techTypesToAddFruits.Contains(tt))
                 {
                     Util.EnsureFruits(__instance.gameObject);
@@ -270,14 +277,6 @@ namespace Tweaks_Fixes
                 else if (tt == TechType.FarmingTray && __instance.name == "Base_exterior_Planter_Tray_01_abandoned(Clone)")
                 {
                     MakeUnmovable(__instance.gameObject);
-                }
-                else if (tt == TechType.PurpleVegetablePlant)
-                {
-                    PickPrefab pickPrefab = __instance.GetComponent<PickPrefab>();
-                    if (pickPrefab)
-                    { //this is not used and my prop cannon will destroy the plant when grabbing this
-                        UnityEngine.Object.Destroy(pickPrefab);
-                    }
                 }
                 else if (tt == TechType.None)
                 {

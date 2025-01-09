@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static ConditionalWeakTable<SwimBehaviour, string> reefbackSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static ConditionalWeakTable<SwimBehaviour, string> gasopodSBs = new ConditionalWeakTable<SwimBehaviour, string>();
-
+        public static Vector3 bloodColor;
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Patch
@@ -35,7 +35,7 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.creatureFleeChanceBasedOnHealth.Value && liveMixin && liveMixin.IsAlive())
                 {
                     int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
-                    int rnd1 = Main.rndm.Next(0, maxHealth + 1);
+                    int rnd1 = Main.random.Next(0, maxHealth + 1);
                     int health = Mathf.RoundToInt(liveMixin.health);
                     //if (__instance.gameObject == Testing.goToTest)
                     //AddDebug(__instance.name + " max Health " + maxHealth + " Health " + health);
@@ -59,7 +59,7 @@ namespace Tweaks_Fixes
                     if (ConfigMenu.creatureFleeUseDamageThreshold.Value && __instance.accumulatedDamage <= __instance.damageThreshold)
                         return false;
 
-                    int rnd = Main.rndm.Next(1, 101);
+                    int rnd = Main.random.Next(1, 101);
                     if (ConfigMenu.CreatureFleeChance.Value >= rnd)
                         doFlee = true;
                 }
@@ -209,47 +209,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SeaTreaderSounds))]
-        class SeaTreaderSounds_patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("OnStep")]
-            public static bool OnStepPrefix(SeaTreaderSounds __instance, Transform legTr, AnimationEvent animationEvent)
-            {
-                if (ConfigToEdit.seaTreaderOutcrop.Value == ConfigToEdit.SeaTreaderOutcrop.Vanilla)
-                    return true;
-
-                if (animationEvent.animatorClipInfo.clip == __instance.walkinAnimClip && !__instance.treader.IsWalking())
-                    return false;
-
-                if (__instance.stepEffect != null)
-                    Utils.SpawnPrefabAt(__instance.stepEffect, null, legTr.position);
-                if (__instance.stepSound != null)
-                    Utils.PlayEnvSound(__instance.stepSound, legTr.position);
-
-                return false;
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("OnStomp")]
-            public static bool OnStompPrefix(SeaTreaderSounds __instance)
-            {
-                if (ConfigToEdit.seaTreaderOutcrop.Value == ConfigToEdit.SeaTreaderOutcrop.Never)
-                {
-                    if (Time.time < __instance.lastStompAttackTime + 0.2f)
-                        return false;
-
-                    __instance.lastStompAttackTime = Time.time;
-                    if (__instance.stompEffect != null)
-                        Utils.SpawnPrefabAt(__instance.stompEffect, null, __instance.frontLeg.position);
-                    if (__instance.stompSound != null)
-                        Utils.PlayEnvSound(__instance.stompSound, __instance.frontLeg.position);
-
-                    return false;
-                }
-                return true;
-            }
-        }
 
         [HarmonyPatch(typeof(ReefbackLife), "OnEnable")]
         class ReefbackLife_OnEnable_patch
@@ -329,7 +288,7 @@ namespace Tweaks_Fixes
                     velocity *= ConfigMenu.creatureSpeedMult.Value;
                     if (gasopodSBs.TryGetValue(__instance, out string ss) && targetPosition.y > -1f)
                     {
-                        targetPosition.y = Main.rndm.Next(-11, -1);
+                        targetPosition.y = Main.random.Next(-11, -1);
                         return;
                     }
                     if (reefbackSBs.TryGetValue(__instance, out string sss) && targetPosition.y > -15f)
@@ -346,7 +305,7 @@ namespace Tweaks_Fixes
                     }
                     else if (tt == TechType.Gasopod && targetPosition.y > -1f)
                     {
-                        targetPosition.y = Main.rndm.Next(-11, -1);
+                        targetPosition.y = Main.random.Next(-11, -1);
                         //AddDebug("Gasopod Swim To " + targetPosition.y);
                         gasopodSBs.Add(__instance, "");
                     }

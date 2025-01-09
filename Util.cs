@@ -31,14 +31,12 @@ namespace Tweaks_Fixes
         public static void SetBloodColor(GameObject go)
         {
             ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
-            //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
-            //Main.Log("SetBloodColor " + go.name );
+            //Main.logger.LogMessage("SetBloodColor " + go.name + " to " + Creature_Tweaks.bloodColor);
             foreach (ParticleSystem ps in pss)
             {
-                //ps.startColor = new Color(1f, 0f, 0f);
                 ParticleSystem.MainModule psMain = ps.main;
-                //Main.Log("startColor " + psMain.startColor.color);
-                Color newColor = new Color(ConfigToEdit.bloodColor.Value.x, ConfigToEdit.bloodColor.Value.y, ConfigToEdit.bloodColor.Value.z, psMain.startColor.color.a);
+                //Main.logger.LogMessage("startColor " + psMain.startColor.color);
+                Color newColor = new Color(Creature_Tweaks.bloodColor.x, Creature_Tweaks.bloodColor.y, Creature_Tweaks.bloodColor.z, psMain.startColor.color.a);
                 psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
             }
         }
@@ -123,6 +121,42 @@ namespace Tweaks_Fixes
 
             bool cantEat = ConfigMenu.cantEatUnderwater.Value && Player.main.isUnderwater.value;
             return !cantEat;
+        }
+
+        public static bool IsEquipped(TechType tt)
+        {
+            if (tt == TechType.None)
+                return false;
+
+            foreach (var kv in Inventory.main.equipment.equipment)
+            {
+                if (kv.Value == null)
+                    continue;
+
+                if (kv.Value._techType == tt)
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool IsOneHanded(PlayerTool playerTool)
+        {
+            if (playerTool is DiveReel)
+                return true;
+
+            if (playerTool is StasisRifle)
+                return false;
+
+            if (playerTool is PlaceTool)
+                return true;
+
+            if (playerTool is FireExtinguisher)
+                return true;
+
+            if (playerTool.GetComponent<Creature>())
+                return true;
+
+            return playerTool.hasBashAnimation;
         }
 
         public static bool IsDecoPlant(GameObject go)

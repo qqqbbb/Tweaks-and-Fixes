@@ -21,6 +21,7 @@
   "TF_swivel_chair_right": "Girar a la derecha",
   "TF_bladderfish_tooltip": " Suministra algo de oxigeno cuando se consume crudo.",
   "TF_propulsion_cannon_release": "Soltar ",
-  "TF_VehicleArmorPlating_install_message": "Daño físico se reducirá al 70%"
+  "TF_VehicleArmorPlating_install_message": "Daño físico se reducirá al 70%",
+  "TF_too_much_weight_message": "Estas cargando demasiado peso"
 
 }

@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.LowLevel;
 using UWE;
 using static ErrorMessage;
 
@@ -143,27 +144,36 @@ namespace Tweaks_Fixes
             //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
         }
 
-        //[HarmonyPatch(typeof(AnteChamber))]
+        //[HarmonyPatch(typeof(SeaTreaderMeleeAttack))]
         class AnteChamber_Patch
         {
-            //[HarmonyPostfix, HarmonyPatch("Start")]
-            static void StartPostfix(AnteChamber __instance)
+            //[HarmonyPostfix, HarmonyPatch("OnAttackTriggerEnter")]
+            static void StartPostfix(SeaTreaderMeleeAttack __instance, Collider collider)
             {
-                AddDebug("AnteChamber Start");
-                if (__instance.drillable == null)
-                    AddDebug("AnteChamber Start drillable == null");
+                //AddDebug("SeaTreaderMeleeAttack OnAttackTriggerEnter " + collider.name);
+            }
+            //[HarmonyPostfix, HarmonyPatch("GetCanAttack")]
+            static void OnCrystalScanBeginPostfix(SeaTreaderMeleeAttack __instance, GameObject otherGameObject, ref bool __result)
+            {
+                if (otherGameObject != Player.mainObject)
+                    return;
 
-                //__instance.drillable.onDrilled += new Drillable.OnDrilled(this.OnDrilled);
+                if (__result)
+                {
+                    AddDebug("SeaTreaderMeleeAttack GetCanAttack Player !");
+                    return;
+                }
+                AddDebug("SeaTreaderMeleeAttack onSurface " + __instance.treader.onSurfaceTracker.onSurface);
+                //AddDebug("SeaTreaderMeleeAttack cinematicMode " + __instance.treader.cinematicMode);
+                //AddDebug("SeaTreaderMeleeAttack attackInterval " + (Time.time > __instance.lastAttackTime + __instance.attackInterval));
+                //AddDebug("SeaTreaderMeleeAttack GetCanHit " + __instance.GetCanHit(otherGameObject));
+                //AddDebug("SeaTreaderMeleeAttack frozen " + __instance.frozen);
+                //AddDebug("SeaTreaderMeleeAttack frozen " + __instance.frozen);
             }
-            [HarmonyPostfix, HarmonyPatch("OnCrystalScanBegin")]
-            static void OnCrystalScanBeginPostfix(AnteChamber __instance)
+            //[HarmonyPostfix, HarmonyPatch("IsValidSurface")]
+            static void UpdatePillarPostfix(OnSurfaceTracker __instance, Collision collisionInfo)
             {
-                AddDebug("AnteChamber OnCrystalScanBegin");
-            }
-            //[HarmonyPostfix, HarmonyPatch("UpdatePillar")]
-            static void UpdatePillarPostfix(AnteChamber __instance)
-            {
-                AddDebug("AnteChamber UpdatePillar");
+
             }
             //[HarmonyPostfix, HarmonyPatch("OnCrystalRestored")]
             static void OnCrystalRestoredPostfix(AnteChamber __instance)
@@ -172,14 +182,8 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Player), "GetOxygenPerBreath")]
-        class PickPrefab_SetPickedState_Patch
-        {
-            static void Postfix(Player __instance, float __result)
-            {
-                AddDebug("GetOxygenPerBreath " + __result);
-            }
-        }
+
+
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -207,11 +211,15 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    AddDebug("decoPlants " + LargeWorldEntity_Patch.decoPlantsDic.Count);
+                    AddDebug("bloodColor " + Creature_Tweaks.bloodColor);
+                    //PlayerTool tool = Inventory.main.GetHeldTool();
+                    //AddDebug(" IsOneHanded " + Util.IsOneHanded(tool));
+
+                    //AddDebug("decoPlants " + LargeWorldEntity_Patch.decoPlantsDic.Count);
                     foreach (var kv in LargeWorldEntity_Patch.decoPlantsDic)
                     {
                         //AddDebug("decoPlant " + tt);
-                        Main.logger.LogMessage("decoPlant " + kv.Key + " " + kv.Value);
+                        //Main.logger.LogMessage("decoPlant " + kv.Key + " " + kv.Value);
                     }
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);

@@ -261,7 +261,19 @@ namespace Tweaks_Fixes
                 if (pickPrefab)
                 {
                     //AddDebug("TraceForGrabTargetPostfix PickPrefab " + pickPrefab.pickTech);
-                    fruitToPickUp = pickPrefab;
+                    PickPrefab pp = null;
+                    if (go.name == "farming_plant_02(Clone)")
+                    { // picking PickPrefab on farmibg_plant_02 root GO destroys the plant
+                        Transform t = go.transform.Find("farming_plant_02");
+                        if (t != null)
+                            pp = t.GetComponentInChildren<PickPrefab>();
+                    }
+                    //AddDebug("TraceForGrabTargetPostfix PickPrefab");
+                    if (pp)
+                        fruitToPickUp = pp;
+                    else
+                        fruitToPickUp = pickPrefab;
+
                     __result = go;
                     //UWE.CoroutineHost.StartCoroutine(SpawnFruitAsync(pickPrefab));
                 }

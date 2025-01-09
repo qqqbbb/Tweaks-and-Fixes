@@ -450,7 +450,7 @@ namespace Tweaks_Fixes
                     {
                         if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
                         {
-                            int rnd = Main.rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
+                            int rnd = Main.random.Next(1, (int)Player.main.liveMixin.maxHealth);
                             if (rnd < damage)
                             {
                                 //AddDebug("DropHeldItem");
@@ -543,12 +543,12 @@ namespace Tweaks_Fixes
                         if (ConfigToEdit.shroomDamageChance.Value == 0)
                             return false;
 
-                        int rnd = Main.rndm.Next(0, 100);
+                        int rnd = Main.random.Next(0, 100);
                         if (ConfigToEdit.shroomDamageChance.Value > rnd)
                         {
                             int damageMin = (int)(__instance.damageAmount * .5f);
                             int damageMax = (int)(__instance.damageAmount * 1.5f);
-                            float damageAmount = Main.rndm.Next(damageMin, damageMax + 1);
+                            float damageAmount = Main.random.Next(damageMin, damageMax + 1);
                             if (!Player.main.currentMountedVehicle)
                                 Player.main.gameObject.GetComponent<LiveMixin>().TakeDamage(damageAmount, pickupable.gameObject.transform.position, DamageType.Acid);
                         }
@@ -570,12 +570,12 @@ namespace Tweaks_Fixes
                         if (ConfigToEdit.shroomDamageChance.Value == 0)
                             return false;
                         //AddDebug("DamageOnPickup OnKill damageAmount " + __instance.damageAmount);
-                        int rnd = Main.rndm.Next(0, 100);
+                        int rnd = Main.random.Next(0, 100);
                         if (ConfigToEdit.shroomDamageChance.Value > rnd)
                         {
                             int damageMin = (int)(__instance.damageAmount * .5f);
                             int damageMax = (int)(__instance.damageAmount * 1.5f);
-                            float damageAmount = Main.rndm.Next(damageMin, damageMax + 1);
+                            float damageAmount = Main.random.Next(damageMin, damageMax + 1);
                             DamageSystem.RadiusDamage(damageAmount, __instance.transform.position, 3f, __instance.damageType);
                         }
                         return false;

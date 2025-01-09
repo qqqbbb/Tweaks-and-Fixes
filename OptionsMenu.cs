@@ -13,8 +13,11 @@ namespace Tweaks_Fixes
         public OptionsMenu() : base("Tweaks and Fixes")
         {
             ModSliderOption timeFlowSpeedSlider = ConfigMenu.timeFlowSpeed.ToModSliderOption(.1f, 10f, .1f, "{0:0.#}");
-            ModSliderOption playerSpeedSlider = ConfigMenu.playerSpeedMult.ToModSliderOption(.5f, 5f, .1f, "{0:0.#}");
             timeFlowSpeedSlider.OnChanged += UpdateTimeSpeed;
+            ModSliderOption seaglideSpeedSlider = ConfigMenu.seaglideSpeedMult.ToModSliderOption(.5f, 2f, .1f, "{0:0.#}");
+            ModSliderOption playerWaterSpeedSlider = ConfigMenu.playerWaterSpeedMult.ToModSliderOption(.5f, 5f, .1f, "{0:0.#}");
+            ModSliderOption playerGroundSpeedSlider = ConfigMenu.playerGroundSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
+            playerGroundSpeedSlider.OnChanged += UpdateGroundSpeed;
             ModSliderOption playerDamageSlider = ConfigMenu.playerDamageMult.ToModSliderOption(0f, 2f, .1f, "{0:0.#}");
             ModSliderOption vehicleDamageSlider = ConfigMenu.vehicleDamageMult.ToModSliderOption(0f, 2f, .1f, "{0:0.#}");
             ModSliderOption aggrSlider = ConfigMenu.aggrMult.ToModSliderOption(0f, 2f, .1f, "{0:0.#}");
@@ -52,7 +55,9 @@ namespace Tweaks_Fixes
             ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
 
             AddItem(timeFlowSpeedSlider);
-            AddItem(playerSpeedSlider);
+            AddItem(playerWaterSpeedSlider);
+            AddItem(playerGroundSpeedSlider);
+            AddItem(seaglideSpeedSlider);
             AddItem(playerDamageSlider);
             AddItem(vehicleDamageSlider);
             AddItem(aggrSlider);
@@ -65,7 +70,7 @@ namespace Tweaks_Fixes
             AddItem(medKitHPslider);
             AddItem(craftTimeSlider);
             AddItem(buildTimeSlider);
-            AddItem(ConfigMenu.playerMoveTweaks.ToModToggleOption());
+            //AddItem(ConfigMenu.playerMoveTweaks.ToModToggleOption());
             AddItem(ConfigMenu.seamothMoveTweaks.ToModToggleOption());
             AddItem(ConfigMenu.exosuitMoveTweaks.ToModToggleOption());
             AddItem(ConfigMenu.cyclopsMoveTweaks.ToModToggleOption());
@@ -124,6 +129,16 @@ namespace Tweaks_Fixes
             if (DayNightCycle.main)
                 DayNightCycle.main._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
         }
+
+        void UpdateGroundSpeed(object sender, SliderChangedEventArgs e)
+        {
+            if (Player.main == null || Player.main.groundMotor == null || Player.main.groundMotor.playerController == null)
+                return;
+
+            //AddDebug("UpdateGroundSpeed " + e.Id + " " + e.Value);
+            Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
+        }
+
 
     }
 }
