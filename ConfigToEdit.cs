@@ -221,7 +221,7 @@ namespace Tweaks_Fixes
 
             cyclopsVerticalSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops vertical speed modifier", 0, "Cyclops speed will be reduced by this percent when moving up or down.");
             cyclopsBackwardSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops backward speed modifier", 0, "Cyclops speed will be reduced by this percent when moving backward.");
-
+            fixCyclopsMove = Main.configToEdit.Bind("CYCLOPS", "Fix cyclops diagonal movement", false, "Cyclops will not exceed its max speed and will not consume more power when moving diagonally.");
 
 
 
@@ -273,7 +273,7 @@ namespace Tweaks_Fixes
             removeFeedbackButton = Main.configToEdit.Bind("MENU BUTTONS", "Remove feedback button from pause menu", false);
             enableDevButton = Main.configToEdit.Bind("MENU BUTTONS", "Enable developer button in pause menu", false);
             propCannonGrabsAnyPlant = Main.configToEdit.Bind("TOOLS", "Propulsion cannon grabs any plant", true, "Propulsion cannon will grab only plants you can pick up if this is false");
-            fixCyclopsMove = Main.configToEdit.Bind("CYCLOPS", "Fix cyclops diagonal movement", false, "Cyclops will not exceed its max speed and will not consume more power when moving diagonally.");
+
 
 
 

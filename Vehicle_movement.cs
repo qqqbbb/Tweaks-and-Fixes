@@ -124,7 +124,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Exosuit __instance)
             {
-                if (!Main.gameLoaded || !ConfigToEdit.exosuitThrusterWithoutLimit.Value)
+                if (!Main.gameLoaded || !ConfigToEdit.exosuitThrusterWithoutLimit.Value || !__instance.GetPilotingMode())
                     return;
 
                 Vector3 input;

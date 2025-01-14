@@ -21,7 +21,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> timeFlowSpeed;
         public static ConfigEntry<float> playerWaterSpeedMult;
         public static ConfigEntry<float> playerGroundSpeedMult;
-
         public static ConfigEntry<float> seaglideSpeedMult;
         public static ConfigEntry<float> playerDamageMult;
         public static ConfigEntry<float> vehicleDamageMult;
@@ -35,9 +34,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> medKitHP;
         public static ConfigEntry<float> craftTimeMult;
         public static ConfigEntry<float> buildTimeMult;
-
-        //public static ConfigEntry<bool> exosuitMoveTweaks;
-        //public static ConfigEntry<bool> cyclopsMoveTweaks;
         public static ConfigEntry<int> cyclopsFireChance;
         public static ConfigEntry<int> cyclopsAutoHealHealthPercent;
         public static ConfigEntry<int> crushDepth;

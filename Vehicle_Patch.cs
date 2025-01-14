@@ -278,7 +278,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        // fix seamoth move diagonally
 
         [HarmonyPostfix]
         [HarmonyPatch("OnUpgradeModuleChange")]
