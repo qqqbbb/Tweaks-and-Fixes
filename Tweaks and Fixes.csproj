@@ -159,6 +159,7 @@
     <Compile Include="Testing.cs" />
     <Compile Include="UI_Patches.cs" />
     <Compile Include="Util.cs" />
+    <Compile Include="Vehicle_movement.cs" />
     <Compile Include="Vehicle_Patch.cs" />
     <Compile Include="Wreck_Patch.cs" />
   </ItemGroup>

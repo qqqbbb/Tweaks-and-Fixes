@@ -21,6 +21,6 @@
   "TF_bladderfish_tooltip": " Восполняет кислород при употребдении в сыром виде.",
   "TF_propulsion_cannon_release": "Отпустить ",
   "TF_VehicleArmorPlating_install_message": "Физический урон будет снижен до 70%",
-  "TF_too_much_weight_message": "Вы несете слишком большой вес"
+  "TF_too_much_weight_message": "Вы несете неподъемный вес"
  
 }

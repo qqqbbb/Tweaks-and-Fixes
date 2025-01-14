@@ -1,10 +1,8 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.Text;
 using UnityEngine;
-using UnityEngine.XR;
 using UWE;
 using static ErrorMessage;
 
@@ -13,10 +11,9 @@ namespace Tweaks_Fixes
 {
     class Player_Movement
     {
-        static float invItemsMass;
+        public static float invItemsMod = 1;
         public static float timeSprintStart = 0f;
         public static float timeSprinted = 0f;
-        public static bool invChanged = true;
         static Dictionary<TechType, float> itemMassDic = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> waterSpeedEquipment = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> groundSpeedEquipment = new Dictionary<TechType, float>();
@@ -27,9 +24,17 @@ namespace Tweaks_Fixes
         public static float oneHandToolSwimSpeedMod;
         public static float oneHandToolWalkSpeedMod;
         public static float twoHandToolWalkSpeedMod;
-        public static float speedEquipmentMod = float.MaxValue;
-        public static float toolMod = float.MaxValue;
+        public static float equipmentSpeedMod;
+        public static float toolMod = 1;
+        public static bool swimming;
+        static Seaglide seaglide;
 
+        public static void UpdateModifiers()
+        {
+            GetEquipmentMod();
+            GetToolMod();
+            GetInvMod();
+        }
 
         public static void CacheSettings()
         {
@@ -40,24 +45,6 @@ namespace Tweaks_Fixes
             oneHandToolSwimSpeedMod = Mathf.Clamp(ConfigToEdit.oneHandToolSwimSpeedMod.Value, 0, 100) * .01f;
             oneHandToolWalkSpeedMod = Mathf.Clamp(ConfigToEdit.oneHandToolWalkSpeedMod.Value, 0, 100) * .01f;
             twoHandToolWalkSpeedMod = Mathf.Clamp(ConfigToEdit.twoHandToolWalkSpeedMod.Value, 0, 100) * .01f;
-        }
-
-        private static float GetInvItemsMass()
-        {
-            //AddDebug("Inventory.main.GetTotalItemCount " + Inventory.main.GetTotalItemCount());
-            float massTotal = 0;
-            foreach (InventoryItem inventoryItem in Inventory.main._container)
-            {
-                //AddDebug("inventoryItem " + inventoryItem._techType);
-                massTotal += GetItemMass(inventoryItem);
-            }
-            foreach (InventoryItem inventoryItem in (IItemsContainer)Inventory.main._equipment)
-            {
-                //AddDebug("equipment " + inventoryItem._techType);
-                massTotal += GetItemMass(inventoryItem);
-            }
-            invItemsMass = massTotal;
-            return massTotal;
         }
 
         private static float GetItemMass(InventoryItem inventoryItem)
@@ -72,206 +59,97 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static float GetInvMult()
+        public static void GetInvMod()
         {
-            float massTotal = 0f;
-            if (invChanged)
+            if (ConfigMenu.invMultWater.Value == 0 && ConfigMenu.invMultLand.Value == 0)
             {
-                massTotal = GetInvItemsMass();
-                invChanged = false;
+                invItemsMod = 1;
+                return;
+            }
+            float massTotal = 0;
+            foreach (InventoryItem inventoryItem in Inventory.main._container)
+            {
+                massTotal += GetItemMass(inventoryItem);
+            }
+            foreach (InventoryItem inventoryItem in (IItemsContainer)Inventory.main._equipment)
+            {
+                massTotal += GetItemMass(inventoryItem);
+            }
+            if (swimming)
+                invItemsMod = 100f - massTotal * ConfigMenu.invMultWater.Value;
+            else
+                invItemsMod = 100f - massTotal * ConfigMenu.invMultLand.Value;
+
+            invItemsMod = Mathf.Clamp(invItemsMod, 0f, 100f) * .01f;
+            //AddDebug("GetInvMult massTotal " + massTotal + " Mod " + invItemsMod);
+        }
+
+        private static void GetEquipmentMod()
+        {
+            equipmentSpeedMod = 0;
+            if (swimming)
+            {
+                foreach (var kv in waterSpeedEquipment)
+                {
+                    if (Util.IsEquipped(kv.Key))
+                    {
+                        //AddDebug("Equipped " + kv.Key + " " + kv.Value);
+                        equipmentSpeedMod += kv.Value;
+                    }
+                }
             }
             else
-                massTotal = invItemsMass;
+            {
+                foreach (var kv in groundSpeedEquipment)
+                {
+                    if (Util.IsEquipped(kv.Key))
+                    {
+                        //AddDebug("Equipped " + kv.Key + " " + kv.Value);
+                        equipmentSpeedMod += kv.Value;
+                    }
+                }
+            }
+            if (equipmentSpeedMod < -1)
+                equipmentSpeedMod = -1;
+            //AddDebug("equipmentSpeedMod " + equipmentSpeedMod);
+        }
 
-            float mult;
-            if (Player.main.IsSwimming())
-                mult = 100f - massTotal * ConfigMenu.invMultWater.Value;
+        private static void GetToolMod(PlayerTool tool = null)
+        {
+            if (!swimming && oneHandToolWalkSpeedMod == 0 && twoHandToolWalkSpeedMod == 0)
+                toolMod = 1;
+            else if (swimming && oneHandToolSwimSpeedMod == 0 && twoHandToolSwimSpeedMod == 0)
+                toolMod = 1;
+
+            float oneHandToolSpeedMod = swimming ? oneHandToolSwimSpeedMod : oneHandToolWalkSpeedMod;
+            float twoHandToolSpeedMod = swimming ? twoHandToolSwimSpeedMod : twoHandToolWalkSpeedMod;
+
+            if (Player.main.pda.isInUse && oneHandToolSpeedMod > 0)
+                toolMod = oneHandToolSpeedMod;
             else
-                mult = 100f - massTotal * ConfigMenu.invMultLand.Value;
+            {
+                toolMod = 1;
+                if (tool == null)
+                    tool = Inventory.main.GetHeldTool();
 
-            mult = Mathf.Clamp(mult, 0f, 100f);
-            //AddDebug("GetInvMult massTotal " + massTotal + " " + (mult * .01f));
-            return mult * .01f;
-        }
-
-        [HarmonyPatch(typeof(Inventory))]
-        class Inventory_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("OnAddItem")]
-            static void OnAddItemPostfix(MainCameraControl __instance, InventoryItem item)
-            {
-                //AddDebug("OnAddItem");
-                invChanged = true;
-            }
-            [HarmonyPostfix, HarmonyPatch("OnRemoveItem")]
-            static void OnRemoveItemPostfix(MainCameraControl __instance, InventoryItem item)
-            {
-                //AddDebug("OnRemoveItem");
-                invChanged = true;
-            }
-            [HarmonyPostfix, HarmonyPatch("OnEquip")]
-            static void OnEquipPostfix(Inventory __instance, InventoryItem item)
-            {
-                //AddDebug("OnEquip");
-                speedEquipmentMod = float.MaxValue;
-            }
-            [HarmonyPostfix, HarmonyPatch("OnUnequip")]
-            static void OnUnequipPostfix(Inventory __instance, InventoryItem item)
-            {
-                //AddDebug("OnUnequip");
-                speedEquipmentMod = float.MaxValue;
-            }
-        }
-
-        [HarmonyPatch(typeof(MainCameraControl), "GetCameraBob")]
-        class MainCameraControl_GetCameraBob_Patch
-        {
-            static bool Prefix(MainCameraControl __instance, ref bool __result)
-            {
-                if (!ConfigToEdit.cameraBobbing.Value)
+                if (tool)
                 {
-                    __result = false;
-                    return false;
-                }
-                else
-                    return true;
-            }
-        }
-
-        [HarmonyPatch(typeof(Seaglide))]
-        class Seaglide_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("UpdateActiveState")]
-            public static bool UpdateActiveStatePrefix(Seaglide __instance)
-            {
-                if (!ConfigToEdit.seaglideWorksOnlyForward.Value)
-                    return true;
-                // seaglide works only if moving forward
-                bool activeState = __instance.activeState;
-                __instance.activeState = false;
-                if (__instance.energyMixin.charge > 0f)
-                {
-                    if (__instance.screenEffectModel != null)
-                        __instance.screenEffectModel.SetActive(__instance.usingPlayer != null);
-
-                    if (__instance.usingPlayer != null && __instance.usingPlayer.IsSwimming())
-                    {
-                        Vector3 moveDirection = GameInput.GetMoveDirection();
-                        __instance.activeState = moveDirection.z > 0f;
-                    }
-                    if (__instance.powerGlideActive)
-                        __instance.activeState = true;
-                }
-                if (activeState == __instance.activeState)
-                    return false;
-
-                __instance.SetVFXActive(__instance.activeState);
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(UnderwaterMotor))]
-        class UnderwaterMotor_Patch
-        {
-            [HarmonyPrefix, HarmonyPatch("AlterMaxSpeed")]
-            public static bool AlterMaxSpeedPrefix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
-            {
-                //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;
-                //Util.Message("movementSpeed  " + ms);
-                if (waterSpeedEquipment.Count > 0)
-                {
-                    //AddDebug("waterSpeedEquipment.Count " + waterSpeedEquipment.Count);
-                    __result = inMaxSpeed;
-                    return false;
-                }
-                return true;
-            }
-            [HarmonyPostfix, HarmonyPatch("AlterMaxSpeed")]
-            public static void Postfix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
-            {// van speed forward 5.7 seaglide 11  BZ speed: 4.5, tool 3.75, seaglide 7.12
-                float mod = 0;
-                if (Player.main.gameObject.transform.position.y > Player.main.GetWaterLevel())
-                    mod += 0.3f;
-
-                //AddDebug("AlterMaxSpeed " + __result);
-                if (speedEquipmentMod == float.MaxValue)
-                {
-                    speedEquipmentMod = 0;
-                    foreach (var kv in waterSpeedEquipment)
-                    {
-                        if (Util.IsEquipped(kv.Key))
-                        {
-                            //AddDebug("Equipped " + kv.Key + " " + kv.Value);
-                            speedEquipmentMod += kv.Value;
-                        }
-                    }
-                }
-                else
-                    mod += speedEquipmentMod;
-
-                if (Player.main.pda.isInUse && oneHandToolSwimSpeedMod > 0)
-                    mod -= oneHandToolSwimSpeedMod;
-                else if (toolMod == float.MaxValue)
-                {
-                    //AddDebug("get tool mod");
-                    PlayerTool tool = Inventory.main.GetHeldTool();
-                    if (tool)
-                    {
-                        bool oneHanded = Util.IsOneHanded(tool);
-                        //AddDebug("AlterMaxSpeed tool oneHanded " + oneHanded);
-                        Seaglide seaglide = tool as Seaglide;
-                        if (seaglide)
-                        {
-                            toolMod = 0;
-                            HandleSeaglide(seaglide);
-                            if (!seaglide.activeState && twoHandToolSwimSpeedMod > 0)
-                                toolMod = twoHandToolSwimSpeedMod;
-                        }
-                        else
-                        {
-                            if (oneHanded && oneHandToolSwimSpeedMod > 0)
-                                toolMod = oneHandToolSwimSpeedMod;
-                            else if (!oneHanded && twoHandToolSwimSpeedMod > 0)
-                                toolMod = twoHandToolSwimSpeedMod;
-                        }
-                    }
+                    bool oneHanded = Util.IsOneHanded(tool);
+                    //AddDebug("AlterMaxSpeed tool oneHanded " + oneHanded);
+                    if (oneHanded)
+                        toolMod = oneHandToolSpeedMod;
                     else
-                        toolMod = 0;
+                        toolMod = twoHandToolSpeedMod;
+
+                    toolMod = 1 - toolMod;
+                    //AddDebug("GetToolMod toolMod " + toolMod);
                 }
-                else
-                {
-                    mod -= toolMod;
-                    //AddDebug("toolMod " + toolMod);
-                }
-                Vector3 input = __instance.movementInputDirection;
-                if (playerSidewardSpeedMod > 0 && input.x != 0)
-                    mod -= playerSidewardSpeedMod * Mathf.Abs(input.normalized.x);
-                if (playerBackwardSpeedMod > 0 && input.z < 0)
-                    mod -= playerBackwardSpeedMod * Mathf.Abs(input.normalized.z);
-                if (playerVerticalSpeedMod > 0 && input.y != 0)
-                    mod -= playerVerticalSpeedMod * Mathf.Abs(input.normalized.y);
-
-                //AddDebug("AlterMaxSpeed mod " + mod);
-                __result *= ConfigMenu.playerWaterSpeedMult.Value;
-                __result += __result * mod;
-                bool canMove = __result > 0;
-                if (ConfigMenu.invMultWater.Value > 0f)
-                    __result *= GetInvMult();
-
-                if (canMove && __result == 0)
-                    AddDebug(Language.main.Get("TF_too_much_weight_message"));
-
-                //if (UnityEngine.Input.GetKey(KeyCode.V))
-                //{
-                //    float ms = Player.main.rigidBody.velocity.magnitude;
-                //    AddDebug("movement Speed  " + ms);
-                //}
             }
         }
 
         static void HandleSeaglide(Seaglide seaglide)
         {
+            //AddDebug("HandleSeaglide " + seaglide.activeState);
             PlayerController pc = Player.main.playerController;
             if (seaglide.activeState)
             {
@@ -297,32 +175,172 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(PlayerController)), HarmonyPatch("SetMotorMode")]
-        class PlayerController_SetMotorMode_Patch
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_Patch
         {
-            static void Postfix(PlayerController __instance, Player.MotorMode newMotorMode)
+            [HarmonyPostfix, HarmonyPatch("OnAddItem")]
+            static void OnAddItemPostfix(Inventory __instance, InventoryItem item)
             {
-                //AddDebug("SetMotorMode " + newMotorMode);
-                speedEquipmentMod = float.MaxValue;
-                toolMod = float.MaxValue;
+                //AddDebug("OnAddItem");
+                GetInvMod();
+            }
+            [HarmonyPostfix, HarmonyPatch("OnRemoveItem")]
+            static void OnRemoveItemPostfix(Inventory __instance, InventoryItem item)
+            {
+                //AddDebug("OnRemoveItem");
+                GetInvMod();
+            }
+            [HarmonyPostfix, HarmonyPatch("OnEquip")]
+            static void OnEquipPostfix(Inventory __instance, InventoryItem item)
+            {
+                //AddDebug("OnEquip");
+                GetEquipmentMod();
+            }
+            [HarmonyPostfix, HarmonyPatch("OnUnequip")]
+            static void OnUnequipPostfix(Inventory __instance, InventoryItem item)
+            {
+                //AddDebug("OnUnequip");
+                GetEquipmentMod();
+            }
+        }
+
+        [HarmonyPatch(typeof(Seaglide))]
+        class Seaglide_Patch
+        {
+            [HarmonyPrefix, HarmonyPatch("UpdateActiveState")]
+            public static bool UpdateActiveStatePrefix(Seaglide __instance)
+            {
+                if (!ConfigToEdit.seaglideWorksOnlyForward.Value)
+                    return true;
+
+                bool activeState = __instance.activeState;
+                __instance.activeState = false;
+                if (__instance.energyMixin.charge > 0f)
+                {
+                    if (__instance.screenEffectModel != null)
+                        __instance.screenEffectModel.SetActive(__instance.usingPlayer != null);
+
+                    if (__instance.usingPlayer != null && __instance.usingPlayer.IsSwimming())
+                    {
+                        Vector3 moveDirection = GameInput.GetMoveDirection();
+                        __instance.activeState = moveDirection.z > 0f;
+                    }
+                    if (__instance.powerGlideActive)
+                        __instance.activeState = true;
+                }
+                if (activeState == __instance.activeState)
+                    return false;
+
+                __instance.SetVFXActive(__instance.activeState);
+                return false;
+            }
+
+            [HarmonyPrefix, HarmonyPatch("SetVFXActive")]
+            public static void SetVFXActivePrefix(Seaglide __instance)
+            {// seaglide out of power
+                GetToolMod();
             }
         }
 
 
+        [HarmonyPatch(typeof(UnderwaterMotor))]
+        class UnderwaterMotor_Patch
+        {
+            //[HarmonyPostfix, HarmonyPatch("UpdateMove")]
+            public static void UpdateMovePostfix(UnderwaterMotor __instance, ref Vector3 __result)
+            {
+                if (ConfigMenu.playerWaterSpeedMult.Value > 1f)
+                    __instance.rb.drag /= ConfigMenu.playerWaterSpeedMult.Value;
+                //AddDebug("UpdateMove rb.drag  " + __instance.rb.drag);
+            }
+            [HarmonyPrefix, HarmonyPatch("AlterMaxSpeed")]
+            public static bool AlterMaxSpeedPrefix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
+            {
+                if (waterSpeedEquipment.Count > 0)
+                {
+                    //AddDebug("waterSpeedEquipment.Count " + waterSpeedEquipment.Count);
+                    //AddDebug("AlterMaxSpeed.inMaxSpeed " + inMaxSpeed);
+                    __result = inMaxSpeed;
+                    if (Player.main.gameObject.transform.position.y > Player.main.GetWaterLevel())
+                        __result *= 1.3f;
+
+                    return false;
+                }
+                return true;
+            }
+            [HarmonyPostfix, HarmonyPatch("AlterMaxSpeed")]
+            public static void Postfix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
+            {// 
+                float mod = 1 + equipmentSpeedMod;
+                //AddDebug("AlterMaxSpeed Postfix " + __result);
+                //AddDebug("equipmentSpeedMod " + equipmentSpeedMod);
+                //AddDebug("toolMod " + toolMod);
+                if (seaglide)
+                {
+                    HandleSeaglide(seaglide);
+                    if (!seaglide.activeState)
+                        mod *= toolMod;
+                }
+                else
+                    mod *= toolMod;
+
+                Vector3 input = __instance.movementInputDirection;
+                if (playerSidewardSpeedMod > 0 && input.x != 0)
+                    mod *= (1f - playerSidewardSpeedMod) * Mathf.Abs(input.normalized.x);
+
+                if (playerBackwardSpeedMod > 0 && input.z < 0)
+                    mod *= (1f - playerBackwardSpeedMod) * Mathf.Abs(input.normalized.z);
+
+                if (playerVerticalSpeedMod > 0 && input.y != 0)
+                    mod *= (1f - playerVerticalSpeedMod) * Mathf.Abs(input.normalized.y);
+
+                __result *= ConfigMenu.playerWaterSpeedMult.Value;
+                __result *= mod;
+                //AddDebug("mod " + mod);
+                //AddDebug("__result " + __result);
+                bool canMove = __result > 0;
+                if (ConfigMenu.invMultWater.Value > 0f)
+                    __result *= invItemsMod;
+
+                if (canMove && __result == 0)
+                    AddDebug(Language.main.Get("TF_too_much_weight_message"));
+
+                //if (UnityEngine.Input.GetKey(KeyCode.V))
+                //{
+                //    float ms = Player.main.rigidBody.velocity.magnitude;
+                //    AddDebug("movement Speed  " + ms);
+                //}
+            }
+        }
+
+        [HarmonyPatch(typeof(Player), "UpdateMotorMode")]
+        class Player_UpdateMotorMode_Patch
+        {
+            static void Postfix(Player __instance)
+            {// SetMotorMode does not fire when player goes from water surface to ground
+                if (swimming != __instance.IsUnderwaterForSwimming())
+                {
+                    //AddDebug("UpdateMotorMode update swimming");
+                    swimming = __instance.IsUnderwaterForSwimming();
+                    UpdateModifiers();
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(GroundMotor), "ApplyInputVelocityChange")]
         class GroundMotor_Patch
         {
-            public static void Prefix(GroundMotor __instance, ref Vector3 __result, ref Vector3 velocity)
+            public static bool Prefix(GroundMotor __instance, ref Vector3 __result, ref Vector3 velocity)
             {
+                if (!Main.gameLoaded)
+                    return false;
+
                 Vector3 input = __instance.movementInputDirection;
                 float x = input.normalized.x;
                 float z = input.normalized.z;
-                float mod = 0;
+                float mod = 1;
                 //AddDebug("input " + input);
                 //AddDebug("velocity " + velocity);
-                if (ConfigToEdit.sprintOnlyForward.Value && input.z <= 0)
-                    __instance.sprintPressed = false;
-
                 if (playerSidewardSpeedMod > 0 && input.x != 0)
                 {
                     float f = 1f - playerSidewardSpeedMod;
@@ -334,58 +352,22 @@ namespace Tweaks_Fixes
                     float f = 1f - playerBackwardSpeedMod;
                     z = input.normalized.z * f;
                 }
-                if (speedEquipmentMod == float.MaxValue)
-                {
-                    speedEquipmentMod = 0;
-                    foreach (var kv in groundSpeedEquipment)
-                    {
-                        if (Util.IsEquipped(kv.Key))
-                        {
-                            //AddDebug("Equipped " + kv.Key + " " + kv.Value);
-                            speedEquipmentMod += kv.Value;
-                        }
-                    }
-                }
-                else
-                    mod += speedEquipmentMod;
-
-                if (Player.main.pda.isInUse && oneHandToolWalkSpeedMod > 0)
-                    mod -= oneHandToolWalkSpeedMod;
-                else if (toolMod == float.MaxValue)
-                {
-                    PlayerTool tool = Inventory.main.GetHeldTool();
-                    if (tool)
-                    {
-                        bool oneHanded = Util.IsOneHanded(tool);
-                        //AddDebug("AlterMaxSpeed tool oneHanded " + oneHanded);
-                        if (oneHanded && oneHandToolWalkSpeedMod > 0)
-                            toolMod = oneHandToolWalkSpeedMod;
-                        else if (!oneHanded && twoHandToolWalkSpeedMod > 0)
-                            toolMod = twoHandToolWalkSpeedMod;
-                    }
-                    else
-                        toolMod = 0;
-                }
-                else
-                {
-                    mod -= toolMod;
-                    //AddDebug("toolMod " + toolMod);
-                }
                 if (x != input.normalized.x || z != input.normalized.z)
-                {
                     __instance.movementInputDirection = new Vector3(x, input.y, z);
-                    //AddDebug("inputMod " + __instance.movementInputDirection);
-                }
-                mod += 1;
-                bool canMove = mod > 0;
-                if (ConfigMenu.invMultWater.Value > 0f)
-                    mod *= GetInvMult();
 
+                mod += equipmentSpeedMod;
+                //AddDebug(" mod GetEquipmentMod: " + mod);
+                mod *= toolMod;
+                bool canMove = mod > 0;
+                if (ConfigMenu.invMultLand.Value > 0f)
+                    mod *= invItemsMod;
+
+                //AddDebug(" mod: " + mod);
                 if (canMove && mod == 0)
                     AddDebug(Language.main.Get("TF_too_much_weight_message"));
 
-                //AddDebug(" mod " + mod);
                 __instance.forwardMaxSpeed = __instance.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value * mod;
+                return true;
             }
         }
 
@@ -395,26 +377,56 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("OnDraw")]
             static void OnDrawPostfix(PlayerTool __instance)
             {
-                //AddDebug("OnDraw");
-                toolMod = float.MaxValue;
+                if (__instance is Seaglide)
+                    seaglide = __instance as Seaglide;
+
+                GetToolMod(__instance);
+                //AddDebug("OnDraw tool " + __instance.name);
             }
             [HarmonyPostfix, HarmonyPatch("OnHolster")]
             static void OnHolsterPostfix(PlayerTool __instance)
             {
                 //AddDebug("OnHolster");
-                toolMod = float.MaxValue;
+                seaglide = null;
+                toolMod = 1;
             }
         }
 
-        [HarmonyPatch(typeof(Seaglide), "SetVFXActive")]
-        class Seaglide_SetVFXActive_Patch
+        //[HarmonyPatch(typeof(Player), "SetMotorMode")]
+        class Player_SetMotorMode_Patch
         {
-            public static void Prefix(Seaglide __instance)
-            { // seaglide out of power
-              //AddDebug("Seaglide SetVFXActive");
-                toolMod = float.MaxValue;
+            static void Prefix(Player __instance, Player.MotorMode newMotorMode)
+            {// 
+                AddDebug("Player SetMotorMode " + newMotorMode);
+                AddDebug("Player SetMotorMode " + __instance.IsUnderwaterForSwimming());
+                //if (swimming != __instance.IsUnderwaterForSwimming())
+                //{
+                //    AddDebug("UpdateMotorMode update swimming");
+                //    swimming = __instance.IsUnderwaterForSwimming();
+                //    GetEquipmentMod();
+                //    GetToolMod();
+                //    GetInvMod();
+                //}
             }
         }
+
+        //[HarmonyPatch(typeof(PlayerController)), HarmonyPatch("SetMotorMode")]
+        class PlayerController_SetMotorMode_Patch
+        {
+            static void Postfix(PlayerController __instance, Player.MotorMode newMotorMode)
+            {// newMotorMode is Run when player surfaces. This does not fire when player goes from water surface to ground
+                AddDebug("SetMotorMode " + newMotorMode);
+                //bool swimming = newMotorMode == Player.MotorMode.Dive || newMotorMode == Player.MotorMode.Seaglide;
+                AddDebug("SetMotorMode swimming " + swimming);
+                AddDebug("SetMotorMode isUnderwaterForSwimming " + Player.main.IsUnderwaterForSwimming());
+                GetEquipmentMod();
+                GetToolMod();
+                GetInvMod();
+            }
+        }
+
+
+
 
     }
 }

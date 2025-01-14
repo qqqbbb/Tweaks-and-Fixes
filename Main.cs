@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.18.0";
+            VERSION = "3.19.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -81,12 +81,15 @@ namespace Tweaks_Fixes
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
             Drop_items_anywhere.droppedInBase.Clear();
             Drop_items_anywhere.droppedInEscapePod.Clear();
-
+            Player_Movement.invItemsMod = float.MinValue;
+            Player_Movement.equipmentSpeedMod = float.MaxValue;
+            Player_Movement.toolMod = float.MaxValue;
             configMain.Load();
         }
 
         public static void LoadedGameSetup()
         {
+            //AddDebug("LoadedGameSetup ");
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_Patches.DisableExosuitClawArmScan();
 
@@ -112,19 +115,17 @@ namespace Tweaks_Fixes
             }
             Food_Patch.cookedFish.Clear();
             Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_Patch.OnPlayerUnderwaterChanged));
-            //AddDebug("LoadedGameSetup ");
-            //logger.LogMessage("LoadedGameSetup ");
             CreatureDeath_Patch.TryRemoveCorpses();
             Escape_Pod_Patch.EscapePodInit();
             Drop_items_anywhere.OnGameLoadingFinished();
             Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
-
+            Player_Movement.UpdateModifiers();
             gameLoaded = true;
         }
 
         private static void IteratePrefabs()
         {
-            if (ConfigToEdit.bloodColor.Value == "0.784 1 0.157")
+            if (ConfigToEdit.bloodColor.Value == "0.784 1.0 0.157")
             {
                 //logger.LogDebug("bloodColor is default ");
                 return;
@@ -135,7 +136,6 @@ namespace Tweaks_Fixes
                 {
                     Util.SetBloodColor(go);
                 }
-
             }
         }
 

@@ -12,7 +12,6 @@ namespace Tweaks_Fixes
     public class Cyclops_Patch
     {
         static bool cyclopsHolographicHUDlastState = false;
-        static Rigidbody cyclopsRB; // vanilla code does not cache RB
         public static CyclopsEntryHatch ceh;
         //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
@@ -108,7 +107,6 @@ namespace Tweaks_Fixes
             [HarmonyPatch("StartPiloting")]
             public static void StartPilotingPostfix(CyclopsHelmHUDManager __instance)
             {
-                cyclopsRB = __instance.transform.parent.GetComponent<Rigidbody>();
                 Vehicle_patch.currentVehicleTT = TechType.Cyclops;
                 Vehicle_patch.currentLights = __instance.transform.parent.Find("Floodlights").GetComponentsInChildren<Light>(true);
                 //AddDebug("StartPiloting  " + rb.mass);
@@ -286,15 +284,15 @@ namespace Tweaks_Fixes
 
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("Update")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Update")]
             public static bool UpdatePrefix(SubControl __instance)
             { // fix diagonal speed 
                 if (!Main.gameLoaded || !__instance.LOD.IsFull())
                     return false;
 
-                if (!ConfigMenu.cyclopsMoveTweaks.Value || Main.cyclopsDockingLoaded)
-                    return true;
+                //if (!ConfigMenu.cyclopsMoveTweaks.Value || Main.cyclopsDockingLoaded)
+                //    return true;
 
                 __instance.appliedThrottle = false;
                 if (__instance.controlMode == SubControl.Mode.DirectInput)
@@ -347,43 +345,6 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("FixedUpdate")]
-            public static bool FixedUpdatePrefix(SubControl __instance)
-            {  // halve vertical and backward speed
-                if (!ConfigMenu.cyclopsMoveTweaks.Value)
-                    return true;
-
-                if (!__instance.LOD.IsFull() || __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
-                    return false;
-
-                for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
-                    __instance.accelerationModifiers[index].ModifyAcceleration(ref __instance.throttle);
-
-                if (Ocean.GetDepthOf(__instance.gameObject) <= 0f)
-                    return false;
-
-                if (Mathf.Abs(__instance.throttle.x) > 0.0001f)
-                {
-                    float baseTurningTorque = __instance.BaseTurningTorque;
-                    if (__instance.canAccel)
-                        cyclopsRB.AddTorque(__instance.sub.subAxis.up * baseTurningTorque * __instance.turnScale * __instance.throttle.x, ForceMode.Acceleration);
-                }
-                if (Mathf.Abs(__instance.throttle.y) > 0.0001f)
-                {
-                    float num = __instance.BaseVerticalAccel * vertSpeedMult + numBallastWeight * __instance.AccelPerBallast;
-                    if (__instance.canAccel)
-                        cyclopsRB.AddForce(Vector3.up * num * __instance.accelScale * __instance.throttle.y, ForceMode.Acceleration);
-                }
-                if (__instance.canAccel)
-                {
-                    if (__instance.throttle.z > 0.0001f)
-                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
-                    else if (__instance.throttle.z < -0.0001f)
-                        cyclopsRB.AddForce(__instance.sub.subAxis.forward * __instance.BaseForwardAccel * backwardSpeedMult * __instance.accelScale * __instance.throttle.z, ForceMode.Acceleration);
-                }
-                return false;
-            }
         }
 
         [HarmonyPatch(typeof(CyclopsEntryHatch), "OnTriggerEnter")]

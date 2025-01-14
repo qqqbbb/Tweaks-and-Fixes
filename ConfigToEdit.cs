@@ -122,6 +122,16 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> sprintOnlyForward;
         public static ConfigEntry<string> groundSpeedEquipment;
         public static ConfigEntry<string> waterSpeedEquipment;
+        public static ConfigEntry<int> seamothSidewardSpeedMod;
+        public static ConfigEntry<int> seamothBackwardSpeedMod;
+        public static ConfigEntry<int> seamothVerticalSpeedMod;
+        public static ConfigEntry<bool> disableExosuitSidestep;
+        public static ConfigEntry<bool> exosuitThrusterWithoutLimit;
+        public static ConfigEntry<bool> fixSeamothMove;
+        public static ConfigEntry<bool> fixCyclopsMove;
+        public static ConfigEntry<int> cyclopsVerticalSpeedMod;
+        public static ConfigEntry<int> cyclopsBackwardSpeedMod;
+
 
 
 
@@ -152,7 +162,7 @@ namespace Tweaks_Fixes
             newGameLoot = Main.configToEdit.Bind("LIFE POD", "Life pod items", "FilteredWater 2, NutrientBlock 2, Flare 2", "Items you find in your life pod when you start a new game. The format is item ID, space, number of items. Every entry is separated by comma.");
 
 
-            sprintOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "You can sprint only when moving forward", false);
+            sprintOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Player can sprint only when moving forward", false);
             playerSidewardSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Player sideward speed modifier", 0, "Player's speed will be reduced by this percent when moving sideward.");
             playerBackwardSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Player backward speed modifier", 0, "Player's speed will be reduced by this percent when moving backward.");
             playerVerticalSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Player vertical speed modifier", 0, "Player's speed will be reduced by this percent when swimming up or down.");
@@ -202,6 +212,19 @@ namespace Tweaks_Fixes
             seamothTakeDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Seamoth min speed to take damage", 7f, "Min speed in meters per second at which seamoth takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             seamothTakeDamageMinMass = Main.configToEdit.Bind("VEHICLES", "Min mass that can damage seamoth", 5f, "Min mass in kg for objects that can damage seamoth when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             vehiclesHurtCreatures = Main.configToEdit.Bind("VEHICLES", "Vehicles hurt creatures", true, "Vehicles will not hurt creatures when colliding with them if this is false.");
+            fixSeamothMove = Main.configToEdit.Bind("VEHICLES", "Fix seamoth diagonal movement", false, "Seamoth will not exceed its max speed and will not consume more power when moving diagonally.");
+            seamothSidewardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seamoth sideward speed modifier", 0, "Seamoth speed will be reduced by this percent when moving sideward.");
+            seamothBackwardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seamoth backward speed modifier", 0, "Seamoth speed will be reduced by this percent when moving backward.");
+            seamothVerticalSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seamoth vertical speed modifier", 0, "Seamoth speed will be reduced by this percent when moving up or down.");
+            disableExosuitSidestep = Main.configToEdit.Bind("VEHICLES", "Disable prawn suit sidestep", false, "");
+            exosuitThrusterWithoutLimit = Main.configToEdit.Bind("VEHICLES", "Prawn suit thrusters never overheat", false, "No time limit when using thrusters, but they consume twice more power than walking");
+
+            cyclopsVerticalSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops vertical speed modifier", 0, "Cyclops speed will be reduced by this percent when moving up or down.");
+            cyclopsBackwardSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops backward speed modifier", 0, "Cyclops speed will be reduced by this percent when moving backward.");
+
+
+
+
             lavaGeyserEruptionForce = Main.configToEdit.Bind("MISC", "Lava geyser eruption force", 20f, "Force applied to objects by lava geysers.");
             lavaGeyserEruptionInterval = Main.configToEdit.Bind("MISC", "Lava geyser eruption interval", 12f, "Time in seconds between lava geyser eruptions including 5.5 seconds of eruption.");
             removeLavaGeyserRockParticles = Main.configToEdit.Bind("MISC", "Remove rock particles from lava geysers", false, "Rock particles will be removed from lava geyser eruptions if this is true.");
@@ -250,8 +273,7 @@ namespace Tweaks_Fixes
             removeFeedbackButton = Main.configToEdit.Bind("MENU BUTTONS", "Remove feedback button from pause menu", false);
             enableDevButton = Main.configToEdit.Bind("MENU BUTTONS", "Enable developer button in pause menu", false);
             propCannonGrabsAnyPlant = Main.configToEdit.Bind("TOOLS", "Propulsion cannon grabs any plant", true, "Propulsion cannon will grab only plants you can pick up if this is false");
-
-
+            fixCyclopsMove = Main.configToEdit.Bind("CYCLOPS", "Fix cyclops diagonal movement", false, "Cyclops will not exceed its max speed and will not consume more power when moving diagonally.");
 
 
 
@@ -422,9 +444,9 @@ namespace Tweaks_Fixes
 
         public static void ParseConfig()
         {
-            Crush_Damage_.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
             Player_Movement.waterSpeedEquipment = Parse01floatDicFromString(waterSpeedEquipment.Value);
             Player_Movement.groundSpeedEquipment = Parse01floatDicFromString(groundSpeedEquipment.Value);
+            Crush_Damage_.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
             Crush_Damage_.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
             Pickupable_Patch.itemMass = ParseFloatDicFromString(itemMass.Value);
             Pickupable_Patch.unmovableItems = ParseSetFromString(unmovableItems.Value);

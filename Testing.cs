@@ -211,7 +211,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    AddDebug("bloodColor " + Creature_Tweaks.bloodColor);
+                    AddDebug("motorMode " + Player.main.mode);
                     //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug(" IsOneHanded " + Util.IsOneHanded(tool));
 

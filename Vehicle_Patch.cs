@@ -279,99 +279,6 @@ namespace Tweaks_Fixes
             }
         }
         // fix seamoth move diagonally
-        static void ApplyPhysicsMoveSeamoth(Vehicle __instance)
-        {
-            //AddDebug("ApplyPhysicsMoveSeamoth  " + __instance.controlSheme);
-            if (__instance.worldForces.IsAboveWater() != __instance.wasAboveWater)
-            {
-                __instance.PlaySplashSound();
-                __instance.wasAboveWater = __instance.worldForces.IsAboveWater();
-            }
-            if (!(__instance.moveOnLand | (__instance.transform.position.y < Ocean.GetOceanLevel() && __instance.transform.position.y < __instance.worldForces.waterDepth && !__instance.precursorOutOfWater)))
-                return;
-
-            Vector3 input;
-            if (__instance.IsAutopilotEnabled)
-                input = __instance.CalculateAutopilotLocalWishDir();
-            else
-                input = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-
-            //AddDebug("ApplyPhysicsMoveSeamoth input " + input);
-            input.Normalize();
-            float z = input.z > 0 ? input.z * __instance.forwardForce : input.z * __instance.backwardForce;
-            Vector3 acceleration = new Vector3(input.x * __instance.sidewardForce, input.y * __instance.verticalForce, z);
-            //Vector3 acceleration = __instance.transform.rotation * (((Mathf.Abs(input.x) * __instance.sidewardForce + z) + Mathf.Abs(input.y * __instance.verticalForce)) * input) * Time.deltaTime;
-            acceleration = __instance.transform.rotation * acceleration * Time.deltaTime;
-            for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
-                __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
-
-            __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
-        }
-        //disable exosuit strafe
-        static void ApplyPhysicsMoveExosuit(Vehicle __instance)
-        {
-            //AddDebug("ApplyPhysicsMoveExosuit  " + __instance.controlSheme);
-            if (__instance.worldForces.IsAboveWater() != __instance.wasAboveWater)
-            {
-                __instance.PlaySplashSound();
-                __instance.wasAboveWater = __instance.worldForces.IsAboveWater();
-            }
-            if (!(__instance.moveOnLand | (__instance.transform.position.y < Ocean.GetOceanLevel() && __instance.transform.position.y < __instance.worldForces.waterDepth && !__instance.precursorOutOfWater)))
-                return;
-
-            Vector3 inputRaw;
-            Vector3 input;
-            if (__instance.IsAutopilotEnabled)
-            {
-                inputRaw = Vector3.Min(Vector3.Max(__instance.CalculateAutopilotLocalWishDir(), -Vector3.one), Vector3.one);
-                input = inputRaw;
-                input.y = 0f;
-            }
-            else
-            {
-                inputRaw = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-                input = new Vector3(0.0f, 0.0f, inputRaw.z);
-            }
-            float num = Mathf.Abs(input.x) * __instance.sidewardForce + Mathf.Max(0.0f, input.z) * __instance.forwardForce + Mathf.Max(0.0f, -input.z) * __instance.backwardForce;
-            Vector3 vector3_3 = __instance.transform.rotation * input;
-            vector3_3.y = 0.0f;
-            Vector3 vector = Vector3.Normalize(vector3_3);
-            if (__instance.onGround)
-            {
-                //groundPos = __instance.transform.position;
-                vector = Vector3.ProjectOnPlane(vector, __instance.surfaceNormal);
-                vector.y = Mathf.Clamp(vector.y, -0.5f, 0.5f);
-                num *= __instance.onGroundForceMultiplier;
-            }
-            Vector3 vector3_4 = new Vector3(0.0f, inputRaw.y, 0.0f);
-            vector3_4.y *= __instance.verticalForce * Time.deltaTime;
-            Vector3 acceleration = num * vector * Time.deltaTime + vector3_4;
-            __instance.OverrideAcceleration(ref acceleration);
-            for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
-                __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
-            __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch("ApplyPhysicsMove")]
-        public static bool ApplyPhysicsMovePrefix(Vehicle __instance)
-        {
-            //AddDebug("ControlSheme  " + __instance.controlSheme);
-            if (!__instance.GetPilotingMode())
-                return false;
-
-            if (ConfigMenu.seamothMoveTweaks.Value && __instance.controlSheme == Vehicle.ControlSheme.Submersible)
-            {
-                ApplyPhysicsMoveSeamoth(__instance);
-                return false;
-            }
-            else if (ConfigMenu.exosuitMoveTweaks.Value && __instance.controlSheme == Vehicle.ControlSheme.Mech)
-            {
-                ApplyPhysicsMoveExosuit(__instance);
-                return false;
-            }
-            return true;
-        }
 
         [HarmonyPostfix]
         [HarmonyPatch("OnUpgradeModuleChange")]
@@ -444,7 +351,7 @@ namespace Tweaks_Fixes
             {
                 ItemsContainer container = null;
                 int torpedoSlot = -1;
-                float changeTorpedoTime = 0f; // !!!
+                float changeTorpedoTime = 0f;
                 if (Exosuit_Patch.torpedoStorageLeft != null && GameInput.GetButtonDown(GameInput.Button.CycleNext))
                 {
                     container = Exosuit_Patch.torpedoStorageLeft;
@@ -623,12 +530,12 @@ namespace Tweaks_Fixes
             if (Vehicle_patch.dockedVehicles.ContainsKey(__instance) && Vehicle_patch.dockedVehicles[__instance] == Vehicle.DockType.Cyclops)
                 __instance.animator.Play("seamoth_cyclops_launchbay_dock");
 
-            if (ConfigMenu.seamothMoveTweaks.Value)
-            {
-                __instance.sidewardForce = __instance.forwardForce * .5f;
-                __instance.verticalForce = __instance.forwardForce * .5f;
-                __instance.backwardForce = __instance.backwardForce * .5f;
-            }
+            //if (ConfigMenu.fixSeamothDiagMovement.Value)
+            //{
+            //    __instance.sidewardForce = __instance.forwardForce * .5f;
+            //    __instance.verticalForce = __instance.forwardForce * .5f;
+            //    __instance.backwardForce = __instance.backwardForce * .5f;
+            //}
         }
 
         [HarmonyPostfix]
@@ -718,8 +625,8 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("Update")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("Update")]
         public static bool UpdatePrefix(SeaMoth __instance)
         {    // seamoth does not consume more energy when moving diagonally. Upgrade module UI
             if (!Main.gameLoaded)
@@ -742,12 +649,13 @@ namespace Tweaks_Fixes
                 }
                 Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
                 float magnitude = moveDirection.magnitude;
+                AddDebug("Update moveDirection " + moveDirection);
+                AddDebug("magnitude " + magnitude);
+                //if (ConfigMenu.fixSeamothDiagMovement.Value)
+                //    magnitude = Mathf.Clamp(moveDirection.magnitude, 0f, 1f);
 
-                if (ConfigMenu.seamothMoveTweaks.Value)
-                    magnitude = Mathf.Clamp(moveDirection.magnitude, 0f, 1f);
-
-                if (magnitude > 0.1f)
-                    __instance.ConsumeEngineEnergy(Time.deltaTime * __instance.enginePowerConsumption * magnitude);
+                //if (magnitude > 0.1f)
+                //    __instance.ConsumeEngineEnergy(Time.deltaTime * __instance.enginePowerConsumption * magnitude);
 
                 __instance.toggleLights.CheckLightToggle();
             }
@@ -772,6 +680,21 @@ namespace Tweaks_Fixes
                     //if (GameInput.GetButtonDown(GameInput.Button.CycleNext) || GameInput.GetButtonDown(GameInput.Button.CyclePrev))
                     changeTorpedoTime = Time.time;
                     ChangeTorpedo(__instance);
+                }
+            }
+            if (__instance.GetPilotingMode() && !__instance.ignoreInput)
+            {
+                if (ConfigToEdit.newUIstrings.Value)
+                {
+                    //AddDebug(" new vehicle UI");
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.Use, useButton);
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, exitButton);
+                }
+                else
+                {
+                    //AddDebug(" vanilla vehicle UI");
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.Use, UI_Patches.vehicleExitButton);
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, string.Empty);
                 }
             }
         }
@@ -1092,8 +1015,8 @@ namespace Tweaks_Fixes
             exosuitStarted = true;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("Update")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("Update")]
         public static bool UpdatePrefix(Exosuit __instance)
         {    // thrusters consumes 2x energy
              // no limit on thrusters
@@ -1101,8 +1024,8 @@ namespace Tweaks_Fixes
             if (!Main.gameLoaded)
                 return false;
 
-            if (!ConfigMenu.exosuitMoveTweaks.Value)
-                return true;
+            //if (!ConfigMenu.exosuitMoveTweaks.Value)
+            //    return true;
 
             Vehicle_patch.VehicleUpdate(__instance);
             __instance.UpdateThermalReactorCharge();
@@ -1132,6 +1055,7 @@ namespace Tweaks_Fixes
                     //__instance.thrustPower = Mathf.Clamp01(__instance.thrustPower - Time.deltaTime * __instance.thrustConsumption);
                     if ((__instance.onGround || Time.time - __instance.timeOnGround <= 1f) && !__instance.jetDownLastFrame)
                         __instance.ApplyJumpForce();
+
                     __instance.jetsActive = true;
                 }
                 else
@@ -1146,7 +1070,7 @@ namespace Tweaks_Fixes
                 __instance.jetDownLastFrame = thrusterOn;
                 if (__instance.timeJetsActiveChanged + 0.3f < Time.time)
                 {
-                    if (__instance.jetsActive && __instance.thrustPower > 0.0f)
+                    if (__instance.jetsActive && __instance.thrustPower > 0)
                     {
                         __instance.loopingJetSound.Play();
                         __instance.fxcontrol.Play(0);

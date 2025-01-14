@@ -35,9 +35,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> medKitHP;
         public static ConfigEntry<float> craftTimeMult;
         public static ConfigEntry<float> buildTimeMult;
-        public static ConfigEntry<bool> seamothMoveTweaks;
-        public static ConfigEntry<bool> exosuitMoveTweaks;
-        public static ConfigEntry<bool> cyclopsMoveTweaks;
+
+        //public static ConfigEntry<bool> exosuitMoveTweaks;
+        //public static ConfigEntry<bool> cyclopsMoveTweaks;
         public static ConfigEntry<int> cyclopsFireChance;
         public static ConfigEntry<int> cyclopsAutoHealHealthPercent;
         public static ConfigEntry<int> crushDepth;
@@ -78,12 +78,7 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
-            transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
-            transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
-            quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot.");
-            lightButton = Main.configMenu.Bind("", "Light intensity button", KeyCode.None, "When holding a tool in your hand or driving a vehicle press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to change the tool or vehicle light intensity.");
-            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab.");
-            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab.");
+
 
             timeFlowSpeed = Main.configMenu.Bind("", "Time flow speed multiplier", 1f, "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time.");
             playerWaterSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier in water", 1f);
@@ -103,9 +98,8 @@ namespace Tweaks_Fixes
             craftTimeMult = Main.configMenu.Bind("", "Crafting time multiplier", 1f, "Crafting time will be multiplied by this when crafting things with fabricator or modification station.");
             buildTimeMult = Main.configMenu.Bind("", "Building time multiplier", 1f, "Building time will be multiplied by this when using builder tool.");
             seaglideSpeedMult = Main.configMenu.Bind("Player movement", "Seaglide speed multiplier", 1f, "");
-            seamothMoveTweaks = Main.configMenu.Bind("", "Seamoth movement tweaks", false, "Seamoth does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and sideways speed is halved. Its backward speed is reduced to 25%. Game has to be reloaded after changing this.");
-            exosuitMoveTweaks = Main.configMenu.Bind("", "Prawn suit movement tweaks", false, "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power than walking. Game has to be reloaded after changing this.");
-            cyclopsMoveTweaks = Main.configMenu.Bind("", "Cyclops movement tweaks", false, "Cyclops does not exceed its max speed and does not consume more power when moving diagonally. Its vertical and backward speed is halved.");
+
+            //exosuitMoveTweaks = Main.configMenu.Bind("", "Prawn suit movement tweaks", false, "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power than walking. Game has to be reloaded after changing 
             cyclopsFireChance = Main.configMenu.Bind("", "Cyclops engine room fire chance percent", 50, "The game starts checking this when you get your first engine overheat warning. After that every 10 seconds chance to catch fire goes up by 10% if you don't slow down.");
             cyclopsAutoHealHealthPercent = Main.configMenu.Bind("", "Cyclops auto-repair threshold", 90, "Cyclops auto-repairs when it is not on fire and its HP percent is above this.");
             crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage slider is at 0.");
@@ -144,7 +138,12 @@ namespace Tweaks_Fixes
             drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "");
 
 
-
+            transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
+            transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
+            quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot.");
+            lightButton = Main.configMenu.Bind("", "Light intensity button", KeyCode.None, "When holding a tool in your hand or driving a vehicle press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to change the tool or vehicle light intensity.");
+            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab.");
+            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab.");
         }
 
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }

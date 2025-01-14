@@ -71,9 +71,9 @@ namespace Tweaks_Fixes
             AddItem(craftTimeSlider);
             AddItem(buildTimeSlider);
             //AddItem(ConfigMenu.playerMoveTweaks.ToModToggleOption());
-            AddItem(ConfigMenu.seamothMoveTweaks.ToModToggleOption());
-            AddItem(ConfigMenu.exosuitMoveTweaks.ToModToggleOption());
-            AddItem(ConfigMenu.cyclopsMoveTweaks.ToModToggleOption());
+            //AddItem(ConfigMenu.fixSeamothDiagMovement.ToModToggleOption());
+            //AddItem(ConfigMenu.exosuitMoveTweaks.ToModToggleOption());
+            //AddItem(ConfigMenu.cyclopsMoveTweaks.ToModToggleOption());
             AddItem(drillDamageMultSlider);
             AddItem(cyclopsFireChanceSlider);
             AddItem(cyclopsAutoHealSlider);
