@@ -6,19 +6,15 @@ using Nautilus.Handlers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Reflection;
-using Tweaks_Fixes;
 using UnityEngine;
 using static ErrorMessage;
-using static Nautilus.Assets.CustomModelData;
 
 namespace Tweaks_Fixes
 {
     public static class Util
     {
-        static Dictionary<TechType, GameObject> prefabs = new Dictionary<TechType, GameObject>();
         public static bool spawning;
 
         public static bool GetTarget(Vector3 startPos, Vector3 dir, float distance, out RaycastHit hitInfo)
@@ -176,7 +172,24 @@ namespace Tweaks_Fixes
             if (!go.GetComponent<Rigidbody>())
                 return false;
 
-            return go.GetComponent<LiveMixin>();
+            if (!go.GetComponent<LiveMixin>())
+                return false;
+
+            if (go.GetComponent<Vehicle>())
+                return false;
+
+            if (go.GetComponent<EnergyMixin>())
+                return false;
+
+            if (go.GetComponent<PowerRelay>())
+                return false;
+
+            VFXSurfaceTypes surfaceType = GetObjectSurfaceType(go);
+            //Main.logger.LogMessage(go.name + " IsDecoPlant surfaceType " + surfaceType);
+            if (surfaceType == VFXSurfaceTypes.none || surfaceType == VFXSurfaceTypes.vegetation || surfaceType == VFXSurfaceTypes.fallback || surfaceType == VFXSurfaceTypes.coral)
+                return true;
+
+            return false;
         }
 
         public static void FreezeObject(GameObject go, bool state)
@@ -385,13 +398,11 @@ namespace Tweaks_Fixes
             PickPrefab[] pickPrefabs = go.GetComponentsInChildren<PickPrefab>(true);
             if (pickPrefabs.Length == 0)
                 return;
-            //AddDebug("EnsureFruits !!! " + go.name);
+
             FruitPlant fp = go.EnsureComponent<FruitPlant>();
             fp.fruitSpawnEnabled = true;
             //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
-            // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
             fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.kDayLengthSeconds;
-            //AddDebug(__instance.name + " fruitSpawnInterval " + fp.fruitSpawnInterval);
             if (fp.fruitSpawnInterval == 0f)
                 fp.fruitSpawnInterval = 1f;
             //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);
@@ -457,19 +468,19 @@ namespace Tweaks_Fixes
             return (Mathf.Abs(a - b) < tolerance);
         }
 
+        public static void AddVFXsurfaceComponent(GameObject go, VFXSurfaceTypes type)
+        {
+            VFXSurface vFXSurface = go.EnsureComponent<VFXSurface>();
+            vFXSurface.surfaceType = type;
+        }
+
         public static IEnumerator Spawn(TechType techType, Vector3 pos = default, bool fadeIn = false)
         {
             //AddDebug("Spawn " + techType);
             GameObject prefab;
-            if (prefabs.ContainsKey(techType))
-                prefab = prefabs[techType];
-            else
-            {
-                TaskResult<GameObject> result = new TaskResult<GameObject>();
-                yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
-                prefab = result.Get();
-                prefabs[techType] = prefab;
-            }
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
+            prefab = result.Get();
             if (!fadeIn)
                 spawning = true;
 

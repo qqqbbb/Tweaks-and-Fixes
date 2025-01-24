@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using static DebugTargetConsoleCommand;
 using static ErrorMessage;
-using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -24,6 +22,15 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(Pickupable __instance)
             {
+                //AddDebug(" Pickupable Awake " + __instance.name);
+                //Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                //if (rb)
+                //{
+                //    rb.useGravity = true;
+                //    rb.drag = 1;
+                //    rb.angularDrag = 1;
+                //}
+
                 TechType tt = __instance.GetTechType();
                 if (unmovableItems.Contains(tt))
                 { // isKinematic gets saved

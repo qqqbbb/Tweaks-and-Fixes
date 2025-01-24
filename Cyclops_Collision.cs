@@ -1,9 +1,9 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
 using static ErrorMessage;
@@ -240,7 +240,7 @@ namespace Tweaks_Fixes
         //[HarmonyPatch(typeof(BuilderTool), "HandleInput")]
         class BuilderTool_HandleInput_Patch
         { // ignore cyclops outer colliders when building in cyclops
-       //static readonly Targeting.FilterRaycast filter = hit => hit.collider != null && hit.collider.gameObject.layer == LayerID.NotUseable;
+          //static readonly Targeting.FilterRaycast filter = hit => hit.collider != null && hit.collider.gameObject.layer == LayerID.NotUseable;
             public static bool Prefix(BuilderTool __instance)
             {
                 if (!fixCyclopsCollision)
@@ -326,7 +326,7 @@ namespace Tweaks_Fixes
                 }
                 return false;
             }
-             
+
             public static bool PrefixOld(BuilderTool __instance)
             {
                 if (!fixCyclopsCollision)

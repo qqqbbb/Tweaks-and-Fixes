@@ -38,13 +38,13 @@ namespace Tweaks_Fixes
 
         public static void CacheSettings()
         {
-            playerSidewardSpeedMod = Mathf.Clamp(ConfigToEdit.playerSidewardSpeedMod.Value, 0, 100) * .01f;
-            playerBackwardSpeedMod = Mathf.Clamp(ConfigToEdit.playerBackwardSpeedMod.Value, 0, 100) * .01f;
-            playerVerticalSpeedMod = Mathf.Clamp(ConfigToEdit.playerVerticalSpeedMod.Value, 0, 100) * .01f;
-            twoHandToolSwimSpeedMod = Mathf.Clamp(ConfigToEdit.twoHandToolSwimSpeedMod.Value, 0, 100) * .01f;
-            oneHandToolSwimSpeedMod = Mathf.Clamp(ConfigToEdit.oneHandToolSwimSpeedMod.Value, 0, 100) * .01f;
-            oneHandToolWalkSpeedMod = Mathf.Clamp(ConfigToEdit.oneHandToolWalkSpeedMod.Value, 0, 100) * .01f;
-            twoHandToolWalkSpeedMod = Mathf.Clamp(ConfigToEdit.twoHandToolWalkSpeedMod.Value, 0, 100) * .01f;
+            playerSidewardSpeedMod = 1 - Mathf.Clamp(ConfigToEdit.playerSidewardSpeedMod.Value, 0, 100) * .01f;
+            playerBackwardSpeedMod = 1 - Mathf.Clamp(ConfigToEdit.playerBackwardSpeedMod.Value, 0, 100) * .01f;
+            playerVerticalSpeedMod = 1 - Mathf.Clamp(ConfigToEdit.playerVerticalSpeedMod.Value, 0, 100) * .01f;
+            twoHandToolSwimSpeedMod = 1 - Mathf.Clamp(ConfigToEdit.twoHandToolSwimSpeedMod.Value, 0, 100) * .01f;
+            oneHandToolSwimSpeedMod = 1 - Mathf.Clamp(ConfigToEdit.oneHandToolSwimSpeedMod.Value, 0, 100) * .01f;
+            oneHandToolWalkSpeedMod = 1 - Mathf.Clamp(ConfigToEdit.oneHandToolWalkSpeedMod.Value, 0, 100) * .01f;
+            twoHandToolWalkSpeedMod = 1 - Mathf.Clamp(ConfigToEdit.twoHandToolWalkSpeedMod.Value, 0, 100) * .01f;
         }
 
         private static float GetItemMass(InventoryItem inventoryItem)
@@ -124,7 +124,7 @@ namespace Tweaks_Fixes
             float oneHandToolSpeedMod = swimming ? oneHandToolSwimSpeedMod : oneHandToolWalkSpeedMod;
             float twoHandToolSpeedMod = swimming ? twoHandToolSwimSpeedMod : twoHandToolWalkSpeedMod;
 
-            if (Player.main.pda.isInUse && oneHandToolSpeedMod > 0)
+            if (Player.main.pda.isOpen && oneHandToolSpeedMod > 0)
                 toolMod = oneHandToolSpeedMod;
             else
             {
@@ -141,7 +141,7 @@ namespace Tweaks_Fixes
                     else
                         toolMod = twoHandToolSpeedMod;
 
-                    toolMod = 1 - toolMod;
+                    //toolMod = 1 - toolMod;
                     //AddDebug("GetToolMod toolMod " + toolMod);
                 }
             }
@@ -172,6 +172,21 @@ namespace Tweaks_Fixes
                 pc.underWaterController.verticalMaxSpeed = pc.swimVerticalMaxSpeed;
                 pc.underWaterController.waterAcceleration = pc.swimWaterAcceleration;
                 pc.underWaterController.swimDrag = pc.defaultSwimDrag;
+            }
+        }
+
+        [HarmonyPatch(typeof(uGUI_PDA))]
+        class uGUI_PDA_Patch
+        {
+            [HarmonyPostfix, HarmonyPatch("OnPDAOpened")]
+            static void OnPDAOpenedPostfix(uGUI_PDA __instance)
+            {
+                GetToolMod();
+            }
+            [HarmonyPostfix, HarmonyPatch("OnPDAClosed")]
+            static void OnPDAClosedPostfix(uGUI_PDA __instance)
+            {
+                GetToolMod();
             }
         }
 
@@ -271,7 +286,8 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("AlterMaxSpeed")]
             public static void Postfix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
             {// 
-                float mod = 1 + equipmentSpeedMod;
+                float mod = 1;
+                mod += equipmentSpeedMod;
                 //AddDebug("AlterMaxSpeed Postfix " + __result);
                 //AddDebug("equipmentSpeedMod " + equipmentSpeedMod);
                 //AddDebug("toolMod " + toolMod);
@@ -286,13 +302,13 @@ namespace Tweaks_Fixes
 
                 Vector3 input = __instance.movementInputDirection;
                 if (playerSidewardSpeedMod > 0 && input.x != 0)
-                    mod *= (1f - playerSidewardSpeedMod) * Mathf.Abs(input.normalized.x);
+                    mod *= playerSidewardSpeedMod * Mathf.Abs(input.normalized.x);
 
                 if (playerBackwardSpeedMod > 0 && input.z < 0)
-                    mod *= (1f - playerBackwardSpeedMod) * Mathf.Abs(input.normalized.z);
+                    mod *= playerBackwardSpeedMod * Mathf.Abs(input.normalized.z);
 
                 if (playerVerticalSpeedMod > 0 && input.y != 0)
-                    mod *= (1f - playerVerticalSpeedMod) * Mathf.Abs(input.normalized.y);
+                    mod *= playerVerticalSpeedMod * Mathf.Abs(input.normalized.y);
 
                 __result *= ConfigMenu.playerWaterSpeedMult.Value;
                 __result *= mod;
@@ -339,19 +355,14 @@ namespace Tweaks_Fixes
                 float x = input.normalized.x;
                 float z = input.normalized.z;
                 float mod = 1;
-                //AddDebug("input " + input);
+                //AddDebug("ApplyInputVelocityChange input " + input);
                 //AddDebug("velocity " + velocity);
                 if (playerSidewardSpeedMod > 0 && input.x != 0)
-                {
-                    float f = 1f - playerSidewardSpeedMod;
-                    x = input.normalized.x * f;
-                    //AddDebug("Sideward " + f);
-                }
+                    x = input.normalized.x * playerSidewardSpeedMod;
+
                 if (playerBackwardSpeedMod > 0 && input.z < 0)
-                {
-                    float f = 1f - playerBackwardSpeedMod;
-                    z = input.normalized.z * f;
-                }
+                    z = input.normalized.z * playerBackwardSpeedMod;
+
                 if (x != input.normalized.x || z != input.normalized.z)
                     __instance.movementInputDirection = new Vector3(x, input.y, z);
 
@@ -362,7 +373,7 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.invMultLand.Value > 0f)
                     mod *= invItemsMod;
 
-                //AddDebug(" mod: " + mod);
+                //AddDebug("ApplyInputVelocityChange mod: " + mod);
                 if (canMove && mod == 0)
                     AddDebug(Language.main.Get("TF_too_much_weight_message"));
 

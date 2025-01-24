@@ -79,6 +79,7 @@ namespace Tweaks_Fixes
             static void StartPostfix(Player __instance)
             { // this does not run for some users
                 //__instance.StartCoroutine(Test());
+                crushTime = 0;
                 Main.survival = __instance.GetComponent<Survival>();
             }
 
@@ -90,9 +91,9 @@ namespace Tweaks_Fixes
                     return;
 
                 if (__instance.currentMountedVehicle)
-                    Vehicle_patch.UpdateLights();
+                    Light_Control.UpdateLights();
                 else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
-                    Vehicle_patch.UpdateLights();
+                    Light_Control.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
                 if (ConfigMenu.crushDamage.Value > 0f && Crush_Damage_.crushInterval + crushTime < Time.time)
                 {
@@ -138,7 +139,7 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded)
                 { // avoid null reference exception when loading game inside cyclops
                   //__result = depthClass;
-                  //return false;
+                  //  return false;
                 }
                 CrushDamage crushDamage = null;
                 if (__instance.currentSub != null && !__instance.currentSub.isBase || __instance.mode == Player.Mode.LockedPiloting)
@@ -161,6 +162,13 @@ namespace Tweaks_Fixes
                 }
                 __result = depthClass;
                 return false;
+            }
+
+            [HarmonyPostfix, HarmonyPatch("CanBeAttacked")]
+            public static void CanBeAttackedPostfix(Player __instance, ref bool __result)
+            {
+                if (ConfigMenu.aggrMult.Value == 0)
+                    __result = false;
             }
 
         }

@@ -110,11 +110,11 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("MapRoomCamera ControlCamera");
                 Vehicle_patch.currentVehicleTT = TechType.MapRoomCamera;
-                Vehicle_patch.currentLights = __instance.GetComponentsInChildren<Light>(true);
+                Light_Control.currentLights = __instance.GetComponentsInChildren<Light>(true);
                 if (Light_Control.IsLightSaved(TechType.MapRoomCamera))
                 {
                     float intensity = Light_Control.GetLightIntensity(TechType.MapRoomCamera);
-                    foreach (Light l in Vehicle_patch.currentLights)
+                    foreach (Light l in Light_Control.currentLights)
                         l.intensity = intensity;
                 }
             }
@@ -122,7 +122,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("FreeCamera")]
             private static void FreeCameraPostfix(MapRoomCamera __instance)
             {
-                Vehicle_patch.currentLights[0] = null;
+                Light_Control.currentLights[0] = null;
                 //AddDebug("MapRoomCamera FreeCamera");
             }
         }

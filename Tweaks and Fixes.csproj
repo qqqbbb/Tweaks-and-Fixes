@@ -118,7 +118,6 @@
     <Compile Include="Screen_Resolution_Fix.cs" />
     <Compile Include="Locker_Door_Opener.cs" />
     <Compile Include="Inventory_Patch.cs" />
-    <Compile Include="Physics_Patch.cs" />
     <Compile Include="Planter_Patch.cs" />
     <Compile Include="Geyser_Patch.cs" />
     <Compile Include="Scanner_Patch.cs" />

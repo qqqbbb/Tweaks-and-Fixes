@@ -18,6 +18,10 @@ namespace Tweaks_Fixes
             ModSliderOption playerWaterSpeedSlider = ConfigMenu.playerWaterSpeedMult.ToModSliderOption(.5f, 5f, .1f, "{0:0.#}");
             ModSliderOption playerGroundSpeedSlider = ConfigMenu.playerGroundSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
             playerGroundSpeedSlider.OnChanged += UpdateGroundSpeed;
+            ModSliderOption exosuitSpeedSlider = ConfigMenu.exosuitSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
+            ModSliderOption seamothSpeedSlider = ConfigMenu.seamothSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
+            ModSliderOption cyclopsSpeedSlider = ConfigMenu.cyclopsSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
+
             ModSliderOption playerDamageSlider = ConfigMenu.playerDamageMult.ToModSliderOption(0f, 2f, .1f, "{0:0.#}");
             ModSliderOption vehicleDamageSlider = ConfigMenu.vehicleDamageMult.ToModSliderOption(0f, 2f, .1f, "{0:0.#}");
             ModSliderOption aggrSlider = ConfigMenu.aggrMult.ToModSliderOption(0f, 2f, .1f, "{0:0.#}");
@@ -58,6 +62,10 @@ namespace Tweaks_Fixes
             AddItem(playerWaterSpeedSlider);
             AddItem(playerGroundSpeedSlider);
             AddItem(seaglideSpeedSlider);
+            AddItem(exosuitSpeedSlider);
+            AddItem(seamothSpeedSlider);
+            AddItem(cyclopsSpeedSlider);
+
             AddItem(playerDamageSlider);
             AddItem(vehicleDamageSlider);
             AddItem(aggrSlider);

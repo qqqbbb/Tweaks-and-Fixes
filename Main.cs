@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.19.1";
+            VERSION = "3.20.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -60,15 +60,14 @@ namespace Tweaks_Fixes
             Databox_Light_Patch.databoxLights.Clear();
             Crush_Damage_.extraCrushDepth = 0;
             Crush_Damage_.crushDamageResistance = 0;
-            Cyclops_Patch.ceh = null;
             Cyclops_Patch.collidersInSub.Clear();
             Geyser_Patch.eruptionForce.Clear();
             Geyser_Patch.rotationForce.Clear();
             Gravsphere_Patch.gasPods.Clear();
             Gravsphere_Patch.gravSphereFish.Clear();
             Decoy_Patch.decoysToDestroy.Clear();
-            Vehicle_patch.currentLights = new Light[2];
-            Vehicle_patch.dockedVehicles.Clear();
+            Light_Control.currentLights = new Light[2];
+            Vehicle_patch.currentVehicleTT = TechType.None;
             Exosuit_Patch.exosuitStarted = false;
             Damage_Patch.healTempDamageTime = 0;
             Storage_Patch.savedSigns.Clear();
@@ -89,6 +88,7 @@ namespace Tweaks_Fixes
 
         public static void LoadedGameSetup()
         {
+            //LargeWorldEntity_Patch.QQQ();
             //AddDebug("LoadedGameSetup ");
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_Patches.DisableExosuitClawArmScan();
@@ -120,6 +120,7 @@ namespace Tweaks_Fixes
             Drop_items_anywhere.OnGameLoadingFinished();
             Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
             Player_Movement.UpdateModifiers();
+            MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
             gameLoaded = true;
         }
 
@@ -319,21 +320,6 @@ namespace Tweaks_Fixes
 
         }
 
-        public static void ParseFromConfig()
-        {
-            //foreach (string name in config.removeLight)
-            //{
-            //    TechTypeExtensions.FromString(name, out TechType tt, true);
-            //    //Log("config.removeLight " + tt);
-            //    if (tt != TechType.None)
-            //        LargeWorldEntity_Patch.removeLight.Add(tt);
-            //}
-            //foreach (var kv in config.damageMult_)
-            //{
-            //    TechTypeExtensions.FromString(kv.Key, out TechType tt, true);
-            //    if (tt != TechType.None)
-            //       Damage_Patch.damageMult.Add(tt, kv.Value);
-            //}
-        }
+
     }
 }

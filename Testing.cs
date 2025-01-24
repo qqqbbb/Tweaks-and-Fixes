@@ -182,7 +182,15 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        //[HarmonyPatch(typeof(VFXVolumetricLight), "Awake")]
+        class VFXVolumetricLight_Awake_Patch
+        {
+            static void Postfix(VFXVolumetricLight __instance)
+            {
+                if (__instance.name == "x_FakeVolumletricLight")
+                    Main.logger.LogDebug("VFXVolumetricLight Awake " + __instance.range);
+            }
+        }
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
@@ -211,16 +219,9 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    AddDebug("motorMode " + Player.main.mode);
-                    //PlayerTool tool = Inventory.main.GetHeldTool();
-                    //AddDebug(" IsOneHanded " + Util.IsOneHanded(tool));
+                    PlayerTool tool = Inventory.main.GetHeldTool();
 
-                    //AddDebug("decoPlants " + LargeWorldEntity_Patch.decoPlantsDic.Count);
-                    foreach (var kv in LargeWorldEntity_Patch.decoPlantsDic)
-                    {
-                        //AddDebug("decoPlant " + tt);
-                        //Main.logger.LogMessage("decoPlant " + kv.Key + " " + kv.Value);
-                    }
+                    AddDebug("CanBeAttacked " + __instance.CanBeAttacked());
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
@@ -238,11 +239,6 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-
-                    //AddDebug("RightHand " + GameInput.GetBinding(GameInput.Device.Controller, GameInput.Button.RightHand, GameInput.BindingSet.Primary));
-                    //AddDebug("LeftHand " + GameInput.GetBinding(GameInput.Device.Controller, GameInput.Button.RightHand, GameInput.BindingSet.Primary));
-                    //AddDebug("ControllerLeftTrigger index " + GameInput.GetInputIndex("ControllerLeftTrigger")); // 179
-                    //AddDebug("ControllerRightTrigger index " + GameInput.GetInputIndex("ControllerRightTrigger")); // 180
                     printTarget();
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
@@ -340,6 +336,7 @@ namespace Tweaks_Fixes
             if (target)
                 vfxSurfaceType = Util.GetObjectSurfaceType(target);
 
+            AddDebug("vfxSurfaceType  " + vfxSurfaceType);
             LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
             if (lwe)
             {
@@ -347,8 +344,11 @@ namespace Tweaks_Fixes
                 //target = lwe.gameObject;
                 //Rigidbody rb = lwe.GetComponent<Rigidbody>();
                 //if (rb)
-                //    AddDebug(" mass " + rb.mass + " drag " + rb.drag + " ang drag " + rb.angularDrag);
+                //    AddDebug("Rigidbody mass " + rb.mass + " drag " + rb.drag + " ang useGravity " + rb.useGravity);
 
+                //WorldForces wf = lwe.GetComponent<WorldForces>();
+                //if (wf)
+                //    AddDebug("WorldForces handleGravity " + wf.handleGravity + " underwaterGravity " + wf.underwaterGravity + " underwaterDrag " + wf.underwaterDrag);
                 //AddDebug("PDAScanner isValid " + PDAScanner.scanTarget.isValid);
                 //AddDebug("PDAScanner CanScan " + PDAScanner.CanScan());
                 //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
@@ -359,7 +359,7 @@ namespace Tweaks_Fixes
                 //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
             }
             //AddDebug(target.name);
-            AddDebug(target.name + " IsDecoPlant " + Util.IsDecoPlant(target));
+            //AddDebug(target.name + " IsDecoPlant " + Util.IsDecoPlant(target));
             //if (target.transform.parent)
             //    AddDebug(target.transform.parent.name);
 

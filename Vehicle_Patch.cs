@@ -13,92 +13,14 @@ namespace Tweaks_Fixes
     public class Vehicle_patch
     {
         public static GameObject decoyPrefab;
-        public static Light[] currentLights = new Light[2];
         public static TechType currentVehicleTT;
-        public static Dictionary<Vehicle, Vehicle.DockType> dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
+        //public static Dictionary<Vehicle, Vehicle.DockType> dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
         static FMODAsset fireSound = null;
         public static float changeTorpedoTimeLeft = 0;
         public static float changeTorpedoTimeRight = 0;
         public static float changeTorpedoInterval = .5f;
         public static HashSet<TechType> vehicleTechTypes = new HashSet<TechType> { TechType.Cyclops };
         public static string exosuitName;
-
-        public static void UpdateLights()
-        {
-            //AddDebug("UpdateLights " + currentLights.Length);
-            if (currentLights == null || currentLights.Length == 0 || currentLights[0] == null || currentLights[0].gameObject == null || !currentLights[0].gameObject.activeInHierarchy)
-                return;
-
-            if (!Input.GetKey(ConfigMenu.lightButton.Value))
-                return;
-            //Light[] lights = __instance.GetComponentsInChildren<Light>();
-            //AddDebug("lights.Length  " + currentLights[0].gameObject.activeInHierarchy);
-            if (!Light_Control.lightIntensityStep.ContainsKey(currentVehicleTT))
-            {
-                AddDebug("lightIntensityStep missing " + currentVehicleTT);
-                return;
-            }
-            if (!Light_Control.lightOrigIntensity.ContainsKey(currentVehicleTT))
-            {
-                AddDebug("lightOrigIntensity missing " + currentVehicleTT);
-                return;
-            }
-            float step = 0f;
-            //AddDebug("UpdateLights currentVehicleTT " + currentVehicleTT);
-            if (GameInput.GetButtonDown(GameInput.Button.CycleNext))
-                step = Light_Control.lightIntensityStep[currentVehicleTT];
-            else if (GameInput.GetButtonDown(GameInput.Button.CyclePrev))
-                step = -Light_Control.lightIntensityStep[currentVehicleTT];
-
-            if (step == 0f)
-                return;
-
-            foreach (Light l in currentLights)
-            {
-                if (step > 0 && l.intensity > Light_Control.lightOrigIntensity[currentVehicleTT])
-                    return;
-
-                l.intensity += step;
-                //AddDebug("Light Intensity " + l.intensity);
-                Light_Control.SaveLightIntensity(currentVehicleTT, l.intensity);
-            }
-        }
-
-        public static void VehicleUpdate(Vehicle vehicle)
-        {
-            if (vehicle.CanPilot())
-            {
-                vehicle.steeringWheelYaw = Mathf.Lerp(vehicle.steeringWheelYaw, 0.0f, Time.deltaTime);
-                vehicle.steeringWheelPitch = Mathf.Lerp(vehicle.steeringWheelPitch, 0.0f, Time.deltaTime);
-                if (vehicle.mainAnimator)
-                {
-                    vehicle.mainAnimator.SetFloat("view_yaw", vehicle.steeringWheelYaw * 70f);
-                    vehicle.mainAnimator.SetFloat("view_pitch", vehicle.steeringWheelPitch * 45f);
-                }
-            }
-            if (vehicle.GetPilotingMode() && vehicle.CanPilot() && (vehicle.moveOnLand || vehicle.transform.position.y < Ocean.GetOceanLevel()))
-            {
-                Vector2 vector2 = AvatarInputHandler.main.IsEnabled() ? GameInput.GetLookDelta() : Vector2.zero;
-                vehicle.steeringWheelYaw = Mathf.Clamp(vehicle.steeringWheelYaw + vector2.x * vehicle.steeringReponsiveness, -1f, 1f);
-                vehicle.steeringWheelPitch = Mathf.Clamp(vehicle.steeringWheelPitch + vector2.y * vehicle.steeringReponsiveness, -1f, 1f);
-                if (vehicle.controlSheme == Vehicle.ControlSheme.Submersible)
-                {
-                    float num = 3f;
-                    vehicle.useRigidbody.AddTorque(vehicle.transform.up * vector2.x * vehicle.sidewaysTorque * 0.0015f * num, ForceMode.VelocityChange);
-                    vehicle.useRigidbody.AddTorque(vehicle.transform.right * -vector2.y * vehicle.sidewaysTorque * 0.0015f * num, ForceMode.VelocityChange);
-                    vehicle.useRigidbody.AddTorque(vehicle.transform.forward * -vector2.x * vehicle.sidewaysTorque * 0.0002f * num, ForceMode.VelocityChange);
-                }
-                else if ((vehicle.controlSheme == Vehicle.ControlSheme.Submarine || vehicle.controlSheme == Vehicle.ControlSheme.Mech) && vector2.x != 0f)
-                    vehicle.useRigidbody.AddTorque(vehicle.transform.up * vector2.x * vehicle.sidewaysTorque, ForceMode.VelocityChange);
-            }
-            bool powered = vehicle.IsPowered();
-            if (vehicle.wasPowered != powered)
-            {
-                vehicle.wasPowered = powered;
-                vehicle.OnPoweredChanged(powered);
-            }
-            vehicle.ReplenishOxygen();
-        }
 
         public static List<TorpedoType> GetTorpedos(Vehicle vehicle, ItemsContainer torpedoStorage)
         {
@@ -246,7 +168,6 @@ namespace Tweaks_Fixes
             Exosuit_Patch.selectedTorpedoRight = null;
             SeaMoth_patch.selectedTorpedo = null;
             currentVehicleTT = CraftData.GetTechType(__instance.gameObject);
-            currentLights = __instance.transform.Find("lights_parent").GetComponentsInChildren<Light>(true);
             //AddDebug("EnterVehicle " + currentLights.Length);
         }
 
@@ -254,7 +175,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnPilotModeEnd")]
         public static void OnPilotModeEndPostfix(Vehicle __instance)
         {
-            currentLights[0] = null;
             SeaMoth_patch.selectedTorpedo = null;
             //AddDebug("Vehicle OnPilotModeEnd " + currentLights.Length);
         }
@@ -330,15 +250,15 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnDockedChanged")]
+        //[HarmonyPostfix]
+        //[HarmonyPatch("OnDockedChanged")]
         public static void OnDockedChangedPrefix(Vehicle __instance, bool docked, Vehicle.DockType dockType)
         {
             //AddDebug("OnDockedChanged docked " + docked);
-            if (docked)
-                dockedVehicles[__instance] = dockType;
-            else
-                dockedVehicles[__instance] = Vehicle.DockType.None;
+            //if (docked)
+            //    dockedVehicles[__instance] = dockType;
+            //else
+            //    dockedVehicles[__instance] = Vehicle.DockType.None;
         }
 
         //[HarmonyPrefix]
@@ -428,19 +348,6 @@ namespace Tweaks_Fixes
             //Transform t = __instance.transform.Find("xDrips");
             __instance.dripsParticles = null;
         }
-        //[HarmonyPrefix]
-        //[HarmonyPatch("UpdateParticles")]
-        public static bool UpdateParticlesPostfix(VFXSeamothDamages __instance)
-        {
-            //AddDebug("UpdateParticles " + rate);
-            return true;
-        }
-        //[HarmonyPostfix]
-        //[HarmonyPatch("Update")]
-        public static void UpdatePostfix(VFXSeamothDamages __instance)
-        {
-            AddDebug("VFXSeamothDamages Update");
-        }
     }
 
     [HarmonyPatch(typeof(SeaMoth))]
@@ -525,9 +432,9 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Start")]
         public static void StartPostfix(SeaMoth __instance)
         {
-            LargeWorldEntity_Patch.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
-            if (Vehicle_patch.dockedVehicles.ContainsKey(__instance) && Vehicle_patch.dockedVehicles[__instance] == Vehicle.DockType.Cyclops)
-                __instance.animator.Play("seamoth_cyclops_launchbay_dock");
+            Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
+            //if (Vehicle_patch.dockedVehicles.ContainsKey(__instance) && Vehicle_patch.dockedVehicles[__instance] == Vehicle.DockType.Cyclops)
+            //    __instance.animator.Play("seamoth_cyclops_launchbay_dock");
 
             //if (ConfigMenu.fixSeamothDiagMovement.Value)
             //{
@@ -624,45 +531,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPrefix]
-        //[HarmonyPatch("Update")]
-        public static bool UpdatePrefix(SeaMoth __instance)
-        {    // seamoth does not consume more energy when moving diagonally. Upgrade module UI
-            if (!Main.gameLoaded)
-                return false;
-            //AddDebug("SeaMoth Update");
-            Vehicle_patch.VehicleUpdate(__instance as Vehicle);
-            __instance.UpdateSounds();
-
-            if (__instance.GetPilotingMode() && !__instance.ignoreInput)
-            {
-                if (ConfigToEdit.newUIstrings.Value)
-                {
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.Use, useButton);
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, exitButton);
-                }
-                else
-                {
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.Use, UI_Patches.vehicleExitButton);
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, string.Empty);
-                }
-                Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-                float magnitude = moveDirection.magnitude;
-                AddDebug("Update moveDirection " + moveDirection);
-                AddDebug("magnitude " + magnitude);
-                //if (ConfigMenu.fixSeamothDiagMovement.Value)
-                //    magnitude = Mathf.Clamp(moveDirection.magnitude, 0f, 1f);
-
-                //if (magnitude > 0.1f)
-                //    __instance.ConsumeEngineEnergy(Time.deltaTime * __instance.enginePowerConsumption * magnitude);
-
-                __instance.toggleLights.CheckLightToggle();
-            }
-            __instance.UpdateScreenFX();
-            __instance.UpdateDockedAnim();
-            return false;
-        }
-
         [HarmonyPostfix]
         [HarmonyPatch("Update")]
         public static void UpdatePostfix(SeaMoth __instance)
@@ -714,6 +582,7 @@ namespace Tweaks_Fixes
         public static TorpedoType selectedTorpedoRight = null;
         public static ItemsContainer torpedoStorageLeft;
         public static ItemsContainer torpedoStorageRight;
+        public static Transform lightsTransform;
 
         public static List<TorpedoType> GetTorpedos(Exosuit exosuit, ItemsContainer torpedoStorage)
         {
@@ -928,7 +797,6 @@ namespace Tweaks_Fixes
         public static void OnPilotModeBeginPostfix(Exosuit __instance)
         {
             //AddDebug("OnPilotModeBegin");
-
             if (!Main.exosuitTorpedoDisplayLoaded)
             {
                 torpedoStorageLeft = null;
@@ -940,6 +808,8 @@ namespace Tweaks_Fixes
             {
                 Util.FreezeObject(__instance.gameObject, false);
             }
+            if (lightsTransform)
+                Light_Control.currentLights = lightsTransform.GetComponentsInChildren<Light>(true);
             //__instance.OnUpgradeModuleToggle();
             //exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringRightHand;
             //seamothName = Language.main.Get(TechType.Seamoth);
@@ -972,14 +842,18 @@ namespace Tweaks_Fixes
                 //AddDebug("Start exosuitName == null");
                 exosuitName = Language.main.Get("Exosuit");
             }
-            if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
+            lightsTransform = __instance.transform.Find("lights_parent");
+            if (lightsTransform) // lights will follow camera
+                lightsTransform.SetParent(__instance.leftArmAttach);
+
+            //if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
             {
-                Vehicle.DockType dockType = Vehicle_patch.dockedVehicles[__instance];
-                if (dockType == Vehicle.DockType.Cyclops)
-                {
-                    //AddDebug("Play exo_docked Cyclops");
-                    __instance.mainAnimator.Play("exo_docked");
-                }
+                //Vehicle.DockType dockType = Vehicle_patch.dockedVehicles[__instance];
+                //if (dockType == Vehicle.DockType.Cyclops)
+                //{
+                //AddDebug("Play exo_docked Cyclops");
+                //__instance.mainAnimator.Play("exo_docked");
+                //}
                 //else if (dockType == Vehicle.DockType.Base)
                 //{
                 //AddDebug("Exosuit Start DockType.Base)");
@@ -993,7 +867,14 @@ namespace Tweaks_Fixes
             //AddDebug("Exosuit Start " + __instance.docked);
             //Main.Log("Exosuit start pos " + __instance.transform.position);
             //Main.Log("Exosuit start locpos " + __instance.transform.localPosition);
-            CollisionSound collisionSound = __instance.gameObject.EnsureComponent<CollisionSound>();
+            CreateCollisionSounds(__instance);
+            SetLights(__instance, Main.configMain.exosuitLights);
+            exosuitStarted = true;
+        }
+
+        private static void CreateCollisionSounds(Exosuit exosuit)
+        {
+            CollisionSound collisionSound = exosuit.gameObject.EnsureComponent<CollisionSound>();
             FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
             so.path = "event:/sub/common/fishsplat";
             so.id = "{0e47f1c6-6178-41bd-93bf-40bfca179cb6}";
@@ -1010,139 +891,6 @@ namespace Tweaks_Fixes
             so.path = "event:/sub/seamoth/impact_solid_soft";
             so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
             collisionSound.hitSoundSlow = so;
-            SetLights(__instance, Main.configMain.exosuitLights);
-            exosuitStarted = true;
-        }
-
-        //[HarmonyPrefix]
-        //[HarmonyPatch("Update")]
-        public static bool UpdatePrefix(Exosuit __instance)
-        {    // thrusters consumes 2x energy
-             // no limit on thrusters
-             //  strafing disabled in ApplyPhysicsMoveExosuit
-            if (!Main.gameLoaded)
-                return false;
-
-            //if (!ConfigMenu.exosuitMoveTweaks.Value)
-            //    return true;
-
-            Vehicle_patch.VehicleUpdate(__instance);
-            __instance.UpdateThermalReactorCharge();
-            __instance.openedFraction = !__instance.storageContainer.GetOpen() ? Mathf.Clamp01(__instance.openedFraction - Time.deltaTime * 2f) : Mathf.Clamp01(__instance.openedFraction + Time.deltaTime * 2f);
-            __instance.storageFlap.localEulerAngles = new Vector3(__instance.startFlapPitch + __instance.openedFraction * 80f, 0.0f, 0.0f);
-            bool pilotingMode = __instance.GetPilotingMode();
-            bool onGround = __instance.onGround || Time.time - __instance.timeOnGround <= 0.5f;
-            __instance.mainAnimator.SetBool("sit", !pilotingMode & onGround && !__instance.IsUnderwater());
-            bool inUse = pilotingMode && !__instance.docked;
-            if (pilotingMode)
-            {
-                Player.main.transform.localPosition = Vector3.zero;
-                Player.main.transform.localRotation = Quaternion.identity;
-                Vector3 input;
-                if (__instance.IsAutopilotEnabled)
-                    input = __instance.CalculateAutopilotLocalWishDir();
-                else
-                    input = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-
-                bool thrusterOn = input.y > 0f;
-                bool hasPower = __instance.IsPowered() && __instance.liveMixin.IsAlive();
-                __instance.GetEnergyValues(out float charge, out float capacity);
-                __instance.thrustPower = Util.NormalizeTo01range(charge, 0f, capacity);
-                //Main.Message("thrustPower " + __instance.thrustPower);
-                if (thrusterOn & hasPower)
-                {
-                    //__instance.thrustPower = Mathf.Clamp01(__instance.thrustPower - Time.deltaTime * __instance.thrustConsumption);
-                    if ((__instance.onGround || Time.time - __instance.timeOnGround <= 1f) && !__instance.jetDownLastFrame)
-                        __instance.ApplyJumpForce();
-
-                    __instance.jetsActive = true;
-                }
-                else
-                {
-                    __instance.jetsActive = false;
-                    //float num = Time.deltaTime * __instance.thrustConsumption * 0f;
-                    //if (__instance.onGround)
-                    //    num = (Time.deltaTime * __instance.thrustConsumption * 4f);
-                    //__instance.thrustPower = Mathf.Clamp01(__instance.thrustPower + num);
-                }
-                //AddDebug("jetsActive" + __instance.jetsActive);
-                __instance.jetDownLastFrame = thrusterOn;
-                if (__instance.timeJetsActiveChanged + 0.3f < Time.time)
-                {
-                    if (__instance.jetsActive && __instance.thrustPower > 0)
-                    {
-                        __instance.loopingJetSound.Play();
-                        __instance.fxcontrol.Play(0);
-                        __instance.areFXPlaying = true;
-                    }
-                    else if (__instance.areFXPlaying)
-                    {
-                        __instance.loopingJetSound.Stop();
-                        __instance.fxcontrol.Stop(0);
-                        __instance.areFXPlaying = false;
-                    }
-                }
-                float energyCost = __instance.thrustConsumption * Time.deltaTime;
-                if (thrusterOn)
-                {
-                    __instance.ConsumeEngineEnergy(energyCost * 2f);
-                    //Main.Message("Consume Energy thrust" + energyCost * 2f);
-                }
-                else if (input.z != 0f)
-                {
-                    __instance.ConsumeEngineEnergy(energyCost);
-                    //Main.Message("Consume Energy move" + energyCost);
-                }
-                if (__instance.jetsActive)
-                    __instance.thrustIntensity += Time.deltaTime / __instance.timeForFullVirbation;
-                else
-                    __instance.thrustIntensity -= Time.deltaTime * 10f;
-
-                __instance.thrustIntensity = Mathf.Clamp01(__instance.thrustIntensity);
-                if (AvatarInputHandler.main.IsEnabled() && !__instance.ignoreInput)
-                {
-                    Vector3 eulerAngles = __instance.transform.eulerAngles;
-                    eulerAngles.x = MainCamera.camera.transform.eulerAngles.x;
-                    Quaternion aimDirection1 = Quaternion.Euler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
-                    Quaternion aimDirection2 = aimDirection1;
-                    __instance.leftArm.Update(ref aimDirection1);
-                    __instance.rightArm.Update(ref aimDirection2);
-                    if (inUse)
-                    {
-                        Vector3 b1 = MainCamera.camera.transform.position + aimDirection1 * Vector3.forward * 100f;
-                        Vector3 b2 = MainCamera.camera.transform.position + aimDirection2 * Vector3.forward * 100f;
-                        __instance.aimTargetLeft.transform.position = Vector3.Lerp(__instance.aimTargetLeft.transform.position, b1, Time.deltaTime * 15f);
-                        __instance.aimTargetRight.transform.position = Vector3.Lerp(__instance.aimTargetRight.transform.position, b2, Time.deltaTime * 15f);
-                    }
-                    __instance.UpdateUIText(__instance.rightArm is ExosuitPropulsionArm || __instance.leftArm is ExosuitPropulsionArm);
-                    if (GameInput.GetButtonDown(GameInput.Button.AltTool) && !__instance.rightArm.OnAltDown())
-                        __instance.leftArm.OnAltDown();
-                }
-                __instance.UpdateActiveTarget();
-                __instance.UpdateSounds();
-            }
-            if (!inUse)
-            {
-                bool flag3 = false;
-                bool flag4 = false;
-                if (!Util.Approximately(__instance.aimTargetLeft.transform.localPosition.y, 0f))
-                    __instance.aimTargetLeft.transform.localPosition = new Vector3(__instance.aimTargetLeft.transform.localPosition.x, Mathf.MoveTowards(__instance.aimTargetLeft.transform.localPosition.y, 0f, Time.deltaTime * 50f), __instance.aimTargetLeft.transform.localPosition.z);
-                else
-                    flag3 = true;
-
-                if (!Util.Approximately(__instance.aimTargetRight.transform.localPosition.y, 0f))
-                    __instance.aimTargetRight.transform.localPosition = new Vector3(__instance.aimTargetRight.transform.localPosition.x, Mathf.MoveTowards(__instance.aimTargetRight.transform.localPosition.y, 0f, Time.deltaTime * 50f), __instance.aimTargetRight.transform.localPosition.z);
-                else
-                    flag4 = true;
-
-                if (flag3 & flag4)
-                    __instance.SetIKEnabled(false);
-            }
-            __instance.UpdateAnimations();
-            if (__instance.armsDirty)
-                __instance.UpdateExosuitArms();
-
-            return false;
         }
 
         [HarmonyPostfix]
@@ -1181,21 +929,20 @@ namespace Tweaks_Fixes
 
         private static void ToggleLights(Exosuit exosuit)
         {
-            Transform lightsT = exosuit.transform.Find("lights_parent");
-            if (lightsT)
+            if (lightsTransform == null)
+                return;
+
+            if (!lightsTransform.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
             {
-                if (!lightsT.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
-                {
-                    lightsT.gameObject.SetActive(true);
-                    Main.configMain.exosuitLights = true;
-                }
-                else if (lightsT.gameObject.activeSelf)
-                {
-                    lightsT.gameObject.SetActive(false);
-                    Main.configMain.exosuitLights = false;
-                }
-                //AddDebug("lights " + lightsT.gameObject.activeSelf);
+                lightsTransform.gameObject.SetActive(true);
+                Main.configMain.exosuitLights = true;
             }
+            else if (lightsTransform.gameObject.activeSelf)
+            {
+                lightsTransform.gameObject.SetActive(false);
+                Main.configMain.exosuitLights = false;
+            }
+            //AddDebug("lights " + lightsT.gameObject.activeSelf);
         }
 
         private static void SetLights(Exosuit exosuit, bool active)
@@ -1203,10 +950,9 @@ namespace Tweaks_Fixes
             if (active && !exosuit.energyInterface.hasCharge)
                 return;
 
-            Transform lightsT = exosuit.transform.Find("lights_parent");
-            if (lightsT)
+            if (lightsTransform)
             {
-                lightsT.gameObject.SetActive(active);
+                lightsTransform.gameObject.SetActive(active);
                 //AddDebug("SetLights " + active);
             }
         }

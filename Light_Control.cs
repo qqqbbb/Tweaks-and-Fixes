@@ -3,6 +3,7 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -15,6 +16,7 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, float> lightIntensityStep = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> lightOrigIntensity = new Dictionary<TechType, float>();
         public static GameInput.Button lightButton;
+        public static Light[] currentLights = new Light[2];
 
         public static void SaveLightIntensity(TechType tt, float f)
         {
@@ -31,7 +33,73 @@ namespace Tweaks_Fixes
             return Main.configMain.lightIntensity[tt.ToString()];
         }
 
+        public static void UpdateLights()
+        {
+            //AddDebug("UpdateLights " + currentLights.Length);
+            if (currentLights == null || currentLights.Length == 0 || currentLights[0] == null || currentLights[0].gameObject == null || !currentLights[0].gameObject.activeInHierarchy)
+                return;
 
+            if (!Input.GetKey(ConfigMenu.lightButton.Value))
+                return;
+
+            TechType vehTT = Vehicle_patch.currentVehicleTT;
+            //Light[] lights = __instance.GetComponentsInChildren<Light>();
+            //AddDebug("lights.Length  " + currentLights[0].gameObject.activeInHierarchy);
+            if (!lightIntensityStep.ContainsKey(vehTT))
+            {
+                AddDebug("lightIntensityStep missing " + vehTT);
+                return;
+            }
+            if (!lightOrigIntensity.ContainsKey(vehTT))
+            {
+                AddDebug("lightOrigIntensity missing " + vehTT);
+                return;
+            }
+            float step = 0f;
+            //AddDebug("UpdateLights currentVehicleTT " + currentVehicleTT);
+            if (GameInput.GetButtonDown(GameInput.Button.CycleNext))
+                step = lightIntensityStep[vehTT];
+            else if (GameInput.GetButtonDown(GameInput.Button.CyclePrev))
+                step = -lightIntensityStep[vehTT];
+
+            if (step == 0f)
+                return;
+
+            foreach (Light l in currentLights)
+            {
+                if (step > 0 && l.intensity > lightOrigIntensity[vehTT])
+                    return;
+
+                l.intensity += step;
+                //AddDebug("Light Intensity " + l.intensity);
+                SaveLightIntensity(vehTT, l.intensity);
+            }
+        }
+
+        [HarmonyPatch(typeof(Vehicle))]
+        public class Vehicle_patch_
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("EnterVehicle")]
+            public static void EnterVehiclePostfix(Vehicle __instance)
+            {
+                if (__instance is Exosuit) { }
+                else
+                {
+                    Transform lightT = __instance.transform.Find("lights_parent");
+                    if (lightT)
+                        currentLights = lightT.GetComponentsInChildren<Light>(true);
+                }
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("OnPilotModeEnd")]
+            public static void OnPilotModeEndPostfix(Vehicle __instance)
+            {
+                currentLights[0] = null;
+                //AddDebug("Vehicle OnPilotModeEnd " + currentLights.Length);
+            }
+
+        }
         [HarmonyPatch(typeof(QuickSlots))]
         class QuickSlots_Bind_Patch
         {
@@ -160,7 +228,7 @@ namespace Tweaks_Fixes
                 if (!Input.GetKey(ConfigMenu.lightButton.Value))
                     return true;
 
-                if (Vehicle_patch.currentLights.Length == 0)
+                if (currentLights.Length == 0)
                 {
                     //AddDebug("lights.Length == 0 ");
                     return true;
@@ -179,7 +247,7 @@ namespace Tweaks_Fixes
                 if (direction < 0)
                     step = -step;
 
-                foreach (Light l in Vehicle_patch.currentLights)
+                foreach (Light l in currentLights)
                 {
                     if (step > 0 && l.intensity > lightOrigIntensity[TechType.MapRoomCamera])
                         return false;

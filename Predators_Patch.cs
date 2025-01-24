@@ -475,9 +475,8 @@ namespace Tweaks_Fixes
                 AddDebug(tt + " MeleeAttack OnEnable biteInterval " + __instance.biteInterval);
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("CanDealDamageTo")]
-            public static bool CanDealDamageToPrefix(MeleeAttack __instance, GameObject target, ref bool __result)
+            [HarmonyPostfix, HarmonyPatch("CanDealDamageTo")]
+            public static void CanDealDamageToPostfix(MeleeAttack __instance, GameObject target, ref bool __result)
             { // fix bug: reaper pushes cyclops instead of attacking
                 LiveMixin lm = target.GetComponent<LiveMixin>();
                 //bool cyclops = target.GetComponent<SubControl>();
@@ -488,7 +487,6 @@ namespace Tweaks_Fixes
                     //return false;
                 }
                 __result = lm && lm.IsAlive();
-                return false;
             }
 
             [HarmonyPrefix]

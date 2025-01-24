@@ -131,7 +131,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> fixCyclopsMove;
         public static ConfigEntry<int> cyclopsVerticalSpeedMod;
         public static ConfigEntry<int> cyclopsBackwardSpeedMod;
-
+        public static ConfigEntry<bool> alwaysSpawnWhenKnifeHarvesting;
+        public static ConfigEntry<bool> cyclopsSonar;
+        public static ConfigEntry<bool> cyclopsFireMusic;
 
 
 
@@ -149,6 +151,8 @@ namespace Tweaks_Fixes
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
             targetFrameRate = Main.configToEdit.Bind("MISC", "Frame rate limiter", 0, "Number of frames the game renders every second will be limited to this. Numbers smaller than 10 are ignored.");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
+            alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
+
             dontSpawnKnownFragments = Main.configToEdit.Bind("FRAGMENTS", "Do not spawn fragments for unlocked blueprints", false);
             cantScanExosuitClawArm = Main.configToEdit.Bind("FRAGMENTS", "Unlock prawn suit only by scanning prawn suit", true, "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arm fragments.");
             mapRoomFreeCameras = Main.configToEdit.Bind("BASE", "Free camera drones for scanner room", true, "Scanner room will be built without camera drones if this is false.");
@@ -212,7 +216,7 @@ namespace Tweaks_Fixes
             seamothTakeDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Seamoth min speed to take damage", 7f, "Min speed in meters per second at which seamoth takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             seamothTakeDamageMinMass = Main.configToEdit.Bind("VEHICLES", "Min mass that can damage seamoth", 5f, "Min mass in kg for objects that can damage seamoth when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             vehiclesHurtCreatures = Main.configToEdit.Bind("VEHICLES", "Vehicles hurt creatures", true, "Vehicles will not hurt creatures when colliding with them if this is false.");
-            fixSeamothMove = Main.configToEdit.Bind("VEHICLES", "Fix seamoth diagonal movement", false, "Seamoth will not exceed its max speed and will not consume more power when moving diagonally.");
+            fixSeamothMove = Main.configToEdit.Bind("VEHICLES", "Fix seamoth movement", true, "Seamoth will not exceed its max speed when moving diagonally. It will use analog values from controller stick.");
             seamothSidewardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seamoth sideward speed modifier", 0, "Seamoth speed will be reduced by this percent when moving sideward.");
             seamothBackwardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seamoth backward speed modifier", 0, "Seamoth speed will be reduced by this percent when moving backward.");
             seamothVerticalSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seamoth vertical speed modifier", 0, "Seamoth speed will be reduced by this percent when moving up or down.");
@@ -221,7 +225,8 @@ namespace Tweaks_Fixes
 
             cyclopsVerticalSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops vertical speed modifier", 0, "Cyclops speed will be reduced by this percent when moving up or down.");
             cyclopsBackwardSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops backward speed modifier", 0, "Cyclops speed will be reduced by this percent when moving backward.");
-            fixCyclopsMove = Main.configToEdit.Bind("CYCLOPS", "Fix cyclops diagonal movement", false, "Cyclops will not exceed its max speed and will not consume more power when moving diagonally.");
+            fixCyclopsMove = Main.configToEdit.Bind("CYCLOPS", "Fix cyclops diagonal movement", true, "Cyclops will not exceed its max speed and will not consume more power when moving diagonally.");
+            cyclopsFireMusic = Main.configToEdit.Bind("CYCLOPS", "Play dubsteppy music when cyclops engine is on fire", true);
 
 
 
@@ -273,6 +278,9 @@ namespace Tweaks_Fixes
             removeFeedbackButton = Main.configToEdit.Bind("MENU BUTTONS", "Remove feedback button from pause menu", false);
             enableDevButton = Main.configToEdit.Bind("MENU BUTTONS", "Enable developer button in pause menu", false);
             propCannonGrabsAnyPlant = Main.configToEdit.Bind("TOOLS", "Propulsion cannon grabs any plant", true, "Propulsion cannon will grab only plants you can pick up if this is false");
+            cyclopsSonar = Main.configToEdit.Bind("CYCLOPS", "Cyclops sonar", true, "Cyclops sonar that detects aggresive creatures will be off if this is false");
+
+
 
 
 
@@ -414,32 +422,32 @@ namespace Tweaks_Fixes
 
         private static Vector3 ParseBloodColor(string input)
         {
-            float f = float.MaxValue;
-            float f1 = float.MaxValue;
-            float f2 = float.MaxValue;
+            float r = float.MaxValue;
+            float g = float.MaxValue;
+            float b = float.MaxValue;
             string[] entries = input.Split(' ');
             for (int i = 0; i < entries.Length; i++)
             {
                 try
                 {
-                    if (f == float.MaxValue)
-                        f = float.Parse(entries[i]);
-                    else if (f1 == float.MaxValue)
-                        f1 = float.Parse(entries[i]);
-                    else if (f2 == float.MaxValue)
-                        f2 = float.Parse(entries[i]);
+                    if (r == float.MaxValue)
+                        r = float.Parse(entries[i]);
+                    else if (g == float.MaxValue)
+                        g = float.Parse(entries[i]);
+                    else if (b == float.MaxValue)
+                        b = float.Parse(entries[i]);
                 }
                 catch (Exception)
                 {
                     break;
                 }
             }
-            if (f == float.MaxValue || f1 == float.MaxValue || f2 == float.MaxValue)
+            if (r == float.MaxValue || g == float.MaxValue || b == float.MaxValue)
             {
                 Main.logger.LogWarning("Could not parse blood color: " + input);
                 return new Vector3(0.784f, 1f, 0.157f);
             }
-            return new Vector3(Mathf.Clamp01(f), Mathf.Clamp01(f1), Mathf.Clamp01(f2));
+            return new Vector3(Mathf.Clamp01(r), Mathf.Clamp01(g), Mathf.Clamp01(b));
         }
 
         public static void ParseConfig()

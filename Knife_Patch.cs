@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -14,14 +13,13 @@ namespace Tweaks_Fixes
     internal class Knife_Patch
     {
         public static bool giveResourceOnDamage;
-        public static Vector3 knifeTargetPos;
+        static float knifeRangeDefault = 0f;
+        static float knifeDamageDefault = 0f;
+        static ParticleSystem[] heatBladeParticles;
 
         [HarmonyPatch(typeof(PlayerTool))]
         public class PlayerTool_Patch
         {
-            static float knifeRangeDefault = 0f;
-            static float knifeDamageDefault = 0f;
-
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
@@ -140,10 +138,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("GiveResourceOnDamage")]
             public static void GiveResourceOnDamagePrefix(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
             {
-                //AddDebug("GiveResourceOnDamage ");
                 giveResourceOnDamage = true;
-                knifeTargetPos = target.transform.position;
-
             }
 
             //[HarmonyPostfix]
@@ -188,24 +183,33 @@ namespace Tweaks_Fixes
 
         public static void AddToInventoryOrSpawn(TechType techType, int num)
         {
+            Vector3 spawnPos = default;
             for (int i = 0; i < num; ++i)
             {
-                if (Inventory.main.HasRoomFor(techType))
+                if (!ConfigToEdit.alwaysSpawnWhenKnifeHarvesting.Value && Inventory.main.HasRoomFor(techType))
                     CraftData.AddToInventory(techType);
                 else
                 { // spawn position from AddToInventory can be behind object
-                    AddError(Language.main.Get("InventoryFull"));
-                    Vector3 pos = default;
-                    if (knifeTargetPos != default)
+                    if (!ConfigToEdit.alwaysSpawnWhenKnifeHarvesting.Value)
+                        AddError(Language.main.Get("InventoryFull"));
+
+                    if (spawnPos == default)
                     {
                         Transform camTr = MainCamera.camera.transform;
-                        float x = Mathf.Lerp(knifeTargetPos.x, camTr.position.x, .5f);
-                        float y = camTr.position.y + camTr.forward.y * 3f; // fix for creepvine 
-                        float z = Mathf.Lerp(knifeTargetPos.z, camTr.position.z, .5f);
-                        pos = new Vector3(x, y, z);
-                        //AddDebug("spawn Pos " + pos);
+                        float dist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
+                        RaycastHit hitIData = default;
+                        Physics.Raycast(camTr.position, camTr.forward, out hitIData, dist);
+                        if (hitIData.point != default)
+                        {
+                            float x = Mathf.Lerp(hitIData.point.x, camTr.position.x, .2f);
+                            float y = Mathf.Lerp(hitIData.point.y, camTr.position.y, .2f);
+                            float z = Mathf.Lerp(hitIData.point.z, camTr.position.z, .2f);
+                            spawnPos = new Vector3(x, y, z);
+                        }
+                        else
+                            spawnPos = camTr.position;
                     }
-                    CoroutineHost.StartCoroutine(Util.Spawn(techType, pos));
+                    CoroutineHost.StartCoroutine(Util.Spawn(techType, spawnPos));
                 }
             }
         }
@@ -213,20 +217,18 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CraftData), "AddToInventory")]
         class CraftData_AddToInventory_Patch
         {
-            static bool Prefix(CraftData __instance, TechType techType, int num, bool noMessage, bool spawnIfCantAdd)
+            static void Prefix(CraftData __instance, TechType techType, ref int num, bool noMessage, bool spawnIfCantAdd)
             {
-                //AddDebug("AddToInventory Prefix giveResourceOnDamage " + techType + " " + num);
+                //AddDebug("AddToInventory Prefix " + techType + " " + num + " spawnIfCantAdd " + spawnIfCantAdd + " giveResourceOnDamage " + giveResourceOnDamage);
                 if (giveResourceOnDamage && !spawnIfCantAdd)
                 {
                     AddToInventoryOrSpawn(techType, num);
                     giveResourceOnDamage = false;
-                    return false;
+                    num = 0;
                 }
-                return true;
             }
         }
 
-        static ParticleSystem[] heatBladeParticles;
 
         [HarmonyPatch(typeof(VFXLateTimeParticles))]
         public class VFXLateTimeParticles_Patch
@@ -238,6 +240,7 @@ namespace Tweaks_Fixes
                 if (__instance.name != "xHeatBlade_Bubbles(Clone)")
                     return;
 
+                //AddDebug("VFXLateTimeParticles Play");
                 heatBladeParticles = __instance.psChildren;
                 FixHeatBlade();
             }
@@ -258,7 +261,7 @@ namespace Tweaks_Fixes
         public static void OnPlayerUnderwaterChanged(Utils.MonitoredValue<bool> isUnderwaterForSwimming)
         {
             //AddDebug(" OnPlayerUnderwaterChanged " + Player.main.IsUnderwater());
-            Knife_Patch.FixHeatBlade();
+            FixHeatBlade();
         }
     }
 }

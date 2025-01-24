@@ -71,14 +71,23 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> baseHullStrengthMult;
         public static ConfigEntry<float> drillDamageMult;
         public static ConfigEntry<float> crushDamageProgression;
+        public static ConfigEntry<float> exosuitSpeedMult;
+        public static ConfigEntry<float> seamothSpeedMult;
+        public static ConfigEntry<float> cyclopsSpeedMult;
+
+
 
         public static void Bind()
         {  // “ ” ‛
 
-
             timeFlowSpeed = Main.configMenu.Bind("", "Time flow speed multiplier", 1f, "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time.");
             playerWaterSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier in water", 1f);
             playerGroundSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier on ground", 1f);
+
+            exosuitSpeedMult = Main.configMenu.Bind("", "Prawn suit speed multiplier", 1f, "");
+            seamothSpeedMult = Main.configMenu.Bind("", "Seamoth speed multiplier", 1f, "");
+            cyclopsSpeedMult = Main.configMenu.Bind("", "Cyclops speed multiplier", 1f, "");
+
             playerDamageMult = Main.configMenu.Bind("", "Player damage multiplier", 1f, "Amount of damage player takes will be multiplied by this.");
             vehicleDamageMult = Main.configMenu.Bind("", "Vehicle damage multiplier", 1f, "Amount of damage your vehicles take will be multiplied by this.");
             aggrMult = Main.configMenu.Bind("", "Predator aggression multiplier", 1f, "The higher it is the more aggressive predators are towards you. When it is 0, you and your vehicles will never be attacked. When it's more than 1 predators attack you from greater distance and more often.");
@@ -95,7 +104,6 @@ namespace Tweaks_Fixes
             buildTimeMult = Main.configMenu.Bind("", "Building time multiplier", 1f, "Building time will be multiplied by this when using builder tool.");
             seaglideSpeedMult = Main.configMenu.Bind("Player movement", "Seaglide speed multiplier", 1f, "");
 
-            //exosuitMoveTweaks = Main.configMenu.Bind("", "Prawn suit movement tweaks", false, "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power than walking. Game has to be reloaded after changing 
             cyclopsFireChance = Main.configMenu.Bind("", "Cyclops engine room fire chance percent", 50, "The game starts checking this when you get your first engine overheat warning. After that every 10 seconds chance to catch fire goes up by 10% if you don't slow down.");
             cyclopsAutoHealHealthPercent = Main.configMenu.Bind("", "Cyclops auto-repair threshold", 90, "Cyclops auto-repairs when it is not on fire and its HP percent is above this.");
             crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage slider is at 0.");
