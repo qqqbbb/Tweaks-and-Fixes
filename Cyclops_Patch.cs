@@ -14,8 +14,9 @@ namespace Tweaks_Fixes
         static bool cyclopsHolographicHUDlastState = false;
         //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
-        static float vertSpeedMult = .5f;
-        static float backwardSpeedMult = .5f;
+        //static float vertSpeedMult = .5f;
+        //static float backwardSpeedMult = .5f;
+
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -72,6 +73,25 @@ namespace Tweaks_Fixes
             //AddDebug("GetEngineOverheatMinValue " + overheatValue);
             return overheatValue;
         }
+
+        [HarmonyPatch(typeof(VehicleDockingBay), "SetVehicleDocked")]
+        class Openable_SetVehicleDocked_Patch
+        {
+            public static void Postfix(VehicleDockingBay __instance, Vehicle vehicle)
+            { // runs wheb loading saved game
+                Transform hatchTransform = __instance.transform.parent.parent.parent.transform.Find("CyclopsMeshAnimated/submarine_hatch_03_base 1/submarine_hatch_03 1");
+                if (hatchTransform)
+                {
+                    Openable openable = hatchTransform.GetComponent<Openable>();
+                    if (openable)
+                        openable.PlayOpenAnimation(true, openable.animTime);
+                }
+            }
+        }
+
+        //Cyclops-MainPrefab(Clone)/CyclopsMeshAnimated/submarine_hatch_03_base 1/submarine_hatch_03 1
+
+        //Cyclops-MainPrefab(Clone)/LaunchBayBuilt/Launchbay_cinemetic/SeamothDockingBay
 
         [HarmonyPatch(typeof(CyclopsHelmHUDManager))]
         class CyclopsHelmHUDManager_Patch

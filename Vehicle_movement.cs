@@ -127,6 +127,7 @@ namespace Tweaks_Fixes
                     __instance.sidewardForce = seamothSidewardForce;
                 }
             }
+
             [HarmonyPrefix, HarmonyPatch("ConsumeEngineEnergy")]
             public static void ConsumeEngineEnergyPrefix(Vehicle __instance, float energyCost)
             {
@@ -215,7 +216,6 @@ namespace Tweaks_Fixes
 
         }
 
-
         [HarmonyPatch(typeof(SubControl))]
         class SubControl_patch
         {
@@ -243,6 +243,8 @@ namespace Tweaks_Fixes
                     if (__instance.throttle.z < 0)
                         __instance.BaseForwardAccel *= cyclopsBackwardMod;
                 }
+                //AddDebug("BaseForwardAccel " + __instance.BaseForwardAccel);
+                //AddDebug("cyclopsForwardOrig " + cyclopsForwardOrig);
             }
         }
 
@@ -252,19 +254,13 @@ namespace Tweaks_Fixes
             public static void Postfix(CyclopsMotorMode __instance, CyclopsMotorMode.CyclopsMotorModes newMode)
             {
                 //AddDebug("ChangeCyclopsMotorMode " + newMode);
+                float motorModeSpeed = __instance.motorModeSpeeds[(int)__instance.cyclopsMotorMode];
+                cyclopsForwardOrig = motorModeSpeed;
                 if (ConfigToEdit.cyclopsVerticalSpeedMod.Value > 0)
                 {
-                    float motorModeSpeed = __instance.motorModeSpeeds[(int)__instance.cyclopsMotorMode];
                     __instance.subController.BaseVerticalAccel = motorModeSpeed * cyclopsVerticalMod;
                     //AddDebug("motorModeSpeed " + motorModeSpeed);
                 }
-                if (ConfigToEdit.cyclopsBackwardSpeedMod.Value > 0)
-                {
-                    float motorModeSpeed = __instance.motorModeSpeeds[(int)__instance.cyclopsMotorMode];
-                    cyclopsForwardOrig = motorModeSpeed;
-                }
-
-
             }
         }
 

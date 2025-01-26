@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.20.0";
+            VERSION = "3.21.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -115,6 +115,7 @@ namespace Tweaks_Fixes
             }
             Food_Patch.cookedFish.Clear();
             Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_Patch.OnPlayerUnderwaterChanged));
+            Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             CreatureDeath_Patch.TryRemoveCorpses();
             Escape_Pod_Patch.EscapePodInit();
             Drop_items_anywhere.OnGameLoadingFinished();
@@ -181,7 +182,6 @@ namespace Tweaks_Fixes
             configMain.lockerNames.Remove(slotName);
             configMain.baseLights.Remove(slotName);
             configMain.cyclopsDoors.Remove(slotName);
-            //config.objectsSurvidedDespawn.Remove(slotName);
             configMain.escapePodSmokeOut.Remove(slotName);
             configMain.pickedUpFireExt.Remove(slotName);
             configMain.Save();

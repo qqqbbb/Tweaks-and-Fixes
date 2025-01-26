@@ -200,12 +200,7 @@ namespace Tweaks_Fixes
                         RaycastHit hitIData = default;
                         Physics.Raycast(camTr.position, camTr.forward, out hitIData, dist);
                         if (hitIData.point != default)
-                        {
-                            float x = Mathf.Lerp(hitIData.point.x, camTr.position.x, .2f);
-                            float y = Mathf.Lerp(hitIData.point.y, camTr.position.y, .2f);
-                            float z = Mathf.Lerp(hitIData.point.z, camTr.position.z, .2f);
-                            spawnPos = new Vector3(x, y, z);
-                        }
+                            spawnPos = Vector3.LerpUnclamped(hitIData.point, camTr.position, .2f);
                         else
                             spawnPos = camTr.position;
                     }
