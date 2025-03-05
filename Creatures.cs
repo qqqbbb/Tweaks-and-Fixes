@@ -1,22 +1,23 @@
-﻿using HarmonyLib;
+﻿using FMOD.Studio;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Creature_Tweaks
+    class Creatures
     {
-        public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
         public static HashSet<TechType> creatureTT = new HashSet<TechType> { };
         public static HashSet<GameObject> pickupShinies = new HashSet<GameObject>();
         public static ConditionalWeakTable<GameObject, Rigidbody> objectsRBs = new ConditionalWeakTable<GameObject, Rigidbody>();
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static ConditionalWeakTable<SwimBehaviour, string> reefbackSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static ConditionalWeakTable<SwimBehaviour, string> gasopodSBs = new ConditionalWeakTable<SwimBehaviour, string>();
-        public static Vector3 bloodColor;
+        public static Color bloodColor;
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Patch
@@ -70,7 +71,7 @@ namespace Tweaks_Fixes
 
                     __instance.timeToFlee = Time.time + __instance.fleeDuration;
                     __instance.creature.Scared.Add(1f);
-                    __instance.creature.TryStartAction((CreatureAction)__instance);
+                    __instance.creature.TryStartAction(__instance);
                 }
                 return false;
             }
@@ -79,10 +80,7 @@ namespace Tweaks_Fixes
             {
                 CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
                 if (collectShiny)
-                {
-                    //AddDebug("Stalker DropShinyTarget");
                     collectShiny.DropShinyTarget();
-                }
             }
         }
 
@@ -138,16 +136,6 @@ namespace Tweaks_Fixes
                 }
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 creatureTT.Add(tt);
-                if (silentCreatures.Contains(tt))
-                {
-                    //AddDebug("silent " + tt);
-                    foreach (FMOD_StudioEventEmitter componentsInChild in __instance.GetComponentsInChildren<FMOD_StudioEventEmitter>())
-                        //Object.Destroy(componentsInChild); // crashfish does not attack, NRE for crabsnake
-                        componentsInChild.enabled = false; // does not work for crashfish, sandshark
-                    foreach (FMOD_CustomEmitter componentsInChild in __instance.GetComponentsInChildren<FMOD_CustomEmitter>())
-                        //Object.Destroy(componentsInChild);
-                        componentsInChild.enabled = false;
-                }
                 if (tt == TechType.Gasopod)
                 {
                     GasoPod gasoPod = __instance as GasoPod;
@@ -167,6 +155,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IsInFieldOfView")]
             public static bool IsInFieldOfViewPrefix(Creature __instance, GameObject go, ref bool __result)
             { // ray does not hit terrain if cast from underneath. Cast from player to avoid it.
+                if (Main.aggressiveFaunaLoaded)
+                    return true;
+
                 __result = false;
                 if (go == null)
                     return false;
@@ -260,7 +251,7 @@ namespace Tweaks_Fixes
                         }
                     }
                     Rigidbody rigidbody = __instance.GetComponent<Rigidbody>();
-                    foreach (Rigidbody rb in Tools_Patch.stasisTargets)
+                    foreach (Rigidbody rb in Tools_.stasisTargets)
                     {
                         if (rigidbody == rb)
                         {
@@ -448,7 +439,7 @@ namespace Tweaks_Fixes
                 if (objectsRBs.TryGetValue(__instance.gameObject, out rb))
                 {
                     //Rigidbody rb = objectsRBs[__instance.gameObject];
-                    if (rb && Tools_Patch.stasisTargets.Contains(rb))
+                    if (rb && Tools_.stasisTargets.Contains(rb))
                     {
                         //AddDebug("GasoPod in stasis");
                         return false;
@@ -486,7 +477,7 @@ namespace Tweaks_Fixes
                 if (objectsRBs.TryGetValue(__instance.gameObject, out rb))
                 {
                     //Rigidbody rb = objectsRBs[__instance.gameObject];
-                    if (rb && Tools_Patch.stasisTargets.Contains(rb))
+                    if (rb && Tools_.stasisTargets.Contains(rb))
                     {
                         //AddDebug("GasPod in stasis");
                         return false;
@@ -538,19 +529,6 @@ namespace Tweaks_Fixes
             public static void Postfix(Peeper __instance)
             {
                 FixPeeperLOD(__instance);
-            }
-        }
-
-        //[HarmonyPatch(typeof(CreatureDeath), "OnKill")]
-        class CreatureDeath_OnKill_patch
-        {
-            public static void Postfix(CreatureDeath __instance)
-            {
-                if (__instance.GetComponent<Peeper>())
-                {
-                    //AddDebug("CreatureDeath Peeper OnKill ");
-
-                }
             }
         }
 

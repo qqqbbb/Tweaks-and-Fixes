@@ -1,5 +1,6 @@
 ﻿
 using BepInEx;
+using FMOD.Studio;
 using HarmonyLib;
 using Nautilus.Handlers;
 using Nautilus.Options;
@@ -10,10 +11,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.LowLevel;
 using UWE;
 using static ErrorMessage;
 
@@ -138,11 +139,63 @@ namespace Tweaks_Fixes
 
         static void PrintRawBiomeNames()
         {
+
             AddDebug("RawBiomeName " + Util.GetRawBiomeName());
             AddDebug("Player biomeString " + Player.main.biomeString);
             //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(Player.main.transform.position));
             //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
         }
+
+
+        //[HarmonyPatch(typeof(Survival), "UpdateStats")]
+        public static class UpdateStatsPatch
+        {
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = new List<CodeInstruction>(instructions);
+                var kFoodTimeField = AccessTools.Field(typeof(SurvivalConstants), nameof(SurvivalConstants.kFoodTime));
+
+                foreach (var instruction in instructions)
+                {
+                    if (instruction.operand != null && instruction.opcode != null)
+                        Main.logger.LogDebug("UpdateStats instruction opcode " + instruction.opcode + " operand " + instruction.operand + " " + instruction.operand.GetType());
+
+                    if (instruction.opcode == OpCodes.Ldc_R4 && (float)instruction.operand == SurvivalConstants.kFoodTime)
+                    {
+                        //instruction.opcode = OpCodes.Ldc_R4;
+                        Main.logger.LogDebug("UpdateStats Transpiler !!!");
+                        instruction.operand = SurvivalConstants.kFoodTime * ConfigMenu.foodLossMult.Value;
+                        Main.logger.LogDebug("UpdateStats Transpiler !!!!!!");
+                    }
+                }
+                return codes.AsEnumerable();
+            }
+        }
+
+        //[HarmonyPatch(typeof(GroundMotor), "GetMaxAcceleration")]
+        class GroundMotor_GetMaxAcceleration_Patch
+        {
+            public static bool Prefix(GroundMotor __instance, ref float __result)
+            {
+                //if (!Util.IsGameLoadedAndRunning())
+                //    return;
+
+                //AddDebug("GroundMotor ApplyInputVelocityChange forwardMaxSpeed " + __instance.forwardMaxSpeed);
+                AddDebug("Tf GroundMotor GetMaxAcceleration Prefix ");
+                return false;
+            }
+            public static void Postfix(GroundMotor __instance, ref float __result)
+            {
+                if (!Main.gameLoaded)
+                    return;
+
+                //AddDebug("GroundMotor ApplyInputVelocityChange forwardMaxSpeed " + __instance.forwardMaxSpeed);
+                AddDebug("TF GroundMotor GetMaxAcceleration Postfix ");
+
+                //throw new Exception();
+            }
+        }
+
 
         //[HarmonyPatch(typeof(SeaTreaderMeleeAttack))]
         class AnteChamber_Patch
@@ -199,8 +252,11 @@ namespace Tweaks_Fixes
             {
                 if (!Main.gameLoaded)
                     return;
+
                 //PrintRawBiomeNames();
-                //AddDebug("isUnderwaterForSwimming " + Player.main.isUnderwaterForSwimming.value);
+                //AddDebug("Sprinting " + __instance.groundMotor.IsSprinting());
+                //AddDebug("Grounded " + __instance.groundMotor.IsGrounded());
+                //AddDebug("mode " + __instance.mode);
                 if (Input.GetKeyDown(KeyCode.B))
                 {
                     //if (Player.main.IsInBase())
@@ -221,7 +277,8 @@ namespace Tweaks_Fixes
                 {
                     PlayerTool tool = Inventory.main.GetHeldTool();
 
-                    AddDebug("CanBeAttacked " + __instance.CanBeAttacked());
+
+                    //AddDebug("CanBeAttacked " + __instance.CanBeAttacked());
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
@@ -366,6 +423,12 @@ namespace Tweaks_Fixes
             //AddDebug("parent " + target.transform.parent.gameObject.name);
             //if (target.transform.parent.parent)
             //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);
+            MedicalCabinet medicalCabinet = target.GetComponent<MedicalCabinet>();
+            if (medicalCabinet)
+            {
+                medicalCabinet.playSound.evt.getPlaybackState(out PLAYBACK_STATE state);
+                AddDebug(" state " + state + " hasMedKit " + medicalCabinet.hasMedKit);
+            }
             TechType techType = CraftData.GetTechType(target);
             FruitPlant fruitPlant = target.GetComponent<FruitPlant>();
             if (fruitPlant != null)

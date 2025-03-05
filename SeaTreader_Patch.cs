@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(SeaTreaderMeleeAttack), "GetCanAttack")]
         class SeaTreaderMeleeAttack_GetCanAttack_Patch
-        {
+        { // fix bug: they never attack player
             static void Postfix(SeaTreaderMeleeAttack __instance, GameObject otherGameObject, ref bool __result)
             {
                 __result = !__instance.frozen && !__instance.treader.cinematicMode && (Time.time > __instance.lastAttackTime + __instance.attackInterval) && __instance.GetCanHit(otherGameObject);
@@ -43,25 +43,25 @@ namespace Tweaks_Fixes
             {
                 if (seaTreaderSoundsOnStomp)
                 {
-                    int rnd = Main.random.Next(1, 101);
-                    if (ConfigToEdit.seaTreaderAttackOutcropMult.Value >= rnd)
-                    {
-                        //AddDebug("SpawnChunks seaTreaderSoundsOnStomp");
-                        return true;
-                    }
                     seaTreaderSoundsOnStomp = false;
+                    int rnd = Main.random.Next(1, 101);
+                    if (ConfigToEdit.seaTreaderAttackOutcropMult.Value < rnd)
+                    {
+                        //AddDebug("SpawnChunks seaTreaderSoundsOnStomp ");
+                        return false;
+                    }
                 }
                 else if (seaTreaderSoundsOnStep)
                 {
-                    int rnd = Main.random.Next(1, 101);
-                    if (ConfigToEdit.seaTreaderOutcropMult.Value >= rnd)
-                    {
-                        //AddDebug("SpawnChunks seaTreaderSoundsOnStep");
-                        return true;
-                    }
                     seaTreaderSoundsOnStep = false;
+                    int rnd = Main.random.Next(1, 101);
+                    if (ConfigToEdit.seaTreaderOutcropMult.Value < rnd)
+                    {
+                        //AddDebug("SpawnChunks seaTreaderSoundsOnStep ");
+                        return false;
+                    }
                 }
-                return false;
+                return true;
             }
         }
 

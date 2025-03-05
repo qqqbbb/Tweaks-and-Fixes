@@ -1,9 +1,12 @@
-﻿using HarmonyLib;
+﻿using FMOD.Studio;
+using HarmonyLib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -68,6 +71,8 @@ namespace Tweaks_Fixes
             }
             medicalCabinet.hasMedKit = true;
             medicalCabinet.medKitModel.SetActive(true);
+            if (medicalCabinet.hasMedKit && CanProduceMedkit())
+                CoroutineHost.StartCoroutine(SetupAlert(medicalCabinet));
         }
 
         [HarmonyPrefix]
@@ -75,6 +80,9 @@ namespace Tweaks_Fixes
         public static bool StartPrefix(MedicalCabinet __instance)
         {
             //AddDebug("MedicalCabinet Start CanProduceMedkit " + CanProduceMedkit());
+            if (ConfigToEdit.medkitFabAlertSound.Value == false)
+                __instance.playSound.evt.setVolume(0);
+
             if (!IsMedCabinetInEscapePod(__instance))
                 return true;
 
@@ -90,22 +98,35 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Start")]
         public static void StartPostfix(MedicalCabinet __instance)
         {
-            if (__instance.hasMedKit && CanProduceMedkit())
-            {
-                __instance.InvokeRepeating("BlinkRepeat", 0f, 1f);
-                __instance.playSound.Play();
-            }
+            //AddDebug(__instance.transform.parent.name + " MedicalCabinet Start hasMedKit " + __instance.hasMedKit + " CanProduceMedkit " + CanProduceMedkit());
+            if (!Main.gameLoaded && __instance.hasMedKit)
+                if (IsMedCabinetInEscapePod(__instance))
+                {
+                    if (CanProduceMedkit())
+                        CoroutineHost.StartCoroutine(SetupAlert(__instance));
+                }
+                else
+                    CoroutineHost.StartCoroutine(SetupAlert(__instance));
         }
 
         [HarmonyPrefix]
         [HarmonyPatch("ForceSpawnMedKit")]
         public static bool ForceSpawnMedKitPrefix(MedicalCabinet __instance)
-        { // wtf runs this?
+        { // wtf calls this?
             if (!IsMedCabinetInEscapePod(__instance) || CanProduceMedkit())
                 return true;
 
             //AddDebug("ForceSpawnMedKit ");
             return false;
+        }
+
+        static IEnumerator SetupAlert(MedicalCabinet medicalCabinet)
+        {
+            yield return new WaitUntil(() => Main.gameLoaded == true);
+            yield return new WaitForSeconds(1);
+            //AddDebug(medicalCabinet.transform.parent.name + " MedicalCabinet SetupAlert ");
+            medicalCabinet.InvokeRepeating("BlinkRepeat", 0f, 1f);
+            medicalCabinet.playSound.Play();
         }
 
         [HarmonyPrefix]

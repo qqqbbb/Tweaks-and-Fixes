@@ -313,7 +313,7 @@ namespace Tweaks_Fixes
                     Util.spawning = false;
                     return false;
                 }
-                if (Creature_Tweaks.pickupShinies.Contains(__instance.gameObject))
+                if (Creatures.pickupShinies.Contains(__instance.gameObject))
                 {
                     //AddDebug("StartFading pickupShinies " + __instance.name);
                     return false;

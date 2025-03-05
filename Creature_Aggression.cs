@@ -9,10 +9,9 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Predators_Patch
+    class Creature_Aggression
     {
         static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
-
 
         //[HarmonyPatch(typeof(GameModeUtils), "IsInvisible")]
         class GameModeUtils_IsInvisible_Patch
@@ -22,42 +21,6 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.aggrMult.Value == 0)
                     __result = true;
             }
-        }
-
-        public static bool IsLightOn(Vehicle vehicle)
-        {
-            Light[] lights = vehicle.GetComponentsInChildren<Light>();
-            foreach (Light l in lights)
-            {
-                if (l.enabled && l.gameObject.activeInHierarchy && l.intensity > 0f && l.range > 0f)
-                    return true;
-            }
-            return false;
-        }
-
-        private static bool CanVehicleBeAttacked(Vehicle vehicle)
-        {
-            if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
-                return false;
-
-            bool playerInside = Player.main.currentMountedVehicle == vehicle;
-            if (playerInside)
-            {
-                return Player.main.CanBeAttacked();
-            }
-            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.No)
-            {
-                return false;
-            }
-            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Vanilla || ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes)
-            {
-                return true;
-            }
-            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on)
-            {
-                return IsLightOn(vehicle);
-            }
-            return true;
         }
 
         [HarmonyPatch(typeof(SubRoot))]
@@ -81,9 +44,9 @@ namespace Tweaks_Fixes
                     __instance.live.invincible = ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Vanilla || ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.No;
                 }
             }
-            [HarmonyPostfix]
+            [HarmonyPrefix]
             [HarmonyPatch("OnKill")]
-            public static void OnKillPostfix(SubRoot __instance)
+            public static void OnKillPrefix(SubRoot __instance)
             {
                 cyclops.Remove(__instance);
             }
@@ -96,28 +59,19 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnTakeCreatureDamage")]
             public static bool OnTakeCreatureDamagePrefix(CyclopsHelmHUDManager __instance)
             {
-                if (__instance.subRoot == Player.main.currentSub)
-                {
-                    //AddDebug("CyclopsHelmHUDManager OnTakeCreatureDamage");
-                    __instance.CancelInvoke("ClearCreatureWarning");
-                    __instance.Invoke("ClearCreatureWarning", 10f);
-                    __instance.creatureAttackWarning = true;
-                    __instance.creatureDamagesSFX.Play();
-                    MainCameraControl.main.ShakeCamera(1.5f);
-                }
-                return false;
+                if (__instance.subRoot != Player.main.currentSub)
+                    return false;
+
+                return true;
             }
             [HarmonyPrefix]
             [HarmonyPatch("OnTakeCollisionDamage")]
             public static bool OnTakeCollisionDamagePrefix(CyclopsHelmHUDManager __instance, ref float value)
             {
-                if (__instance.subRoot == Player.main.currentSub)
-                {
-                    value *= 1.5f;
-                    value = Mathf.Clamp(value / 100f, 0.5f, 1.5f);
-                    MainCameraControl.main.ShakeCamera(value);
-                }
-                return false;
+                if (__instance.subRoot != Player.main.currentSub)
+                    return false;
+
+                return true;
             }
         }
 
@@ -161,8 +115,9 @@ namespace Tweaks_Fixes
                 }
                 __instance.creature.Aggression.Add(__instance.aggressionPerSecond * distMult * infection * playerAggrMult);
                 __instance.lastTarget.SetTarget(aggressionTarget);
-                if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
+                if (!Silent_Creatures.silentCreatures.Contains(__instance.myTechType) && __instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying())
                     __instance.sightedSound.StartEvent();
+
                 return false;
             }
 
@@ -170,6 +125,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("GetAggressionTarget")]
             public static bool GetAggressionTargetPrefix(AggressiveWhenSeeTarget __instance, ref GameObject __result)
             {
+                if (Main.aggressiveFaunaLoaded)
+                    return true;
+
                 if (__instance.targetType == EcoTargetType.Shark && __instance.myTechType != TechType.Crash && __instance.myTechType != TechType.Mesmer && ConfigMenu.aggrMult.Value > 1f && Player.main.CanBeAttacked() && __instance.creature.GetCanSeeObject(Player.mainObject))
                 {
                     int rnd = UnityEngine.Random.Range(101, 200);
@@ -180,7 +138,6 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-
                 return true;
             }
 
@@ -211,7 +168,7 @@ namespace Tweaks_Fixes
                     Vehicle vehicle = target.GetComponent<Vehicle>();
                     if (vehicle)
                     {
-                        __result = CanVehicleBeAttacked(vehicle);
+                        __result = Util.CanVehicleBeAttacked(vehicle);
                     }
                 }
             }
@@ -301,6 +258,7 @@ namespace Tweaks_Fixes
                 }
                 if (closestDecoy)
                 {
+                    //AddDebug(" AttackCyclops closestDecoy");
                     //target = closestDecoy.gameObject;
                     Vector3 pos = closestDecoy.transform.position;
                     //float aggrMult = Main.config.aggrMult < 1 ? 1 : Main.config.aggrMult;
@@ -458,7 +416,7 @@ namespace Tweaks_Fixes
                 //    __result = false;
                 Vehicle vehicle = target.GetGameObject().GetComponent<Vehicle>();
                 if (vehicle)
-                    __result = CanVehicleBeAttacked(vehicle);
+                    __result = Util.CanVehicleBeAttacked(vehicle);
 
             }
         }
@@ -471,27 +429,104 @@ namespace Tweaks_Fixes
             public static void OnEnablePostfix(MeleeAttack __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                AddDebug(tt + " MeleeAttack OnEnable biteAggressionThreshold " + __instance.biteAggressionThreshold);
-                AddDebug(tt + " MeleeAttack OnEnable biteInterval " + __instance.biteInterval);
+                //AddDebug(tt + " MeleeAttack OnEnable biteAggressionThreshold " + __instance.biteAggressionThreshold);
+                //AddDebug(tt + " MeleeAttack OnEnable biteInterval " + __instance.biteInterval);
             }
 
             [HarmonyPostfix, HarmonyPatch("CanDealDamageTo")]
             public static void CanDealDamageToPostfix(MeleeAttack __instance, GameObject target, ref bool __result)
             { // fix bug: reaper pushes cyclops instead of attacking
-                LiveMixin lm = target.GetComponent<LiveMixin>();
-                //bool cyclops = target.GetComponent<SubControl>();
-                //if (lm && lm.IsAlive())
-                {
-                    //AddDebug("CanDealDamageTo cyclops !!!");
-                    //__result = true;
-                    //return false;
-                }
-                __result = lm && lm.IsAlive();
+                __result = CanDamage(__instance, target);
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("CanBite")]
-            public static bool CanBitePrefix(MeleeAttack __instance, GameObject target, ref bool __result)
+            //[HarmonyPostfix]
+            //[HarmonyPatch("CanBite")]
+            public static void CanBitePostfix(MeleeAttack __instance, GameObject target, ref bool __result)
+            {
+                //TechType targetTT = CraftData.GetTechType(target);
+                //AddDebug(__instance.name + " CanBite Aggression " + (__instance.creature.Aggression.Value < __instance.biteAggressionThreshold));
+                //AddDebug(__instance.name + " CanBite timeLastBite " + (Time.time < __instance.timeLastBite));
+                //AddDebug(__instance.name + " CanBite IsFriendlyTo " + __instance.creature.IsFriendlyTo(target));
+                //AddDebug(__instance.name + " CanBite CanDealDamageTo " + __instance.CanDealDamageTo(target));
+            }
+
+            private static bool CanDamage(MeleeAttack meleeAttack, GameObject target)
+            {
+                LiveMixin lm = target.GetComponent<LiveMixin>();
+                if (lm == null || lm.IsAlive() == false)
+                {
+                    //AddDebug(meleeAttack.name + " CanDamage " + target.name + "lm == null ");
+                    return false;
+                }
+                //AddDebug(meleeAttack.name + " CanDamage " + target.name + "");
+                Player player = target.GetComponent<Player>();
+                SubRoot subRoot = target.GetComponent<SubRoot>();
+                Vehicle vehicle = target.GetComponent<Vehicle>();
+                //float biteInterval = meleeAttack.biteInterval;
+                if (player || subRoot || vehicle)
+                {
+                    if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
+                    {
+                        return false;
+                    }
+                    //if (!(__instance is CrabsnakeMeleeAttack))
+                    { // crabsnake attack interval is 4
+                        //AddDebug("CanBite biteInterval " + biteInterval);
+                        //float aggrMult = 2f - ConfigMenu.aggrMult.Value;
+                        //biteInterval *= aggrMult;
+                    }
+                }
+                if (player)
+                {
+                    return meleeAttack.canBitePlayer && player.CanBeAttacked();
+                }
+                if (subRoot && subRoot.isCyclops)
+                {
+                    //AddDebug("MeleeAttack CanBite canBiteCyclops " + __instance.canBiteCyclops);
+                    if (ConfigMenu.aggrMult.Value == 0f || !meleeAttack.canBiteCyclops)
+                    {
+                        return false;
+                    }
+                    IEcoTarget decoy = EcoRegionManager.main.FindNearestTarget(EcoTargetType.SubDecoy, meleeAttack.transform.position);
+                    if (decoy != null)
+                    {
+                        return false;
+                    }
+                    bool inSub = Player.main.currentSub && Player.main.currentSub == subRoot;
+                    //AddDebug("inSub " + inSub);
+                    if (inSub)
+                    {
+                        //AddDebug("MeleeAttack CanBite inSub canBiteCyclops " + __instance.canBiteCyclops);
+                        return meleeAttack.canBiteCyclops;
+                    }
+                    else
+                    {
+                        if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes)
+                        {
+                            return true;
+                        }
+                        else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Vanilla || ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.No)
+                        {
+                            return false;
+                        }
+                        bool lightOn = subRoot.noiseManager.lightingPanel.lightingOn || subRoot.noiseManager.lightingPanel.floodlightsOn;
+                        {
+                            return ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on && lightOn;
+                        }
+                    }
+                }
+                if (vehicle)
+                {
+                    if (!meleeAttack.canBiteVehicle)
+                    {
+                        return false;
+                    }
+                    return Util.CanVehicleBeAttacked(vehicle);
+                }
+                return meleeAttack.canBiteCreature && target.GetComponent<Creature>();
+            }
+
+            public static bool CanBitePrefixOld(MeleeAttack __instance, GameObject target, ref bool __result)
             {
                 //TechType targetTT = CraftData.GetTechType(target);
                 //AddDebug(__instance.name + " CanBite Aggression " + (__instance.creature.Aggression.Value < __instance.biteAggressionThreshold));
@@ -593,7 +628,7 @@ namespace Tweaks_Fixes
                         __result = false;
                         return false;
                     }
-                    __result = CanVehicleBeAttacked(vehicle);
+                    __result = Util.CanVehicleBeAttacked(vehicle);
                     return false;
                 }
                 __result = __instance.canBiteCreature && target.GetComponent<Creature>();
@@ -609,7 +644,7 @@ namespace Tweaks_Fixes
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
                     //TechType tt1 = CraftData.GetTechType(target);
                     //if (tt1 == TechType.Cyclops)
-                    AddDebug(tt + " MeleeAttack CanBite Player " + __result);
+                    //AddDebug(tt + " MeleeAttack CanBite Player " + __result);
                 }
             }
 
@@ -625,6 +660,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
+
 
         //[HarmonyPatch(typeof(AggressiveWhenSeePlayer))]
         class AggressiveWhenSeePlayer_Patch

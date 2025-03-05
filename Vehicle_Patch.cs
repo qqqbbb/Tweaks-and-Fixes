@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -582,7 +583,7 @@ namespace Tweaks_Fixes
         public static TorpedoType selectedTorpedoRight = null;
         public static ItemsContainer torpedoStorageLeft;
         public static ItemsContainer torpedoStorageRight;
-        public static Transform lightsTransform;
+        //public static Transform lightsTransform;
 
         public static List<TorpedoType> GetTorpedos(Exosuit exosuit, ItemsContainer torpedoStorage)
         {
@@ -808,8 +809,7 @@ namespace Tweaks_Fixes
             {
                 Util.FreezeObject(__instance.gameObject, false);
             }
-            if (lightsTransform)
-                Light_Control.currentLights = lightsTransform.GetComponentsInChildren<Light>(true);
+            Light_Control.currentLights = GetLightsTransform(__instance).GetComponentsInChildren<Light>(true);
             //__instance.OnUpgradeModuleToggle();
             //exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringRightHand;
             //seamothName = Language.main.Get(TechType.Seamoth);
@@ -827,6 +827,14 @@ namespace Tweaks_Fixes
             }
         }
 
+        static Transform GetLightsTransform(Exosuit __instance)
+        {
+            Transform t = __instance.leftArmAttach.transform.Find("lights_parent");
+            if (t == null)
+                return __instance.transform.Find("lights_parent");
+
+            return t;
+        }
 
         [HarmonyPostfix]
         [HarmonyPatch("Start")]
@@ -842,10 +850,8 @@ namespace Tweaks_Fixes
                 //AddDebug("Start exosuitName == null");
                 exosuitName = Language.main.Get("Exosuit");
             }
-            lightsTransform = __instance.transform.Find("lights_parent");
-            if (lightsTransform) // lights will follow camera
-                lightsTransform.SetParent(__instance.leftArmAttach);
-
+            // lights will follow camera
+            GetLightsTransform(__instance).SetParent(__instance.leftArmAttach);
             //if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
             {
                 //Vehicle.DockType dockType = Vehicle_patch.dockedVehicles[__instance];
@@ -929,6 +935,7 @@ namespace Tweaks_Fixes
 
         private static void ToggleLights(Exosuit exosuit)
         {
+            Transform lightsTransform = GetLightsTransform(exosuit);
             if (lightsTransform == null)
                 return;
 
@@ -945,16 +952,13 @@ namespace Tweaks_Fixes
             //AddDebug("lights " + lightsT.gameObject.activeSelf);
         }
 
-        private static void SetLights(Exosuit exosuit, bool active)
+        private static void SetLights(Exosuit exosuit, bool on)
         {
-            if (active && !exosuit.energyInterface.hasCharge)
+            if (on && !exosuit.energyInterface.hasCharge)
                 return;
 
-            if (lightsTransform)
-            {
-                lightsTransform.gameObject.SetActive(active);
-                //AddDebug("SetLights " + active);
-            }
+            GetLightsTransform(exosuit).gameObject.SetActive(on);
+            //AddDebug("SetLights " + active);
         }
 
         [HarmonyPrefix]

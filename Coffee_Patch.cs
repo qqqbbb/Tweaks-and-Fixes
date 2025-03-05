@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using static ErrorMessage;
-using System.Runtime.CompilerServices;
 
 namespace Tweaks_Fixes
 {
@@ -20,7 +20,7 @@ namespace Tweaks_Fixes
         public static Dictionary<Eatable, float> spawnedCoffeeTime = new Dictionary<Eatable, float>();
         public static float pourCoffeeTime = 10f;
 
-    
+
         public static bool HasCoffee(CoffeeVendingMachine cvm)
         {
             Pickupable pickupable = null;
@@ -36,7 +36,7 @@ namespace Tweaks_Fixes
             }
             return false;
         }
-        
+
         public static void ShiftCollider(CoffeeVendingMachine __instance, bool down = false)
         {
             BoxCollider collider = __instance.GetComponentInChildren<BoxCollider>();
@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
                 collider.transform.position = new Vector3(colPos.x, colPos.y + .4f, colPos.z);
             }
         }
-        
+
         [HarmonyPatch(typeof(CoffeeVendingMachine), "Start")]
         class CoffeeVendingMachine_Start_Patch
         {
@@ -67,7 +67,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-         
+
         [HarmonyPatch(typeof(Eatable), "Awake")]
         class Eatable_Awake_Patch
         {
@@ -90,7 +90,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-          
+
         [HarmonyPatch(typeof(CoffeeVendingMachine), "OnMachineUse")]
         class CoffeeVendingMachine_OnMachineUse_Patch
         {
@@ -128,7 +128,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-          
+
         public static IEnumerator SpawnCoffee(CoffeeVendingMachine cvm, bool right = false)
         {
             //pourCoffeeTime = __instance.spawnDelay;
@@ -163,7 +163,7 @@ namespace Tweaks_Fixes
             coffee.transform.SetParent(cvm.transform, true);
             spawnedCoffeeTime[coffee.GetComponent<Eatable>()] = DayNightCycle.main.timePassedAsFloat;
             //coffee.transform.position += coffee.transform. * .29f;
-            
+
         }
 
         [HarmonyPatch(typeof(Pickupable), "Pickup")]
@@ -191,11 +191,11 @@ namespace Tweaks_Fixes
                     {
                         if (cvm == null)
                             return;
-                        
+
                         //if (cvm)
                         {
                             Pickupable p;
-                            if (spawnedCoffee.TryGetValue(cvm , out p))
+                            if (spawnedCoffee.TryGetValue(cvm, out p))
                             {
                                 cvm.waterSoundSlot1.Stop();
                                 spawnedCoffee.Remove(cvm);
@@ -235,13 +235,13 @@ namespace Tweaks_Fixes
                     //{
                     //    spawnedCoffeeRight[cvm] = null;
                     //    cvm.waterSoundSlot2.Stop();
-                        //AddDebug(" spawnedCoffees_ " + spawnedCoffees_[cvm]);
+                    //AddDebug(" spawnedCoffees_ " + spawnedCoffees_[cvm]);
                     //}
 
                 }
 
             }
         }
-        
+
     }
 }

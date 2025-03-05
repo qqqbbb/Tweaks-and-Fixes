@@ -13,8 +13,6 @@ namespace Tweaks_Fixes
     class Player_Movement
     {
         public static float invItemsMod = 1;
-        public static float timeSprintStart = 0f;
-        public static float timeSprinted = 0f;
         static Dictionary<TechType, float> itemMassDic = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> waterSpeedEquipment = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> groundSpeedEquipment = new Dictionary<TechType, float>();
@@ -27,7 +25,6 @@ namespace Tweaks_Fixes
         public static float twoHandToolWalkSpeedMod;
         public static float equipmentSpeedMod;
         public static float toolMod = 1;
-        //public static bool swimming;
         static Seaglide seaglide;
 
         public static void UpdateModifiers()

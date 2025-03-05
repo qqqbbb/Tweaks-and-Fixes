@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.21.0";
+            VERSION = "3.23.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -44,6 +44,7 @@ namespace Tweaks_Fixes
         public static bool exosuitTorpedoDisplayLoaded; // not updated
         public static bool torpedoImprovementsLoaded;
         public static bool cyclopsOverheatLoaded;
+        public static bool aggressiveFaunaLoaded;
         static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public static ConfigMain configMain = new ConfigMain();
@@ -75,14 +76,12 @@ namespace Tweaks_Fixes
             Battery_Patch.subPowerRelays.Clear();
             Coffee_Patch.spawnedCoffeeTime.Clear();
             UI_Patches.planters.Clear();
-            Creature_Tweaks.pickupShinies.Clear();
+            Creatures.pickupShinies.Clear();
             Base_Patch.baseHullStrengths.Clear();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
             Drop_items_anywhere.droppedInBase.Clear();
             Drop_items_anywhere.droppedInEscapePod.Clear();
-            Player_Movement.invItemsMod = float.MinValue;
-            Player_Movement.equipmentSpeedMod = float.MaxValue;
-            Player_Movement.toolMod = float.MaxValue;
+            Player_Patches.healTime = 0;
             configMain.Load();
         }
 
@@ -108,12 +107,12 @@ namespace Tweaks_Fixes
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip"));
             //LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, Language.main.Get("TF_bladderfish_tooltip")); 
 
-            foreach (Pickupable p in Food_Patch.cookedFish)
+            foreach (Pickupable p in Survival_.cookedFish)
             { // remove dead fish from geysers
                 if (p != null && p.inventoryItem == null)
                     Destroy(p.gameObject);
             }
-            Food_Patch.cookedFish.Clear();
+            Survival_.cookedFish.Clear();
             Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_Patch.OnPlayerUnderwaterChanged));
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             CreatureDeath_Patch.TryRemoveCorpses();
@@ -308,6 +307,8 @@ namespace Tweaks_Fixes
                     cyclopsOverheatLoaded = true;
                 else if (metadata.GUID == "com.TorpedoImprovements.mod")
                     torpedoImprovementsLoaded = true;
+                else if (metadata.GUID == "com.lee23.aggressivefauna")
+                    aggressiveFaunaLoaded = true;
             }
         }
 

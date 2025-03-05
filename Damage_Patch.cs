@@ -443,7 +443,7 @@ namespace Tweaks_Fixes
                 {
                     __result *= ConfigMenu.playerDamageMult.Value;
                     //AddDebug("Player takes damage " + __result.ToString("0.0"));
-                    if (Util.Approximately(__result, 0f))
+                    if (Mathf.Approximately(__result, 0f))
                         return;
 
                     if (ConfigToEdit.dropHeldTool.Value)
@@ -502,7 +502,7 @@ namespace Tweaks_Fixes
                             return;
                         }
                     }
-                    if (dealer && !ConfigToEdit.vehiclesHurtCreatures.Value && Creature_Tweaks.creatureTT.Contains(targetTT))
+                    if (dealer && !ConfigToEdit.vehiclesHurtCreatures.Value && Creatures.creatureTT.Contains(targetTT))
                     {
                         TechType dealerTT = CraftData.GetTechType(dealer);
                         if (Vehicle_patch.vehicleTechTypes.Contains(dealerTT))

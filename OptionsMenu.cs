@@ -14,6 +14,8 @@ namespace Tweaks_Fixes
         {
             ModSliderOption timeFlowSpeedSlider = ConfigMenu.timeFlowSpeed.ToModSliderOption(.1f, 10f, .1f, "{0:0.#}");
             timeFlowSpeedSlider.OnChanged += UpdateTimeSpeed;
+            ModSliderOption foodLossSlider = ConfigMenu.foodLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
+            ModSliderOption waterLossSlider = ConfigMenu.waterLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption seaglideSpeedSlider = ConfigMenu.seaglideSpeedMult.ToModSliderOption(.5f, 2f, .1f, "{0:0.#}");
             ModSliderOption playerWaterSpeedSlider = ConfigMenu.playerWaterSpeedMult.ToModSliderOption(.5f, 5f, .1f, "{0:0.#}");
             ModSliderOption playerGroundSpeedSlider = ConfigMenu.playerGroundSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
@@ -38,9 +40,9 @@ namespace Tweaks_Fixes
             ModSliderOption cyclopsAutoHealSlider = ConfigMenu.cyclopsAutoHealHealthPercent.ToModSliderOption(0, 100, 1);
             ModSliderOption crushDepthSlider = ConfigMenu.crushDepth.ToModSliderOption(50, 500, 10);
             ModSliderOption crushDamageSlider = ConfigMenu.crushDamage.ToModSliderOption(0f, 10f, .1f, "{0:0.0#}");
-            ModSliderOption vehicleCrushDamageSlider = ConfigMenu.vehicleCrushDamageMult.ToModSliderOption(0f, 10f, .1f, "{0:0.0#}");
+            ModSliderOption vehicleCrushDamageSlider = ConfigMenu.vehicleCrushDamageMult.ToModSliderOption(0f, 3f, .1f, "{0:0.0#}");
             ModSliderOption crushDamageProgressionSlider = ConfigMenu.crushDamageProgression.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
-            ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
+            //ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
             ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
             ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .01f, "{0:0.0#}");
             ModSliderOption fruitGrowTimeSlider = ConfigMenu.fruitGrowTime.ToModSliderOption(0, 30, 1);
@@ -57,6 +59,9 @@ namespace Tweaks_Fixes
             ModSliderOption invMultLandSlider = ConfigMenu.invMultLand.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
             ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
+            ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodWaterHealThreshold.ToModSliderOption(100, 400, 10);
+            ModSliderOption maxFoodSlider = ConfigMenu.maxPlayerFood.ToModSliderOption(100, 300, 10);
+            ModSliderOption maxWaterSlider = ConfigMenu.maxPlayerWater.ToModSliderOption(100, 300, 10);
 
             AddItem(timeFlowSpeedSlider);
             AddItem(playerWaterSpeedSlider);
@@ -70,6 +75,12 @@ namespace Tweaks_Fixes
             AddItem(vehicleDamageSlider);
             AddItem(aggrSlider);
             AddItem(oxygenSlider);
+            AddItem(foodLossSlider);
+            AddItem(waterLossSlider);
+            AddItem(foodWaterHealThresholdSlider);
+            AddItem(maxFoodSlider);
+            AddItem(maxWaterSlider);
+
             AddItem(toolEnergySlider);
             AddItem(vehicleEnergySlider);
             AddItem(baseEnergySlider);
@@ -78,10 +89,7 @@ namespace Tweaks_Fixes
             AddItem(medKitHPslider);
             AddItem(craftTimeSlider);
             AddItem(buildTimeSlider);
-            //AddItem(ConfigMenu.playerMoveTweaks.ToModToggleOption());
-            //AddItem(ConfigMenu.fixSeamothDiagMovement.ToModToggleOption());
-            //AddItem(ConfigMenu.exosuitMoveTweaks.ToModToggleOption());
-            //AddItem(ConfigMenu.cyclopsMoveTweaks.ToModToggleOption());
+
             AddItem(drillDamageMultSlider);
             AddItem(cyclopsFireChanceSlider);
             AddItem(cyclopsAutoHealSlider);
@@ -92,7 +100,6 @@ namespace Tweaks_Fixes
 
             AddItem(baseHullStrengthSlider);
             AddItem(ConfigMenu.emptyVehiclesCanBeAttacked.ToModChoiceOption());
-            AddItem(hungerUpdateIntervalSlider);
             AddItem(ConfigMenu.newHungerSystem.ToModToggleOption());
             AddItem(fishFoodWaterRatioSlider);
             AddItem(ConfigMenu.eatRawFish.ToModChoiceOption());

@@ -24,6 +24,42 @@ namespace Tweaks_Fixes
         }
 
 
+        public static bool IsLightOn(Vehicle vehicle)
+        {
+            Light[] lights = vehicle.GetComponentsInChildren<Light>();
+            foreach (Light l in lights)
+            {
+                if (l.enabled && l.gameObject.activeInHierarchy && l.intensity > 0f && l.range > 0f)
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool CanVehicleBeAttacked(Vehicle vehicle)
+        {
+            if (GameModeUtils.IsInvisible() || ConfigMenu.aggrMult.Value == 0)
+                return false;
+
+            bool playerInside = Player.main.currentMountedVehicle == vehicle;
+            if (playerInside)
+            {
+                return Player.main.CanBeAttacked();
+            }
+            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.No)
+            {
+                return false;
+            }
+            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Vanilla || ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes)
+            {
+                return true;
+            }
+            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on)
+            {
+                return IsLightOn(vehicle);
+            }
+            return true;
+        }
+
         public static void SetBloodColor(GameObject go)
         {
             ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
@@ -32,8 +68,8 @@ namespace Tweaks_Fixes
             {
                 ParticleSystem.MainModule psMain = ps.main;
                 //Main.logger.LogMessage("startColor " + psMain.startColor.color);
-                Color newColor = new Color(Creature_Tweaks.bloodColor.x, Creature_Tweaks.bloodColor.y, Creature_Tweaks.bloodColor.z, psMain.startColor.color.a);
-                psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
+                //Color newColor = Creatures.bloodColor.x, Creatures.bloodColor.y, Creatures.bloodColor.z, psMain.startColor.color.a);
+                psMain.startColor = new ParticleSystem.MinMaxGradient(Creatures.bloodColor);
             }
         }
 
@@ -461,11 +497,6 @@ namespace Tweaks_Fixes
             return Resources.FindObjectsOfTypeAll<Transform>()
                 .Where(t => t.parent == null)
                 .Select(x => x.gameObject);
-        }
-
-        public static bool Approximately(float a, float b, float tolerance = 0.00001f)
-        { // Mathf.Approximately does not work when compare to 0
-            return (Mathf.Abs(a - b) < tolerance);
         }
 
         public static void AddVFXsurfaceComponent(GameObject go, VFXSurfaceTypes type)

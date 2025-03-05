@@ -106,7 +106,7 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                if (!WaitScreen.IsWaiting && !Util.Approximately(strength, __instance.totalStrength))
+                if (!WaitScreen.IsWaiting && !Mathf.Approximately(strength, __instance.totalStrength))
                     AddMessage(Language.main.GetFormat("BaseHullStrChanged", strength - __instance.totalStrength, strength));
 
                 __instance.totalStrength = strength;
@@ -307,18 +307,21 @@ namespace Tweaks_Fixes
             static void Prefix(SolarPanel __instance)
             {
                 __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
-                //Main.logger.LogInfo(" SolarPanel Start " + Ocean.GetDepthOf(__instance.gameObject) + " DepthScalar " + __instance.GetDepthScalar() + " SunScalar " + __instance.GetSunScalar());
-                //AddDebug(" SolarPanel Start " + Ocean.GetDepthOf(__instance.gameObject) + " DepthScalar " + __instance.GetDepthScalar() + " SunScalar " + __instance.GetSunScalar());
-                //for (int i = 0; i <= 100; i++)
-                {
-                    //Main.logger.LogInfo(" SolarPanel " + i + " " + __instance.depthCurve.Evaluate(Mathf.Clamp01((100f - (float)i) / 100f)));
-                    //Main.logger.LogInfo(" SolarPanel " + 100 + " " + __instance.depthCurve.Evaluate(Mathf.Clamp01((__instance.maxDepth - Ocean.GetDepthOf(__instance.gameObject)) / __instance.maxDepth)));
-                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Bed), "CheckForSpace")]
+        class Bed_CheckForSpace_Patch
+        {
+            static void Postfix(Bed __instance, ref bool __result)
+            {
+                __result = true;
             }
         }
 
 
-
-
     }
+
+
+
 }

@@ -34,28 +34,27 @@ namespace Tweaks_Fixes
             if (depth < crushDepth)
                 return;
 
-            float mult = 1f - crushDamageResistance;
+            float resMult = Mathf.Clamp01(1f - crushDamageResistance);
             //AddDebug("crushDamageResistance " + crushDamageResistance);
-            float damage = ConfigMenu.crushDamage.Value * mult;
-            if (damage <= 0)
-                return;
-            //AddDebug(" Crush Damage " + damage);
-            if (ConfigMenu.crushDamageProgression.Value > 0f)
+            float damage = ConfigMenu.crushDamage.Value;
+            if (ConfigMenu.crushDamageProgression.Value > 0)
                 damage += (depth - crushDepth) * ConfigMenu.crushDamageProgression.Value;
+
+            damage *= resMult;
+            //AddDebug(" Crush Damage " + damage);
             //AddDebug(" crush Damage Progression " + damage);
-            Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
+            if (damage > 0)
+                Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
         [HarmonyPatch(typeof(Inventory))]
         class Inventory_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnEquip")]
+            [HarmonyPostfix, HarmonyPatch("OnEquip")]
             static void OnEquipPostfix(Inventory __instance, InventoryItem item)
             {
                 //AddDebug("crushDepthEquipment.Count " + crushDepthEquipment.Count);
                 TechType tt = item.item.GetTechType();
-
                 if (crushDepthEquipment.ContainsKey(tt))
                 {
                     //Main.config.crushDepth += crushDepthEquipment[tt];
@@ -69,14 +68,12 @@ namespace Tweaks_Fixes
                     crushDamageResistance += Mathf.Clamp01(res);
                 }
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("OnUnequip")]
+            [HarmonyPostfix, HarmonyPatch("OnUnequip")]
             static void OnUnequipPostfix(Inventory __instance, InventoryItem item)
             {
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
                 //TechTypeExtensions.FromString(loot.Key, out TechType tt, false);
                 TechType tt = item.item.GetTechType();
-
                 if (crushDepthEquipment.ContainsKey(tt))
                 {
                     //Main.config.crushDepth -= crushDepthEquipment[tt];
@@ -86,9 +83,10 @@ namespace Tweaks_Fixes
                 if (crushDamageEquipment.ContainsKey(tt))
                 {
                     //AddDebug("crushDamageEquipment " + crushDamageEquipment[tt]);
-                    crushDamageResistance -= crushDamageEquipment[tt];
-                    if (crushDamageResistance < 0f)
-                        crushDamageResistance = 0f;
+                    float res = crushDamageEquipment[tt] * .01f;
+                    crushDamageResistance -= Mathf.Clamp01(res);
+                    if (crushDamageResistance < 0)
+                        crushDamageResistance = 0;
                 }
             }
         }
@@ -96,8 +94,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CrushDamage))]
         class DamageSystem_Patch
         { // player does not have this
-            [HarmonyPrefix]
-            [HarmonyPatch("CrushDamageUpdate")]
+            [HarmonyPrefix, HarmonyPatch("CrushDamageUpdate")]
             public static bool CrushDamageUpdatePrefix(CrushDamage __instance)
             {
                 if (!Main.gameLoaded)
@@ -116,13 +113,13 @@ namespace Tweaks_Fixes
                     return false;
 
                 float damage = __instance.damagePerCrush * ConfigMenu.vehicleCrushDamageMult.Value;
+                //AddDebug("damage " + damage);
+                if (ConfigMenu.crushDamageProgression.Value > 0)
+                    damage += (depth - __instance.crushDepth) * ConfigMenu.crushDamageProgression.Value;
+                //AddDebug("damage Progression " + damage);
                 if (damage <= 0)
                     return false;
 
-                //AddDebug("damage " + damage);
-                if (ConfigMenu.crushDamageProgression.Value > 0f)
-                    damage += (depth - __instance.crushDepth) * ConfigMenu.crushDamageProgression.Value;
-                //AddDebug("damage Progression " + damage);
                 __instance.liveMixin.TakeDamage(damage, __instance.transform.position, DamageType.Pressure);
                 if (__instance.soundOnDamage)
                     __instance.soundOnDamage.Play();
@@ -132,11 +129,9 @@ namespace Tweaks_Fixes
 
             //[HarmonyPrefix]
             //[HarmonyPatch("Start")]
-            public static bool StartPrefix(CrushDamage __instance)
+            public static void StartPrefix(CrushDamage __instance)
             {
                 //AddDebug("CrushDamage  Start " + __instance.name);
-
-                return true;
             }
         }
 

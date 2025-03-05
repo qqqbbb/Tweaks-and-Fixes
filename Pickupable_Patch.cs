@@ -96,7 +96,6 @@ namespace Tweaks_Fixes
                 }
             }
 
-
             [HarmonyPrefix, HarmonyPatch("OnHandHover")]
             public static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)
             {
@@ -143,69 +142,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        [HarmonyPatch(typeof(Survival), "Use")]
-        class Survival_Awake_Patch
-        {
-            static bool Prefix(Survival __instance, GameObject useObj, ref bool __result)
-            {
-                __result = false;
-                if (useObj != null)
-                {
-                    TechType techType = CraftData.GetTechType(useObj);
-                    //AddDebug("Use" + techType);
-                    if (techType == TechType.None)
-                    {
-                        Pickupable p = useObj.GetComponent<Pickupable>();
-                        if (p)
-                            techType = p.GetTechType();
-                    }
-                    if (techType == TechType.FirstAidKit)
-                    {
-                        if (ConfigToEdit.newPoisonSystem.Value)
-                        {
-                            LiveMixin lm = Player.main.liveMixin;
-                            lm.tempDamage = 0;
-                        }
-                        __result = true;
-                        if (ConfigToEdit.medKitHPperSecond.Value >= ConfigMenu.medKitHP.Value)
-                        {
-                            Player.main.GetComponent<LiveMixin>().AddHealth(ConfigMenu.medKitHP.Value);
-                        }
-                        else
-                        {
-                            //AddDebug("Time.timeScale " + Time.timeScale);
-                            Main.configMain.medKitHPtoHeal = ConfigMenu.medKitHP.Value;
-                            Player_Patches.healTime = Time.time;
-                            //Player_Patches.healTime = DayNightCycle.main.timePassedAsFloat;
-                        }
-                    }
-                    else if (techType == TechType.EnzymeCureBall)
-                    {
-                        InfectedMixin im = Utils.GetLocalPlayer().gameObject.GetComponent<InfectedMixin>();
-                        if (im.IsInfected())
-                        {
-                            im.RemoveInfection();
-                            Utils.PlayFMODAsset(__instance.curedSound, __instance.transform);
-                            __result = true;
-                        }
-                    }
-                    if (__result)
-                    {
-                        if (eatSound == null)
-                        {
-                            eatSound = ScriptableObject.CreateInstance<FMODAsset>();
-                            eatSound.path = CraftData.GetUseEatSound(techType);
-                        }
-                        if (eatSound)
-                            Utils.PlayFMODAsset(eatSound, __instance.transform);
-                        //FMODUWE.PlayOneShot(CraftData.GetUseEatSound(techType), Player.main.transform.position);
-                    }
-                }
-                return false;
-            }
-        }
-
         [HarmonyPatch(typeof(Inventory), "GetItemAction")]
         class Inventory_GetUseItemAction_Patch
         {
@@ -215,7 +151,7 @@ namespace Tweaks_Fixes
                 TechType tt = pickupable.GetTechType();
                 if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
                 {
-                    if (__result == ItemAction.Eat && pickupable.gameObject.GetComponent<Eatable>())
+                    if (__result == ItemAction.Eat && pickupable.GetComponent<Eatable>())
                     {
                         __result = ItemAction.None;
                         return;

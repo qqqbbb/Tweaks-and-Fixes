@@ -10,14 +10,13 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Tools_Patch
+    class Tools_
     {
         //public static List<GameObject> repCannonGOs = new List<GameObject>();
         //static ToggleLights seaglideLights;
         //static VehicleInterface_MapController seaglideMap;
         public static Dictionary<Creature, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<Creature, Dictionary<TechType, int>>();
         public static List<Rigidbody> stasisTargets = new List<Rigidbody>();
-
 
 
         [HarmonyPatch(typeof(FlashLight), "Start")]
@@ -191,56 +190,7 @@ namespace Tweaks_Fixes
                 if (!updateFrame)
                     return false;
 
-                __instance.fieldEnergy -= Time.deltaTime / __instance.time;
-                //AddDebug("fieldEnergy " + __instance.fieldEnergy.ToString("0.00"));
-                float fieldRadius = __instance.fieldRadius;
-                float num1 = fieldRadius * fieldRadius + 4f;
-                if (__instance.fieldEnergy <= 0)
-                {
-                    //AddDebug("CancelAll ");
-                    __instance.fieldEnergy = 0f;
-                    __instance.CancelAll();
-                    FMODUWE.PlayOneShot(__instance.soundDeactivate, __instance.tr.position);
-                }
-                else
-                {
-                    Rigidbody target = null;
-                    List<Rigidbody> rigidbodyList = new List<Rigidbody>();
-                    int num2 = UWE.Utils.OverlapSphereIntoSharedBuffer(__instance.tr.position, fieldRadius, (int)__instance.fieldLayerMask);
-                    for (int index = 0; index < num2; ++index)
-                    {
-                        if (__instance.Freeze(UWE.Utils.sharedColliderBuffer[index], ref target))
-                            rigidbodyList.Add(target);
-                    }
-                    for (int index = __instance.targets.Count - 1; index >= 0; --index)
-                    {
-                        target = __instance.targets[index];
-                        if (target == null || !target.gameObject.activeSelf)
-                        {
-                            __instance.targets.RemoveAt(index);
-                        }
-                        else
-                        {
-                            Pickupable componentInParent = target.GetComponentInParent<Pickupable>();
-                            if (componentInParent != null && componentInParent.attached)
-                                __instance.targets.RemoveAt(index);
-                            else if (!rigidbodyList.Contains(target))
-                            {
-                                Vector3 end = target.ClosestPointOnBounds(__instance.tr.position);
-                                Vector3 vector3 = end - __instance.tr.position;
-                                //Debug.DrawLine(__instance.tr.position, end, Color.red);
-                                if (vector3.sqrMagnitude > num1)
-                                {
-                                    __instance.Unfreeze(target);
-                                    __instance.targets.RemoveAt(index);
-                                }
-                            }
-                        }
-                    }
-                    __instance.tr.localScale = (2f * fieldRadius + 2f) * Vector3.one;
-                    __instance.UpdateMaterials();
-                }
-                return false;
+                return true;
             }
 
             //[HarmonyPrefix]
@@ -422,7 +372,6 @@ namespace Tweaks_Fixes
             private static void AwakePostfix(StasisSphere __instance)
             {
                 stasisTargets = __instance.targets;
-
             }
         }
 
@@ -501,12 +450,12 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            private static void HighFOVseaglideOnUpdate(MainCameraControl __instance)
+            private static void HighFOVseaglideOnUpdate(MainCameraControl mainCameraControl)
             {// fix: can see your neck wnen using seaglide and high FOV
                 //AddDebug("MainCameraControl OnUpdate " + Inventory.main.quickSlots.activeToolName);
                 float deltaTime = Time.deltaTime;
-                __instance.swimCameraAnimation = !__instance.underWaterTracker.isUnderWater ? Mathf.Clamp01(__instance.swimCameraAnimation - deltaTime) : Mathf.Clamp01(__instance.swimCameraAnimation + deltaTime);
-                Vector3 velocity = __instance.playerController.velocity;
+                mainCameraControl.swimCameraAnimation = !mainCameraControl.underWaterTracker.isUnderWater ? Mathf.Clamp01(mainCameraControl.swimCameraAnimation - deltaTime) : Mathf.Clamp01(mainCameraControl.swimCameraAnimation + deltaTime);
+                Vector3 velocity = mainCameraControl.playerController.velocity;
                 bool pdaInUse = false;
                 bool flag2 = false;
                 bool inVehicle = false;
@@ -516,41 +465,41 @@ namespace Tweaks_Fixes
                 {
                     pdaInUse = Player.main.GetPDA().isInUse;
                     inVehicle = Player.main.motorMode == Player.MotorMode.Vehicle;
-                    flag2 = pdaInUse | inVehicle || __instance.cinematicMode;
+                    flag2 = pdaInUse | inVehicle || mainCameraControl.cinematicMode;
                     if (XRSettings.enabled && VROptions.gazeBasedCursor)
                         flag2 |= builderMenuOpen;
                 }
-                if (flag2 != __instance.wasInLockedMode || __instance.lookAroundMode != __instance.wasInLookAroundMode)
+                if (flag2 != mainCameraControl.wasInLockedMode || mainCameraControl.lookAroundMode != mainCameraControl.wasInLookAroundMode)
                 {
-                    __instance.camRotationX = 0.0f;
-                    __instance.camRotationY = 0.0f;
-                    __instance.wasInLockedMode = flag2;
-                    __instance.wasInLookAroundMode = __instance.lookAroundMode;
+                    mainCameraControl.camRotationX = 0.0f;
+                    mainCameraControl.camRotationY = 0.0f;
+                    mainCameraControl.wasInLockedMode = flag2;
+                    mainCameraControl.wasInLookAroundMode = mainCameraControl.lookAroundMode;
                 }
-                bool flag5 = (!__instance.cinematicMode || __instance.lookAroundMode && !pdaInUse) && __instance.mouseLookEnabled && (inVehicle || AvatarInputHandler.main == null || AvatarInputHandler.main.IsEnabled() || Builder.isPlacing);
+                bool flag5 = (!mainCameraControl.cinematicMode || mainCameraControl.lookAroundMode && !pdaInUse) && mainCameraControl.mouseLookEnabled && (inVehicle || AvatarInputHandler.main == null || AvatarInputHandler.main.IsEnabled() || Builder.isPlacing);
                 if (inVehicle && !XRSettings.enabled && !inExosuit)
                     flag5 = false;
 
-                Transform transform = __instance.transform;
-                float num1 = pdaInUse || __instance.lookAroundMode || Player.main.GetMode() == Player.Mode.LockedPiloting ? 1f : -1f;
-                if (!flag2 || __instance.cinematicMode && !__instance.lookAroundMode)
+                Transform transform = mainCameraControl.transform;
+                float num1 = pdaInUse || mainCameraControl.lookAroundMode || Player.main.GetMode() == Player.Mode.LockedPiloting ? 1f : -1f;
+                if (!flag2 || mainCameraControl.cinematicMode && !mainCameraControl.lookAroundMode)
                 {
-                    __instance.cameraOffsetTransform.localEulerAngles = UWE.Utils.LerpEuler(__instance.cameraOffsetTransform.localEulerAngles, Vector3.zero, deltaTime * 5f);
+                    mainCameraControl.cameraOffsetTransform.localEulerAngles = UWE.Utils.LerpEuler(mainCameraControl.cameraOffsetTransform.localEulerAngles, Vector3.zero, deltaTime * 5f);
                 }
                 else
                 {
-                    transform = __instance.cameraOffsetTransform;
-                    __instance.rotationY = Mathf.LerpAngle(__instance.rotationY, 0.0f, PDA.deltaTime * 15f);
-                    __instance.transform.localEulerAngles = new Vector3(Mathf.LerpAngle(__instance.transform.localEulerAngles.x, 0.0f, PDA.deltaTime * 15f), __instance.transform.localEulerAngles.y, 0.0f);
-                    __instance.cameraUPTransform.localEulerAngles = UWE.Utils.LerpEuler(__instance.cameraUPTransform.localEulerAngles, Vector3.zero, PDA.deltaTime * 15f);
+                    transform = mainCameraControl.cameraOffsetTransform;
+                    mainCameraControl.rotationY = Mathf.LerpAngle(mainCameraControl.rotationY, 0.0f, PDA.deltaTime * 15f);
+                    mainCameraControl.transform.localEulerAngles = new Vector3(Mathf.LerpAngle(mainCameraControl.transform.localEulerAngles.x, 0.0f, PDA.deltaTime * 15f), mainCameraControl.transform.localEulerAngles.y, 0.0f);
+                    mainCameraControl.cameraUPTransform.localEulerAngles = UWE.Utils.LerpEuler(mainCameraControl.cameraUPTransform.localEulerAngles, Vector3.zero, PDA.deltaTime * 15f);
                 }
                 if (!XRSettings.enabled)
                 {
-                    Vector3 localPosition = __instance.cameraOffsetTransform.localPosition;
+                    Vector3 localPosition = mainCameraControl.cameraOffsetTransform.localPosition;
                     localPosition.z = highFOVseaglideCameraOffset;
                     //localPosition.z = Mathf.Clamp(localPosition.z + (PDA.deltaTime * num1 * 0.25f), __instance.camPDAZStart, __instance.camPDAZOffset + __instance.camPDAZStart);
                     //AddDebug("  localPosition.z " + localPosition.z.ToString("0.00"));
-                    __instance.cameraOffsetTransform.localPosition = localPosition;
+                    mainCameraControl.cameraOffsetTransform.localPosition = localPosition;
                 }
                 Vector2 vector2 = Vector2.zero;
                 if (flag5 && FPSInputModule.current.lastGroup == null)
@@ -562,80 +511,80 @@ namespace Tweaks_Fixes
                         lookDelta.x = 0.0f;
                     vector2 = lookDelta * Player.main.mesmerizedSpeedMultiplier;
                 }
-                __instance.UpdateCamShake();
-                if (__instance.cinematicMode && !__instance.lookAroundMode)
+                mainCameraControl.UpdateCamShake();
+                if (mainCameraControl.cinematicMode && !mainCameraControl.lookAroundMode)
                 {
-                    __instance.camRotationX = Mathf.LerpAngle(__instance.camRotationX, 0.0f, deltaTime * 2f);
-                    __instance.camRotationY = Mathf.LerpAngle(__instance.camRotationY, 0.0f, deltaTime * 2f);
-                    __instance.transform.localEulerAngles = new Vector3(-__instance.camRotationY + __instance.camShake, __instance.camRotationX, 0.0f);
+                    mainCameraControl.camRotationX = Mathf.LerpAngle(mainCameraControl.camRotationX, 0.0f, deltaTime * 2f);
+                    mainCameraControl.camRotationY = Mathf.LerpAngle(mainCameraControl.camRotationY, 0.0f, deltaTime * 2f);
+                    mainCameraControl.transform.localEulerAngles = new Vector3(-mainCameraControl.camRotationY + mainCameraControl.camShake, mainCameraControl.camRotationX, 0.0f);
                 }
                 else if (flag2)
                 {
                     if (!XRSettings.enabled)
                     {
-                        bool flag6 = !__instance.lookAroundMode | pdaInUse;
-                        int num2 = !__instance.lookAroundMode | pdaInUse ? 1 : 0;
+                        bool flag6 = !mainCameraControl.lookAroundMode | pdaInUse;
+                        int num2 = !mainCameraControl.lookAroundMode | pdaInUse ? 1 : 0;
                         Vehicle vehicle = Player.main.GetVehicle();
                         if (vehicle != null)
                             flag6 = vehicle.controlSheme != Vehicle.ControlSheme.Mech | pdaInUse;
-                        __instance.camRotationX += vector2.x;
-                        __instance.camRotationY += vector2.y;
-                        __instance.camRotationX = Mathf.Clamp(__instance.camRotationX, -60f, 60f);
-                        __instance.camRotationY = Mathf.Clamp(__instance.camRotationY, -60f, 60f);
+                        mainCameraControl.camRotationX += vector2.x;
+                        mainCameraControl.camRotationY += vector2.y;
+                        mainCameraControl.camRotationX = Mathf.Clamp(mainCameraControl.camRotationX, -60f, 60f);
+                        mainCameraControl.camRotationY = Mathf.Clamp(mainCameraControl.camRotationY, -60f, 60f);
                         if (num2 != 0)
-                            __instance.camRotationX = Mathf.LerpAngle(__instance.camRotationX, 0.0f, PDA.deltaTime * 10f);
+                            mainCameraControl.camRotationX = Mathf.LerpAngle(mainCameraControl.camRotationX, 0.0f, PDA.deltaTime * 10f);
                         if (flag6)
-                            __instance.camRotationY = Mathf.LerpAngle(__instance.camRotationY, 0.0f, PDA.deltaTime * 10f);
-                        __instance.cameraOffsetTransform.localEulerAngles = new Vector3(-__instance.camRotationY, __instance.camRotationX + __instance.camShake, 0.0f);
+                            mainCameraControl.camRotationY = Mathf.LerpAngle(mainCameraControl.camRotationY, 0.0f, PDA.deltaTime * 10f);
+                        mainCameraControl.cameraOffsetTransform.localEulerAngles = new Vector3(-mainCameraControl.camRotationY, mainCameraControl.camRotationX + mainCameraControl.camShake, 0.0f);
                     }
                 }
                 else
                 {
-                    __instance.rotationX += vector2.x;
-                    __instance.rotationY += vector2.y;
-                    __instance.rotationY = Mathf.Clamp(__instance.rotationY, __instance.minimumY, __instance.maximumY);
-                    __instance.cameraUPTransform.localEulerAngles = new Vector3(Mathf.Min(0.0f, -__instance.rotationY + __instance.camShake), 0.0f, 0.0f);
-                    transform.localEulerAngles = new Vector3(Mathf.Max(0.0f, -__instance.rotationY + __instance.camShake), __instance.rotationX, 0.0f);
+                    mainCameraControl.rotationX += vector2.x;
+                    mainCameraControl.rotationY += vector2.y;
+                    mainCameraControl.rotationY = Mathf.Clamp(mainCameraControl.rotationY, mainCameraControl.minimumY, mainCameraControl.maximumY);
+                    mainCameraControl.cameraUPTransform.localEulerAngles = new Vector3(Mathf.Min(0.0f, -mainCameraControl.rotationY + mainCameraControl.camShake), 0.0f, 0.0f);
+                    transform.localEulerAngles = new Vector3(Mathf.Max(0.0f, -mainCameraControl.rotationY + mainCameraControl.camShake), mainCameraControl.rotationX, 0.0f);
                 }
-                __instance.UpdateStrafeTilt();
-                Vector3 vector3_1 = __instance.transform.localEulerAngles + new Vector3(0.0f, 0.0f, (__instance.cameraAngleMotion.y * __instance.cameraTiltMod + __instance.strafeTilt + __instance.camShake * 0.5f));
-                float num3 = 0.0f - __instance.skin;
-                if (!flag2 && __instance.GetCameraBob())
+                mainCameraControl.UpdateStrafeTilt();
+                Vector3 vector3_1 = mainCameraControl.transform.localEulerAngles + new Vector3(0.0f, 0.0f, (mainCameraControl.cameraAngleMotion.y * mainCameraControl.cameraTiltMod + mainCameraControl.strafeTilt + mainCameraControl.camShake * 0.5f));
+                float num3 = 0.0f - mainCameraControl.skin;
+                if (!flag2 && mainCameraControl.GetCameraBob())
                 {
-                    __instance.smoothedSpeed = UWE.Utils.Slerp(__instance.smoothedSpeed, Mathf.Min(1f, velocity.magnitude / 5f), deltaTime);
-                    num3 += ((Mathf.Sin(Time.time * 6f) - 1f) * (0.02f + __instance.smoothedSpeed * 0.15f)) * __instance.swimCameraAnimation;
+                    mainCameraControl.smoothedSpeed = UWE.Utils.Slerp(mainCameraControl.smoothedSpeed, Mathf.Min(1f, velocity.magnitude / 5f), deltaTime);
+                    num3 += ((Mathf.Sin(Time.time * 6f) - 1f) * (0.02f + mainCameraControl.smoothedSpeed * 0.15f)) * mainCameraControl.swimCameraAnimation;
                 }
-                if (__instance.impactForce > 0)
+                if (mainCameraControl.impactForce > 0)
                 {
-                    __instance.impactBob = Mathf.Min(0.9f, __instance.impactBob + __instance.impactForce * deltaTime);
-                    __instance.impactForce -= (Mathf.Max(1f, __instance.impactForce) * deltaTime * 5f);
+                    mainCameraControl.impactBob = Mathf.Min(0.9f, mainCameraControl.impactBob + mainCameraControl.impactForce * deltaTime);
+                    mainCameraControl.impactForce -= (Mathf.Max(1f, mainCameraControl.impactForce) * deltaTime * 5f);
                 }
-                float y = num3 - __instance.impactBob - __instance.stepAmount;
-                if (__instance.impactBob > 0.0)
-                    __instance.impactBob = Mathf.Max(0.0f, __instance.impactBob - (Mathf.Pow(__instance.impactBob, 0.5f) * Time.deltaTime * 3f));
-                __instance.stepAmount = Mathf.Lerp(__instance.stepAmount, 0f, deltaTime * Mathf.Abs(__instance.stepAmount));
-                __instance.transform.localPosition = new Vector3(0f, y, 0f);
-                __instance.transform.localEulerAngles = vector3_1;
+                float y = num3 - mainCameraControl.impactBob - mainCameraControl.stepAmount;
+                if (mainCameraControl.impactBob > 0.0)
+                    mainCameraControl.impactBob = Mathf.Max(0.0f, mainCameraControl.impactBob - (Mathf.Pow(mainCameraControl.impactBob, 0.5f) * Time.deltaTime * 3f));
+                mainCameraControl.stepAmount = Mathf.Lerp(mainCameraControl.stepAmount, 0f, deltaTime * Mathf.Abs(mainCameraControl.stepAmount));
+                mainCameraControl.transform.localPosition = new Vector3(0f, y, 0f);
+                mainCameraControl.transform.localEulerAngles = vector3_1;
                 if (Player.main.motorMode == Player.MotorMode.Vehicle)
-                    __instance.transform.localEulerAngles = Vector3.zero;
-                Vector3 vector3_2 = new Vector3(0f, __instance.transform.localEulerAngles.y, 0.0f);
-                Vector3 vector3_3 = __instance.transform.localPosition;
+                    mainCameraControl.transform.localEulerAngles = Vector3.zero;
+                Vector3 vector3_2 = new Vector3(0f, mainCameraControl.transform.localEulerAngles.y, 0.0f);
+                Vector3 vector3_3 = mainCameraControl.transform.localPosition;
                 if (XRSettings.enabled)
                 {
-                    vector3_2.y = !flag2 || inVehicle ? 0f : __instance.viewModelLockedYaw;
-                    if (!inVehicle && !__instance.cinematicMode)
+                    vector3_2.y = !flag2 || inVehicle ? 0f : mainCameraControl.viewModelLockedYaw;
+                    if (!inVehicle && !mainCameraControl.cinematicMode)
                     {
                         if (!flag2)
                         {
-                            Quaternion rotation = __instance.playerController.forwardReference.rotation;
-                            Quaternion quaternion = __instance.gameObject.transform.parent.rotation.GetInverse() * rotation;
+                            Quaternion rotation = mainCameraControl.playerController.forwardReference.rotation;
+                            Quaternion quaternion = mainCameraControl.gameObject.transform.parent.rotation.GetInverse() * rotation;
                             vector3_2.y = quaternion.eulerAngles.y;
                         }
-                        vector3_3 = __instance.gameObject.transform.parent.worldToLocalMatrix.MultiplyPoint(__instance.playerController.forwardReference.position);
+                        vector3_3 = mainCameraControl.gameObject.transform.parent.worldToLocalMatrix.MultiplyPoint(mainCameraControl.playerController.forwardReference.position);
                     }
                 }
-                __instance.viewModel.transform.localEulerAngles = vector3_2;
-                __instance.viewModel.transform.localPosition = vector3_3;
+                mainCameraControl.viewModel.transform.localEulerAngles = vector3_2;
+                mainCameraControl.viewModel.transform.localPosition = vector3_3;
             }
         }
 
@@ -651,7 +600,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(VFXController))]
+        //[HarmonyPatch(typeof(VFXController))]
         class VFXController_SpawnFX_Patch
         {
             //[HarmonyPrefix]
@@ -662,8 +611,8 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("SpawnFX")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("SpawnFX")]
             static bool SpawnFXPrefix(VFXController __instance, int i)
             {
                 if (__instance.emitters[i].fx == null)

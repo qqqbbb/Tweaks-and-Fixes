@@ -134,6 +134,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> alwaysSpawnWhenKnifeHarvesting;
         public static ConfigEntry<bool> cyclopsSonar;
         public static ConfigEntry<bool> cyclopsFireMusic;
+        public static ConfigEntry<bool> playerBreathBubbles;
+        public static ConfigEntry<bool> playerBreathBubblesSoundFX;
+        public static ConfigEntry<bool> medkitFabAlertSound;
 
 
 
@@ -279,6 +282,9 @@ namespace Tweaks_Fixes
             enableDevButton = Main.configToEdit.Bind("MENU BUTTONS", "Enable developer button in pause menu", false);
             propCannonGrabsAnyPlant = Main.configToEdit.Bind("TOOLS", "Propulsion cannon grabs any plant", true, "Propulsion cannon will grab only plants you can pick up if this is false");
             cyclopsSonar = Main.configToEdit.Bind("CYCLOPS", "Cyclops sonar", true, "Cyclops sonar that detects aggresive creatures will be off if this is false");
+            playerBreathBubbles = Main.configToEdit.Bind("PLAYER", "Player breath bubbles particle effect", true);
+            playerBreathBubblesSoundFX = Main.configToEdit.Bind("PLAYER", "Player breath bubbles sound effect", true);
+            medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
 
 
 
@@ -311,7 +317,7 @@ namespace Tweaks_Fixes
                 amount = s.Substring(index);
                 if (!TechTypeExtensions.FromString(techType, out TechType tt, true))
                     continue;
-                // no simple way to check if techType is pickupable
+
                 int a = 0;
                 try
                 {
@@ -347,7 +353,7 @@ namespace Tweaks_Fixes
                 amount = s.Substring(index);
                 if (!TechTypeExtensions.FromString(techType, out TechType tt, true))
                     continue;
-                // no simple way to check if techType is pickupable
+
                 float fl = 0;
                 try
                 {
@@ -383,7 +389,7 @@ namespace Tweaks_Fixes
                 amount = s.Substring(index);
                 if (!TechTypeExtensions.FromString(techType, out TechType tt, true))
                     continue;
-                // no simple way to check if techType is pickupable
+
                 float fl = 0;
                 try
                 {
@@ -413,14 +419,14 @@ namespace Tweaks_Fixes
 
                 if (!TechTypeExtensions.FromString(techType, out TechType tt, true))
                     continue;
-                // no simple way to check if techType is pickupable
+
                 set.Add(tt);
                 //Main.logger.LogDebug("ParseSetFromString " + tt );
             }
             return set;
         }
 
-        private static Vector3 ParseBloodColor(string input)
+        private static Color ParseColor(string input)
         {
             float r = float.MaxValue;
             float g = float.MaxValue;
@@ -444,10 +450,10 @@ namespace Tweaks_Fixes
             }
             if (r == float.MaxValue || g == float.MaxValue || b == float.MaxValue)
             {
-                Main.logger.LogWarning("Could not parse blood color: " + input);
-                return new Vector3(0.784f, 1f, 0.157f);
+                Main.logger.LogWarning("Could not parse color: " + input);
+                return new Color(0.784f, 1f, 0.157f);
             }
-            return new Vector3(Mathf.Clamp01(r), Mathf.Clamp01(g), Mathf.Clamp01(b));
+            return new Color(Mathf.Clamp01(r), Mathf.Clamp01(g), Mathf.Clamp01(b));
         }
 
         public static void ParseConfig()
@@ -459,7 +465,7 @@ namespace Tweaks_Fixes
             Pickupable_Patch.itemMass = ParseFloatDicFromString(itemMass.Value);
             Pickupable_Patch.unmovableItems = ParseSetFromString(unmovableItems.Value);
             Gravsphere_Patch.gravTrappable = ParseSetFromString(gravTrappable.Value);
-            Creature_Tweaks.silentCreatures = ParseSetFromString(silentCreatures.Value);
+            Silent_Creatures.silentCreatures = ParseSetFromString(silentCreatures.Value);
             Pickupable_Patch.shinies = ParseSetFromString(stalkerPlayThings.Value);
             LargeWorldEntity_Patch.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
             LargeWorldEntity_Patch.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
@@ -470,14 +476,13 @@ namespace Tweaks_Fixes
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
             Battery_Patch.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
 
-            Creature_Tweaks.bloodColor = ParseBloodColor(bloodColor.Value);
+            Creatures.bloodColor = ParseColor(bloodColor.Value);
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
             Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
             Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
             Enum.TryParse(lightButton.Value.ToString(), out Light_Control.lightButton);
             //Main.logger.LogDebug("transferAllItemsButton " + Inventory_Patch.transferAllItemsButton);
             //Main.logger.LogDebug("transferSameItemsButton " + Inventory_Patch.transferSameItemsButton);
-
             Player_Movement.CacheSettings();
         }
 

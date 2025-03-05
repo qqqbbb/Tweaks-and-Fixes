@@ -113,6 +113,7 @@
     <Compile Include="Cutefish_Patch.cs" />
     <Compile Include="Constructor_Patch.cs" />
     <Compile Include="SeaTreader_Patch.cs" />
+    <Compile Include="Silent_Creatures.cs" />
     <Compile Include="Start_Warning_Patch.cs" />
     <Compile Include="ConfigToEdit.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
@@ -135,7 +136,7 @@
     <Compile Include="Flare_Patch.cs" />
     <Compile Include="Decoy_Patch.cs" />
     <Compile Include="Fragment_Patch.cs" />
-    <Compile Include="Predators_Patch.cs" />
+    <Compile Include="Creature_Aggression.cs" />
     <Compile Include="Coffee_Patch.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
     <Compile Include="Pickupable_Patch.cs" />
@@ -144,11 +145,11 @@
     <Compile Include="Damage_Patch.cs" />
     <Compile Include="Databox_Light_Patch.cs" />
     <Compile Include="Crush_Damage_.cs" />
-    <Compile Include="Creature_Tweaks.cs" />
+    <Compile Include="Creatures.cs" />
     <Compile Include="HangingStinger.cs" />
     <Compile Include="Escape_Pod_Patch.cs" />
-    <Compile Include="Food_Patch.cs" />
-    <Compile Include="Tools_Patch.cs" />
+    <Compile Include="Survival_.cs" />
+    <Compile Include="Tools_.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="NoBreakingWithHands.cs" />
     <Compile Include="Player_Movement.cs" />

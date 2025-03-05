@@ -1,84 +1,153 @@
-﻿using HarmonyLib;
+﻿using BepInEx.Configuration;
+using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Food_Patch : MonoBehaviour
+    class Survival_
     {
-        static float foodCons = .5f; // vanilla 0.4
-        static float waterCons = .5f; // vanilla 0.55
-        //static float updateHungerInterval { get { return Main.config.hungerUpdateInterval / DayNightCycle.main.dayNightSpeed; } }
-        public static float hungerUpdateTime = 0f;
         public static HashSet<Pickupable> cookedFish = new HashSet<Pickupable> { };
+        static bool updatingStats;
+        private static bool usingMedkit;
 
-        public static void UpdateStats(Survival __instance)
+        public static float UpdateStats(Survival survival, float timePassed)
         {
-            //AddDebug("dayNightSpeed  " + DayNightCycle.main.dayNightSpeed);
-            //AddDebug("UpdateStats timeSprinted " + Player_Movement.timeSprinted);
-            //AddDebug("UpdateStats updateHungerInterval " + (int)updateHungerInterval);
-            float oldFood = __instance.food;
-            float oldWater = __instance.water;
+            float oldFood = survival.food;
+            float oldWater = survival.water;
+            float foodToLose = timePassed / SurvivalConstants.kFoodTime * SurvivalConstants.kMaxStat;
+            float waterToLose = timePassed / SurvivalConstants.kWaterTime * SurvivalConstants.kMaxStat;
 
-            if (Player_Movement.timeSprinted > 0f)
+            if (Player.main.mode == Player.Mode.Normal && Player.main.IsUnderwaterForSwimming() == false && Player.main.groundMotor.IsGrounded() && Player.main.groundMotor.IsSprinting())
             {
-                float sprintFoodCons = foodCons * Player_Movement.timeSprinted * ConfigMenu.hungerUpdateInterval.Value * .01f;
-                //AddDebug("UpdateStats sprintFoodCons " + sprintFoodCons);
-                __instance.food -= sprintFoodCons;
-                __instance.water -= sprintFoodCons;
-                Player_Movement.timeSprintStart = 0f;
-                Player_Movement.timeSprinted = 0f;
+                foodToLose *= 2;
+                waterToLose *= 2;
             }
-            __instance.food -= foodCons;
-            __instance.water -= waterCons;
+            //AddDebug("UpdateStats foodToLose " + foodToLose);
+            survival.food -= foodToLose * ConfigMenu.foodLossMult.Value;
+            survival.water -= waterToLose * ConfigMenu.waterLossMult.Value;
             float foodDamage = 0f;
 
-            if (__instance.food < -100f)
+            if (survival.food < -100f)
             {
-                foodDamage = Mathf.Abs(__instance.food + 100f);
-                __instance.food = -100f;
+                foodDamage = Mathf.Abs(survival.food + 100f);
+                survival.food = -100f;
             }
-            if (__instance.water < -100f)
+            if (survival.water < -100f)
             {
-                foodDamage += Mathf.Abs(__instance.water + 100f);
-                __instance.water = -100f;
+                foodDamage += Mathf.Abs(survival.water + 100f);
+                survival.water = -100f;
             }
-            if (foodDamage > 0)
-                Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
+            //if (foodDamage > 0)
+            //    Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
 
             float threshold1 = ConfigMenu.newHungerSystem.Value ? 0f : 20f;
             float threshold2 = ConfigMenu.newHungerSystem.Value ? -50f : 10f;
-            __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, oldFood, threshold1, threshold2);
-            __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, oldWater, threshold1, threshold2);
-            hungerUpdateTime = Time.time + ConfigMenu.hungerUpdateInterval.Value;
+            survival.UpdateWarningSounds(survival.foodWarningSounds, survival.food, oldFood, threshold1, threshold2);
+            survival.UpdateWarningSounds(survival.waterWarningSounds, survival.water, oldWater, threshold1, threshold2);
+            //hungerUpdateTime = Time.time + ConfigMenu.hungerUpdateInterval.Value;
             //AddDebug("Invoke  hungerUpdateInterval " + Main.config.hungerUpdateInterval);
             //AddDebug("Invoke dayNightSpeed " + DayNightCycle.main.dayNightSpeed);
             //__instance.Invoke("UpdateHunger", updateHungerInterval);
+            return foodDamage;
         }
 
         [HarmonyPatch(typeof(Survival))]
-        class Survival_Start_patch
+        class Survival_patch
         {
-            private const float bladderFishOxygen = 15f;
+            static float foodBeforeUpdate;
+            static float waterBeforeUpdate;
 
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
-            public static void StartPostfix(Survival __instance)
+            [HarmonyPrefix, HarmonyPatch("UpdateWarningSounds")]
+            static bool UpdateWarningSoundsPrefix(Survival __instance)
             {
-                __instance.CancelInvoke();
+                //AddDebug("UpdateWarningSounds ");
+                if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1)
+                    return true;
+
+                return !updatingStats;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("UpdateHunger")]
+            public static float GetfoodWaterHealThreshold()
+            {
+                //Main.logger.LogMessage("GetfoodWaterHealThreshold " + ConfigMenu.foodWaterHealThreshold.Value);
+                return ConfigMenu.foodWaterHealThreshold.Value;
+            }
+
+            [HarmonyPatch("UpdateHunger"), HarmonyTranspiler]
+            static IEnumerable<CodeInstruction> UpdateHungerTranspiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codeMatcher = new CodeMatcher(instructions)
+             .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, SurvivalConstants.kFoodWaterHealThreshold))
+             .ThrowIfInvalid("Could not find Ldc_R4 SurvivalConstants.kFoodWaterHealThreshold in UpdateHunger")
+             .SetInstructionAndAdvance(Transpilers.EmitDelegate<Func<float>>(GetfoodWaterHealThreshold))
+             .InstructionEnumeration();
+                return codeMatcher;
+            }
+
+            //[HarmonyPostfix, HarmonyPatch("UpdateHunger")]
             static void UpdateHungerPostfix(Survival __instance)
             {
-                //AddDebug("UpdateHunger ");
-                hungerUpdateTime = Time.time + ConfigMenu.hungerUpdateInterval.Value;
+                float health = Player.main.GetComponent<LiveMixin>().health;
+                //AddDebug("health " + health);
             }
 
+            [HarmonyPrefix, HarmonyPatch("UpdateStats")]
+            static bool UpdateStatsPrefix(Survival __instance, float timePassed, ref float __result)
+            {
+                //if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1)
+                //    return true;
+
+                //AddDebug("UpdateStats ");
+                updatingStats = true;
+                foodBeforeUpdate = __instance.food;
+                waterBeforeUpdate = __instance.water;
+                if (ConfigMenu.newHungerSystem.Value)
+                {
+                    __result = UpdateStats(__instance, timePassed);
+                    return false;
+                }
+                return true;
+            }
+
+            [HarmonyPostfix, HarmonyPatch("UpdateStats")]
+            static void UpdateStatsPostfix(Survival __instance, float timePassed, ref float __result)
+            {
+                if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1)
+                    return;
+
+                float damage = 0;
+                if (timePassed > Mathf.Epsilon)
+                {
+                    //float foodLost = foodBeforeUpdate - __instance.food;
+                    //float waterLost = waterBeforeUpdate - __instance.water;
+                    float foodToLose = (timePassed / SurvivalConstants.kFoodTime * SurvivalConstants.kMaxStat);
+                    foodToLose *= ConfigMenu.foodLossMult.Value;
+                    if (foodToLose > foodBeforeUpdate)
+                        damage += ((foodToLose - foodBeforeUpdate) * SurvivalConstants.kStarveDamage);
+
+                    __instance.food = Mathf.Clamp(foodBeforeUpdate - foodToLose, 0, SurvivalConstants.kMaxStat * 2f);
+                    float waterToLose = (timePassed / SurvivalConstants.kWaterTime * SurvivalConstants.kMaxStat);
+                    waterToLose *= ConfigMenu.waterLossMult.Value;
+                    //AddDebug("foodToLose " + foodToLose);
+                    //AddDebug("waterToLose " + waterToLose);
+                    if (waterToLose > waterBeforeUpdate)
+                        damage += ((waterToLose - waterBeforeUpdate) * SurvivalConstants.kStarveDamage);
+
+                    __instance.water = Mathf.Clamp(waterBeforeUpdate - waterToLose, 0, SurvivalConstants.kMaxStat);
+                    updatingStats = false;
+                    __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, foodBeforeUpdate, SurvivalConstants.kLowFoodThreshold, SurvivalConstants.kCriticalFoodThreshold);
+                    __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, waterBeforeUpdate, SurvivalConstants.kLowWaterThreshold, SurvivalConstants.kCriticalWaterThreshold);
+                }
+                //AddDebug("UpdateStats food " + __instance.food);
+                //AddDebug("UpdateStats water " + __instance.water);
+                __result = damage;
+            }
             //!!!            //[HarmonyPrefix] // does not run
             //[HarmonyPatch("GetWeaknessSpeedScalar")]
             public static bool GetWeaknessSpeedScalarPrefix(Survival __instance, ref float __result)
@@ -107,15 +176,15 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Eat")]
             public static bool EatPrefix(Survival __instance, GameObject useObj, ref bool __result)
             {
-                if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !ConfigMenu.newHungerSystem.Value)
+                if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !ConfigMenu.newHungerSystem.Value && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200)
                     return true;
 
                 Eatable eatable = useObj.GetComponent<Eatable>();
                 int food = (int)eatable.foodValue;
                 int water = (int)eatable.waterValue;
                 int playerMinFood = ConfigMenu.newHungerSystem.Value ? -100 : 0;
-                float playerMaxWater = ConfigMenu.newHungerSystem.Value ? 200f : 100f;
-                float playerMaxFood = 200f;
+                float playerMaxWater = ConfigMenu.maxPlayerWater.Value;
+                float playerMaxFood = ConfigMenu.maxPlayerFood.Value;
                 int minFood = food;
                 int maxFood = food;
                 int minWater = water;
@@ -194,13 +263,13 @@ namespace Tweaks_Fixes
                 {
                     int foodDamage = Mathf.Abs((int)(__instance.food + finalFood - playerMinFood));
                     //AddDebug("foodDamage " + foodDamage);
-                    Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
+                    Player.main.liveMixin.TakeDamage(foodDamage, Player.main.transform.position, DamageType.Starve);
                 }
                 if (finalWater < 0 && __instance.water + finalWater < playerMinFood)
                 {
                     int waterDamage = Mathf.Abs((int)(__instance.water + finalWater - playerMinFood));
                     //AddDebug("waterDamage " + waterDamage);
-                    Player.main.liveMixin.TakeDamage(waterDamage, Player.main.gameObject.transform.position, DamageType.Starve);
+                    Player.main.liveMixin.TakeDamage(waterDamage, Player.main.transform.position, DamageType.Starve);
                 }
                 __instance.onEat.Trigger((float)finalFood);
                 __instance.food += finalFood;
@@ -215,10 +284,10 @@ namespace Tweaks_Fixes
                     GoalManager.main.OnCustomGoalEvent("Drink_Something");
 
                 if (techType == TechType.Bladderfish)
-                    Player.main.GetComponent<OxygenManager>().AddOxygen(bladderFishOxygen);
+                    Player.main.GetComponent<OxygenManager>().AddOxygen(SurvivalConstants.kBladderFishO2OnEat);
 
-                Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
-                Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
+                __instance.water = Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
+                __instance.food = Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
                 int warn = ConfigMenu.newHungerSystem.Value ? 0 : 20;
                 if (finalWater > 0 && __instance.water > warn && __instance.water - finalWater < warn)
                     __instance.vitalsOkNotification.Play();
@@ -231,7 +300,35 @@ namespace Tweaks_Fixes
                 return false;
             }
 
+            [HarmonyPrefix, HarmonyPatch("Use")]
+            public static void UsePrefix(Survival __instance, GameObject useObj, ref bool __result)
+            {
+                TechType techType = CraftData.GetTechType(useObj);
+                //Main.logger.LogMessage("Survival Use " + techType);
+                if (techType == TechType.FirstAidKit)
+                    usingMedkit = true;
+            }
+        }
 
+        [HarmonyPatch(typeof(LiveMixin), "AddHealth")]
+        class LiveMixin_AddHealth_patch
+        {
+            public static bool Prefix(LiveMixin __instance, ref float healthBack, ref float __result)
+            {
+                if (usingMedkit == false)
+                    return true;
+
+                usingMedkit = false;
+                if (ConfigToEdit.medKitHPperSecond.Value >= ConfigMenu.medKitHP.Value)
+                    healthBack = ConfigMenu.medKitHP.Value;
+                else
+                {
+                    Main.configMain.medKitHPtoHeal = ConfigMenu.medKitHP.Value;
+                    Player_Patches.healTime = Time.time;
+                    return false;
+                }
+                return true;
+            }
         }
 
         [HarmonyPatch(typeof(Eatable))]
@@ -306,7 +403,7 @@ namespace Tweaks_Fixes
                 {
                     TechType tt = __instance.plantTechType;
                     if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)
-                        Destroy(__instance);
+                        UnityEngine.Object.Destroy(__instance);
                 }
             }
         }
@@ -357,14 +454,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(CrafterLogic), "ConsumeResources")]
-        class CrafterLogic_ConsumeResources_patch
-        {
-            public static void Postfix(CrafterLogic __instance, TechType techType)
-            {
-                //TechType tt = item.item.GetTechType();
-            }
-        }
+
+        //[HarmonyPatch(typeof(YourTargetClass))] // Replace with the class containing UpdateHunger
+        //[HarmonyPatch("UpdateHunger")]
+        //public static class UpdateHungerPatch
+        //{
+        //}
 
         //[HarmonyPatch(typeof(Crafter), "OnCraftingBegin")]
         class Crafter_OnCraftingBegin_patch
@@ -384,13 +479,13 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(uGUI_CraftingMenu), "Action")]
-        class CraftingAnalytics_OnCraft_patch
+        //[HarmonyPatch(typeof(LiveMixin), "TakeDamage")]
+        class LiveMixin_TakeDamage_patch
         {
-            public static void Postfix(uGUI_CraftingMenu __instance)
+            public static void Prefix(LiveMixin __instance, float originalDamage, Vector3 position = default, DamageType type = DamageType.Normal, GameObject dealer = null)
             {
-                //if (sender.action == TreeAction.Craft)
-                //AddDebug(" uGUI_CraftingMenu Craft " );
+                if (updatingStats) return;
+                AddDebug(" TakeDamage ");
             }
         }
 

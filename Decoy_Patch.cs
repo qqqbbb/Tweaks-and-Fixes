@@ -90,8 +90,8 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("Update")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Update")]
             static bool UpdatePrefix(CyclopsDecoy __instance)
             {
                 if (!__instance.launch)
@@ -103,11 +103,21 @@ namespace Tweaks_Fixes
                     __instance.transform.position += __instance.transform.up * __instance.launchSpeed;
 
                 __instance.launchSpeed = Mathf.MoveTowards(__instance.launchSpeed, 0f, Time.deltaTime);
-                if (!Util.Approximately(__instance.launchSpeed, 0f))
+                if (!Mathf.Approximately(__instance.launchSpeed, 0f))
                     return false;
 
                 __instance.launch = false;
                 return false;
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Update")]
+            static void UpdatePostfix(CyclopsDecoy __instance)
+            {
+                //if (__instance.launch)
+                //AddDebug("CyclopsDecoy " + __instance.launch);
+
+                //return false;
             }
 
             [HarmonyPrefix]

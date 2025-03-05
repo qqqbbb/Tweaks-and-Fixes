@@ -40,7 +40,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> crushDamage;
         public static ConfigEntry<float> vehicleCrushDamageMult;
         public static ConfigEntry<EmptyVehiclesCanBeAttacked> emptyVehiclesCanBeAttacked;
-        public static ConfigEntry<int> hungerUpdateInterval;
         public static ConfigEntry<bool> newHungerSystem;
         public static ConfigEntry<float> fishFoodWaterRatio;
         public static ConfigEntry<EatingRawFish> eatRawFish;
@@ -74,13 +73,19 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> exosuitSpeedMult;
         public static ConfigEntry<float> seamothSpeedMult;
         public static ConfigEntry<float> cyclopsSpeedMult;
-
+        public static ConfigEntry<float> foodLossMult;
+        public static ConfigEntry<float> waterLossMult;
+        public static ConfigEntry<int> foodWaterHealThreshold;
+        public static ConfigEntry<int> maxPlayerFood;
+        public static ConfigEntry<int> maxPlayerWater;
 
 
         public static void Bind()
         {  // “ ” ‛
 
             timeFlowSpeed = Main.configMenu.Bind("", "Time flow speed multiplier", 1f, "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time.");
+            foodLossMult = Main.configMenu.Bind("", "Food loss multiplier", 1f, "Food value you lose when your hunger updates will be multiplied by this.");
+            waterLossMult = Main.configMenu.Bind("", "Water loss multiplier", 1f, "Water value you lose when your hunger updates will be multiplied by this.");
             playerWaterSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier in water", 1f);
             playerGroundSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier on ground", 1f);
 
@@ -99,20 +104,19 @@ namespace Tweaks_Fixes
             baseHullStrengthMult = Main.configMenu.Bind("", "Base hull strength multiplier", 1f, "");
             knifeRangeMult = Main.configMenu.Bind("", "Knife range multiplier", 1f, "Applies to knife and thermoblade. You have to reequip your knife after changing this.");
             knifeDamageMult = Main.configMenu.Bind("", "Knife damage multiplier", 1f, "Applies to knife and thermoblade. You have to reequip your knife after changing this.");
-            medKitHP = Main.configMenu.Bind("", "First aid kit HP", 50, "HP restored when using first aid kit.");
+            medKitHP = Main.configMenu.Bind("", "First aid kit health", 50, "Health restored when using first aid kit.");
             craftTimeMult = Main.configMenu.Bind("", "Crafting time multiplier", 1f, "Crafting time will be multiplied by this when crafting things with fabricator or modification station.");
             buildTimeMult = Main.configMenu.Bind("", "Building time multiplier", 1f, "Building time will be multiplied by this when using builder tool.");
             seaglideSpeedMult = Main.configMenu.Bind("Player movement", "Seaglide speed multiplier", 1f, "");
 
             cyclopsFireChance = Main.configMenu.Bind("", "Cyclops engine room fire chance percent", 50, "The game starts checking this when you get your first engine overheat warning. After that every 10 seconds chance to catch fire goes up by 10% if you don't slow down.");
             cyclopsAutoHealHealthPercent = Main.configMenu.Bind("", "Cyclops auto-repair threshold", 90, "Cyclops auto-repairs when it is not on fire and its HP percent is above this.");
-            crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage slider is at 0.");
+            crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage set by 'Crush damage' setting. ");
             crushDamage = Main.configMenu.Bind("", "Crush damage", 0f, "Player takes this damage when below crush depth.");
-            crushDamageProgression = Main.configMenu.Bind("", "Crush damage progression", 0f, "This value will be added to player's and vrhicles' crush damage for every meter below crush depth.");
+            crushDamageProgression = Main.configMenu.Bind("", "Crush damage progression", 0f, "If this is more than 0, the crush damage you take will be: 'Crush damage' value + 'Crush damage' value * this * number of meters below crush depth.");
             vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 1f, "Vehicle crush damage will be multiplied by this.");
             emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Vanilla, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
-            hungerUpdateInterval = Main.configMenu.Bind("", "Hunger update interval", 10, "Time in seconds it takes your hunger and thirst to update.");
-            newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "You do not regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
+            newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
             fishFoodWaterRatio = Main.configMenu.Bind("", "Fish water/food value ratio", 0f, "Fish's water value will be proportional to its food value if this is more than 0. If this is 0.1 then water value will be 10% of food value. If this is 0.9 then water value will be 90% of food value. Game has to be reloaded after changing this.");
             eatRawFish = Main.configMenu.Bind("", "Eating raw fish", EatingRawFish.Vanilla, "This changes amount of food you get by eating raw fish. Harmless: it is a random number between 0 and fish's food value. Risky: it is a random number between fish's negative food value and fish's food value. Harmful: it is a random number between fish's negative food value and 0.");
             cantEatUnderwater = Main.configMenu.Bind("", "Can not eat underwater", false, "You will not be able to eat or drink when swimming underwater if this is on.");
@@ -138,9 +142,11 @@ namespace Tweaks_Fixes
             craftedBatteryCharge = Main.configMenu.Bind("", "Crafted battery charge percent", 100, "Charge percent of batteries and power cells you craft will be set to this.");
             dropItemsOnDeath = Main.configMenu.Bind("", "Drop items when you die", DropItemsOnDeath.Vanilla);
             invMultWater = Main.configMenu.Bind("", "Inventory weight multiplier in water", 0f, "When this is not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
-            invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on land", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
+            invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on ground", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
             drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "");
-
+            foodWaterHealThreshold = Main.configMenu.Bind("", "Food heal threshold", 150, "Your health regenerates when sum of your food and water values is greater than this");
+            maxPlayerFood = Main.configMenu.Bind("", "Max player food", 200, "Your food meter will be capped at this.");
+            maxPlayerWater = Main.configMenu.Bind("", "Max player water", 100, "Your water meter will be capped at this.");
 
             transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
             transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");

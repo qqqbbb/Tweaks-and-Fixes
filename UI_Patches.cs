@@ -418,7 +418,7 @@ namespace Tweaks_Fixes
                     }
                 }
                 Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
-                if (flareTarget && Util.Approximately(flareTarget.energyLeft, 0f))
+                if (flareTarget && Mathf.Approximately(flareTarget.energyLeft, 0f))
                 {
                     //AddDebug("activeTarget Flare");
                     StringBuilder sb = new StringBuilder(Language.main.Get("TF_burnt_out_flare"));
@@ -641,7 +641,7 @@ namespace Tweaks_Fixes
                 if (Crush_Damage_.crushDamageEquipment.ContainsKey(techType) && Crush_Damage_.crushDamageEquipment[techType] > 0)
                 {
                     StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_crush_damage_equipment"));
-                    sb_.Append(Crush_Damage_.crushDepthEquipment[techType]);
+                    sb_.Append(Crush_Damage_.crushDamageEquipment[techType]);
                     sb_.Append("%");
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }

@@ -83,6 +83,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Player))]
         class Player_Patch
         {
+            private const float breathPeriodMax = 3f;
+
             [HarmonyPostfix, HarmonyPatch("GetOxygenPerBreath")]
             static void GetOxygenPerBreathPostfix(Player __instance, ref float __result, float breathingInterval, int depthClass)
             {// vanilla script returns wrong value at depth 200-100
@@ -105,14 +107,14 @@ namespace Tweaks_Fixes
                 if (__instance.currentSub || __instance.mode == Player.Mode.Piloting || __instance.mode == Player.Mode.LockedPiloting || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
                 {
                     //AddDebug("safe ox consump " );
-                    __result = 3f;
+                    __result = breathPeriodMax;
                     return false;
                 }
                 float depth = Mathf.Abs(__instance.depthLevel);
                 float mult = 1.5f / ConfigMenu.crushDepth.Value;
-                __result = 3f - depth * mult;
+                __result = breathPeriodMax - depth * mult;
                 // __result is negative when depth is 2x deeper than crushDepth
-                __result = Mathf.Clamp(__result, 0.1f, 3f);
+                __result = Mathf.Clamp(__result, 0.1f, breathPeriodMax);
                 return false;
             }
         }

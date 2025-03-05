@@ -15,8 +15,6 @@ namespace Tweaks_Fixes
 {
     class Player_Patches
     {
-        public static float exitWaterOffset = 0.8f; // 0.8f
-        public static float crushPeriod = 3f;
         public static float healTime = 0f;
 
         public static void DisableExosuitClawArmScan()
@@ -76,8 +74,8 @@ namespace Tweaks_Fixes
 
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
-            static void StartPostfix(Player __instance)
-            { // this does not run for some users
+            static void Finalizer(Player __instance)
+            { // using finalizer bc some mod throws exception in prefix
                 //__instance.StartCoroutine(Test());
                 crushTime = 0;
                 Main.survival = __instance.GetComponent<Survival>();
@@ -101,7 +99,6 @@ namespace Tweaks_Fixes
                     Crush_Damage_.CrushDamagePlayer();
                 }
                 if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
-                //if (Main.config.medKitHPtoHeal > 0 && DayNightCycle.main.timePassedAsFloat > healTime)
                 { // not checking savegame slot
                     healTime = Time.time + 1.0f;
                     //healTime = DayNightCycle.main.timePassedAsFloat + 1f;
@@ -111,24 +108,20 @@ namespace Tweaks_Fixes
                     if (Main.configMain.medKitHPtoHeal < 0)
                         Main.configMain.medKitHPtoHeal = 0;
                 }
-                if (Main.survival == null)
-                    Main.survival = __instance.GetComponent<Survival>();
+                //if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats)
+                //    return;
 
-                if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats)
-                    return;
+                //if (Survival_.hungerUpdateTime > Time.time)
+                //    return;
 
-                if (Food_Patch.hungerUpdateTime > Time.time)
-                    return;
 
-                if (ConfigMenu.newHungerSystem.Value)
-                {
-                    Food_Patch.UpdateStats(Main.survival);
-                    //__instance.Invoke("UpdateHunger", updateHungerInterval);
-                    //AddDebug("updateHungerInterval " + updateHungerInterval);
-                }
-                else
-                    Main.survival.UpdateHunger();
+                //__instance.Invoke("UpdateHunger", updateHungerInterval);
+                //AddDebug("updateHungerInterval " + updateHungerInterval);
+                //}
+                //else
+                //    Main.survival.UpdateHunger();
             }
+
 
             [HarmonyPrefix]
             [HarmonyPatch("GetDepthClass")]
@@ -171,20 +164,6 @@ namespace Tweaks_Fixes
                     __result = false;
             }
 
-        }
-
-        //[HarmonyPatch(typeof(CrushDamage), "GetDepth")]
-        class CrushDamage_GetDepth_Patch
-        {
-            public static void Prefix(CrushDamage __instance)
-            {
-                if (__instance.depthCache == null)
-                {
-                    AddDebug("__instance.depthCache == null");
-                }
-                else
-                    AddDebug("depthCache" + __instance.depthCache.Get());
-            }
         }
 
         [HarmonyPatch(typeof(Inventory), "LoseItems")]
@@ -294,6 +273,40 @@ namespace Tweaks_Fixes
                 return Main.gameLoaded;
             }
         }
+
+        [HarmonyPatch(typeof(PlayerBreathBubbles), "MakeBubbles")]
+        class PlayerBreathBubbles_MakeBubbles_Patch
+        {
+            public static bool Prefix(PlayerBreathBubbles __instance)
+            {
+                if (ConfigToEdit.playerBreathBubbles.Value && ConfigToEdit.playerBreathBubblesSoundFX.Value)
+                    return true;
+
+                if (!__instance.enabled)
+                    return false;
+
+                if (ConfigToEdit.playerBreathBubblesSoundFX.Value)
+                    __instance.bubbleSound.Play();
+
+                if (ConfigToEdit.playerBreathBubbles.Value == false)
+                    return false;
+
+                __instance.bubbles = UnityEngine.Object.Instantiate(__instance.bubblesPrefab.gameObject);
+                if (!__instance.bubbles)
+                    return false;
+
+                Transform transform = __instance.bubbles.transform;
+                transform.SetParent(__instance.anchor, false);
+                transform.localPosition = Vector3.zero;
+                transform.localRotation = Quaternion.identity;
+                transform.localScale = Vector3.one;
+                ParticleSystem component = __instance.bubbles.GetComponent<ParticleSystem>();
+                component.Play();
+                UnityEngine.Object.Destroy(__instance.bubbles, component.duration + component.startLifetime);
+                return false;
+            }
+        }
+
 
     }
 }
