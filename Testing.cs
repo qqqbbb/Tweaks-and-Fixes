@@ -25,6 +25,8 @@ namespace Tweaks_Fixes
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
+
+
         static bool GetScanTarget(float distance, out GameObject result)
         {
             bool flag = false;
@@ -254,7 +256,6 @@ namespace Tweaks_Fixes
                     return;
 
                 //PrintRawBiomeNames();
-                //AddDebug("Sprinting " + __instance.groundMotor.IsSprinting());
                 //AddDebug("Grounded " + __instance.groundMotor.IsGrounded());
                 //AddDebug("mode " + __instance.mode);
                 if (Input.GetKeyDown(KeyCode.B))
@@ -276,9 +277,6 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     PlayerTool tool = Inventory.main.GetHeldTool();
-
-
-                    //AddDebug("CanBeAttacked " + __instance.CanBeAttacked());
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
@@ -514,13 +512,18 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(SubRoot), "Update")]
+        //[HarmonyPatch(typeof(FreezeRigidbodyWhenFar), "FixedUpdate")]
         class SubControl_Update_Patch
         {
-            public static void Prefix(SubRoot __instance)
+            public static void Prefix(FreezeRigidbodyWhenFar __instance)
             {
-                AddDebug("SubRoot Update LOD " + __instance.LOD.IsFull());
-                //AddDebug("CyclopsHelmHUDManager Update IsAlive " + __instance.subLiveMixin.IsAlive());
+                if (__instance.transform.position.y > __instance.freezeDist / 2.0)
+                    return;
+                if ((MainCamera.camera.transform.position - __instance.transform.position).sqrMagnitude > __instance.freezeDist * __instance.freezeDist)
+                    AddDebug("FreezeRigidbodyWhenFar FixedUpdate ");
+                else
+                    AddDebug("FreezeRigidbodyWhenFar FixedUpdate !!!!!!!!!");
+
             }
         }
 

@@ -36,7 +36,7 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.creatureFleeChanceBasedOnHealth.Value && liveMixin && liveMixin.IsAlive())
                 {
                     int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
-                    int rnd1 = Main.random.Next(0, maxHealth + 1);
+                    int rnd1 = UnityEngine.Random.Range(0, maxHealth);
                     int health = Mathf.RoundToInt(liveMixin.health);
                     //if (__instance.gameObject == Testing.goToTest)
                     //AddDebug(__instance.name + " max Health " + maxHealth + " Health " + health);
@@ -44,7 +44,6 @@ namespace Tweaks_Fixes
                     {
                         //if (__instance.gameObject == Testing.goToTest)
                         //    AddDebug(__instance.name + " health low ");
-
                         doFlee = true;
                     }
                 }
@@ -60,7 +59,7 @@ namespace Tweaks_Fixes
                     if (ConfigMenu.creatureFleeUseDamageThreshold.Value && __instance.accumulatedDamage <= __instance.damageThreshold)
                         return false;
 
-                    int rnd = Main.random.Next(1, 101);
+                    int rnd = UnityEngine.Random.Range(1, 100);
                     if (ConfigMenu.CreatureFleeChance.Value >= rnd)
                         doFlee = true;
                 }
@@ -68,7 +67,6 @@ namespace Tweaks_Fixes
                 {
                     //if (__instance.gameObject == Testing.goToTest)
                     //    AddDebug(__instance.name + " Flee " + __instance.fleeDuration);
-
                     __instance.timeToFlee = Time.time + __instance.fleeDuration;
                     __instance.creature.Scared.Add(1f);
                     __instance.creature.TryStartAction(__instance);
@@ -87,8 +85,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Stalker))]
         public static class Stalker_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("CheckLoseTooth")]
+            [HarmonyPrefix, HarmonyPatch("CheckLoseTooth")]
             public static bool CheckLoseToothPrefix(Stalker __instance, GameObject target)
             { // only scrap metal has HardnessMixin  0.5
                 float rndm = UnityEngine.Random.value;
@@ -98,8 +95,7 @@ namespace Tweaks_Fixes
 
                 return false;
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("LoseTooth")]
+            [HarmonyPrefix, HarmonyPatch("LoseTooth")]
             public static bool LoseToothPrefix(Stalker __instance, ref bool __result)
             {
                 if (ConfigToEdit.stalkerLooseToothSound.Value)
@@ -123,8 +119,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Creature))]
         public static class Creature_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(Creature __instance)
             {
                 VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
@@ -151,8 +146,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("IsInFieldOfView")]
+            [HarmonyPrefix, HarmonyPatch("IsInFieldOfView")]
             public static bool IsInFieldOfViewPrefix(Creature __instance, GameObject go, ref bool __result)
             { // ray does not hit terrain if cast from underneath. Cast from player to avoid it.
                 if (Main.aggressiveFaunaLoaded)
@@ -177,8 +171,7 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnKill")]
+            [HarmonyPostfix, HarmonyPatch("OnKill")]
             public static void OnKillPostfix(Creature __instance)
             {
                 if (__instance is Peeper)
@@ -188,8 +181,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnDrop")]
+            [HarmonyPostfix, HarmonyPatch("OnDrop")]
             public static void OnDropPostfix(Creature __instance)
             {
                 if (__instance is Peeper)
@@ -200,7 +192,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(ReefbackLife), "OnEnable")]
         class ReefbackLife_OnEnable_patch
         {
@@ -208,7 +199,7 @@ namespace Tweaks_Fixes
             { // make it avoid player life pod
                 //AddDebug(" ReefbackLife OnEnable " + (int)__instance.transform.position.y);
                 AvoidObstacles ao = __instance.gameObject.GetComponent<AvoidObstacles>();
-                if (!ao)
+                if (ao == null)
                     return;
                 AvoidEscapePod aep = __instance.gameObject.EnsureComponent<AvoidEscapePod>();
                 aep.swimVelocity = ao.swimVelocity;
@@ -279,7 +270,7 @@ namespace Tweaks_Fixes
                     velocity *= ConfigMenu.creatureSpeedMult.Value;
                     if (gasopodSBs.TryGetValue(__instance, out string ss) && targetPosition.y > -1f)
                     {
-                        targetPosition.y = Main.random.Next(-11, -1);
+                        targetPosition.y = UnityEngine.Random.Range(-11, 0);
                         return;
                     }
                     if (reefbackSBs.TryGetValue(__instance, out string sss) && targetPosition.y > -15f)
@@ -296,7 +287,7 @@ namespace Tweaks_Fixes
                     }
                     else if (tt == TechType.Gasopod && targetPosition.y > -1f)
                     {
-                        targetPosition.y = Main.random.Next(-11, -1);
+                        targetPosition.y = UnityEngine.Random.Range(-11, 0);
                         //AddDebug("Gasopod Swim To " + targetPosition.y);
                         gasopodSBs.Add(__instance, "");
                     }

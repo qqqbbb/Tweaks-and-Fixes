@@ -28,11 +28,10 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.23.0";
+            VERSION = "3.25.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
-        public static System.Random random = new System.Random();
         public static bool advancedInventoryLoaded;
         public static bool flareRepairLoaded;
         public static bool cyclopsDockingLoaded;
@@ -58,10 +57,10 @@ namespace Tweaks_Fixes
             //logger.LogInfo("CleanUp");
             gameLoaded = false;
             QuickSlots_Patch.invChanged = true;
-            Databox_Light_Patch.databoxLights.Clear();
+            Databox_Light.databoxLights.Clear();
             Crush_Damage_.extraCrushDepth = 0;
             Crush_Damage_.crushDamageResistance = 0;
-            Cyclops_Patch.collidersInSub.Clear();
+            Cyclops_.collidersInSub.Clear();
             Geyser_Patch.eruptionForce.Clear();
             Geyser_Patch.rotationForce.Clear();
             Gravsphere_Patch.gasPods.Clear();
@@ -73,24 +72,23 @@ namespace Tweaks_Fixes
             Damage_Patch.healTempDamageTime = 0;
             Storage_Patch.savedSigns.Clear();
             Storage_Patch.labelledLockers.Clear();
-            Battery_Patch.subPowerRelays.Clear();
-            Coffee_Patch.spawnedCoffeeTime.Clear();
+            Battery_.subPowerRelays.Clear();
             UI_Patches.planters.Clear();
             Creatures.pickupShinies.Clear();
-            Base_Patch.baseHullStrengths.Clear();
-            CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
+            Base_.CleanUp();
+            CreatureDeath_.creatureDeathsToDestroy.Clear();
             Drop_items_anywhere.droppedInBase.Clear();
             Drop_items_anywhere.droppedInEscapePod.Clear();
-            Player_Patches.healTime = 0;
+            Player_.healTime = 0;
+            Poison_Damage.ResetVars();
             configMain.Load();
         }
 
         public static void LoadedGameSetup()
         {
-            //LargeWorldEntity_Patch.QQQ();
             //AddDebug("LoadedGameSetup ");
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
-                Player_Patches.DisableExosuitClawArmScan();
+                Player_.DisableExosuitClawArmScan();
 
             if (ConfigToEdit.fixMelons.Value)
                 CraftData.itemSizes[TechType.MelonPlant] = new Vector2int(2, 2);
@@ -100,7 +98,6 @@ namespace Tweaks_Fixes
                 PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
             }
             IteratePrefabs();
-            //AddDebug("LoadedGameSetup activeSlot " + config.activeSlot);
             if (configMain.activeSlot != -1 && Player.main.mode == Player.Mode.Normal)
                 Inventory.main.quickSlots.SelectImmediate(configMain.activeSlot);
 
@@ -115,7 +112,7 @@ namespace Tweaks_Fixes
             Survival_.cookedFish.Clear();
             Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_Patch.OnPlayerUnderwaterChanged));
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
-            CreatureDeath_Patch.TryRemoveCorpses();
+            CreatureDeath_.TryRemoveCorpses();
             Escape_Pod_Patch.EscapePodInit();
             Drop_items_anywhere.OnGameLoadingFinished();
             Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
@@ -140,13 +137,11 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
+        //[HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
         class uGUI_MainMenu_Start_Patch
         {
             static void Postfix(uGUI_MainMenu __instance)
             {
-                if (ConfigToEdit.targetFrameRate.Value >= 10)
-                    Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
             }
         }
 
@@ -156,34 +151,8 @@ namespace Tweaks_Fixes
             static void Postfix(MainMenuLoadButton __instance)
             {
                 //AddDebug("MainMenuLoadButton Delete " + __instance.saveGame);
-                DeleteSaveSlotData(__instance.saveGame);
+                configMain.DeleteCurrentSaveSlotData();
             }
-        }
-
-        //[HarmonyPatch(typeof(MainMenuMusic), "Start")]
-        class MainMenuLoadButton_Start_Patch
-        {
-            static void Postfix(MainMenuMusic __instance)
-            {
-                //DeleteSaveSlotData(__instance.saveGame);
-                logger.LogMessage("MainMenuMusic Start " + Application.targetFrameRate);
-                if (ConfigToEdit.targetFrameRate.Value > 9)
-                {
-                    Application.targetFrameRate = 11;
-                }
-            }
-        }
-
-        public static void DeleteSaveSlotData(string slotName)
-        {
-            //AddDebug("DeleteSaveSlotData " + slotName);
-            configMain.openedWreckDoors.Remove(slotName);
-            configMain.lockerNames.Remove(slotName);
-            configMain.baseLights.Remove(slotName);
-            configMain.cyclopsDoors.Remove(slotName);
-            configMain.escapePodSmokeOut.Remove(slotName);
-            configMain.pickedUpFireExt.Remove(slotName);
-            configMain.Save();
         }
 
         [HarmonyPatch(typeof(SaveLoadManager))]
@@ -218,7 +187,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         static void SaveData()
         {
             configMain.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
@@ -242,6 +210,7 @@ namespace Tweaks_Fixes
         {
             //Logger.LogDebug("configOld activeSlot " + config.activeSlot);
             //configMenu = this.Config;
+            //this.Config.AddSetting
             configMenu = new ConfigFile(configMenuPath, false);
             ConfigMenu.Bind();
             logger = Logger;
@@ -260,56 +229,38 @@ namespace Tweaks_Fixes
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
             AddTechTypesToClassIDtable();
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
+            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
+            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
+            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-185f, -42f, 138.5f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-63.85f, -16f, -223f)));
             //new Spawnables.Stone().Patch();
             //CustomPrefab stone = new CustomPrefab( "TF_Stone", "TF_Stone", "");
             //stone.SetSpawns(new SpawnLocation(new Vector3(0.67f, -14.11f, -323.3f), new Vector3(0f, 310f, 329f)));
             //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
+            Logger.LogInfo($"Plugin {GUID} {VERSION} is loaded ");
+            //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
         }
 
         private void Start()
         {
-            //BepInEx.Logging.Logger.CreateLogSource("Tweaks and fixes: ").Log(LogLevel.Error, " Awake ");
-            //AddDebug("Mono Start ");
-            //Logger.LogInfo("Mono Start");
             Setup();
         }
 
         public static void GetLoadedMods()
         {
-            //logger.LogInfo("Chainloader.PluginInfos Count " + Chainloader.PluginInfos.Count);
-            //AddDebug("Chainloader.PluginInfos Count " + Chainloader.PluginInfos.Count);
-            foreach (var plugin in Chainloader.PluginInfos)
-            {
-                var metadata = plugin.Value.Metadata;
-                //logger.LogInfo("loaded Mod " + metadata.GUID);
-                if (metadata.GUID == "VisibleLockerInterior")
-                    visibleLockerInteriorLoaded = true;
-                //else if (metadata.GUID.Equals("PrawnSuitTorpedoDisplay"))
-                //    exosuitTorpedoDisplayLoaded = true;
-                else if (metadata.GUID == "com.ahk1221.baselightswitch" || metadata.GUID == "Cookie_BaseLightSwitch")
-                    baseLightSwitchLoaded = true;
-                //else if (metadata.GUID.Equals("SeaglideMapControls"))
-                //    seaglideMapControlsLoaded = true;
-                else if (metadata.GUID == "PickupableStorageEnhanced")
-                    pickupFullCarryallsLoaded = true;
-                else if (metadata.GUID == "sn.advancedinventory.mod")
-                    advancedInventoryLoaded = true;
-                else if (metadata.GUID == "com.remodor.rm_flarerepair")
-                    flareRepairLoaded = true;
-                else if (metadata.GUID == "com.osubmarin.cyclopsdockingmod")
-                    cyclopsDockingLoaded = true;
-                else if (metadata.GUID.Equals("CyclopsOverheat"))
-                    cyclopsOverheatLoaded = true;
-                else if (metadata.GUID == "com.TorpedoImprovements.mod")
-                    torpedoImprovementsLoaded = true;
-                else if (metadata.GUID == "com.lee23.aggressivefauna")
-                    aggressiveFaunaLoaded = true;
-            }
+            visibleLockerInteriorLoaded = Chainloader.PluginInfos.ContainsKey("VisibleLockerInterior");
+            baseLightSwitchLoaded = Chainloader.PluginInfos.ContainsKey("com.ahk1221.baselightswitch") || Chainloader.PluginInfos.ContainsKey("Cookie_BaseLightSwitch");
+            pickupFullCarryallsLoaded = Chainloader.PluginInfos.ContainsKey("PickupableStorageEnhanced");
+            advancedInventoryLoaded = Chainloader.PluginInfos.ContainsKey("sn.advancedinventory.mod");
+            flareRepairLoaded = Chainloader.PluginInfos.ContainsKey("com.remodor.rm_flarerepair");
+            cyclopsDockingLoaded = Chainloader.PluginInfos.ContainsKey("com.osubmarin.cyclopsdockingmod");
+            cyclopsOverheatLoaded = Chainloader.PluginInfos.ContainsKey("CyclopsOverheat");
+            torpedoImprovementsLoaded = Chainloader.PluginInfos.ContainsKey("com.TorpedoImprovements.mod");
+            aggressiveFaunaLoaded = Chainloader.PluginInfos.ContainsKey("com.lee23.aggressivefauna");
+
+            //foreach (KeyValuePair<string, PluginInfo> plugin in Chainloader.PluginInfos)
+            //logger.LogInfo(plugin.Key + " loaded Mod " + metadata.GUID);
         }
 
         private static void AddTechTypesToClassIDtable()

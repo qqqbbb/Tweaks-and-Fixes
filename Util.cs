@@ -15,7 +15,6 @@ namespace Tweaks_Fixes
 {
     public static class Util
     {
-        public static bool spawning;
 
         public static bool GetTarget(Vector3 startPos, Vector3 dir, float distance, out RaycastHit hitInfo)
         {
@@ -23,6 +22,13 @@ namespace Tweaks_Fixes
             return Physics.Raycast(startPos, dir, out hitInfo, distance);
         }
 
+        public static Vector3Int Vecto3ToVecto3int(Vector3 pos)
+        {
+            int x = Mathf.RoundToInt(pos.x);
+            int y = Mathf.RoundToInt(pos.y);
+            int z = Mathf.RoundToInt(pos.z);
+            return new Vector3Int(x, y, z);
+        }
 
         public static bool IsLightOn(Vehicle vehicle)
         {
@@ -513,7 +519,7 @@ namespace Tweaks_Fixes
             yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
             prefab = result.Get();
             if (!fadeIn)
-                spawning = true;
+                LargeWorldEntity_Patch.spawning = true;
 
             GameObject go = prefab == null ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
             if (go != null)
@@ -523,11 +529,12 @@ namespace Tweaks_Fixes
                     Transform camTr = MainCamera.camera.transform;
                     go.transform.position = camTr.position + camTr.forward * 3f;
                 }
-                go.transform.position = pos;
+                else
+                    go.transform.position = pos;
                 //AddDebug("Spawn " + techType + " " + pos);
                 CrafterLogic.NotifyCraftEnd(go, techType);
             }
-            spawning = false;
+            LargeWorldEntity_Patch.spawning = false;
         }
 
         public static float CelciusToFahrenhiet(float celcius)

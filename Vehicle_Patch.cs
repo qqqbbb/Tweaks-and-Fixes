@@ -874,7 +874,9 @@ namespace Tweaks_Fixes
             //Main.Log("Exosuit start pos " + __instance.transform.position);
             //Main.Log("Exosuit start locpos " + __instance.transform.localPosition);
             CreateCollisionSounds(__instance);
-            SetLights(__instance, Main.configMain.exosuitLights);
+            if (Main.configMain.GetExosuitLights(__instance.gameObject))
+                SetLights(__instance, false);
+
             exosuitStarted = true;
         }
 
@@ -942,12 +944,12 @@ namespace Tweaks_Fixes
             if (!lightsTransform.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
             {
                 lightsTransform.gameObject.SetActive(true);
-                Main.configMain.exosuitLights = true;
+                Main.configMain.DeleteExosuitLights(exosuit.gameObject);
             }
             else if (lightsTransform.gameObject.activeSelf)
             {
                 lightsTransform.gameObject.SetActive(false);
-                Main.configMain.exosuitLights = false;
+                Main.configMain.SaveExosuitLights(exosuit.gameObject);
             }
             //AddDebug("lights " + lightsT.gameObject.activeSelf);
         }

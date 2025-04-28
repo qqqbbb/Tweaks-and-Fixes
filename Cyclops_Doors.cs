@@ -1,5 +1,4 @@
-﻿using FMOD;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,18 +8,14 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class CyclopsDoorSaver
+    internal class Cyclops_Doors
     {
-        static Dictionary<string, float> closedDoorsYangles = new Dictionary<string, float>() { { "submarine_hatch_01", 270f }, { "submarine_hatch_02 1", 180f }, { "submarine_hatch_02", 180f }, { "submarine_hatch_02 7", 0 }, { "submarine_hatch_02 3", 180f }, { "submarine_hatch_02 4", 0 } };
+        static Dictionary<string, float> closedDoorsAngles = new Dictionary<string, float>() { { "submarine_hatch_01", 270f }, { "submarine_hatch_02 1", 180f }, { "submarine_hatch_02", 180f }, { "submarine_hatch_02 7", 0 }, { "submarine_hatch_02 3", 180f }, { "submarine_hatch_02 4", 0 } };
 
-        static bool IsDoorClosed(Openable openable)
+        static bool IsDoorSaved(Openable openable)
         {
-            if (!closedDoorsYangles.ContainsKey(openable.name) || !Main.configMain.cyclopsDoors.ContainsKey(SaveLoadManager.main.currentSlot))
+            if (!closedDoorsAngles.ContainsKey(openable.name))
                 return false;
-
-            //GameObject cyclopsRoot = Util.GetEntityRoot(openable.gameObject);
-            //if (cyclopsRoot == null)
-            //    return false;
 
             PrefabIdentifier prefabIdentifier = openable.GetComponentInParent<PrefabIdentifier>();
             if (prefabIdentifier == null || prefabIdentifier.name == "__LIGHTMAPPED_PREFAB__")
@@ -28,8 +23,7 @@ namespace Tweaks_Fixes
 
             //AddDebug("IsDoorClosed prefabIdentifier " + prefabIdentifier.name);
             //Main.logger.LogMessage("IsDoorClosed prefabIdentifier " + prefabIdentifier.name);
-            var saved = Main.configMain.cyclopsDoors[SaveLoadManager.main.currentSlot];
-            return saved.ContainsKey(prefabIdentifier.id) && saved[prefabIdentifier.id].Contains(openable.name);
+            return Main.configMain.GetCyclopsDoor(prefabIdentifier.id, openable.name);
         }
 
         [HarmonyPatch(typeof(Openable), "Start")]
@@ -38,7 +32,7 @@ namespace Tweaks_Fixes
             static void Prefix(Openable __instance)
             {
                 //Main.logger.LogMessage("Openable Start " + __instance.name);
-                if (closedDoorsYangles.ContainsKey(__instance.name) && IsDoorClosed(__instance))
+                if (IsDoorSaved(__instance))
                 {
                     CloseDoor(__instance);
                 }
@@ -48,7 +42,7 @@ namespace Tweaks_Fixes
             {
                 openable.isOpen = false;
                 Vector3 rot = openable.transform.localEulerAngles;
-                float y = closedDoorsYangles[openable.name];
+                float y = closedDoorsAngles[openable.name];
                 openable.transform.localEulerAngles = new Vector3(rot.x, y, rot.z);
             }
         }
@@ -60,14 +54,7 @@ namespace Tweaks_Fixes
                 return;
 
             //AddDebug(openable.name + " SaveClosedDoor  prefabIdentifier.id " + prefabIdentifier.id);
-            string slot = SaveLoadManager.main.currentSlot;
-            if (!Main.configMain.cyclopsDoors.ContainsKey(slot))
-                Main.configMain.cyclopsDoors[slot] = new Dictionary<string, HashSet<string>>();
-
-            if (Main.configMain.cyclopsDoors[slot].ContainsKey(prefabIdentifier.id))
-                Main.configMain.cyclopsDoors[slot][prefabIdentifier.id].Add(openable.name);
-            else
-                Main.configMain.cyclopsDoors[slot][prefabIdentifier.id] = new HashSet<string>() { openable.name };
+            Main.configMain.SaveCyclopsDoor(prefabIdentifier.id, openable.name);
         }
 
         static void DeleteSavedDoor(Openable openable)
@@ -77,12 +64,7 @@ namespace Tweaks_Fixes
                 return;
 
             //AddDebug(openable.name + " DeleteSavedDoor  prefabIdentifier.id " + prefabIdentifier.id);
-            string slot = SaveLoadManager.main.currentSlot;
-            if (!Main.configMain.cyclopsDoors.ContainsKey(slot))
-                return;
-
-            if (Main.configMain.cyclopsDoors[slot].ContainsKey(prefabIdentifier.id))
-                Main.configMain.cyclopsDoors[slot][prefabIdentifier.id].Remove(openable.name);
+            Main.configMain.DeleteCyclopsDoor(prefabIdentifier.id, openable.name);
         }
 
         [HarmonyPatch(typeof(Openable), "PlayOpenAnimation")]
@@ -90,13 +72,13 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Openable __instance, bool openState, float duration)
             {
-                if (!closedDoorsYangles.ContainsKey(__instance.name))
+                if (!closedDoorsAngles.ContainsKey(__instance.name))
                     return;
 
-                if (openState == false)
-                    SaveClosedDoor(__instance);
-                else
+                if (openState)
                     DeleteSavedDoor(__instance);
+                else
+                    SaveClosedDoor(__instance);
             }
         }
 

@@ -10,13 +10,13 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class PDA_Patch
+    class PDA_
     {
         //static ConditionRules conditionRules;
         //static int ruleToRemove;
 
         [HarmonyPatch(typeof(PDA))]
-        class PDA_Open_Patch
+        class PDA_Patch
         {
             [HarmonyPrefix]
             [HarmonyPatch("Open")]

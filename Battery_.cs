@@ -8,7 +8,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Battery_Patch
+    class Battery_
     {
         public static HashSet<PowerRelay> subPowerRelays = new HashSet<PowerRelay>();
         static EnergyMixin playerToolEM;
@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
         {
             static void Prefix(EnergyMixin __instance, ref float amount)
             {
-                if (playerToolEM == __instance)
+                if (playerToolEM != null && playerToolEM == __instance)
                 {
                     //AddDebug("tool Consume Energy");
                     amount *= ConfigMenu.toolEnergyConsMult.Value;

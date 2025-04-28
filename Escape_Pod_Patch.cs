@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
             if (ConfigToEdit.sunlightAffectsEscapePodLighting.Value)
                 AllowSunlight();
 
-            if (Main.configMain.escapePodSmokeOut.Contains(SaveLoadManager.main.currentSlot))
+            if (Main.configMain.GetEscapePodSmoke())
                 StopSmoke();
         }
 
@@ -38,7 +38,7 @@ namespace Tweaks_Fixes
                     particleSystem.Stop();
             }
             //AddDebug("currentSlot " + SaveLoadManager.main.currentSlot);
-            Main.configMain.escapePodSmokeOut.Add(SaveLoadManager.main.currentSlot);
+            Main.configMain.SaveEscapePodSmoke();
             //Main.configMain.Save();
         }
 
@@ -104,7 +104,7 @@ namespace Tweaks_Fixes
                     cell.regenerationThreshhold = maxPower;
                     cell.powerSource.maxPower = maxPower;
                 }
-                Medical_Cabinet_Patch.OnEscapePodRepair();
+                Medical_Cabinet_.OnEscapePodRepair();
             }
 
         }

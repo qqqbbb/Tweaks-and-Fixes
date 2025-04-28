@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Tweaks_Fixes
 {
-    internal class Locker_Door_Opener
+    internal class Locker_Door_Anim
     {
         static FMODAsset openSound;
         static FMODAsset closeSound;

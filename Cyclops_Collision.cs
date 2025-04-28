@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using static ErrorMessage;
@@ -12,7 +11,7 @@ namespace Tweaks_Fixes
 {
     class Cyclops_Collision
     {
-        static bool fixCyclopsCollision;
+        static bool fixCyclopsCollision = true;
         // Storage_Patch 510
         //[HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
@@ -20,20 +19,113 @@ namespace Tweaks_Fixes
             //[HarmonyPostfix]
             //[HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
-            {
+            {// Start runs for prefab too
                 if (__instance.isCyclops && fixCyclopsCollision)
                 {
-                    //    FixCollision(__instance);
+                    FixCollision(__instance);
                 }
+            }
+            private static void FixCollision(SubRoot __instance)
+            {
+                if (__instance.isCyclops == false || __instance.name != "Cyclops-MainPrefab(Clone)")
+                    return;
 
+                AddDebug("FixCollision " + __instance.name);
+                Transform outerCol = __instance.transform.Find("CyclopsCollision/zOuterGroup");
+                if (outerCol)
+                {
+                    //AddDebug("FixCollision outerCol ");
+                    foreach (Transform child in outerCol)
+                    { // ignore cyclops outer colliders when building in cyclops
+                      //AddDebug("outerCol child " + child.name);
+                      //child.gameObject.layer = LayerID.NotUseable;
+                      //child.gameObject.SetActive(false);
+                    }
+                }
+                Transform rightLowerWall = __instance.transform.Find("CyclopsCollision/keelFrontGroup/right_wall");
+                if (rightLowerWall)
+                {
+                    AddDebug("FixCollision rightLowerWall ");
+                    rightLowerWall.localPosition = new Vector3(-.25f, 0f, 0f);
+                    Vector3 rot = rightLowerWall.eulerAngles;
+                    rightLowerWall.eulerAngles = new Vector3(80f, rot.y, rot.z);
+                }
+                //Transform leftLowerWall = __instance.transform.Find("CyclopsCollision/keelFrontGroup/left_wall");
+                //if (leftLowerWall)
+                //{
+                //    leftLowerWall.localPosition = new Vector3(-.15f, 0f, 0f);
+                //    Vector3 rot = leftLowerWall.eulerAngles;
+                //    leftLowerWall.eulerAngles = new Vector3(80f, rot.y, rot.z);
+                //}
+                //Transform launchBayright_wall = __instance.transform.Find("CyclopsCollision/launchBayright_wall");
+                //if (launchBayright_wall)
+                //{
+                //    launchBayright_wall.localPosition = new Vector3(-.125f, 0f, 0f);
+                //    Vector3 rot = launchBayright_wall.eulerAngles;
+                //    launchBayright_wall.eulerAngles = new Vector3(80f, rot.y, rot.z);
+                //}
+                //Transform launchBayleft_wall = __instance.transform.Find("CyclopsCollision/launchBayleft_wall");
+                //if (launchBayleft_wall)
+                //{
+                //    launchBayleft_wall.localPosition = new Vector3(-.04f, 0f, 0f);
+                //    Vector3 rot = launchBayleft_wall.eulerAngles;
+                //    launchBayleft_wall.eulerAngles = new Vector3(80f, rot.y, rot.z);
+                //}
+                //Transform secondRoomGroup = __instance.transform.Find("CyclopsCollision/secondRoomGroup");
+                //Transform secondRoomRight_wall = __instance.transform.Find("CyclopsCollision/secondRoomGroup/right_wall");
+                //BoxCollider[] colliders = secondRoomRight_wall.GetComponents<BoxCollider>();
+                ////AddDebug("secondRoomRight_wall size " + colliders[0].size);
+                //GameObject leftWall = new GameObject("leftWall");
+                //leftWall.transform.SetParent(secondRoomGroup);
+                //Vector3 leftWallPos = secondRoomRight_wall.transform.position;
+                //leftWall.transform.position = new Vector3(leftWallPos.x + .15f, leftWallPos.y, leftWallPos.z);
+                //Vector3 leftWallRot = secondRoomRight_wall.transform.eulerAngles;
+                //Vector3 leftWallCenter = colliders[0].center;
+                //leftWall.transform.eulerAngles = new Vector3(leftWallRot.x - 3.5f, leftWallRot.y + 1f, leftWallRot.z);
+                //BoxCollider leftWallСol = leftWall.AddComponent<BoxCollider>();
+                //leftWallСol.size = colliders[0].size;
+                //leftWallСol.center = new Vector3(leftWallCenter.x + .4f, leftWallCenter.y, leftWallCenter.z);
+                //UnityEngine.Object.Destroy(colliders[0]);
+                //Vector3 rightWallPos = colliders[1].transform.position;
+                //colliders[1].transform.position = new Vector3(rightWallPos.x - 1.05f, rightWallPos.y, rightWallPos.z);
+                //Vector3 rightWallRot = colliders[1].transform.eulerAngles;
+                //colliders[1].transform.eulerAngles = new Vector3(rightWallRot.x + 3.5f, rightWallRot.y + .9f, rightWallRot.z);
+
+                //Transform controlRoomGroup = __instance.transform.Find("CyclopsCollision/controlRoomGroup");
+                //Transform controlRoomRightWall = __instance.transform.Find("CyclopsCollision/controlRoomGroup/right_wall");
+                //BoxCollider[] controlRoomСolliders = controlRoomRightWall.GetComponents<BoxCollider>();
+                //GameObject controlRoomLeftWall = new GameObject("leftWall");
+                //controlRoomLeftWall.transform.eulerAngles = controlRoomRightWall.transform.eulerAngles;
+                //controlRoomLeftWall.transform.SetParent(controlRoomGroup);
+                //Vector3 controlRoomLeftWallPos = controlRoomRightWall.transform.position;
+                //controlRoomLeftWall.transform.position = new Vector3(controlRoomLeftWallPos.x + .35f, controlRoomLeftWallPos.y, controlRoomLeftWallPos.z);
+                //BoxCollider controlRoomLeftWallСol = controlRoomLeftWall.AddComponent<BoxCollider>();
+                //controlRoomLeftWallСol.size = controlRoomСolliders[0].size;
+                //controlRoomLeftWallСol.center = controlRoomСolliders[0].center;
+                //UnityEngine.Object.Destroy(controlRoomСolliders[0]);
+                //Vector3 controlRoomRightWallPos = controlRoomСolliders[1].transform.position;
+                //controlRoomСolliders[1].transform.position = new Vector3(controlRoomRightWallPos.x - .5f, controlRoomRightWallPos.y, controlRoomRightWallPos.z);
+
+                //Transform engineRoomLeftWall = __instance.transform.Find("CyclopsCollision/engineRoomGroup/right_wall");
+                //engineRoomLeftWall.name = "leftWall";
+                //Transform engineRoomRightWall = __instance.transform.Find("CyclopsCollision/engineRoomGroup/right_wall");
+                //Vector3 engineRoomLeftWallPos = engineRoomLeftWall.transform.position;
+                //Vector3 engineRoomLeftWallRot = engineRoomLeftWall.transform.eulerAngles;
+                //engineRoomLeftWall.transform.eulerAngles = new Vector3(engineRoomLeftWallRot.x, engineRoomLeftWallRot.y - 1f, engineRoomLeftWallRot.z);
+                //engineRoomLeftWall.transform.position = new Vector3(engineRoomLeftWallPos.x + 1f, engineRoomLeftWallPos.y, engineRoomLeftWallPos.z);
+                //Vector3 engineRoomRightWallPos = engineRoomRightWall.transform.position;
+
+                //engineRoomRightWall.transform.position = new Vector3(engineRoomRightWallPos.x - 1.0f, engineRoomRightWallPos.y, engineRoomRightWallPos.z);
+                //Vector3 engineRoomRightWallRot = engineRoomRightWall.transform.eulerAngles;
+                //engineRoomRightWall.transform.eulerAngles = new Vector3(engineRoomRightWallRot.x, engineRoomRightWallRot.y + .75f, engineRoomRightWallRot.z);
             }
 
-            private static void FixCollision(SubRoot __instance)
-            {// Start runs for prefab too
+
+            private static void FixCollisionOld(SubRoot __instance)
+            {
                 AddDebug("FixCollision " + __instance.name);
                 if (__instance.isCyclops && __instance.name == "Cyclops-MainPrefab(Clone)")
                 {
-
                     Transform outerCol = __instance.transform.Find("CyclopsCollision/zOuterGroup");
                     if (outerCol)
                     {

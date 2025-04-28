@@ -18,6 +18,7 @@ namespace Tweaks_Fixes
         static Eatable grabbedEatable;
         static bool spawningFruit;
         static PickPrefab fruitToPickUp;
+        static HashSet<TechType> bannedTechTypes = new HashSet<TechType> { TechType.HangingStinger };
 
         private static IEnumerator SpawnResource(PropulsionCannon cannon, BreakableResource resource)
         {
@@ -203,6 +204,17 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PropulsionCannon))]
         class PropulsionCannon_Patch_
         {
+            [HarmonyPostfix, HarmonyPatch("ValidateNewObject")]
+            static void ValidateNewObjectPostfix(PropulsionCannon __instance, GameObject go, ref bool __result)
+            {
+                TechType tt = CraftData.GetTechType(go);
+                if (bannedTechTypes.Contains(tt))
+                {
+                    __result = false;
+                }
+                //AddDebug($"ValidateNewObject {tt}");
+            }
+
             [HarmonyPrefix]
             [HarmonyPatch("TraceForGrabTarget")]
             static bool TraceForGrabTargetPrefix(PropulsionCannon __instance, ref GameObject __result)

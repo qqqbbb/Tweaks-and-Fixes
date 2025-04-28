@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -42,11 +44,10 @@ namespace Tweaks_Fixes
             if (!ConfigMenu.noBreakingWithHand.Value && exosuit == null)
                 return true;
 
-            if (exosuit && !exosuit.HasClaw())
-                return false;
-
             if (exosuit)
             {
+                if (!exosuit.HasClaw())
+                    return false;
                 //AddDebug("leftArmType " + exosuit.leftArmType);
                 //AddDebug("rightArmType " + exosuit.rightArmType);
                 GameInput.Button button;
@@ -81,9 +82,8 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(Pickupable))]
     public static class PickupablePatch
     {
-        static bool cantPickUp = false;
         public static HashSet<TechType> notPickupableResources = new HashSet<TechType>
-        {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium , TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal  };
+        {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium, TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal, TechType.JellyPlant  };
 
         [HarmonyPrefix]
         [HarmonyPatch("AllowedToPickUp")]
@@ -92,7 +92,6 @@ namespace Tweaks_Fixes
             if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
-            //cantPickUp = false;
             __result = __instance.isPickupable && Time.time - __instance.timeDropped > 1f && Player.main.HasInventoryRoom(__instance);
             if (__result && !Player.main.inExosuit && notPickupableResources.Contains(__instance.GetTechType()))
             {
@@ -100,7 +99,6 @@ namespace Tweaks_Fixes
                 if (rb && rb.isKinematic && Inventory.main.GetHeldTool() as Knife == null)
                 {
                     //AddDebug("Need knife to break it free");
-                    //cantPickUp = true;
                     __result = false;
                 }
             }
@@ -146,13 +144,22 @@ namespace Tweaks_Fixes
                 {
                     Player.main.guiHand.usedToolThisFrame = true;
                     knife.OnToolActionStart();
-                    rb.isKinematic = false;
-                    //return false;
+                    if (GameInput.GetButtonDown(GameInput.Button.LeftHand))
+                        CoroutineHost.StartCoroutine(MakeKinematic(rb));
+                    else
+                        rb.isKinematic = false;
                 }
                 return false;
             }
             return true;
         }
+
+        static IEnumerator MakeKinematic(Rigidbody rb)
+        {
+            yield return new WaitForSeconds(.25f);
+            rb.isKinematic = false;
+        }
+
     }
 
 

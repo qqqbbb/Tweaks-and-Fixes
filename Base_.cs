@@ -10,41 +10,26 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     // only IsLeaking works to check if base is flooded
-    public class Base_Patch
+    public class Base_
     {
         static int camerasToRemove = 0;
-        public static Dictionary<BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
+        static Dictionary<BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
+        static HashSet<ModularStairs> fixedStairs = new HashSet<ModularStairs>();
+
+        public static void CleanUp()
+        {
+            fixedStairs.Clear();
+            baseHullStrengths.Clear();
+
+        }
 
         public static void ToggleBaseLight(SubRoot subRoot)
         {
-            //bool canToggle = subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline;
-            //AddDebug(" ToggleBaseLight canToggle " + canToggle);
-            //if (!canToggle)
-            //    return;
-
             subRoot.subLightsOn = !subRoot.subLightsOn;
-            int x = (int)subRoot.transform.position.x;
-            int y = (int)subRoot.transform.position.y;
-            int z = (int)subRoot.transform.position.z;
-            StringBuilder stringBuilder = new StringBuilder(x.ToString());
-            stringBuilder.Append("_");
-            stringBuilder.Append(y);
-            stringBuilder.Append("_");
-            stringBuilder.Append(z);
-            //string key = x + "_" + y + "_" + z;
-            string key = stringBuilder.ToString();
-            string currentSlot = SaveLoadManager.main.currentSlot;
-            if (Main.configMain.baseLights.ContainsKey(currentSlot))
-            {
-                Main.configMain.baseLights[currentSlot][key] = subRoot.subLightsOn;
-                //AddDebug(" ToggleBaseLight " + key + " " + subRoot.subLightsOn);
-            }
+            if (subRoot.subLightsOn)
+                Main.configMain.DeleteBaseLights(subRoot.transform.position);
             else
-            {
-                Main.configMain.baseLights[currentSlot] = new Dictionary<string, bool>();
-                Main.configMain.baseLights[currentSlot][key] = subRoot.subLightsOn;
-                //AddDebug(" ToggleBaseLight " + key + " " + subRoot.subLightsOn);
-            }
+                Main.configMain.SaveBaseLights(subRoot.transform.position);
         }
 
         [HarmonyPatch(typeof(SubRoot), "Awake")]
@@ -56,22 +41,8 @@ namespace Tweaks_Fixes
                 //Light[] lights = __instance.GetComponentsInChildren<Light>();
                 if (__instance.isBase)
                 {
-                    //bool canToggle = __instance.powerRelay && __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Normal;
-                    //AddDebug(__instance.name + " canToggle " + canToggle);
-                    //if (!canToggle)
-                    //    return;
-
-                    int x = (int)__instance.transform.position.x;
-                    int y = (int)__instance.transform.position.y;
-                    int z = (int)__instance.transform.position.z;
-                    string key = x + "_" + y + "_" + z;
-                    string currentSlot = SaveLoadManager.main.currentSlot;
-                    //AddDebug("find BaseLight " + currentSlot + " key " + key);
-                    if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].ContainsKey(key))
-                    {
-                        __instance.subLightsOn = Main.configMain.baseLights[currentSlot][key];
-                        //AddDebug("saved BaseLight " + key + " " + __instance.subLightsOn);
-                    }
+                    __instance.subLightsOn = Main.configMain.GetBaseLights(__instance.transform.position);
+                    //AddDebug("saved BaseLight " + key + " " + __instance.subLightsOn);
                 }
             }
         }
@@ -249,56 +220,23 @@ namespace Tweaks_Fixes
         class Bench_Patch
         {
             private static float chairRotSpeed = 70f;
-            private static Bench swivelChair;
 
-            [HarmonyPostfix]
-            [HarmonyPatch("EnterSittingMode")]
-            static void EnterSittingModePostfix(Bench __instance)
+            [HarmonyPostfix, HarmonyPatch("OnUpdate")]
+            static void OnUpdatePostfix(Bench __instance)
             {
+                if (__instance.currentPlayer == null || __instance.isSitting == false || __instance.currentPlayer.GetPDA().isInUse)
+                    return;
+
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //AddDebug("EnterSittingMode " + tt);
                 if (tt == TechType.StarshipChair)
                 {
-                    swivelChair = __instance;
+                    HandReticle.main.SetText(HandReticle.TextType.UseSubscript, UI_Patches.swivelText, false);
+                    if (GameInput.GetButtonHeld(GameInput.Button.MoveRight))
+                        __instance.transform.Rotate(Vector3.up * chairRotSpeed * Time.deltaTime);
+                    else if (GameInput.GetButtonHeld(GameInput.Button.MoveLeft))
+                        __instance.transform.Rotate(-Vector3.up * chairRotSpeed * Time.deltaTime);
                 }
-                else
-                    swivelChair = null;
             }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("OnUpdate")]
-            static bool OnUpdatePrefix(Bench __instance)
-            {
-                if (__instance.currentPlayer == null)
-                    return false;
-
-                if (__instance.isSitting)
-                {
-                    if (__instance.currentPlayer.GetPDA().isInUse)
-                        return false;
-
-                    if (GameInput.GetButtonDown(GameInput.Button.Exit))
-                        __instance.ExitSittingMode(__instance.currentPlayer);
-
-                    HandReticle.main.SetText(HandReticle.TextType.Use, "StandUp", true, GameInput.Button.Exit);
-                    if (__instance == swivelChair)
-                    {
-                        HandReticle.main.SetText(HandReticle.TextType.UseSubscript, UI_Patches.swivelText, false);
-                        if (GameInput.GetButtonHeld(GameInput.Button.MoveRight))
-                            __instance.transform.Rotate(Vector3.up * chairRotSpeed * Time.deltaTime);
-                        else if (GameInput.GetButtonHeld(GameInput.Button.MoveLeft))
-                            __instance.transform.Rotate(-Vector3.up * chairRotSpeed * Time.deltaTime);
-                    }
-                }
-                else
-                {
-                    __instance.Subscribe(__instance.currentPlayer, false);
-                    __instance.currentPlayer = null;
-                }
-                return false;
-            }
-
-
         }
 
         [HarmonyPatch(typeof(SolarPanel), "Start")]
@@ -310,12 +248,22 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Bed), "CheckForSpace")]
-        class Bed_CheckForSpace_Patch
+        [HarmonyPatch(typeof(ModularStairs), "BuildStairs")]
+        class ModularStairs_Patch
         {
-            static void Postfix(Bed __instance, ref bool __result)
+            static void Postfix(ModularStairs __instance, bool isGhost)
             {
-                __result = true;
+                if (isGhost || fixedStairs.Contains(__instance))
+                    return;
+
+                Transform t = __instance.transform.Find("BaseCorridorBulkhead(Clone) (6)/models/BaseCorridorInteriorWallHatch_Split/BaseCorridorInteriorWallHatch_Front");
+                if (t)
+                { // fix texture z fighting above water entrance in glass corridor
+                    //AddDebug($"BuildStairs  fix");
+                    Vector3 pos = t.localPosition;
+                    t.localPosition = new Vector3(pos.x, pos.y + .001f, pos.z);
+                    fixedStairs.Add(__instance);
+                }
             }
         }
 

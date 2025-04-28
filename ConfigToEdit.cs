@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using static ErrorMessage;
 
 
 namespace Tweaks_Fixes
@@ -44,7 +45,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> removeFragmentCrate;
         public static ConfigEntry<bool> creepvineLights;
         public static ConfigEntry<bool> newUIstrings;
-        //public static ConfigEntry<bool> tweaksAffectingGPU;
         public static ConfigEntry<bool> disableUseText;
         public static ConfigEntry<bool> craftWithoutBattery;
         public static ConfigEntry<bool> disableCyclopsProximitySensor;
@@ -84,7 +84,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> escapePodPowerTweak;
         public static ConfigEntry<bool> stalkersGrabShinyTool;
         public static ConfigEntry<bool> dropHeldTool;
-        public static ConfigEntry<bool> newPoisonSystem;
         public static ConfigEntry<int> freeTorpedos;
         public static ConfigEntry<bool> lowOxygenWarning;
         public static ConfigEntry<bool> lowOxygenAudioWarning;
@@ -96,14 +95,12 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> removeDeadCreaturesOnLoad;
         public static ConfigEntry<bool> sunlightAffectsEscapePodLighting;
         public static ConfigEntry<bool> scannerFX;
-        public static ConfigEntry<EscapePodMedkitCabinetWorks> escapePodMedkitCabinetWorks;
+        public static ConfigEntry<EscapePodMedicalCabinetWorks> escapePodMedkitCabinetWorks;
         public static ConfigEntry<bool> dropItemsAnywhere;
         public static ConfigEntry<bool> showTempFahrenhiet;
         public static ConfigEntry<bool> fixScreenResolution;
-        //public static ConfigEntry<bool> flareTweaks;
         public static ConfigEntry<bool> vehiclesHurtCreatures;
         public static ConfigEntry<string> notRechargableBatteries;
-        public static ConfigEntry<int> targetFrameRate;
         public static ConfigEntry<bool> removeCreditsButton;
         public static ConfigEntry<bool> removeRedeemButton;
         public static ConfigEntry<bool> removeTroubleshootButton;
@@ -137,7 +134,10 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> playerBreathBubbles;
         public static ConfigEntry<bool> playerBreathBubblesSoundFX;
         public static ConfigEntry<bool> medkitFabAlertSound;
-
+        public static ConfigEntry<bool> consistantHungerUpdateTime;
+        public static ConfigEntry<bool> removeBigParticlesWhenKnifing;
+        public static ConfigEntry<int> permPoisonDamage;
+        public static ConfigEntry<int> poisonFoodDamage;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -152,7 +152,6 @@ namespace Tweaks_Fixes
         {  // “ ” ‛
 
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
-            targetFrameRate = Main.configToEdit.Bind("MISC", "Frame rate limiter", 0, "Number of frames the game renders every second will be limited to this. Numbers smaller than 10 are ignored.");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
 
@@ -162,7 +161,7 @@ namespace Tweaks_Fixes
             decoyRequiresSub = Main.configToEdit.Bind("ITEMS", "Creature decoy does not work when dropped from inventory", false);
             noKillParticles = Main.configToEdit.Bind("CREATURES", "No yellow cloud particle effect when creature dies", false);
             cyclopsSunlight = Main.configToEdit.Bind("CYCLOPS", "Sunlight affects lighting in cyclops", false);
-            alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show player‛s health and hunger as numbers in UI", false);
+            alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show numbers inside health, food and temperature meters in UI", false);
             pdaClock = Main.configToEdit.Bind("PDA", "PDA clock", true);
 
             gameStartWarningText = Main.configToEdit.Bind("MISC", "Game start warning text", "", "Text shown when the game starts. If this field is empty the warning will be skipped.");
@@ -255,7 +254,7 @@ namespace Tweaks_Fixes
             stalkerPlayThings = Main.configToEdit.Bind("CREATURES", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
             stalkersGrabShinyTool = Main.configToEdit.Bind("CREATURES", "Stalkers grab tools from player hands when playing", false, "Stalkers can grab only things that are in the ‛Items stalkers can grab‛ list.");
             dropHeldTool = Main.configToEdit.Bind("PLAYER", "Drop tool in your hands when taking damage", false, "Chance percent to drop your tool is equal to amount of damage taken.");
-            newPoisonSystem = Main.configToEdit.Bind("PLAYER", "New poison damage system", false, "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.");
+            //newPoisonSystem = Main.configToEdit.Bind("PLAYER", "New poison damage system", false, "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.");
             freeTorpedos = Main.configToEdit.Bind("VEHICLES", "Free torpedos", 2, new ConfigDescription("Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.", freeTorpedosRange));
             lowOxygenWarning = Main.configToEdit.Bind("PLAYER", "Low oxygen onscreen warning", true);
             lowOxygenAudioWarning = Main.configToEdit.Bind("PLAYER", "Low oxygen audio warning", true);
@@ -267,7 +266,7 @@ namespace Tweaks_Fixes
             removeDeadCreaturesOnLoad = Main.configToEdit.Bind("CREATURES", "Remove dead creatures when loading saved game", true, "");
             sunlightAffectsEscapePodLighting = Main.configToEdit.Bind("LIFE POD", "Sunlight affects lighting in your life pod", false, "");
             scannerFX = Main.configToEdit.Bind("TOOLS", "Wierd visual effect on objects being scanned", true, "");
-            escapePodMedkitCabinetWorks = Main.configToEdit.Bind("LIFE POD", "Medical kit fabricator in your life pod produces first aid kit", EscapePodMedkitCabinetWorks.Always, "");
+            escapePodMedkitCabinetWorks = Main.configToEdit.Bind("LIFE POD", "Medical kit fabricator in your life pod produces first aid kit", EscapePodMedicalCabinetWorks.Always, "");
             dropItemsAnywhere = Main.configToEdit.Bind("PLAYER", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except cyclops and grab items in your base with propulsion cannon.");
             //disableIonCubeFabricator = Main.configToEdit.Bind("", "Disable ion cube fabricator at the Primary containment facility", false);
             showTempFahrenhiet = Main.configToEdit.Bind("UI", "Show temperature in Fahrenhiet instead of Celcius", false, "");
@@ -285,15 +284,19 @@ namespace Tweaks_Fixes
             playerBreathBubbles = Main.configToEdit.Bind("PLAYER", "Player breath bubbles particle effect", true);
             playerBreathBubblesSoundFX = Main.configToEdit.Bind("PLAYER", "Player breath bubbles sound effect", true);
             medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
+            consistantHungerUpdateTime = Main.configToEdit.Bind("PLAYER", "Consistant hunger update time", false, "In vanilla game your hunger updates every 10 real time seconds. If this is true, hunger update interval will be divided by 'time flow speed multiplier' from the mod options.");
+            //consistantHungerUpdateTime.SettingChanged += ConsistantHungerUpdateTimeChanged;
+            removeBigParticlesWhenKnifing = Main.configToEdit.Bind("CREATURES", "Remove big particles when knifing creatures", false, "You will see less blood particles when knifing creatures if this is true.");
+            permPoisonDamage = Main.configToEdit.Bind("PLAYER", "Permanent poison damage percent", 0, new ConfigDescription("If this is more than 0 you will take not temporary but permanent health damage when poisoned. For example if this is 90, you will lose 0.9 health permanantly for every point of poison damage.", percentRange));
+            poisonFoodDamage = Main.configToEdit.Bind("PLAYER", "Poison food damage percent", 0, new ConfigDescription("If this is more than 0 you will lose food or water instead of taking temporary health damage when poisoned. For example if this is 90, you will lose 0.9 food or water for every point of poison damage.", percentRange));
 
 
 
 
 
-
-            transferAllItemsButton = Main.configToEdit.Bind("BUTTON BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
-            transferSameItemsButton = Main.configToEdit.Bind("BUTTON BIND", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
-            quickslotButton = Main.configToEdit.Bind("BUTTON BIND", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
+            transferAllItemsButton = Main.configToEdit.Bind("BUTTON BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod options menu.");
+            transferSameItemsButton = Main.configToEdit.Bind("BUTTON BIND", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod options menu.");
+            quickslotButton = Main.configToEdit.Bind("BUTTON BIND", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod options menu.");
             lightButton = Main.configToEdit.Bind("BUTTON BIND", "Light intensity button", Button.None, "When holding a tool in your hand or driving a vehicle press 'Cycle next' or 'Cycle previous' button while holding down this button to change the tool's or vehicle's light intensity. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
 
 
@@ -470,11 +473,11 @@ namespace Tweaks_Fixes
             LargeWorldEntity_Patch.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
             LargeWorldEntity_Patch.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
             Escape_Pod_Patch.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
-            CreatureDeath_Patch.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
-            CreatureDeath_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
-            CreatureDeath_Patch.respawnTime = ParseIntDicFromString(respawnTime.Value);
+            CreatureDeath_.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
+            CreatureDeath_.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
+            CreatureDeath_.respawnTime = ParseIntDicFromString(respawnTime.Value);
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
-            Battery_Patch.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
+            Battery_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
 
             Creatures.bloodColor = ParseColor(bloodColor.Value);
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
@@ -486,7 +489,7 @@ namespace Tweaks_Fixes
             Player_Movement.CacheSettings();
         }
 
-        public enum EscapePodMedkitCabinetWorks { Always, After_repairing_life_pod, Never }
+        public enum EscapePodMedicalCabinetWorks { Always, After_repairing_life_pod, Never }
 
         public enum Button
         {

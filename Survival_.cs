@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -63,6 +64,31 @@ namespace Tweaks_Fixes
             static float foodBeforeUpdate;
             static float waterBeforeUpdate;
 
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            static void StartPostfix(Survival __instance)
+            {
+                if (ConfigToEdit.consistantHungerUpdateTime.Value)
+                {
+                    __instance.CancelInvoke();
+                    __instance.StartCoroutine(UpdateHunger(__instance));
+                }
+            }
+
+            static IEnumerator UpdateHunger(Survival survival)
+            {
+                while (ConfigToEdit.consistantHungerUpdateTime.Value)
+                {
+                    yield return new WaitForSeconds(GetHungerUpdateTime(survival));
+                    //AddDebug("UpdateHunger");
+                    survival.UpdateHunger();
+                }
+            }
+
+            private static float GetHungerUpdateTime(Survival survival)
+            {
+                return survival.kUpdateHungerInterval / DayNightCycle.main._dayNightSpeed;
+            }
+
             [HarmonyPrefix, HarmonyPatch("UpdateWarningSounds")]
             static bool UpdateWarningSoundsPrefix(Survival __instance)
             {
@@ -90,23 +116,19 @@ namespace Tweaks_Fixes
                 return codeMatcher;
             }
 
-            //[HarmonyPostfix, HarmonyPatch("UpdateHunger")]
-            static void UpdateHungerPostfix(Survival __instance)
-            {
-                float health = Player.main.GetComponent<LiveMixin>().health;
-                //AddDebug("health " + health);
-            }
-
             [HarmonyPrefix, HarmonyPatch("UpdateStats")]
-            static bool UpdateStatsPrefix(Survival __instance, float timePassed, ref float __result)
+            static bool UpdateStatsPrefix(Survival __instance, ref float timePassed, ref float __result)
             {
-                //if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1)
-                //    return true;
+                if (Main.gameLoaded == false)
+                    return false;
 
                 //AddDebug("UpdateStats ");
                 updatingStats = true;
                 foodBeforeUpdate = __instance.food;
                 waterBeforeUpdate = __instance.water;
+                //if (ConfigToEdit.consistantHungerUpdateTime.Value)
+                //    timePassed *= DayNightCycle.main._dayNightSpeed;
+
                 if (ConfigMenu.newHungerSystem.Value)
                 {
                     __result = UpdateStats(__instance, timePassed);
@@ -245,14 +267,14 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                int rndFood = Main.random.Next(minFood, maxFood);
+                int rndFood = UnityEngine.Random.Range(minFood, maxFood);
                 float finalFood = Mathf.Min(food, rndFood);
                 if (ConfigMenu.newHungerSystem.Value && __instance.food > 100f && finalFood > 0)
                 {
                     float mult = (playerMaxFood - __instance.food) * .01f;
                     finalFood *= mult;
                 }
-                int rndWater = Main.random.Next(minWater, maxWater);
+                int rndWater = UnityEngine.Random.Range(minWater, maxWater);
                 float finalWater = Mathf.Min(water, rndWater);
                 if (ConfigMenu.newHungerSystem.Value && __instance.water > 100f && finalWater > 0)
                 {
@@ -306,7 +328,11 @@ namespace Tweaks_Fixes
                 TechType techType = CraftData.GetTechType(useObj);
                 //Main.logger.LogMessage("Survival Use " + techType);
                 if (techType == TechType.FirstAidKit)
+                {
+
                     usingMedkit = true;
+                    Poison_Damage.RemovePoison();
+                }
             }
         }
 
@@ -323,8 +349,9 @@ namespace Tweaks_Fixes
                     healthBack = ConfigMenu.medKitHP.Value;
                 else
                 {
-                    Main.configMain.medKitHPtoHeal = ConfigMenu.medKitHP.Value;
-                    Player_Patches.healTime = Time.time;
+                    Main.configMain.SetHPtoHeal(ConfigMenu.medKitHP.Value);
+                    Player_.healTime = Time.time;
+                    __result = ConfigMenu.medKitHP.Value;
                     return false;
                 }
                 return true;

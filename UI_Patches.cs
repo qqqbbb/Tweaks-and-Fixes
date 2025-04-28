@@ -112,7 +112,7 @@ namespace Tweaks_Fixes
         {
             HandReticle.main.SetTextRaw(HandReticle.TextType.Use, toggleBaseLightsString);
             if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                Base_Patch.ToggleBaseLight(subRoot);
+                Base_.ToggleBaseLight(subRoot);
         }
 
         [HarmonyPatch(typeof(Aquarium), "Start")]
@@ -248,7 +248,7 @@ namespace Tweaks_Fixes
                             if (chargerOpen)
                             {
                                 //chargerOpen = true;
-                                if (Battery_Patch.notRechargableBatteries.Contains(tt))
+                                if (Battery_.notRechargableBatteries.Contains(tt))
                                 {
                                     pair.Value.SetChroma(0f);
                                     continue;
@@ -667,194 +667,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(uGUI_HealthBar), "LateUpdate")]
-        class uGUI_HealthBar_LateUpdate_Patch
-        {
-            public static bool Prefix(uGUI_HealthBar __instance)
-            {
-                if (!Main.gameLoaded)
-                    return false;
-
-                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
-                    return true;
-
-                int showNumbers = __instance.showNumbers ? 1 : 0;
-                __instance.showNumbers = false;
-                Player player = Player.main;
-                if (player != null)
-                {
-                    LiveMixin liveMixin = player.GetComponent<LiveMixin>();
-                    if (liveMixin != null)
-                    {
-                        if (!__instance.subscribed)
-                        {
-                            __instance.subscribed = true;
-                            liveMixin.onHealDamage.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnHealDamage));
-                        }
-                        //float has = liveMixin.health - liveMixin.tempDamage;
-                        float has = ConfigToEdit.newPoisonSystem.Value ? liveMixin.health : liveMixin.health - liveMixin.tempDamage;
-
-                        float maxHealth = liveMixin.maxHealth;
-                        __instance.SetValue(has, maxHealth);
-                        float time = 1f - Mathf.Clamp01(has / __instance.pulseReferenceCapacity);
-                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
-                        if (__instance.pulseDelay < 0f)
-                            __instance.pulseDelay = 0f;
-                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
-                        if (__instance.pulseTime < 0f)
-                            __instance.pulseTime = 0f;
-                        float num2 = __instance.pulseDelay + __instance.pulseTime;
-                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                            __instance.statePulse.normalizedTime = 0f;
-                        __instance.pulseTween.duration = num2;
-                    }
-                    PDA pda = player.GetPDA();
-                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
-                        __instance.showNumbers = true;
-                }
-                if (__instance.statePulse.enabled)
-                {
-                    RectTransform icon = __instance.icon;
-                    icon.localScale = icon.localScale + __instance.punchScale;
-                }
-                else
-                    __instance.icon.localScale = __instance.punchScale;
-
-                int num3 = __instance.showNumbers ? 1 : 0;
-                if (showNumbers != num3)
-                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-
-                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
-                    return false;
-
-                __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
-
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_FoodBar), "LateUpdate")]
-        class uGUI_FoodBar_LateUpdate_Patch
-        {
-            public static bool Prefix(uGUI_FoodBar __instance)
-            {
-                if (!Main.gameLoaded)
-                    return false;
-
-                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
-                    return true;
-
-                int num1 = __instance.showNumbers ? 1 : 0;
-                __instance.showNumbers = false;
-                Player main = Player.main;
-                if (main != null)
-                {
-                    Survival component = main.GetComponent<Survival>();
-                    if (component != null)
-                    {
-                        if (!__instance.subscribed)
-                        {
-                            __instance.subscribed = true;
-                            component.onEat.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnEat));
-                        }
-                        float food = component.food;
-                        float capacity = 100f;
-                        __instance.SetValue(food, capacity);
-                        float time = 1f - Mathf.Clamp01(food / __instance.pulseReferenceCapacity);
-                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
-                        if (__instance.pulseDelay < 0f)
-                            __instance.pulseDelay = 0f;
-                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
-                        if (__instance.pulseTime < 0f)
-                            __instance.pulseTime = 0f;
-                        float num2 = __instance.pulseDelay + __instance.pulseTime;
-                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                            __instance.pulseAnimationState.normalizedTime = 0f;
-                        __instance.pulseTween.duration = num2;
-                    }
-                    PDA pda = main.GetPDA();
-                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
-                        __instance.showNumbers = true;
-                }
-                if (__instance.pulseAnimationState != null && __instance.pulseAnimation.enabled)
-                {
-                    RectTransform icon = __instance.icon;
-                    icon.localScale = icon.localScale + __instance.punchScale;
-                }
-                else
-                    __instance.icon.localScale = __instance.punchScale;
-                int num3 = __instance.showNumbers ? 1 : 0;
-                if (num1 != num3)
-                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
-                    return false;
-
-                __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_WaterBar), "LateUpdate")]
-        class uGUI_WaterBar_LateUpdate_Patch
-        {
-            public static bool Prefix(uGUI_WaterBar __instance)
-            {
-                if (!Main.gameLoaded)
-                    return false;
-
-                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
-                    return true;
-
-                int num1 = __instance.showNumbers ? 1 : 0;
-                __instance.showNumbers = false;
-                Player main = Player.main;
-                if (main != null)
-                {
-                    Survival component = main.GetComponent<Survival>();
-                    if (component != null)
-                    {
-                        if (!__instance.subscribed)
-                        {
-                            __instance.subscribed = true;
-                            component.onDrink.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnDrink));
-                        }
-                        float water = component.water;
-                        float capacity = 100f;
-                        __instance.SetValue(water, capacity);
-                        float time = 1f - Mathf.Clamp01(water / __instance.pulseReferenceCapacity);
-                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
-                        if (__instance.pulseDelay < 0.0)
-                            __instance.pulseDelay = 0.0f;
-                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
-                        if (__instance.pulseTime < 0.0)
-                            __instance.pulseTime = 0.0f;
-                        float num2 = __instance.pulseDelay + __instance.pulseTime;
-                        if (__instance.pulseTween.duration > 0.0 && num2 <= 0.0)
-                            __instance.pulseAnimationState.normalizedTime = 0.0f;
-                        __instance.pulseTween.duration = num2;
-                    }
-                    PDA pda = main.GetPDA();
-                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
-                        __instance.showNumbers = true;
-                }
-                if (__instance.pulseAnimationState != null && __instance.pulseAnimationState.enabled)
-                {
-                    RectTransform icon = __instance.icon;
-                    icon.localScale = icon.localScale + __instance.punchScale;
-                }
-                else
-                    __instance.icon.localScale = __instance.punchScale;
-                int num3 = __instance.showNumbers ? 1 : 0;
-                if (num1 != num3)
-                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0.0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
-                    return false;
-
-                __instance.icon.localRotation = Quaternion.Euler(0.0f, __instance.rotationCurrent, 0.0f);
-
-                return false;
-            }
-        }
 
         [HarmonyPatch(typeof(uGUI_InputGroup))]
         class uGUI_InputGroup_Patch

@@ -18,7 +18,7 @@ namespace Tweaks_Fixes
         { // fix bug: they never attack player
             static void Postfix(SeaTreaderMeleeAttack __instance, GameObject otherGameObject, ref bool __result)
             {
-                __result = !__instance.frozen && !__instance.treader.cinematicMode && (Time.time > __instance.lastAttackTime + __instance.attackInterval) && __instance.GetCanHit(otherGameObject);
+                __result = !__instance.frozen && !__instance.treader.cinematicMode && Time.time > __instance.lastAttackTime + __instance.attackInterval && __instance.GetCanHit(otherGameObject);
                 //AddDebug("GetCanAttack " + __result);
             }
         }
@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
                 if (seaTreaderSoundsOnStomp)
                 {
                     seaTreaderSoundsOnStomp = false;
-                    int rnd = Main.random.Next(1, 101);
+                    int rnd = UnityEngine.Random.Range(1, 100);
                     if (ConfigToEdit.seaTreaderAttackOutcropMult.Value < rnd)
                     {
                         //AddDebug("SpawnChunks seaTreaderSoundsOnStomp ");
@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
                 else if (seaTreaderSoundsOnStep)
                 {
                     seaTreaderSoundsOnStep = false;
-                    int rnd = Main.random.Next(1, 101);
+                    int rnd = UnityEngine.Random.Range(1, 100);
                     if (ConfigToEdit.seaTreaderOutcropMult.Value < rnd)
                     {
                         //AddDebug("SpawnChunks seaTreaderSoundsOnStep ");

@@ -11,7 +11,7 @@ namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(CreatureDeath))]
 
-    internal class CreatureDeath_Patch
+    internal class CreatureDeath_
     {
         public static HashSet<CreatureDeath> creatureDeathsToDestroy = new HashSet<CreatureDeath>();
         public static HashSet<TechType> notRespawningCreatures;
@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
                 if (pickupable)
                 {
                     if (pickupable._isInSub || pickupable.inventoryItem != null)
-                    {
+                    { // dont remove dead fish from containers
                         //AddDebug("try RemoveCorpse inventoryItem " + cd.name);
                         continue;
                     }
@@ -37,8 +37,8 @@ namespace Tweaks_Fixes
                     UnityEngine.Object.Destroy(cd.gameObject);
             }
         }
-        [HarmonyPostfix]
-        [HarmonyPatch("Start")]
+
+        [HarmonyPostfix, HarmonyPatch("Start")]
         static void StartPostfix(CreatureDeath __instance)
         {
             TechType techType = CraftData.GetTechType(__instance.gameObject);
@@ -51,20 +51,17 @@ namespace Tweaks_Fixes
             __instance.respawnOnlyIfKilledByCreature = notRespawningCreaturesIfKilledByPlayer.Contains(techType);
             //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawn " + __instance.respawn);
             //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
-
             if (respawnTime.ContainsKey(techType))
                 __instance.respawnInterval = respawnTime[techType] * DayNightCycle.kDayLengthSeconds;
         }
-        [HarmonyPostfix]
-        [HarmonyPatch("OnTakeDamage")]
+        [HarmonyPostfix, HarmonyPatch("OnTakeDamage")]
         static void OnTakeDamagePostfix(CreatureDeath __instance, DamageInfo damageInfo)
         {
             //AddDebug(__instance.name + " OnTakeDamage " + damageInfo.dealer.name);
             if (!ConfigToEdit.heatBladeCooks.Value && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
                 __instance.lastDamageWasHeat = false;
         }
-        [HarmonyPrefix]
-        [HarmonyPatch("RemoveCorpse")]
+        [HarmonyPrefix, HarmonyPatch("RemoveCorpse")]
         static bool RemoveCorpsePrefix(CreatureDeath __instance)
         {
             if (!Main.gameLoaded)

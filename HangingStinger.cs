@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -11,11 +12,19 @@ namespace Tweaks_Fixes
     {
         static bool Prefix(HangingStinger __instance, Collision other)
         {
-            AddDebug(__instance.name + " HangingStinger OnCollisionEnter " + other.gameObject.tag);
-            return false;
+            AddDebug(__instance.name + " HangingStinger OnCollisionEnter " + other.gameObject.name);
+            return true;
         }
     }
 
+    //[HarmonyPatch(typeof(HangingStinger), "OnCollisionEnter")]
+    static class HangingStinger_OnCollisionEnter_Postfix_Patch
+    {
+        static void Postfix(HangingStinger __instance, Collision other)
+        {
+            AddDebug(__instance.name + " HangingStinger OnCollisionEnter Postfix " + other.gameObject.name);
+        }
+    }
 
     [HarmonyPatch(typeof(HangingStinger), "Start")]
     class HangingStinger_Start_Patch
@@ -53,15 +62,30 @@ namespace Tweaks_Fixes
 
         public void Poison(GameObject go)
         {
-            if (hangingStinger._venomAmount < 1 || go.GetComponentInChildren<LiveMixin>() == null)
+            if (hangingStinger._venomAmount < 1)
                 return;
-            //AddDebug("Poison " + go.name);
-            DamageOverTime damageOverTime = go.AddComponent<DamageOverTime>();
-            damageOverTime.doer = this.gameObject;
-            damageOverTime.totalDamage = HangingStinger.damage;
-            damageOverTime.duration = HangingStinger.damageDuration * (int)hangingStinger.size;
-            damageOverTime.damageType = DamageType.Poison;
-            damageOverTime.ActivateInterval(0.5f);
+
+            LiveMixin liveMixin = go.GetComponentInChildren<LiveMixin>();
+            if (liveMixin == null)
+                return;
+
+            //AddDebug($"Poison {go.name} damage {HangingStinger.damage}");
+            if (go == Player.mainObject && (ConfigToEdit.permPoisonDamage.Value > 0 || ConfigToEdit.poisonFoodDamage.Value > 0))
+            {
+                if (ConfigToEdit.permPoisonDamage.Value > 0)
+                    CoroutineHost.StartCoroutine(Poison_Damage.DealPoisonDamage(liveMixin, HangingStinger.damage));
+                if (ConfigToEdit.poisonFoodDamage.Value > 0)
+                    CoroutineHost.StartCoroutine(Poison_Damage.DealFoodDamage(HangingStinger.damage, Main.survival, liveMixin));
+            }
+            else
+            {
+                DamageOverTime damageOverTime = go.AddComponent<DamageOverTime>();
+                damageOverTime.doer = this.gameObject;
+                damageOverTime.totalDamage = HangingStinger.damage;
+                damageOverTime.duration = HangingStinger.damageDuration * (int)hangingStinger.size;
+                damageOverTime.damageType = DamageType.Poison;
+                damageOverTime.ActivateInterval(0.5f);
+            }
             hangingStinger._venomAmount = 0f;
             hangingStinger.venomRechargeTime = Random.value * venomRechargeTime + venomRechargeTime;
         }
@@ -88,6 +112,10 @@ namespace Tweaks_Fixes
         {
             Poison(other.gameObject);
             TechType tt = CraftData.GetTechType(other.gameObject);
+            if (tt == TechType.None)
+                return;
+
+            GameObject rootGO = Util.GetEntityRoot(other.gameObject);
             //AddDebug("HangingStinger OnTriggerEnter " + tt);
             if (Vehicle_patch.vehicleTechTypes.Contains(tt))
             {
@@ -99,6 +127,9 @@ namespace Tweaks_Fixes
         public void OnTriggerExit(Collider other)
         {
             //TechType tt = CraftData.GetTechType(other.gameObject);
+            //if (tt == TechType.None)
+            //    return;
+
             //AddDebug("HangingStinger OnTriggerExit " + tt);
             vehiclColliders.Remove(other);
             if (vehiclColliders.Count == 0)
@@ -107,6 +138,7 @@ namespace Tweaks_Fixes
                 EnableShinyShader(this.gameObject);
             }
         }
+
 
     }
 

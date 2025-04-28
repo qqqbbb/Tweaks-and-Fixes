@@ -14,25 +14,40 @@ namespace Tweaks_Fixes
             public static bool Prefix(FMOD_CustomEmitter __instance)
             {
                 //AddDebug(" FMOD_CustomEmitter Play " + __instance.asset.name);
-                if (!Main.gameLoaded)
-                    return false;
-
-                return true;
+                return Main.gameLoaded;
             }
         }
 
-
-        //[HarmonyPatch(typeof(SoundQueue), "Play")]
-        class SoundQueue_Play_Patch
+        //[HarmonyPatch(typeof(FMOD_CustomLoopingEmitter), "Play")]
+        class FMOD_CustomLoopingEmitter_Play_Patch
         {
-            public static void Prefix(SoundQueue __instance, string sound)
+            public static bool Prefix(FMOD_CustomLoopingEmitter __instance)
             {
-                AddDebug(" SoundQueue Play " + sound);
-                //if (!Main.loadingDone)
-                //    return false;
-
+                //AddDebug(" FMOD_CustomEmitter Play " + __instance.asset.name);
+                return Main.gameLoaded;
             }
         }
+
+        [HarmonyPatch(typeof(VoiceNotification), "Play", new Type[1] { typeof(object[]) })]
+        class VoiceNotification_Play_Patch
+        {
+            public static bool Prefix(VoiceNotification __instance)
+            {
+                //AddDebug("VoiceNotification Play");
+                return Main.gameLoaded;
+            }
+        }
+
+        [HarmonyPatch(typeof(SoundQueue), "PlayQueued", new Type[2] { typeof(string), typeof(string) })]
+        class SoundQueue_PlayQueued_Patch
+        {
+            public static bool Prefix(SoundQueue __instance, string sound)
+            {
+                //AddDebug(" PlayQueued  " + sound);
+                return Main.gameLoaded;
+            }
+        }
+
 
 
     }

@@ -8,9 +8,8 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class Camera_Patch
+    internal class Camera_
     {
-
         [HarmonyPatch(typeof(MainCameraControl), "ShakeCamera")]
         class MainCameraControl_ShakeCamera_Patch
         {

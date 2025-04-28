@@ -12,7 +12,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(MedicalCabinet))]
-    internal class Medical_Cabinet_Patch
+    internal class Medical_Cabinet_
     {
         public static MedicalCabinet escapePodMedCabinet;
 
@@ -26,11 +26,11 @@ namespace Tweaks_Fixes
 
         public static bool CanProduceMedkit()
         {
-            if (ConfigToEdit.escapePodMedkitCabinetWorks.Value == ConfigToEdit.EscapePodMedkitCabinetWorks.Never)
+            if (ConfigToEdit.escapePodMedkitCabinetWorks.Value == ConfigToEdit.EscapePodMedicalCabinetWorks.Never)
                 return false;
 
             //AddDebug("GetHealthFraction " + EscapePod.main.liveMixin.GetHealthFraction());
-            if (ConfigToEdit.escapePodMedkitCabinetWorks.Value == ConfigToEdit.EscapePodMedkitCabinetWorks.After_repairing_life_pod)
+            if (ConfigToEdit.escapePodMedkitCabinetWorks.Value == ConfigToEdit.EscapePodMedicalCabinetWorks.After_repairing_life_pod)
             {
                 if (EscapePod.main.liveMixin.GetHealthFraction() <= 0.99f)
                     return false;
@@ -40,7 +40,7 @@ namespace Tweaks_Fixes
 
         public static void OnEscapePodRepair()
         {
-            if (ConfigToEdit.escapePodMedkitCabinetWorks.Value != ConfigToEdit.EscapePodMedkitCabinetWorks.After_repairing_life_pod)
+            if (ConfigToEdit.escapePodMedkitCabinetWorks.Value != ConfigToEdit.EscapePodMedicalCabinetWorks.After_repairing_life_pod)
                 return;
 
             if (escapePodMedCabinet == null)

@@ -5,7 +5,7 @@ using static ErrorMessage;
      
 namespace Tweaks_Fixes
 {
-    class Databox_Light_Patch
+    class Databox_Light
     {
         public static HashSet<GameObject> databoxLights = new HashSet<GameObject>();
         

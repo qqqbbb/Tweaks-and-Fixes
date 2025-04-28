@@ -9,7 +9,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(Constructor))]
-    class Constructor_Patch
+    class Constructor_
     {
         [HarmonyPostfix]
         [HarmonyPatch("OnEnable")]
@@ -40,7 +40,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Deploy")]
         static void DeployPostfix(Constructor __instance, bool value)
         {
-            //AddDebug("Constructor Deploy " + value);
+            AddDebug("Constructor Deploy " + value);
             if (value)
             {
                 WorldForces wf = __instance.GetComponent<WorldForces>();

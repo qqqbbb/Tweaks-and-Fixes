@@ -32,103 +32,116 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\0Harmony.dll</HintPath>
+    <Reference Include="0Harmony, Version=2.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass_publicized">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\Assembly-CSharp-firstpass_publicized.dll</HintPath>
+    <Reference Include="Assembly-CSharp-firstpass_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Assembly-CSharp-firstpass_publicized.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp_publicized">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\Assembly-CSharp_publicized.dll</HintPath>
+    <Reference Include="Assembly-CSharp_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Assembly-CSharp_publicized.dll</HintPath>
     </Reference>
-    <Reference Include="BepInEx">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\BepInEx.dll</HintPath>
+    <Reference Include="BepInEx, Version=5.4.22.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="FMODUnity, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\FMODUnity.dll</HintPath>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\FMODUnity.dll</HintPath>
     </Reference>
-    <Reference Include="Nautilus">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\Nautilus\Nautilus.dll</HintPath>
+    <Reference Include="Nautilus, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Subnautica\BepInEx\plugins\Nautilus\Nautilus.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\DLL\Unity.Addressables.dll</HintPath>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Unity.Addressables.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Unity.ResourceManager.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.ParticleSystemModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.UIModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.VRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\GAMES\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\UnityEngine.VRModule.dll</HintPath>
+    <Reference Include="UnityEngine.VRModule">
+      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.VRModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base_Collision.cs" />
-    <Compile Include="Battery_Patch.cs" />
-    <Compile Include="Camera_Patch.cs" />
-    <Compile Include="CreatureDeath_Patch.cs" />
-    <Compile Include="CyclopsDoorSaver.cs" />
+    <Compile Include="Battery_.cs" />
+    <Compile Include="Bed_.cs" />
+    <Compile Include="Camera_.cs" />
+    <Compile Include="CreatureDeath_.cs" />
+    <Compile Include="Cyclops_Doors.cs" />
     <Compile Include="ConfigMenu.cs" />
+    <Compile Include="Cyclops_unpowered.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
     <Compile Include="Knife_Patch.cs" />
     <Compile Include="Light_Control.cs" />
-    <Compile Include="Medical_Cabinet_Patch.cs" />
+    <Compile Include="Main_Menu.cs" />
+    <Compile Include="Medical_Cabinet_.cs" />
     <Compile Include="Menu_Buttons.cs" />
     <Compile Include="OptionsMenu.cs" />
+    <Compile Include="Poison_Damage.cs" />
     <Compile Include="Precurcor_Patch.cs" />
     <Compile Include="PropulsionCannon_Patch.cs" />
     <Compile Include="Cutefish_Patch.cs" />
-    <Compile Include="Constructor_Patch.cs" />
+    <Compile Include="Constructor_.cs" />
     <Compile Include="SeaTreader_Patch.cs" />
     <Compile Include="Silent_Creatures.cs" />
     <Compile Include="Start_Warning_Patch.cs" />
     <Compile Include="ConfigToEdit.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
-    <Compile Include="Locker_Door_Opener.cs" />
+    <Compile Include="Locker_Door_Anim.cs" />
     <Compile Include="Inventory_Patch.cs" />
     <Compile Include="Planter_Patch.cs" />
     <Compile Include="Geyser_Patch.cs" />
     <Compile Include="Scanner_Patch.cs" />
     <Compile Include="Sound_Patch.cs" />
     <Compile Include="Cyclops_Collision.cs" />
-    <Compile Include="DayNightCycle_Patch.cs" />
+    <Compile Include="DayNightCycle_.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
-    <Compile Include="Base_Patch.cs" />
+    <Compile Include="Base_.cs" />
     <Compile Include="Randomize.cs" />
-    <Compile Include="PDA_Patch.cs" />
+    <Compile Include="PDA_.cs" />
     <Compile Include="Storage_Patch.cs" />
     <Compile Include="PDA_Clock_.cs" />
     <Compile Include="Spawnables.cs" />
@@ -137,13 +150,13 @@
     <Compile Include="Decoy_Patch.cs" />
     <Compile Include="Fragment_Patch.cs" />
     <Compile Include="Creature_Aggression.cs" />
-    <Compile Include="Coffee_Patch.cs" />
+    <Compile Include="Coffee_.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
     <Compile Include="Pickupable_Patch.cs" />
     <Compile Include="Oxygen_Patch.cs" />
-    <Compile Include="Craft_Patch.cs" />
+    <Compile Include="Crafting_.cs" />
     <Compile Include="Damage_Patch.cs" />
-    <Compile Include="Databox_Light_Patch.cs" />
+    <Compile Include="Databox_Light.cs" />
     <Compile Include="Crush_Damage_.cs" />
     <Compile Include="Creatures.cs" />
     <Compile Include="HangingStinger.cs" />
@@ -153,15 +166,17 @@
     <Compile Include="Main.cs" />
     <Compile Include="NoBreakingWithHands.cs" />
     <Compile Include="Player_Movement.cs" />
-    <Compile Include="Player_Patches.cs" />
+    <Compile Include="Player_.cs" />
     <Compile Include="QuickSlots_Patch.cs" />
-    <Compile Include="Cyclops_Patch.cs" />
+    <Compile Include="Cyclops_.cs" />
     <Compile Include="Testing.cs" />
+    <Compile Include="UGUI_meters.cs" />
     <Compile Include="UI_Patches.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Vehicle_movement.cs" />
     <Compile Include="Vehicle_Patch.cs" />
-    <Compile Include="Wreck_Patch.cs" />
+    <Compile Include="WaitForFrames.cs" />
+    <Compile Include="Wreck_Doors.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigMain.cs" />
@@ -180,7 +195,11 @@
 copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
 mkdir "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
 copy /Y "$(ProjectDir)\Localization\*.*" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
-	</PostBuildEvent>
+	
+mkdir "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes"
+copy /Y "$(TargetPath)" "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
+mkdir "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
+copy /Y "$(ProjectDir)\Localization\*.*" "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

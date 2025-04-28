@@ -379,13 +379,16 @@ namespace Tweaks_Fixes
         {
             var seaglideMap = seaglide.GetComponent<VehicleInterface_MapController>();
             if (seaglideMap && seaglideMap.miniWorld)
-                Main.configMain.seaglideMap = seaglideMap.miniWorld.active;
-
+            {
+                if (seaglideMap.miniWorld.active)
+                    Main.configMain.DeleteSeaglideMap(seaglide.gameObject);
+                else
+                    Main.configMain.SaveSeaglideMap(seaglide.gameObject);
+            }
             if (seaglide.toggleLights)
-                Main.configMain.seaglideLights = seaglide.toggleLights.lightsActive;
-
-            //AddDebug("SaveSeaglideState");
-            //Main.configMain.Save();
+                Main.configMain.SaveSeaglideLights(seaglide.gameObject);
+            else
+                Main.configMain.DeleteSeaglideLights(seaglide.gameObject);
         }
 
         public static IEnumerator LoadSeaglideState(Seaglide seaglide)
@@ -396,7 +399,7 @@ namespace Tweaks_Fixes
             if (seaglide.toggleLights == null)
                 yield return null;
 
-            seaglide.toggleLights.SetLightsActive(Main.configMain.seaglideLights);
+            seaglide.toggleLights.SetLightsActive(Main.configMain.GetSeaglideLights(seaglide.gameObject));
             var map = seaglide.GetComponent<VehicleInterface_MapController>();
             if (map == null)
                 yield break;
@@ -404,7 +407,7 @@ namespace Tweaks_Fixes
             if (map.miniWorld == null)
                 yield return null;
 
-            map.miniWorld.active = Main.configMain.seaglideMap;
+            map.miniWorld.active = Main.configMain.GetSeaglideMap(seaglide.gameObject);
         }
 
         [HarmonyPatch(typeof(Seaglide))]

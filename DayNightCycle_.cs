@@ -10,7 +10,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(DayNightCycle))]
-    class DayNightCycle_Patch
+    class DayNightCycle_
     {
         static bool skipTimeModeStopped;
 

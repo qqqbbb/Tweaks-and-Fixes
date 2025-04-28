@@ -8,7 +8,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    static class Wreck_Patch
+    static class Wreck_Doors
     {
         static HashSet<StarshipDoor> cutOpenedDoors = new HashSet<StarshipDoor>();
 
@@ -34,30 +34,19 @@ namespace Tweaks_Fixes
             public static void OnHandClickPostfix(BulkheadDoor __instance)
             {
                 //AddDebug("BulkheadDoor OnHandClick opened " + __instance.opened);
-                Vector3Int pos = new Vector3Int((int)__instance.gameObject.transform.position.x, (int)__instance.gameObject.transform.position.y, (int)__instance.gameObject.transform.position.z);
-                string slot = SaveLoadManager.main.currentSlot;
-                if (!Main.configMain.openedWreckDoors.ContainsKey(slot))
-                    Main.configMain.openedWreckDoors[slot] = new HashSet<Vector3Int>();
-
                 if (__instance.opened)
-                    Main.configMain.openedWreckDoors[slot].Remove(pos);
+                    Main.configMain.DeleteWreckDoor(__instance.transform.position);
                 else
-                    Main.configMain.openedWreckDoors[slot].Add(pos);
-
-                //Main.configMain.openedWreckDoors[slot][Key] = !__instance.opened;
+                    Main.configMain.SaveWreckDoor(__instance.transform.position);
             }
 
             [HarmonyPrefix]
             [HarmonyPatch("Awake")]
             public static void AwakePrefix(BulkheadDoor __instance)
             {
-                //float doorKey = __instance.gameObject.transform.position.x + __instance.gameObject.transform.position.y;
-                Vector3Int pos = new Vector3Int((int)__instance.gameObject.transform.position.x, (int)__instance.gameObject.transform.position.y, (int)__instance.gameObject.transform.position.z);
-                string slot = SaveLoadManager.main.currentSlot;
-                if (Main.configMain.openedWreckDoors.ContainsKey(slot) && Main.configMain.openedWreckDoors[slot].Contains(pos))
+                if (Main.configMain.IsWreckDoorSaved(__instance.transform.position))
                 {
                     //Main.Log("load door " + slot + " " + doorKey + " " + Main.config.openedWreckDoors[slot][doorKey]);
-                    //AddDebug("load door " + slot + " " + doorKey + " " + Main.config.openedWreckDoors[slot][doorKey]);
                     __instance.initiallyOpen = true;
                 }
             }
@@ -70,9 +59,8 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("doorOpenMethod " + __instance.doorOpenMethod);
                 if (cutOpenedDoors.Contains(__instance))
-                {
                     return false;
-                }
+
                 LaserCutObject laserCutObject = __instance.GetComponent<LaserCutObject>();
                 if (laserCutObject != null && laserCutObject.isCutOpen)
                 {

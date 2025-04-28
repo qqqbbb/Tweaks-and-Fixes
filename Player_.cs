@@ -13,7 +13,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Player_Patches
+    class Player_
     {
         public static float healTime = 0f;
 
@@ -25,7 +25,6 @@ namespace Tweaks_Fixes
                 PDAScanner.mapping.Remove(TechType.ExosuitClawArmFragment);
             }
         }
-
 
         [HarmonyPatch(typeof(Player))]
         class Player_Patch
@@ -39,37 +38,6 @@ namespace Tweaks_Fixes
                 while (!uGUI.main.hud.active)
                     yield return null;
                 AddDebug("Test end ");
-            }
-
-            //[HarmonyPrefix]
-            //[HarmonyPatch("MovePlayerToRespawnPoint")]
-            static void MovePlayerToRespawnPointPostfix(Player __instance)
-            {
-                AddDebug("MovePlayerToRespawnPoint lastValidSub " + __instance.lastValidSub);
-                if (__instance.lastValidSub)
-                {
-                    AddDebug("MovePlayerToRespawnPoint CheckSubValid " + __instance.CheckSubValid(__instance.lastValidSub));
-                }
-            }
-
-            //[HarmonyPrefix]
-            //[HarmonyPatch("CheckSubValid")]
-            static bool CheckSubValidPrefix(Player __instance, SubRoot sub, ref bool __result)
-            {
-                //AddDebug("CheckSubValid lastValidSub " + __instance.lastValidSub);
-                bool valid = false;
-                if (sub != null)
-                {
-                    bool isAlive = true;
-                    LiveMixin liveMixin = sub.GetComponent<LiveMixin>();
-                    if (liveMixin != null)
-                        isAlive = liveMixin.IsAlive();
-                    AddDebug("CheckSubValid IsAlive " + isAlive);
-                    AddDebug("CheckSubValid GetLeakAmount " + sub.GetLeakAmount());
-                    valid = isAlive && sub.GetLeakAmount() <= 0.2;
-                }
-                __result = valid;
-                return false;
             }
 
             [HarmonyPostfix]
@@ -98,45 +66,24 @@ namespace Tweaks_Fixes
                     crushTime = Time.time;
                     Crush_Damage_.CrushDamagePlayer();
                 }
-                if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
-                { // not checking savegame slot
-                    healTime = Time.time + 1.0f;
-                    //healTime = DayNightCycle.main.timePassedAsFloat + 1f;
+                float hpToHeal = Main.configMain.GetHPtoHeal();
+                if (hpToHeal > 0 && Time.time > healTime)
+                {
+                    healTime = Time.time + 1f;
                     __instance.liveMixin.AddHealth(ConfigToEdit.medKitHPperSecond.Value);
                     //AddDebug("AddHealth " + Main.config.medKitHPperSecond);
-                    Main.configMain.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
-                    if (Main.configMain.medKitHPtoHeal < 0)
-                        Main.configMain.medKitHPtoHeal = 0;
+                    Main.configMain.SetHPtoHeal(hpToHeal - ConfigToEdit.medKitHPperSecond.Value);
                 }
-                //if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats)
-                //    return;
-
-                //if (Survival_.hungerUpdateTime > Time.time)
-                //    return;
-
-
-                //__instance.Invoke("UpdateHunger", updateHungerInterval);
-                //AddDebug("updateHungerInterval " + updateHungerInterval);
-                //}
-                //else
-                //    Main.survival.UpdateHunger();
             }
 
-
-            [HarmonyPrefix]
-            [HarmonyPatch("GetDepthClass")]
-            public static bool GetDepthClassPrefix(Player __instance, ref Ocean.DepthClass __result)
+            [HarmonyPostfix, HarmonyPatch("GetDepthClass")]
+            public static void GetDepthClassPostfix(Player __instance, ref Ocean.DepthClass __result)
             {
-                //AddDebug("GetDepthClass");
                 Ocean.DepthClass depthClass = Ocean.DepthClass.Surface;
-                if (!Main.gameLoaded)
-                { // avoid null reference exception when loading game inside cyclops
-                  //__result = depthClass;
-                  //  return false;
-                }
                 CrushDamage crushDamage = null;
-                if (__instance.currentSub != null && !__instance.currentSub.isBase || __instance.mode == Player.Mode.LockedPiloting)
-                    crushDamage = __instance.currentSub == null ? __instance.gameObject.GetComponentInParent<CrushDamage>() : __instance.currentSub.gameObject.GetComponent<CrushDamage>();
+                if (__instance.currentSub != null && !__instance.currentSub.isBase)
+                    crushDamage = __instance.currentSub.gameObject.GetComponent<CrushDamage>();
+
                 if (crushDamage != null)
                 {
                     depthClass = crushDamage.GetDepthClass();
@@ -144,7 +91,7 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    __instance.crushDepth = ConfigMenu.crushDepth.Value;
+                    __instance.crushDepth = ConfigMenu.crushDepth.Value + Crush_Damage_.extraCrushDepth;
                     float depth = Ocean.GetDepthOf(__instance.gameObject);
                     if (depth > __instance.crushDepth)
                         depthClass = Ocean.DepthClass.Crush;
@@ -154,7 +101,6 @@ namespace Tweaks_Fixes
                         depthClass = Ocean.DepthClass.Safe;
                 }
                 __result = depthClass;
-                return false;
             }
 
             [HarmonyPostfix, HarmonyPatch("CanBeAttacked")]
@@ -254,26 +200,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(VoiceNotification), "Play", new Type[1] { typeof(object[]) })]
-        class VoiceNotification_Play_Patch
-        {
-            public static bool Prefix(VoiceNotification __instance)
-            {
-                //AddDebug("VoiceNotification Play");
-                return Main.gameLoaded;
-            }
-        }
-
-        [HarmonyPatch(typeof(SoundQueue), "PlayQueued", new Type[2] { typeof(string), typeof(string) })]
-        class SoundQueue_PlayQueued_Patch
-        {
-            public static bool Prefix(SoundQueue __instance, string sound)
-            {
-                //AddDebug(" PlayQueued  " + sound);
-                return Main.gameLoaded;
-            }
-        }
-
         [HarmonyPatch(typeof(PlayerBreathBubbles), "MakeBubbles")]
         class PlayerBreathBubbles_MakeBubbles_Patch
         {
@@ -306,7 +232,6 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
 
     }
 }

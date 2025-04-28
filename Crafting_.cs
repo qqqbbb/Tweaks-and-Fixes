@@ -7,7 +7,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Craft_Patch
+    class Crafting_
     {
         static bool crafting = false;
         static List<Battery> batteriesUsedForCrafting = new List<Battery>();
@@ -127,56 +127,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        /*
-      //[HarmonyPatch(typeof(CrafterLogic), "TryPickupSingle")]
-      class CrafterLogic_TryPickupSingle_Patch
-      {
-          static bool Prefix(CrafterLogic __instance, TechType techType, ref bool __result)
-          {
-              //craftingStart = false;
-              AddDebug("CrafterLogic TryPickupSingle");
-              Inventory main = Inventory.main;
-              bool flag = false;
-              GameObject original = CraftData.GetPrefabForTechType(techType);
-              if (original == null)
-              {
-                  original = Utils.genericLootPrefab;
-                  flag = true;
-              }
-              if (original != null)
-              {
-                  Pickupable component1 = original.GetComponent<Pickupable>();
-                  if (component1 != null)
-                  {
-                      Vector2int itemSize = CraftData.GetItemSize(component1.GetTechType());
-                      if (main.HasRoomFor(itemSize.x, itemSize.y))
-                      {
-                          GameObject gameObject = UnityEngine.Object.Instantiate(original);
-                          Pickupable pickupable = gameObject.GetComponent<Pickupable>();
-                          if (flag)
-                              pickupable.SetTechTypeOverride(techType, true);
-                          main.ForcePickup(pickupable);
-                          // ForcePickup now before NotifyCraftEnd
-                          CrafterLogic.NotifyCraftEnd(gameObject, __instance.craftingTechType);
 
-                          Player.main.PlayGrab();
-                          __result = true;
-                          return false;
-                      }
-                      AddMessage(Language.main.Get("InventoryFull"));
-                      __result = false;
-                      return false;
-                  }
-                  Debug.LogErrorFormat("Can't find Pickupable component on prefab for TechType.{0}", techType);
-                  __result = true;
-                  return false;
-              }
-              Debug.LogErrorFormat("Can't find prefab for TechType.{0}", techType);
-              __result = true;
-              return false;
-          }
-      }
-
-      /*/
     }
 }

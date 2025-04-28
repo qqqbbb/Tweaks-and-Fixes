@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
-using static Tweaks_Fixes.Locker_Door_Opener;
+using static Tweaks_Fixes.Locker_Door_Anim;
 
 namespace Tweaks_Fixes
 {

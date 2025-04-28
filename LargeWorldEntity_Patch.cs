@@ -22,10 +22,11 @@ namespace Tweaks_Fixes
         .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
         static HashSet<TechType> coralSurfaces = new HashSet<TechType> { TechType.BigCoralTubes, TechType.CoralShellPlate, TechType.GenericJeweledDisk, TechType.JeweledDiskPiece };
         static HashSet<string> plantsWithNoTechtype = new HashSet<string> { "Coral_reef_small_deco_03(Clone)", "Coral_reef_small_deco_05(Clone)", "Coral_reef_small_deco_08(Clone)" };
-        static HashSet<TechType> techTypesToMakeUnmovable = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleBrainCoral, TechType.HangingFruitTree, TechType.CrashHome, TechType.SpikePlant, TechType.HangingStinger };
+        static HashSet<TechType> techTypesToMakeUnmovable = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleBrainCoral, TechType.HangingFruitTree, TechType.CrashHome, TechType.SpikePlant };
         static HashSet<TechType> techTypesToRemoveWavingShader = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleVasePlant, TechType.OrangePetalsPlant, TechType.PinkMushroom, TechType.PurpleRattle, TechType.PinkFlower };
         static HashSet<TechType> fruitTechTypes = new HashSet<TechType> { TechType.BloodRoot, TechType.BloodVine, TechType.Creepvine };
         public static GameObject droppedObject;
+        public static bool spawning;
 
         public static void ForceBestLODmesh(GameObject go, TechType techType = TechType.None)
         {
@@ -63,8 +64,6 @@ namespace Tweaks_Fixes
             if (wf)
                 UnityEngine.Object.Destroy(wf);
         }
-
-
 
         public static void DisableWavingShader(Component component)
         {
@@ -307,10 +306,10 @@ namespace Tweaks_Fixes
                     return false;
 
                 //AddDebug("StartFading " + __instance.name);
-                if (Util.spawning)
+                if (spawning)
                 {
                     //AddDebug("spawning " + __instance.name);
-                    Util.spawning = false;
+                    spawning = false;
                     return false;
                 }
                 if (Creatures.pickupShinies.Contains(__instance.gameObject))
@@ -354,7 +353,6 @@ namespace Tweaks_Fixes
                 return true;
             }
         }
-
 
 
     }

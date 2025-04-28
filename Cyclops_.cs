@@ -9,14 +9,12 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    public class Cyclops_Patch
+    public class Cyclops_
     {
-        static bool cyclopsHolographicHUDlastState = false;
-        //public static CyclopsHelmHUDManager cyclopsHelmHUDManager;
+        static CyclopsEntryHatch cyclopsEntryHatch;
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
         //static float vertSpeedMult = .5f;
         //static float backwardSpeedMult = .5f;
-
 
         static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
         {
@@ -75,10 +73,10 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(VehicleDockingBay), "SetVehicleDocked")]
-        class Openable_SetVehicleDocked_Patch
+        class VehicleDockingBay_SetVehicleDocked_Patch
         {
             public static void Postfix(VehicleDockingBay __instance, Vehicle vehicle)
-            { // runs wheb loading saved game
+            { // runs when loading saved game too
                 Transform hatchTransform = __instance.transform.parent.parent.parent.transform.Find("CyclopsMeshAnimated/submarine_hatch_03_base 1/submarine_hatch_03 1");
                 if (hatchTransform)
                 {
@@ -88,10 +86,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
-        //Cyclops-MainPrefab(Clone)/CyclopsMeshAnimated/submarine_hatch_03_base 1/submarine_hatch_03 1
-
-        //Cyclops-MainPrefab(Clone)/LaunchBayBuilt/Launchbay_cinemetic/SeamothDockingBay
 
         [HarmonyPatch(typeof(CyclopsHelmHUDManager))]
         class CyclopsHelmHUDManager_Patch
@@ -214,9 +208,7 @@ namespace Tweaks_Fixes
                 CyclopsMotorMode cyclopsMotorMode = __instance.GetComponent<CyclopsMotorMode>();
                 if (cyclopsMotorMode)
                 {
-                    Main.configMain.subThrottleIndex = (int)cyclopsMotorMode.cyclopsMotorMode;
-                    //AddDebug("save subThrottleIndex");
-                    //Main.configMenu.Save();
+                    Main.configMain.SaveSubThrottleIndex(__instance.gameObject, (int)cyclopsMotorMode.cyclopsMotorMode);
                 }
             }
 
@@ -235,13 +227,15 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(CyclopsMotorModeButton __instance)
             {
-                if (__instance.transform.parent.parent.parent.parent.parent.name == "__LIGHTMAPPED_PREFAB__")
+                GameObject root = __instance.transform.parent.parent.parent.parent.parent.gameObject;
+                if (root.name == "__LIGHTMAPPED_PREFAB__")
                     return;
                 //Main.logger.LogMessage("CyclopsMotorModeButton Start " + __instance.transform.parent.parent.parent.parent.parent.name);
-                if (Main.configMain.subThrottleIndex != -1)
+                int throttleIndex = Main.configMain.GetSubThrottleIndex(root);
+                if (throttleIndex != -1)
                 {
                     //AddDebug("restore  subThrottleIndex");
-                    SetCyclopsMotorMode(__instance, (CyclopsMotorMode.CyclopsMotorModes)Main.configMain.subThrottleIndex);
+                    SetCyclopsMotorMode(__instance, (CyclopsMotorMode.CyclopsMotorModes)throttleIndex);
                 }
             }
         }
@@ -266,14 +260,6 @@ namespace Tweaks_Fixes
                 {
                     bool show = ConfigToEdit.cyclopsSonar.Value && Player.main.currentSub.powerRelay.IsPowered();
                     __instance.gameObject.SetActive(show);
-                }
-            }
-            //[HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(CyclopsSonarDisplay __instance)
-            {
-                if (!ConfigToEdit.cyclopsSonar.Value)
-                {
-                    __instance.CancelInvoke();
                 }
             }
         }
@@ -366,14 +352,33 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(CyclopsEntryHatch), "OnTriggerEnter")]
         class CyclopsEntryHatch_Start_Patch
-        { // fix entrance hatch does not close 
+        { // fix entrance hatch not close 
             static void Postfix(CyclopsEntryHatch __instance, Collider col)
             {
                 //AddDebug("CyclopsEntryHatch OnTriggerEnter " + Player.main.IsInSubmarine());
-                if (col.gameObject == Player.main.gameObject && __instance.hatchOpen && Player.main.IsInSubmarine())
+                if (col.gameObject == Player.main.gameObject)
                 {
-                    //AddDebug("CLOSE ! ");
-                    __instance.hatchOpen = false;
+                    cyclopsEntryHatch = __instance;
+                    if (__instance.hatchOpen && Player.main.IsInSubmarine())
+                    {
+                        //AddDebug("CyclopsEntryHatch OnTriggerEnter ");
+                        __instance.hatchOpen = false;
+                    }
+                }
+
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerCinematicController))]
+        class PlayerCinematicController_Patch
+        {
+            [HarmonyPostfix, HarmonyPatch("StartCinematicMode")]
+            public static void StartCinematicModePostfix(PlayerCinematicController __instance, Player setplayer)
+            { // exiting cyclops
+                if (cyclopsEntryHatch != null && __instance.name == "cyclops_outerhatch")
+                {
+                    //AddDebug("cyclops_outerhatch StartCinematicMode");
+                    cyclopsEntryHatch.hatchOpen = true;
                 }
             }
         }
@@ -401,16 +406,14 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(VehicleDockingBay))]
         public class VehicleDockingBay_LaunchbayAreaEnter_Patch
         { // dont play sfx if another vehicle docked
-            [HarmonyPrefix]
-            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaEnter))]
+            [HarmonyPrefix, HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaEnter))]
             public static bool LaunchbayAreaEnterPrefix(VehicleDockingBay __instance)
             {
                 if (__instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
                     return false;
                 return !__instance._dockedVehicle;
             }
-            [HarmonyPrefix]
-            [HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaExit))]
+            [HarmonyPrefix, HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaExit))]
             public static bool LaunchbayAreaExitPrefix(VehicleDockingBay __instance)
             {
                 if (__instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
@@ -478,57 +481,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CyclopsHolographicHUD))]
-        class CyclopsHolographicHUD_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("UpdateFires")]
-            public static void UpdateFiresPostfix(CyclopsHolographicHUD __instance)
-            {
-                //AddDebug("CyclopsHolographicHUD parent " + __instance.transform.parent.name);
-                SubRoot subRoot = Player.main.currentSub;
-                if (subRoot && subRoot.isCyclops)
-                {
-                    bool isPowered = subRoot.powerRelay.IsPowered();
-                    __instance.gameObject.SetActive(isPowered);
-                    //AddDebug("CyclopsHolographicHUD UpdateFires isPowered " + isPowered);
-                    //AddDebug("CyclopsHolographicHUD UpdateFires cyclopsHolographicHUDlastState " + cyclopsHolographicHUDlastState);
-                    if (cyclopsHolographicHUDlastState && !isPowered)
-                    {
-                        //AddDebug("CyclopsHolographicHUD disable ");
-                        //__instance.gameObject.SetActive(false);
-                        CyclopsCompassHUD cyclopsCompassHUD = subRoot.GetComponentInChildren<CyclopsCompassHUD>();
-                        foreach (Transform child in cyclopsCompassHUD.transform)
-                            child.gameObject.SetActive(false);
-
-                        CyclopsDecoyScreenHUDManager cdshudm = subRoot.GetComponentInChildren<CyclopsDecoyScreenHUDManager>();
-                        cdshudm.gameObject.SetActive(false);
-                        CyclopsVehicleStorageTerminalManager cvstm = subRoot.GetComponentInChildren<CyclopsVehicleStorageTerminalManager>();
-                        Transform cvstmScreen = cvstm.transform.Find("GUIScreen");
-                        cvstmScreen.gameObject.SetActive(false);
-                        Transform uchTr = subRoot.transform.Find("UpgradeConsoleHUD");
-                        uchTr.gameObject.SetActive(false);
-                    }
-                    else if (!cyclopsHolographicHUDlastState && isPowered)
-                    {
-                        //AddDebug("CyclopsHolographicHUD enable ");
-                        //__instance.gameObject.SetActive(true);
-                        CyclopsCompassHUD cyclopsCompassHUD = subRoot.GetComponentInChildren<CyclopsCompassHUD>();
-                        foreach (Transform child in cyclopsCompassHUD.transform)
-                            child.gameObject.SetActive(true);
-                        CyclopsDecoyScreenHUDManager cdshudm = subRoot.GetComponentInChildren<CyclopsDecoyScreenHUDManager>(true);
-                        cdshudm.gameObject.SetActive(true);
-                        CyclopsVehicleStorageTerminalManager cvstm = subRoot.GetComponentInChildren<CyclopsVehicleStorageTerminalManager>();
-                        Transform cvstmScreen = cvstm.transform.Find("GUIScreen");
-                        cvstmScreen.gameObject.SetActive(true);
-                        Transform uchTr = subRoot.transform.Find("UpgradeConsoleHUD");
-                        uchTr.gameObject.SetActive(true);
-
-                    }
-                    cyclopsHolographicHUDlastState = isPowered;
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(CyclopsLightingPanel))]
         public class CyclopsLightingPanel_Patch
@@ -560,10 +512,11 @@ namespace Tweaks_Fixes
                 if (__instance.transform.parent.name == "__LIGHTMAPPED_PREFAB__")
                     return;
 
-                if (Main.configMain.cyclopsFloodLights)
+                GameObject root = __instance.transform.parent.gameObject;
+                if (Main.configMain.GetCyclopsFloodLights(root))
                     TurnOnFloodlights(__instance);
 
-                if (!Main.configMain.cyclopsLighting)
+                if (Main.configMain.GetCyclopsLighting(root))
                     TurnOffInternalLighting(__instance);
             }
             [HarmonyPostfix]
@@ -571,16 +524,23 @@ namespace Tweaks_Fixes
             static void ToggleFloodlightsPostfix(CyclopsLightingPanel __instance)
             {
                 //AddDebug("ToggleFloodlights " + __instance.floodlightsOn);
-                Main.configMain.cyclopsFloodLights = __instance.floodlightsOn;
+                GameObject root = __instance.transform.parent.gameObject;
+                if (__instance.floodlightsOn)
+                    Main.configMain.SaveCyclopsFloodLights(root);
+                else
+                    Main.configMain.DeleteCyclopsFloodLights(root);
             }
             [HarmonyPostfix]
             [HarmonyPatch("ToggleInternalLighting")]
             static void ToggleInternalLightingPostfix(CyclopsLightingPanel __instance)
             {
                 //AddDebug("ToggleFloodlights " + __instance.floodlightsOn);
-                Main.configMain.cyclopsLighting = __instance.lightingOn;
+                GameObject root = __instance.transform.parent.gameObject;
+                if (__instance.lightingOn)
+                    Main.configMain.DeleteCyclopsLighting(root);
+                else
+                    Main.configMain.SaveCyclopsLighting(root);
             }
-
             [HarmonyPostfix]
             [HarmonyPatch("SubConstructionComplete")]
             public static void SubConstructionCompletePostfix(CyclopsLightingPanel __instance)
@@ -618,67 +578,14 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        [HarmonyPatch(typeof(CyclopsSubNameScreen))]
-        public class CyclopsSubNameScreen_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("ContentOn")]
-            public static void ContentOnPostfix(CyclopsSubNameScreen __instance)
-            {
-                if (!Player.main.currentSub.powerRelay.IsPowered())
-                    return;
-
-                Transform lightTr = __instance.transform.parent.Find("VolumetricLight");
-                if (lightTr)
-                    lightTr.gameObject.SetActive(true);
-            }
-            [HarmonyPostfix, HarmonyPatch("ContentOff")]
-            public static void ContentOffPostfix(CyclopsSubNameScreen __instance)
-            {
-                Transform lightTr = __instance.transform.parent.Find("VolumetricLight");
-                if (lightTr)
-                    lightTr.gameObject.SetActive(false);
-            }
-        }
-
-        [HarmonyPatch(typeof(PilotingChair))]
-        public class PilotingChair_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("IsValidHandTarget")]
-            public static void IsValidHandTargetPrefix(PilotingChair __instance, GUIHand hand, ref bool __result)
-            {
-                if (!__instance.subRoot.powerRelay.IsPowered())
-                    __result = false;
-            }
-        }
-
         [HarmonyPatch(typeof(CyclopsDestructionEvent))]
         class CyclopsDestructionEvent_SwapToDamagedModels_Patch
         {
             [HarmonyPrefix, HarmonyPatch("DestroyCyclops")]
             static void DestroyCyclopsPrefix(CyclopsDestructionEvent __instance)
-            { // fix bug: when cyclops gets destroyed with player in it, player respawns in it
+            { // fix bug: player respawns in destroyed cyclops
                 __instance.subLiveMixin.Kill();
                 //AddDebug("CyclopsDestructionEvent DestroyCyclops IsAlive " + __instance.subLiveMixin.IsAlive());
-            }
-            //[HarmonyPrefix, HarmonyPatch("SwapToDamagedModels")]
-            static bool SwapToDamagedModelsPrefix(CyclopsDestructionEvent __instance)
-            {
-                for (int index = 0; index < __instance.intact.Length; ++index)
-                {
-                    GameObject go = __instance.intact[index];
-                    if (go) // NPE without this line 
-                        go.SetActive(false);
-                }
-                for (int index = 0; index < __instance.destroyed.Length; ++index)
-                    __instance.destroyed[index].SetActive(true);
-
-                __instance.ToggleSinking(true);
-                __instance.subRoot.subWarning = false;
-                __instance.subRoot.BroadcastMessage("NewAlarmState", null, SendMessageOptions.DontRequireReceiver);
-                __instance.subRoot.subDestroyed = true;
-                __instance.pingInstance.enabled = false;
-                return false;
             }
         }
 
@@ -808,10 +715,8 @@ namespace Tweaks_Fixes
 
                 __instance.subLiveMixin.AddHealth(3f);
                 return false;
-
             }
         }
-
 
     }
 }

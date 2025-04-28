@@ -216,6 +216,8 @@ namespace Tweaks_Fixes
 
         }
 
+
+
         [HarmonyPatch(typeof(SubControl))]
         class SubControl_patch
         {
@@ -237,7 +239,10 @@ namespace Tweaks_Fixes
             public static void FixedUpdatePrefix(SubControl __instance)
             {
                 //AddDebug("throttle.magnitude " + __instance.throttle.magnitude);
-                __instance.BaseForwardAccel = cyclopsForwardOrig * ConfigMenu.cyclopsSpeedMult.Value;
+                if (cyclopsForwardOrig > 0)
+                {
+                    __instance.BaseForwardAccel = cyclopsForwardOrig * ConfigMenu.cyclopsSpeedMult.Value;
+                }
                 if (ConfigToEdit.cyclopsBackwardSpeedMod.Value > 0)
                 {
                     if (__instance.throttle.z < 0)
@@ -248,10 +253,16 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CyclopsMotorMode), "ChangeCyclopsMotorMode")]
-        class CyclopsMotorMode_ChangeCyclopsMotorMode_Patch
+        [HarmonyPatch(typeof(CyclopsMotorMode))]
+        class CyclopsMotorMode_Patch
         {
-            public static void Postfix(CyclopsMotorMode __instance, CyclopsMotorMode.CyclopsMotorModes newMode)
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            public static void StartPostfix(CyclopsMotorMode __instance)
+            {
+                cyclopsForwardOrig = __instance.motorModeSpeeds[(int)__instance.cyclopsMotorMode];
+            }
+            [HarmonyPostfix, HarmonyPatch("ChangeCyclopsMotorMode")]
+            public static void ChangeCyclopsMotorModePostfix(CyclopsMotorMode __instance, CyclopsMotorMode.CyclopsMotorModes newMode)
             {
                 //AddDebug("ChangeCyclopsMotorMode " + newMode);
                 float motorModeSpeed = __instance.motorModeSpeeds[(int)__instance.cyclopsMotorMode];
@@ -262,6 +273,7 @@ namespace Tweaks_Fixes
                     //AddDebug("motorModeSpeed " + motorModeSpeed);
                 }
             }
+
         }
 
 
