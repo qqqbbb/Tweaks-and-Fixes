@@ -67,7 +67,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Start")]
             static void StartPostfix(Survival __instance)
             {
-                if (ConfigToEdit.consistantHungerUpdateTime.Value)
+                if (ConfigToEdit.consistentHungerUpdateTime.Value)
                 {
                     __instance.CancelInvoke();
                     __instance.StartCoroutine(UpdateHunger(__instance));
@@ -76,7 +76,7 @@ namespace Tweaks_Fixes
 
             static IEnumerator UpdateHunger(Survival survival)
             {
-                while (ConfigToEdit.consistantHungerUpdateTime.Value)
+                while (ConfigToEdit.consistentHungerUpdateTime.Value)
                 {
                     yield return new WaitForSeconds(GetHungerUpdateTime(survival));
                     //AddDebug("UpdateHunger");
