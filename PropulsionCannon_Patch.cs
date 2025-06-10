@@ -95,10 +95,12 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PropulsionCannonWeapon))]
         class PropulsionCannonWeapon_patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("GetCustomUseText")]
+            [HarmonyPrefix, HarmonyPatch("GetCustomUseText")]
             public static bool GetCustomUseTextPostfix(PropulsionCannonWeapon __instance, ref string __result)
             {
+                if (ConfigToEdit.propulsionCannonTweaks.Value == false && ConfigToEdit.dropItemsAnywhere.Value == false)
+                    return true;
+
                 bool isGrabbingObject = __instance.propulsionCannon.IsGrabbingObject();
                 bool hasChargeForShot = __instance.propulsionCannon.HasChargeForShot();
                 bool inSub = __instance.usingPlayer.currentSub;
@@ -152,8 +154,7 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("UpdateEquipped")]
+            [HarmonyPostfix, HarmonyPatch("UpdateEquipped")]
             public static void OnRightHandDownPostfix(PropulsionCannonWeapon __instance, GameObject sender, string slot)
             {
                 if (Player.main.currentSub && ConfigToEdit.dropItemsAnywhere.Value)
@@ -164,8 +165,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnRightHandDown")]
+            [HarmonyPostfix, HarmonyPatch("OnRightHandDown")]
             public static void OnRightHandDownPostfix(PropulsionCannonWeapon __instance, ref bool __result)
             {
                 if (Player.main.currentSub && ConfigToEdit.dropItemsAnywhere.Value && !__instance.propulsionCannon.grabbedObject)
@@ -178,8 +178,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnAltDown")]
+            [HarmonyPostfix, HarmonyPatch("OnAltDown")]
             public static void OnAltDownPostfix(PropulsionCannonWeapon __instance, ref bool __result)
             {
                 if (Player.main.currentSub && ConfigToEdit.dropItemsAnywhere.Value)
@@ -215,8 +214,7 @@ namespace Tweaks_Fixes
                 //AddDebug($"ValidateNewObject {tt}");
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("TraceForGrabTarget")]
+            [HarmonyPrefix, HarmonyPatch("TraceForGrabTarget")]
             static bool TraceForGrabTargetPrefix(PropulsionCannon __instance, ref GameObject __result)
             {
                 if (spawningFruit)
@@ -226,11 +224,10 @@ namespace Tweaks_Fixes
                 return true;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("TraceForGrabTarget")]
+            [HarmonyPostfix, HarmonyPatch("TraceForGrabTarget")]
             static void TraceForGrabTargetPostfix(PropulsionCannon __instance, ref GameObject __result)
             {
-                if (spawningFruit)
+                if (ConfigToEdit.propulsionCannonTweaks.Value == false || spawningFruit)
                     return;
 
                 targetObject = null;
@@ -303,8 +300,7 @@ namespace Tweaks_Fixes
                 targetObject = __result;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("UpdateTargetPosition")]
+            [HarmonyPrefix, HarmonyPatch("UpdateTargetPosition")]
             static bool UpdateTargetPositionPrefix(PropulsionCannon __instance)
             {
                 if (grabbingResource && __instance.grabbedObject)
@@ -318,8 +314,7 @@ namespace Tweaks_Fixes
                 return true;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("OnShoot")]
+            [HarmonyPrefix, HarmonyPatch("OnShoot")]
             static bool OnShootPrefix(PropulsionCannon __instance)
             {
                 if (grabbingResource)
@@ -330,10 +325,12 @@ namespace Tweaks_Fixes
                 return true;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("GrabObject")]
+            [HarmonyPrefix, HarmonyPatch("GrabObject")]
             static bool GrabObjectPrefix(PropulsionCannon __instance, ref GameObject target)
             {
+                if (ConfigToEdit.propulsionCannonTweaks.Value == false)
+                    return true;
+
                 if (spawningFruit)
                     return false;
 
@@ -368,11 +365,10 @@ namespace Tweaks_Fixes
                 return true;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("GrabObject")]
+            [HarmonyPostfix, HarmonyPatch("GrabObject")]
             static void GrabObjectPostfix(PropulsionCannon __instance, GameObject target)
             {
-                if (!ConfigToEdit.newUIstrings.Value || __instance.grabbedObject == null)
+                if (ConfigToEdit.propulsionCannonTweaks.Value == false || __instance.grabbedObject == null)
                     return;
 
                 //TechType tt = CraftData.GetTechType(__instance.grabbedObject);
@@ -407,10 +403,12 @@ namespace Tweaks_Fixes
                 //}
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("grabbedObject", MethodType.Setter)]
+            [HarmonyPrefix, HarmonyPatch("grabbedObject", MethodType.Setter)]
             public static bool Prefix(PropulsionCannon __instance, GameObject value)
             {
+                if (ConfigToEdit.propulsionCannonTweaks.Value == false)
+                    return true;
+
                 __instance._grabbedObject = value;
                 InventoryItem storedItem = __instance.storageSlot.storedItem;
                 Pickupable pickupable1 = storedItem == null ? null : storedItem.item;

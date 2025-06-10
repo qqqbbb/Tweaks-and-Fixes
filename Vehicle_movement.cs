@@ -10,9 +10,7 @@ namespace Tweaks_Fixes
 {
     internal class Vehicle_movement
     {
-        static float cyclopsVerticalMod;
-        static float cyclopsBackwardMod;
-        static float cyclopsForwardOrig;
+
         public static Vector3 moveDir;
         static float seamothForwardForce;
         static float seamothBackwardForce;
@@ -37,7 +35,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Player.main.currentMountedVehicle is SeaMoth)
                 {
-                    __result *= ConfigMenu.exosuitSpeedMult.Value;
+                    __result *= ConfigMenu.seamothSpeedMult.Value;
                 }
                 //else if (Player.main.currentMountedVehicle != null)
                 //{
@@ -129,7 +127,7 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPrefix, HarmonyPatch("ConsumeEngineEnergy")]
-            public static void ConsumeEngineEnergyPrefix(Vehicle __instance, float energyCost)
+            public static void ConsumeEngineEnergyPrefix(Vehicle __instance, ref float energyCost)
             {
                 //AddDebug("ConsumeEngineEnergy " + energyCost);
                 if (ConfigToEdit.fixSeamothMove.Value && __instance is SeaMoth)
@@ -217,64 +215,6 @@ namespace Tweaks_Fixes
         }
 
 
-
-        [HarmonyPatch(typeof(SubControl))]
-        class SubControl_patch
-        {
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(SubControl __instance)
-            {
-                //if (__instance.name != "Cyclops-MainPrefab(Clone)")
-                //    return;
-                if (ConfigToEdit.cyclopsBackwardSpeedMod.Value > 0 && cyclopsBackwardMod == 0)
-                {
-                    cyclopsBackwardMod = 1 - Mathf.Clamp(ConfigToEdit.cyclopsBackwardSpeedMod.Value, 1, 100) * .01f;
-                }
-                if (ConfigToEdit.cyclopsVerticalSpeedMod.Value > 0 && cyclopsVerticalMod == 0)
-                {
-                    cyclopsVerticalMod = 1 - Mathf.Clamp(ConfigToEdit.cyclopsVerticalSpeedMod.Value, 1, 100) * .01f;
-                }
-            }
-            [HarmonyPrefix, HarmonyPatch("FixedUpdate")]
-            public static void FixedUpdatePrefix(SubControl __instance)
-            {
-                //AddDebug("throttle.magnitude " + __instance.throttle.magnitude);
-                if (cyclopsForwardOrig > 0)
-                {
-                    __instance.BaseForwardAccel = cyclopsForwardOrig * ConfigMenu.cyclopsSpeedMult.Value;
-                }
-                if (ConfigToEdit.cyclopsBackwardSpeedMod.Value > 0)
-                {
-                    if (__instance.throttle.z < 0)
-                        __instance.BaseForwardAccel *= cyclopsBackwardMod;
-                }
-                //AddDebug("BaseForwardAccel " + __instance.BaseForwardAccel);
-                //AddDebug("cyclopsForwardOrig " + cyclopsForwardOrig);
-            }
-        }
-
-        [HarmonyPatch(typeof(CyclopsMotorMode))]
-        class CyclopsMotorMode_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(CyclopsMotorMode __instance)
-            {
-                cyclopsForwardOrig = __instance.motorModeSpeeds[(int)__instance.cyclopsMotorMode];
-            }
-            [HarmonyPostfix, HarmonyPatch("ChangeCyclopsMotorMode")]
-            public static void ChangeCyclopsMotorModePostfix(CyclopsMotorMode __instance, CyclopsMotorMode.CyclopsMotorModes newMode)
-            {
-                //AddDebug("ChangeCyclopsMotorMode " + newMode);
-                float motorModeSpeed = __instance.motorModeSpeeds[(int)__instance.cyclopsMotorMode];
-                cyclopsForwardOrig = motorModeSpeed;
-                if (ConfigToEdit.cyclopsVerticalSpeedMod.Value > 0)
-                {
-                    __instance.subController.BaseVerticalAccel = motorModeSpeed * cyclopsVerticalMod;
-                    //AddDebug("motorModeSpeed " + motorModeSpeed);
-                }
-            }
-
-        }
 
 
 

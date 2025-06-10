@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using static ErrorMessage;
+//using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -35,15 +35,9 @@ namespace Tweaks_Fixes
                 LiveMixin liveMixin = __instance.creature.liveMixin;
                 if (ConfigMenu.creatureFleeChanceBasedOnHealth.Value && liveMixin && liveMixin.IsAlive())
                 {
-                    int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
-                    int rnd1 = UnityEngine.Random.Range(0, maxHealth);
-                    int health = Mathf.RoundToInt(liveMixin.health);
-                    //if (__instance.gameObject == Testing.goToTest)
                     //AddDebug(__instance.name + " max Health " + maxHealth + " Health " + health);
-                    if (health < rnd1)
+                    if (liveMixin.health < UnityEngine.Random.Range(0, liveMixin.maxHealth))
                     {
-                        //if (__instance.gameObject == Testing.goToTest)
-                        //    AddDebug(__instance.name + " health low ");
                         doFlee = true;
                     }
                 }
@@ -59,7 +53,7 @@ namespace Tweaks_Fixes
                     if (ConfigMenu.creatureFleeUseDamageThreshold.Value && __instance.accumulatedDamage <= __instance.damageThreshold)
                         return false;
 
-                    int rnd = UnityEngine.Random.Range(1, 100);
+                    int rnd = UnityEngine.Random.Range(1, 101);
                     if (ConfigMenu.CreatureFleeChance.Value >= rnd)
                         doFlee = true;
                 }
@@ -96,23 +90,11 @@ namespace Tweaks_Fixes
                 return false;
             }
             [HarmonyPrefix, HarmonyPatch("LoseTooth")]
-            public static bool LoseToothPrefix(Stalker __instance, ref bool __result)
+            public static void LoseToothPrefix(Stalker __instance, ref bool __result)
             {
-                if (ConfigToEdit.stalkerLooseToothSound.Value)
-                    return true;
-
-                GameObject go = UnityEngine.Object.Instantiate(__instance.toothPrefab);
-                go.transform.position = __instance.loseToothDropLocation.transform.position;
-                go.transform.rotation = __instance.loseToothDropLocation.transform.rotation;
-                if (go.activeSelf && __instance.isActiveAndEnabled)
-                {
-                    foreach (Collider componentsInChild in go.GetComponentsInChildren<Collider>())
-                        Physics.IgnoreCollision(__instance.stalkerBodyCollider, componentsInChild);
-                }
-                //Utils.PlayFMODAsset(this.loseToothSound, go.transform);
-                LargeWorldEntity.Register(go);
-                __result = true;
-                return false;
+                //AddDebug("LoseTooth");
+                if (ConfigToEdit.stalkerLooseToothSound.Value == false)
+                    __instance.loseToothSound = null;
             }
         }
 

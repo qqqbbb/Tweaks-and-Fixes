@@ -9,7 +9,7 @@ namespace Tweaks_Fixes
 {
     internal class Cyclops_unpowered
     {
-        static HashSet<SubRoot> poweredSubs = new HashSet<SubRoot>();
+        public static HashSet<SubRoot> poweredSubs = new HashSet<SubRoot>();
 
         [HarmonyPatch(typeof(SubRoot))]
         class SubRoot_Patch
@@ -49,7 +49,6 @@ namespace Tweaks_Fixes
                 Transform renameConsole = subRoot.transform.Find("SubName");
                 renameConsole?.gameObject.SetActive(state);
             }
-
 
             [HarmonyPatch(typeof(PilotingChair))]
             public class PilotingChair_Patch

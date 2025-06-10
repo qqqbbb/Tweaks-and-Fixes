@@ -129,7 +129,7 @@ namespace Tweaks_Fixes
                 mug.transform.position += mug.transform.right * .08f;
 
             mug.transform.SetParent(cvm.transform, true);
-            float y = UnityEngine.Random.Range(45, 135);
+            float y = UnityEngine.Random.Range(45, 136);
             Vector3 rot = new Vector3(0, y, 0);
             mug.transform.Rotate(rot);
             yield return new WaitForSeconds(cvm.spawnDelay);

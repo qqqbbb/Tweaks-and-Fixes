@@ -1,20 +1,16 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(Flare))]
-    class Flare_Patch
+    class Flare_
     {
-        public static float originalIntensity = -1f;
-        static float originalEnergy = -1f;
-        public static float halfOrigIntensity;
-        static float originalRange;
-        static float lowEnergy;
-        public static bool intensityChanged = false;
+        private static float defaultFlickerInterval;
 
         public static void LightFlare(Flare flare)
         {
@@ -88,78 +84,46 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        [HarmonyPrefix]
-        [HarmonyPatch(nameof(Flare.UpdateLight))]
+        [HarmonyPrefix, HarmonyPatch("UpdateLight")]
         static bool UpdateLightPrefix(Flare __instance)
         {
             if (Main.flareRepairLoaded)
                 return true;
 
-            //if (!ConfigToEdit.flareTweaks.Value)
-            //    return true;
-
-            if (intensityChanged)
-            {
-                //AddDebug("intensityChaned ");
-                __instance.light.intensity = Light_Control.GetLightIntensity(TechType.Flare);
-                __instance.originalIntensity = __instance.light.intensity;
-                //intensityChanged = false;
+            if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(Light_Control.lightButton))
                 return false;
-            }
-            else
-            {
-                float burnTime = DayNightCycle.main.timePassedAsFloat - __instance.flareActivateTime;
-                if (burnTime < 0.1f)
-                    return false;
-
-                float num2 = burnTime / __instance.flickerInterval / DayNightCycle.main._dayNightSpeed;
-                float num3 = __instance.originalIntensity * (0.45f + 0.55f * Mathf.PerlinNoise(num2, 0f));
-                float num4 = (__instance.originalrange * 0.65f + 0.35f * Mathf.Sin(num2));
-                if (burnTime < 0.43f)
-                {
-                    float t = (burnTime * 3.0f - 0.1f);
-                    FlashingLightHelpers.SafeIntensityChangePerFrame(__instance.light, Mathf.Lerp(0f, num3, t));
-                    FlashingLightHelpers.SafeRangeChangePreFrame(__instance.light, Mathf.Lerp(0f, num4, t));
-                }
-                else
-                {
-                    FlashingLightHelpers.SafeIntensityChangePerFrame(__instance.light, num3);
-                    FlashingLightHelpers.SafeRangeChangePreFrame(__instance.light, num4);
-                }
-                //__instance.light.intensity = halfOrigIntensity + halfOrigIntensity * Mathf.PerlinNoise(Time.time * 6f, 0f);
-                //AddDebug("energyLeft " + (int)__instance.energyLeft);
-                //if (__instance.energyLeft < lowEnergy)
-                {
-                    //float f1 = __instance.energyLeft / lowEnergy;
-                    //AddDebug("lowEnergy " + f.ToString("0.0"));
-                    //__instance.light.intensity = Mathf.Lerp(0f, __instance.light.intensity, f1);
-                    //__instance.light.range = Mathf.Lerp(0f, originalRange, f1);
-                }
-            }
-            return false;
-        }
-
-        //[HarmonyPrefix]
-        //[HarmonyPatch(nameof(Flare.OnDraw))]
-        static bool OnDrawPostfix(Flare __instance, Player p)
-        {
-            //AddDebug("OnDraw originalRange " + originalRange);
-            //AddDebug("OnDraw originalIntensity " + originalIntensity);
-            if (Main.flareRepairLoaded)
-                return true;
-
-            //if (!ConfigToEdit.flareTweaks.Value)
-            //    return true;
-
-            //if (!Main.flareRepairLoaded)
-            //    intensityChanged = false;
 
             return true;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(nameof(Flare.OnRightHandDown))]
+        [HarmonyPatch("UpdateLight"), HarmonyPostfix]
+        static void UpdateLightPostfix(Flare __instance)
+        {
+            //if (Input.GetKeyDown(KeyCode.LeftShift))
+            //    AddDebug($"energy {__instance.energyLeft.ToString("0.0")} intensity {__instance.light.intensity.ToString("0.0")} range {__instance.light.range.ToString("0.0")}");
+
+            if (Main.flareRepairLoaded || ConfigToEdit.flareFlicker.Value)
+                return;
+
+            __instance.light.intensity = __instance.originalIntensity;
+            __instance.light.range = __instance.originalrange;
+        }
+
+        [HarmonyPostfix, HarmonyPatch("OnDraw")]
+        static void OnDrawPostfix(Flare __instance, Player p)
+        {
+            //AddDebug("OnDraw originalRange " + originalRange);
+            if (Main.flareRepairLoaded)
+                return;
+
+            if (defaultFlickerInterval == 0)
+                defaultFlickerInterval = __instance.flickerInterval;
+
+            __instance.flickerInterval = defaultFlickerInterval * DayNightCycle.main._dayNightSpeed;
+            //AddDebug($"OnDraw origFlickerInterval {origFlickerInterval}  flickerInterval {__instance.flickerInterval} ");
+        }
+
+        [HarmonyPrefix, HarmonyPatch(nameof(Flare.OnRightHandDown))]
         static bool OnRightHandDownPostfix(Flare __instance)
         { // fix: can throw flare in base
             bool canThrow = ConfigToEdit.dropItemsAnywhere.Value || Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
@@ -167,8 +131,7 @@ namespace Tweaks_Fixes
             return canThrow;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(nameof(Flare.OnToolUseAnim))]
+        [HarmonyPrefix, HarmonyPatch("OnToolUseAnim")]
         static bool OnToolUseAnimPostfix(Flare __instance)
         { // fix: can throw flare in base
             bool canThrow = ConfigToEdit.dropItemsAnywhere.Value || Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);

@@ -12,7 +12,6 @@ namespace Tweaks_Fixes
 {
     public static class ConfigToEdit
     {
-
         public static ConfigEntry<bool> heatBladeCooks;
         public static ConfigEntry<bool> dontSpawnKnownFragments;
         public static ConfigEntry<bool> cantScanExosuitClawArm;
@@ -138,6 +137,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> removeBigParticlesWhenKnifing;
         public static ConfigEntry<int> permPoisonDamage;
         public static ConfigEntry<int> poisonFoodDamage;
+        public static ConfigEntry<bool> flareFlicker;
+        public static ConfigEntry<bool> propulsionCannonTweaks;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -286,9 +287,11 @@ namespace Tweaks_Fixes
             medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
             consistentHungerUpdateTime = Main.configToEdit.Bind("PLAYER", "Consistent hunger update time", false, "In vanilla game your hunger updates every 10 real time seconds. If this is true, hunger update interval will be divided by 'time flow speed multiplier' from the mod options.");
             //consistantHungerUpdateTime.SettingChanged += ConsistantHungerUpdateTimeChanged;
-            removeBigParticlesWhenKnifing = Main.configToEdit.Bind("CREATURES", "Remove big particles when knifing creatures", false, "You will see less blood particles when knifing creatures if this is true.");
+            removeBigParticlesWhenKnifing = Main.configToEdit.Bind("CREATURES", "Remove big particles when slashing creatures with knife", false, "You will see less blood particles when slashing creatures with knife if this is true.");
             permPoisonDamage = Main.configToEdit.Bind("PLAYER", "Permanent poison damage percent", 0, new ConfigDescription("If this is more than 0 you will take not temporary but permanent health damage when poisoned. For example if this is 90, you will lose 0.9 health permanantly for every point of poison damage.", percentRange));
             poisonFoodDamage = Main.configToEdit.Bind("PLAYER", "Poison food damage percent", 0, new ConfigDescription("If this is more than 0 you will lose food or water instead of taking temporary health damage when poisoned. For example if this is 90, you will lose 0.9 food or water for every point of poison damage.", percentRange));
+            flareFlicker = Main.configToEdit.Bind("TOOLS", "Flare light flickering", true, "");
+            propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "");
 
 
 

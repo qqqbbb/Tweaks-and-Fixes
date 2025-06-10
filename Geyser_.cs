@@ -4,53 +4,41 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Tweaks_Fixes;
 using UnityEngine;
 
 namespace Tweaks_Fixes
 {
 
     [HarmonyPatch(typeof(Geyser))]
-    class Geyser_Patch
+    class Geyser_
     {
         public static GameObject fishToCook;
         public static Dictionary<Geyser, Vector3> eruptionForce = new Dictionary<Geyser, Vector3>();
         public static Dictionary<Geyser, Vector3> rotationForce = new Dictionary<Geyser, Vector3>();
 
-        [HarmonyPrefix]
-        [HarmonyPatch("Start")]
-        static bool StartPrefix(Geyser __instance)
+        [HarmonyPrefix, HarmonyPatch("Start")]
+        static void StartPrefix(Geyser __instance)
         {
-            foreach (Transform childTransform in __instance.transform)
+            DestroyUnusedGOs(__instance);
+        }
+
+        private static void DestroyUnusedGOs(Geyser geyser)
+        {
+            foreach (Transform childTransform in geyser.transform)
             {
                 if (childTransform.name != "Model")
                     UnityEngine.Object.Destroy(childTransform.gameObject);
             }
-            GameObject go = Utils.SpawnZeroedAt(__instance.warningSmokeParticles, __instance.transform);
-            __instance.warningSmokeEmitter = go.GetComponent<ParticleSystem>();
-            go = Utils.SpawnZeroedAt(__instance.eruptionParticles, __instance.transform);
-            __instance.eruptionEmitter = go.GetComponent<ParticleSystem>();
-            __instance.warningSmokeEmitter.Play();
-            __instance.eruptionEmitter.Stop();
+        }
 
+        [HarmonyPostfix, HarmonyPatch("Start")]
+        static void StartPostfix(Geyser __instance)
+        {
+            __instance.CancelInvoke();
             float eruptionIntervalVariance = ConfigToEdit.lavaGeyserEruptionInterval.Value * .5f;
             float nextEruptTime = ConfigToEdit.lavaGeyserEruptionInterval.Value + UnityEngine.Random.value * eruptionIntervalVariance;
             __instance.Invoke("Erupt", UnityEngine.Random.value * nextEruptTime);
-            //Main.logger.LogDebug("Geyser Start nextEruptTime " + nextEruptTime);
-            if (Geyser.consoleCmdRegged)
-                return false;
-
-            DevConsole.RegisterConsoleCommand(__instance, "erupt");
-            Geyser.consoleCmdRegged = true;
-            return false;
-        }
-        [HarmonyPostfix]
-        [HarmonyPatch("Start")]
-        static void StartPostfix(Geyser __instance)
-        {
             int x = (int)__instance.transform.position.x;
-            int y = (int)__instance.transform.position.y;
             int z = (int)__instance.transform.position.z;
             //Main.logger.LogDebug("Geyser Start  " + x + " " + z);
             bool fix = x == 961 && z == 470 || x == 965 && z == 625 || x == -175 && z == 1024 || x == -153 && z == 956 || x == -70 && z == 1024 || x == -67 && z == 1066 || x == -80 && z == 968 || x == -78 && z == 930 || x == -32 && z == 973;
@@ -63,31 +51,22 @@ namespace Tweaks_Fixes
             if (ConfigToEdit.removeLavaGeyserRockParticles.Value)
                 __instance.StartCoroutine(RemoveRockParticles(__instance));
         }
-        [HarmonyPrefix]
-        [HarmonyPatch("Erupt")]
-        static bool EruptPrefix(Geyser __instance)
+        [HarmonyPrefix, HarmonyPatch("Erupt")]
+        static void EruptPrefix(Geyser __instance)
         {
             if (__instance.erupting || !__instance.gameObject.activeInHierarchy)
-                return false;
+                return;
 
             Vector3 force = CalculateGeyserForce();
             eruptionForce[__instance] = force;
             float rot = UnityEngine.Random.Range(-force.y, force.y);
             rotationForce[__instance] = new Vector3(rot * UnityEngine.Random.value, 0, rot * UnityEngine.Random.value);
-            //AddDebug("Erupt " + eruptionForce[__instance]);
-            __instance.erupting = true;
-            __instance.eruptionEmitter.Play();
-            __instance.warningSmokeEmitter.Stop();
-            Utils.PlayEnvSound("event:/env/geyser_erupt", __instance.transform.position);
-            __instance.Invoke("EndErupt", __instance.eruptionLength);
-            return false;
         }
-        [HarmonyPostfix]
-        [HarmonyPatch("Erupt")]
+        [HarmonyPostfix, HarmonyPatch("Erupt")]
         static void EruptPostfix(Geyser __instance)
         {
-            float eruptionIntervalvariance = ConfigToEdit.lavaGeyserEruptionInterval.Value * .5f;
-            float nextEruptTime = ConfigToEdit.lavaGeyserEruptionInterval.Value + UnityEngine.Random.value * eruptionIntervalvariance;
+            float eruptionIntervalVariance = ConfigToEdit.lavaGeyserEruptionInterval.Value * .5f;
+            float nextEruptTime = ConfigToEdit.lavaGeyserEruptionInterval.Value + UnityEngine.Random.value * eruptionIntervalVariance;
             __instance.Invoke("Erupt", nextEruptTime);
         }
 
@@ -120,11 +99,9 @@ namespace Tweaks_Fixes
             t = geyser.transform.Find("xGeyserShort_Eruption(Clone)/xAshes");
             if (t)
                 UnityEngine.Object.Destroy(t.gameObject);
-
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnTriggerStay")]
+        [HarmonyPostfix, HarmonyPatch("OnTriggerStay")]
         static void OnTriggerStayPostfix(Geyser __instance, Collider other)
         {
             if (!__instance.erupting)

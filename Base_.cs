@@ -173,9 +173,6 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(SolarPanel __instance, GUIHand hand)
             {
-                if (!ConfigToEdit.newUIstrings.Value)
-                    return true;
-
                 Constructable c = __instance.gameObject.GetComponent<Constructable>();
                 if (!c || !c.constructed)
                     return false;

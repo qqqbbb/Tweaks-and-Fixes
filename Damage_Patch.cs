@@ -271,7 +271,6 @@ namespace Tweaks_Fixes
                         type = DamageType.Normal;
                     }
                 }
-
             }
 
             //[HarmonyPostfix]

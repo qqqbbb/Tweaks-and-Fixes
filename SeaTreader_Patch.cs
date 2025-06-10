@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
                 if (seaTreaderSoundsOnStomp)
                 {
                     seaTreaderSoundsOnStomp = false;
-                    int rnd = UnityEngine.Random.Range(1, 100);
+                    int rnd = UnityEngine.Random.Range(1, 101);
                     if (ConfigToEdit.seaTreaderAttackOutcropMult.Value < rnd)
                     {
                         //AddDebug("SpawnChunks seaTreaderSoundsOnStomp ");
@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
                 else if (seaTreaderSoundsOnStep)
                 {
                     seaTreaderSoundsOnStep = false;
-                    int rnd = UnityEngine.Random.Range(1, 100);
+                    int rnd = UnityEngine.Random.Range(1, 101);
                     if (ConfigToEdit.seaTreaderOutcropMult.Value < rnd)
                     {
                         //AddDebug("SpawnChunks seaTreaderSoundsOnStep ");

@@ -11,8 +11,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
-using static TechStringCache;
-using static VehicleUpgradeConsoleInput;
 
 
 namespace Tweaks_Fixes

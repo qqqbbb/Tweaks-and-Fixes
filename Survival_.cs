@@ -140,7 +140,10 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("UpdateStats")]
             static void UpdateStatsPostfix(Survival __instance, float timePassed, ref float __result)
             {
-                if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1)
+                if (Main.gameLoaded == false)
+                    return;
+
+                if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1 && ConfigMenu.maxPlayerFood.Value == (int)SurvivalConstants.kMaxOverfillStat && ConfigMenu.maxPlayerWater.Value == (int)SurvivalConstants.kMaxStat)
                     return;
 
                 float damage = 0;
@@ -153,7 +156,7 @@ namespace Tweaks_Fixes
                     if (foodToLose > foodBeforeUpdate)
                         damage += ((foodToLose - foodBeforeUpdate) * SurvivalConstants.kStarveDamage);
 
-                    __instance.food = Mathf.Clamp(foodBeforeUpdate - foodToLose, 0, SurvivalConstants.kMaxStat * 2f);
+                    __instance.food = Mathf.Clamp(foodBeforeUpdate - foodToLose, 0, ConfigMenu.maxPlayerFood.Value);
                     float waterToLose = (timePassed / SurvivalConstants.kWaterTime * SurvivalConstants.kMaxStat);
                     waterToLose *= ConfigMenu.waterLossMult.Value;
                     //AddDebug("foodToLose " + foodToLose);
@@ -161,7 +164,7 @@ namespace Tweaks_Fixes
                     if (waterToLose > waterBeforeUpdate)
                         damage += ((waterToLose - waterBeforeUpdate) * SurvivalConstants.kStarveDamage);
 
-                    __instance.water = Mathf.Clamp(waterBeforeUpdate - waterToLose, 0, SurvivalConstants.kMaxStat);
+                    __instance.water = Mathf.Clamp(waterBeforeUpdate - waterToLose, 0, ConfigMenu.maxPlayerWater.Value);
                     updatingStats = false;
                     __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, foodBeforeUpdate, SurvivalConstants.kLowFoodThreshold, SurvivalConstants.kCriticalFoodThreshold);
                     __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, waterBeforeUpdate, SurvivalConstants.kLowWaterThreshold, SurvivalConstants.kCriticalWaterThreshold);
@@ -267,14 +270,14 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                int rndFood = UnityEngine.Random.Range(minFood, maxFood);
+                int rndFood = UnityEngine.Random.Range(minFood, maxFood + 1);
                 float finalFood = Mathf.Min(food, rndFood);
                 if (ConfigMenu.newHungerSystem.Value && __instance.food > 100f && finalFood > 0)
                 {
                     float mult = (playerMaxFood - __instance.food) * .01f;
                     finalFood *= mult;
                 }
-                int rndWater = UnityEngine.Random.Range(minWater, maxWater);
+                int rndWater = UnityEngine.Random.Range(minWater, maxWater + 1);
                 float finalWater = Mathf.Min(water, rndWater);
                 if (ConfigMenu.newHungerSystem.Value && __instance.water > 100f && finalWater > 0)
                 {
@@ -361,8 +364,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Eatable))]
         class Eatable_patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPrefix, HarmonyPatch("Awake")]
             public static void AwakePrefix(Eatable __instance)
             {
                 if (ConfigMenu.foodDecayRateMult.Value == 0)
@@ -370,8 +372,7 @@ namespace Tweaks_Fixes
                     __instance.decomposes = false;
                 }
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             public static void AwakePostfix(Eatable __instance)
             {
                 //if (!Main.loadingDone)
@@ -397,12 +398,26 @@ namespace Tweaks_Fixes
                 //if (Main.config.eatableWaterValue.ContainsKey(tt))
                 //    __instance.waterValue = Main.config.eatableWaterValue[tt];
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("SetDecomposes")]
+            [HarmonyPrefix, HarmonyPatch("SetDecomposes")]
             public static void SetDecomposesPrefix(Eatable __instance, ref bool value)
             { // SetDecomposes runs when fish killed
                 if (value && ConfigMenu.foodDecayRateMult.Value == 0)
                     value = false;
+            }
+            [HarmonyPrefix, HarmonyPatch("IterateDespawn")]
+            public static bool IterateDespawnPrefix(Eatable __instance)
+            {// fix bug: dead fish in player hand despawns
+                if (__instance.gameObject.activeSelf && __instance.IsRotten() && DayNightCycle.main.timePassedAsFloat - __instance.timeDespawnStart > __instance.despawnDelay)
+                {
+                    PlayerTool tool = Inventory.main.GetHeldTool();
+                    if (tool)
+                    {
+                        Eatable eatable = tool.GetComponent<Eatable>();
+                        if (eatable && eatable == __instance)
+                            return false;
+                    }
+                }
+                return true;
             }
         }
 

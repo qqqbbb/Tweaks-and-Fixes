@@ -3,7 +3,6 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -103,114 +102,76 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(QuickSlots))]
         class QuickSlots_Bind_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("SlotNext")]
+            [HarmonyPrefix, HarmonyPatch("SlotNext")]
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 //AddDebug("SlotNext");
                 if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(lightButton))
                 {
-                    //AddDebug("lightButton");
-                    Pickupable p = Inventory.main.GetHeld();
-                    if (p == null)
-                        return true;
-
-                    Light[] lights = p.GetComponentsInChildren<Light>();
-                    //AddDebug("lights.Length  " + lights.Length);
-                    if (lights.Length == 0 || !lights[0].gameObject.activeInHierarchy)
-                        return true;
-
-                    TechType tt = CraftData.GetTechType(p.gameObject);
-                    //AddDebug("lights TechType " + tt);
-                    if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
-                        return true;
-
-                    if (!lightIntensityStep.ContainsKey(tt))
-                    {
-                        AddDebug("lightIntensityStep missing " + tt);
-                        return false;
-                    }
-                    if (!lightOrigIntensity.ContainsKey(tt))
-                    {
-                        AddDebug("lightOrigIntensity missing " + tt);
-                        return false;
-                    }
-                    float origIntensity = lightOrigIntensity[tt];
-                    //AddDebug("origIntensity " + origIntensity);
-                    //float step = origIntensity / 15f;
-                    Flare flare = p.GetComponent<Flare>();
-                    if (flare && flare.flareActivateTime == 0)
-                        return true;
-
-                    foreach (Light l in lights)
-                    {
-                        if (l.intensity < origIntensity)
-                        {
-                            l.intensity += lightIntensityStep[tt];
-                            //AddDebug("Light Intensity Up " + l.intensity);
-                            SaveLightIntensity(tt, l.intensity);
-                        }
-                        if (flare)
-                        {
-                            Flare_Patch.intensityChanged = true;
-                            Flare_Patch.originalIntensity = l.intensity;
-                            Flare_Patch.halfOrigIntensity = Flare_Patch.originalIntensity * .5f;
-                        }
-                        return false;
-                    }
+                    HandleLight(false);
+                    return false;
                 }
                 return true;
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("SlotPrevious")]
+
+            private static void HandleLight(bool reduce)
+            {
+                Pickupable p = Inventory.main.GetHeld();
+                if (p == null)
+                    return;
+
+                TechType tt = CraftData.GetTechType(p.gameObject);
+                //AddDebug("lights TechType " + tt);
+                if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
+                    return;
+
+                Light[] lights = p.GetComponentsInChildren<Light>();
+                //AddDebug("lights.Length  " + lights.Length);
+                if (lights.Length == 0 || !lights[0].gameObject.activeInHierarchy)
+                    return;
+
+                if (!lightIntensityStep.ContainsKey(tt))
+                {
+                    AddDebug("lightIntensityStep missing " + tt);
+                    return;
+                }
+                if (!lightOrigIntensity.ContainsKey(tt))
+                {
+                    AddDebug("lightOrigIntensity missing " + tt);
+                    return;
+                }
+                float origIntensity = lightOrigIntensity[tt];
+                Flare flare = p.GetComponent<Flare>();
+                if (flare && flare.flareActivateTime == 0)
+                    return;
+
+                float step = lightIntensityStep[tt];
+                foreach (Light l in lights)
+                {
+                    if (!reduce)
+                    {
+                        if (l.intensity + step > origIntensity)
+                            l.intensity = origIntensity;
+                        else
+                            l.intensity += step;
+                    }
+                    else // light intensity will not go below 0
+                        l.intensity -= step;
+
+                    if (flare)
+                        flare.originalIntensity = l.intensity;
+
+                    //AddDebug("Light Intensity " + l.intensity.ToString("0.0"));
+                    SaveLightIntensity(tt, l.intensity);
+                }
+            }
+
+            [HarmonyPrefix, HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
                 if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(lightButton))
                 {
-                    Pickupable p = Inventory.main.GetHeld();
-                    if (p == null)
-                        return true;
-
-                    Light[] lights = p.GetComponentsInChildren<Light>();
-                    //AddDebug("lights.Length  " + lights.Length);
-                    if (lights.Length == 0)
-                    {
-                        //AddDebug("lights.Length == 0 ");
-                        return true;
-                    }
-                    TechType tt = CraftData.GetTechType(p.gameObject);
-                    if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
-                        return true;
-
-                    if (!lightIntensityStep.ContainsKey(tt))
-                    {
-                        AddDebug("lightIntensityStep missing " + tt);
-                        return false;
-                    }
-                    if (!lightOrigIntensity.ContainsKey(tt))
-                    {
-                        AddDebug("lightOrigIntensity missing " + tt);
-                        return false;
-                    }
-                    //float origIntensity = Tools_Patch.lightOrigIntensity[CraftData.GetTechType(p.gameObject)];
-                    //float step = origIntensity / 15f;
-                    Flare flare = p.GetComponent<Flare>();
-                    if (flare && flare.flareActivateTime == 0)
-                        return true;
-
-                    foreach (Light l in lights)
-                    {
-                        l.intensity -= lightIntensityStep[tt];
-                        //AddDebug("Light Intensity Down " + l.intensity);
-                        //AddDebug("Light Intensity Step " + Tools_Patch.lightIntensityStep[tt]);
-                        SaveLightIntensity(tt, l.intensity);
-                        if (flare)
-                        {
-                            Flare_Patch.intensityChanged = true;
-                            Flare_Patch.originalIntensity = l.intensity;
-                            Flare_Patch.halfOrigIntensity = Flare_Patch.originalIntensity * .5f;
-                        }
-                    }
+                    HandleLight(true);
                     return false;
                 }
                 return true;

@@ -21,6 +21,9 @@ namespace Tweaks_Fixes
         public static void TryRemoveCorpses()
         {
             //AddDebug("TryRemoveCorpses " + creatureDeathsToDestroy.Count);
+            if (ConfigToEdit.removeDeadCreaturesOnLoad.Value == false)
+                return;
+
             foreach (var cd in creatureDeathsToDestroy)
             {
                 Pickupable pickupable = cd.GetComponent<Pickupable>();
@@ -28,13 +31,12 @@ namespace Tweaks_Fixes
                 {
                     if (pickupable._isInSub || pickupable.inventoryItem != null)
                     { // dont remove dead fish from containers
-                        //AddDebug("try RemoveCorpse inventoryItem " + cd.name);
+                      //AddDebug("try RemoveCorpse inventoryItem " + cd.name);
                         continue;
                     }
                 }
                 //AddDebug("RemoveCorpse " + cd.name);
-                if (ConfigToEdit.removeDeadCreaturesOnLoad.Value)
-                    UnityEngine.Object.Destroy(cd.gameObject);
+                UnityEngine.Object.Destroy(cd.gameObject);
             }
         }
 
@@ -64,12 +66,11 @@ namespace Tweaks_Fixes
         [HarmonyPrefix, HarmonyPatch("RemoveCorpse")]
         static bool RemoveCorpsePrefix(CreatureDeath __instance)
         {
-            if (!Main.gameLoaded)
-            {
-                creatureDeathsToDestroy.Add(__instance);
-                return false;
-            }
-            return true;
+            if (Main.gameLoaded)
+                return true;
+
+            creatureDeathsToDestroy.Add(__instance);
+            return false;
         }
         //[HarmonyPostfix]
         //[HarmonyPatch("SpawnRespawner")]

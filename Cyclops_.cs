@@ -16,16 +16,7 @@ namespace Tweaks_Fixes
         //static float vertSpeedMult = .5f;
         //static float backwardSpeedMult = .5f;
 
-        static void SetCyclopsMotorMode(CyclopsMotorModeButton instance, CyclopsMotorMode.CyclopsMotorModes motorMode)
-        {
-            if (motorMode == instance.motorModeIndex)
-            {
-                instance.SendMessageUpwards("ChangeCyclopsMotorMode", instance.motorModeIndex, SendMessageOptions.RequireReceiver);
-                instance.image.sprite = instance.activeSprite;
-            }
-            else
-                instance.image.sprite = instance.inactiveSprite;
-        }
+
 
         static void AddCyclopsCollisionExclusion(GameObject go)
         {
@@ -202,17 +193,6 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch("OnProtoSerialize")]
-            public static void OnProtoSerializePostfix(SubRoot __instance)
-            {
-                CyclopsMotorMode cyclopsMotorMode = __instance.GetComponent<CyclopsMotorMode>();
-                if (cyclopsMotorMode)
-                {
-                    Main.configMain.SaveSubThrottleIndex(__instance.gameObject, (int)cyclopsMotorMode.cyclopsMotorMode);
-                }
-            }
-
-            [HarmonyPostfix]
             [HarmonyPatch("ForceLightingState")]
             public static void ForceLightingStatePostfix(SubRoot __instance, bool lightingOn)
             {
@@ -222,23 +202,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CyclopsMotorModeButton), "Start")]
-        class CyclopsMotorModeButton_Start_Patch
-        {
-            public static void Postfix(CyclopsMotorModeButton __instance)
-            {
-                GameObject root = __instance.transform.parent.parent.parent.parent.parent.gameObject;
-                if (root.name == "__LIGHTMAPPED_PREFAB__")
-                    return;
-                //Main.logger.LogMessage("CyclopsMotorModeButton Start " + __instance.transform.parent.parent.parent.parent.parent.name);
-                int throttleIndex = Main.configMain.GetSubThrottleIndex(root);
-                if (throttleIndex != -1)
-                {
-                    //AddDebug("restore  subThrottleIndex");
-                    SetCyclopsMotorMode(__instance, (CyclopsMotorMode.CyclopsMotorModes)throttleIndex);
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(CyclopsSonarCreatureDetector), "OnEnable")]
         class CyclopsSonarCreatureDetector_OnEnable_Patch
@@ -690,7 +653,7 @@ namespace Tweaks_Fixes
 
                 if (__instance.engineOverheatValue > 50)
                 {
-                    int fireChance = UnityEngine.Random.Range(0, __instance.engineOverheatValue + 50);
+                    int fireChance = UnityEngine.Random.Range(0, __instance.engineOverheatValue + 51);
                     fireChance = Mathf.Clamp(fireChance, 0, 100);
                     int fireCheck = 100 - ConfigMenu.cyclopsFireChance.Value;
                     //AddDebug("fireChance " + fireChance);

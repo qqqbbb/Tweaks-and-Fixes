@@ -7,31 +7,27 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {   // not tested with more than 1 grav trap
-
-    //[HarmonyPatch(typeof(GasPod))]
-    class GasPod_Patch
-    {
-        //[HarmonyPatch(nameof(GasPod.OnDrop))]
-        public static void Prefix(GasPod __instance)
-        {
-            if (Gravsphere_Patch.gasPods.Contains(__instance))
-            {
-                //AddDebug("GasPod.OnDrop ");
-                Gravsphere_Patch.gasPods.Remove(__instance);
-                __instance.grabbedByPropCannon = false;
-            }
-        }
-    }
-
     [HarmonyPatch(typeof(Gravsphere))]
     public class Gravsphere_Patch
     {
-        static public Gravsphere gravSphere;
+        static public HashSet<Gravsphere> gravSpheres = new HashSet<Gravsphere>();
         static public HashSet<Pickupable> gravSphereFish = new HashSet<Pickupable>();
         static public HashSet<GasPod> gasPods = new HashSet<GasPod>();
-        //static public HashSet<Pickupable> gravSphereFish = new HashSet<Pickupable>();
         static public HashSet<TechType> gravTrappable = new HashSet<TechType>();
 
+        [HarmonyPrefix, HarmonyPatch("OnDropped")]
+        public static void OnDropped(Gravsphere __instance)
+        {
+            AddDebug("OnDropped  ");
+            gravSpheres.Add(__instance);
+        }
+
+        [HarmonyPostfix, HarmonyPatch("OnPickedUp")]
+        public static void OnPickedUp(Gravsphere __instance)
+        {
+            AddDebug("OnPickedUp  ");
+            gravSpheres.Remove(__instance);
+        }
 
         [HarmonyPostfix, HarmonyPatch(nameof(Gravsphere.IsValidTarget))]
         public static void IsValidTarget(Gravsphere __instance, GameObject obj, ref bool __result)
@@ -47,7 +43,6 @@ namespace Tweaks_Fixes
         [HarmonyPostfix, HarmonyPatch(nameof(Gravsphere.AddAttractable))]
         public static void AddAttractable(Gravsphere __instance, Rigidbody r)
         {
-            gravSphere = __instance;
             GasPod gp = r.gameObject.GetComponent<GasPod>();
             if (gp)
             {
@@ -74,11 +69,11 @@ namespace Tweaks_Fixes
             {
                 gp.grabbedByPropCannon = false;
             }
-            gasPods = new HashSet<GasPod>();
-            gravSphereFish = new HashSet<Pickupable>();
+            gasPods.Clear();
+            gravSphereFish.Clear();
         }
 
-        [HarmonyPrefix, HarmonyPatch(nameof(Gravsphere.OnTriggerEnter))]
+        [HarmonyPrefix, HarmonyPatch("OnTriggerEnter")]
         public static bool OnTriggerEnter(Gravsphere __instance, Collider collider)
         {
             InventoryItem item = Inventory.main.quickSlots.heldItem;
@@ -97,11 +92,14 @@ namespace Tweaks_Fixes
             {
                 if (gravSphereFish.Contains(__instance))
                 {
-                    int num = gravSphere.attractableList.IndexOf(__instance.GetComponent<Rigidbody>());
-                    if (num == -1)
-                        return;
-                    //AddDebug("Pick up gravSphere");
-                    gravSphere.removeList.Add(num);
+                    foreach (var gravSphere in gravSpheres)
+                    {
+                        int num = gravSphere.attractableList.IndexOf(__instance.GetComponent<Rigidbody>());
+                        if (num == -1)
+                            return;
+                        //AddDebug("Pick up gravSphere");
+                        gravSphere.removeList.Add(num);
+                    }
                 }
             }
         }

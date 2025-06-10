@@ -147,26 +147,19 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
             {
-                Pickupable pickupable = item.item;
-                TechType tt = pickupable.GetTechType();
-                if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
+                if (__result == ItemAction.Eat)
                 {
-                    if (__result == ItemAction.Eat && pickupable.GetComponent<Eatable>())
-                    {
+                    if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
                         __result = ItemAction.None;
-                        return;
-                    }
                 }
-                if (tt == TechType.FirstAidKit && __result == ItemAction.Use)
+                else if (__result == ItemAction.Use)
                 {
-                    if (ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater())
+                    TechType tt = item.item.GetTechType();
+                    if (tt == TechType.FirstAidKit && ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater())
                     {
                         __result = ItemAction.None;
                         return;
                     }
-                    LiveMixin liveMixin = Player.main.GetComponent<LiveMixin>();
-                    if (liveMixin.maxHealth - liveMixin.health < 0.01f)
-                        __result = ItemAction.None;
                 }
             }
         }

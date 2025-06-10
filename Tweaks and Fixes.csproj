@@ -112,6 +112,7 @@
     <Compile Include="CreatureDeath_.cs" />
     <Compile Include="Cyclops_Doors.cs" />
     <Compile Include="ConfigMenu.cs" />
+    <Compile Include="Cyclops_Movement.cs" />
     <Compile Include="Cyclops_unpowered.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
     <Compile Include="Knife_Patch.cs" />
@@ -133,7 +134,7 @@
     <Compile Include="Locker_Door_Anim.cs" />
     <Compile Include="Inventory_Patch.cs" />
     <Compile Include="Planter_Patch.cs" />
-    <Compile Include="Geyser_Patch.cs" />
+    <Compile Include="Geyser_.cs" />
     <Compile Include="Scanner_Patch.cs" />
     <Compile Include="Sound_Patch.cs" />
     <Compile Include="Cyclops_Collision.cs" />
@@ -146,9 +147,9 @@
     <Compile Include="PDA_Clock_.cs" />
     <Compile Include="Spawnables.cs" />
     <Compile Include="Plant_Patch.cs" />
-    <Compile Include="Flare_Patch.cs" />
+    <Compile Include="Flare_.cs" />
     <Compile Include="Decoy_Patch.cs" />
-    <Compile Include="Fragment_Patch.cs" />
+    <Compile Include="Fragment_.cs" />
     <Compile Include="Creature_Aggression.cs" />
     <Compile Include="Coffee_.cs" />
     <Compile Include="Gravsphere_Patch.cs" />

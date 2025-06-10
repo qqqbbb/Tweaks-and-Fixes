@@ -8,16 +8,11 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Fragment_Patch
+    class Fragment_
     {
-
         static bool IsFragmentCrate(Transform transform)
         {
-            if (transform.name.EndsWith("InCrate(Clone)") || transform.name.EndsWith("Fragment(Clone)"))
-            {
-                return true;
-            }
-            return false;
+            return transform.name.EndsWith("InCrate(Clone)") || transform.name.EndsWith("Fragment(Clone)");
         }
 
         [HarmonyPatch(typeof(ResourceTracker), "Start")]

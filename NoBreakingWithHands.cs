@@ -63,9 +63,6 @@ namespace Tweaks_Fixes
             if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
-            if (!ConfigToEdit.newUIstrings.Value)
-                return false;
-
             Knife knife = Inventory.main.GetHeldTool() as Knife;
             if (knife)
             {

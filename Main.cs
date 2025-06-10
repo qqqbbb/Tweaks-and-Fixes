@@ -14,7 +14,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 using UWE;
@@ -28,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.25.1";
+            VERSION = "3.26.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -61,8 +60,8 @@ namespace Tweaks_Fixes
             Crush_Damage_.extraCrushDepth = 0;
             Crush_Damage_.crushDamageResistance = 0;
             Cyclops_.collidersInSub.Clear();
-            Geyser_Patch.eruptionForce.Clear();
-            Geyser_Patch.rotationForce.Clear();
+            Geyser_.eruptionForce.Clear();
+            Geyser_.rotationForce.Clear();
             Gravsphere_Patch.gasPods.Clear();
             Gravsphere_Patch.gravSphereFish.Clear();
             Decoy_Patch.decoysToDestroy.Clear();
@@ -81,6 +80,7 @@ namespace Tweaks_Fixes
             Drop_items_anywhere.droppedInEscapePod.Clear();
             Player_.healTime = 0;
             Poison_Damage.ResetVars();
+            Cyclops_unpowered.poweredSubs.Clear();
             configMain.Load();
         }
 

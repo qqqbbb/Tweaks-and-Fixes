@@ -277,11 +277,10 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnUpdate")]
+            [HarmonyPostfix, HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
             {
-                if (!ConfigToEdit.newUIstrings.Value || !Main.gameLoaded)
+                if (!Main.gameLoaded)
                     return;
 
                 PlayerTool tool = __instance.GetTool();
@@ -315,7 +314,7 @@ namespace Tweaks_Fixes
                             text = lightFlareString;
 
                         if (!lit && GameInput.GetButtonDown(GameInput.Button.AltTool))
-                            Flare_Patch.LightFlare(flare);
+                            Flare_.LightFlare(flare);
 
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
                     }
@@ -561,9 +560,6 @@ namespace Tweaks_Fixes
                     TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonBattery"));
                 else if (techType == TechType.PrecursorIonPowerCell)
                     TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonPowerCell"));
-
-                //if (!ConfigToEdit.newUIstrings.Value)
-                //    return;
 
                 if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.Vanilla && fishTechTypes.Contains(techType) && GameModeUtils.RequiresSurvival())
                 {

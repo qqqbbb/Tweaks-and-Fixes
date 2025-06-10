@@ -130,7 +130,7 @@ namespace Tweaks_Fixes
 
                 if (__instance.targetType == EcoTargetType.Shark && __instance.myTechType != TechType.Crash && __instance.myTechType != TechType.Mesmer && ConfigMenu.aggrMult.Value > 1f && Player.main.CanBeAttacked() && __instance.creature.GetCanSeeObject(Player.mainObject))
                 {
-                    int rnd = UnityEngine.Random.Range(101, 200);
+                    int rnd = UnityEngine.Random.Range(101, 201);
                     if (ConfigMenu.aggrMult.Value * 100f >= rnd)
                     {
                         //AddDebug(__instance.myTechType + " GetAggressionTarget Player ");

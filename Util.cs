@@ -357,7 +357,7 @@ namespace Tweaks_Fixes
             else
                 fl = ((float)value - (float)min) / (float)oldRange;
 
-            return fl;
+            return Mathf.Clamp01(fl);
         }
 
         public static float NormalizeTo01range(float value, float min, float max)
@@ -370,7 +370,7 @@ namespace Tweaks_Fixes
             else
                 fl = ((float)value - (float)min) / (float)oldRange;
 
-            return fl;
+            return Mathf.Clamp01(fl);
         }
 
         public static int NormalizeToRange(int value, int oldMin, int oldMax, int newMin, int newMax)

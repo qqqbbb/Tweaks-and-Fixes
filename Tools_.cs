@@ -36,8 +36,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PlayerTool))]
         public class PlayerTool_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPrefix, HarmonyPatch("Awake")]
             public static void AwakePrefix(PlayerTool __instance)
             {
                 Light[] lights = __instance.GetComponentsInChildren<Light>(true);
@@ -54,14 +53,13 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnDraw")]
+            [HarmonyPostfix, HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (tt == TechType.Spadefish)
+                if (tt == TechType.Spadefish && Util.IsDead(__instance.gameObject))
                 {
-                    //AddDebug("spadefish");
+                    //AddDebug("dead spadefish");
                     Vector3 pos = __instance.transform.localPosition;
                     __instance.transform.localPosition = new Vector3(pos.x -= .07f, pos.y += .03f, pos.z += .07f);
                     return;
@@ -72,9 +70,13 @@ namespace Tweaks_Fixes
                     //AddDebug(tt + " Lights " + lights.Length);
                     float intensity = Light_Control.GetLightIntensity(tt);
                     foreach (Light l in lights)
-                    {
                         l.intensity = intensity;
-                        //AddDebug("Light Intensity Down " + l.intensity);
+
+                    if (__instance is Flare)
+                    {
+                        Flare flare = __instance as Flare;
+                        flare.originalIntensity = intensity;
+                        //AddDebug($"OnDraw Flare Intensity {intensity} originalIntensity {flare.originalIntensity}");
                     }
                 }
                 //LEDLight ledLight = __instance as LEDLight;
@@ -82,8 +84,7 @@ namespace Tweaks_Fixes
                 //    ledLight.SetLightsActive(Main.config.LEDLightWorksInHand);
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("GetCustomUseText")]
+            [HarmonyPostfix, HarmonyPatch("GetCustomUseText")]
             public static void GetCustomUseTextPostfix(PlayerTool __instance, ref string __result)
             {
                 if (__instance is StasisRifle)
@@ -98,13 +99,10 @@ namespace Tweaks_Fixes
             }
         }
 
-
-
         [HarmonyPatch(typeof(MapRoomCamera))]
         class MapRoomCamera_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("ControlCamera")]
+            [HarmonyPostfix, HarmonyPatch("ControlCamera")]
             private static void ControlCameraPostfix(MapRoomCamera __instance)
             {
                 //AddDebug("MapRoomCamera ControlCamera");
@@ -117,8 +115,7 @@ namespace Tweaks_Fixes
                         l.intensity = intensity;
                 }
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("FreeCamera")]
+            [HarmonyPostfix, HarmonyPatch("FreeCamera")]
             private static void FreeCameraPostfix(MapRoomCamera __instance)
             {
                 Light_Control.currentLights[0] = null;
@@ -129,8 +126,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Beacon))]
         class Beacon_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             static void StartPostfix(Beacon __instance)
             {
                 Transform label = __instance.transform.Find("label");
