@@ -292,39 +292,45 @@ namespace Tweaks_Fixes
                 //    AddDebug("craftingMenu " + uGUI._main.craftingMenu.selected);
                 if (tool)
                 {
-                    Flare flare = tool as Flare;
                     InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
-                    if (flare && !Main.flareRepairLoaded)
+                    if (!Main.flareRepairLoaded && ConfigToEdit.flareTweaks.Value)
                     {
-                        bool lit = flare.flareActivateTime > 0;
-                        bool canThrow = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
-                        //AddDebug("CanDropItemHere " + canThrow);
-                        string text = string.Empty;
-                        //string throwFlare = lit ? Main.config.throwFlare : Main.config.lightAndThrowFlare;
-                        if (!lit && canThrow)
+                        Flare flare = tool as Flare;
+                        if (flare)
                         {
-                            StringBuilder stringBuilder = new StringBuilder(lightAndThrowFlareString);
-                            stringBuilder.Append(",  ");
-                            stringBuilder.Append(lightFlareString);
-                            text = stringBuilder.ToString();
+                            bool lit = flare.flareActivateTime > 0;
+                            bool canThrow = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
+                            //AddDebug("CanDropItemHere " + canThrow);
+                            string text = string.Empty;
+                            //string throwFlare = lit ? Main.config.throwFlare : Main.config.lightAndThrowFlare;
+                            if (!lit && canThrow)
+                            {
+                                StringBuilder stringBuilder = new StringBuilder(lightAndThrowFlareString);
+                                stringBuilder.Append(",  ");
+                                stringBuilder.Append(lightFlareString);
+                                text = stringBuilder.ToString();
+                            }
+                            else if (lit && canThrow)
+                                text = throwFlareString;
+                            else if (!lit && !canThrow)
+                                text = lightFlareString;
+
+                            if (!lit && GameInput.GetButtonDown(GameInput.Button.AltTool))
+                                Flare_.LightFlare(flare);
+
+                            HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
                         }
-                        else if (lit && canThrow)
-                            text = throwFlareString;
-                        else if (!lit && !canThrow)
-                            text = lightFlareString;
-
-                        if (!lit && GameInput.GetButtonDown(GameInput.Button.AltTool))
-                            Flare_.LightFlare(flare);
-
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
                     }
-                    Beacon beacon = tool as Beacon;
-                    if (beacon && beacon.beaconLabel)
+                    if (ConfigToEdit.beaconTweaks.Value)
                     {
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, beaconToolString);
-                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                        Beacon beacon = tool as Beacon;
+                        if (beacon && beacon.beaconLabel)
                         {
-                            uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
+                            HandReticle.main.SetTextRaw(HandReticle.TextType.Use, beaconToolString);
+                            if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                            {
+                                uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
+                            }
                         }
                     }
                     DeployableStorage ds = tool as DeployableStorage;
@@ -416,14 +422,17 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetText(HandReticle.TextType.Hand, name, true);
                     }
                 }
-                Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
-                if (flareTarget && Mathf.Approximately(flareTarget.energyLeft, 0f))
+                if (ConfigToEdit.flareTweaks.Value)
                 {
-                    //AddDebug("activeTarget Flare");
-                    StringBuilder sb = new StringBuilder(Language.main.Get("TF_burnt_out_flare"));
-                    sb.Append(Language.main.Get(targetTT));
-                    //HandReticle.main.SetInteractTextRaw(sb.ToString(), string.Empty);
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, sb.ToString(), false);
+                    Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
+                    if (flareTarget && Mathf.Approximately(flareTarget.energyLeft, 0f))
+                    {
+                        //AddDebug("activeTarget Flare");
+                        StringBuilder sb = new StringBuilder(Language.main.Get("TF_burnt_out_flare"));
+                        sb.Append(Language.main.Get(targetTT));
+                        //HandReticle.main.SetInteractTextRaw(sb.ToString(), string.Empty);
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, sb.ToString(), false);
+                    }
                 }
             }
 
@@ -533,7 +542,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
             {
-                if (!ConfigToEdit.newUIstrings.Value)
+                if (!ConfigToEdit.flareTweaks.Value)
                     return;
 
                 Flare flare = obj.GetComponent<Flare>();

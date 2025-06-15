@@ -139,6 +139,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> poisonFoodDamage;
         public static ConfigEntry<bool> flareFlicker;
         public static ConfigEntry<bool> propulsionCannonTweaks;
+        public static ConfigEntry<bool> beaconTweaks;
+        public static ConfigEntry<bool> flareTweaks;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -291,7 +293,9 @@ namespace Tweaks_Fixes
             permPoisonDamage = Main.configToEdit.Bind("PLAYER", "Permanent poison damage percent", 0, new ConfigDescription("If this is more than 0 you will take not temporary but permanent health damage when poisoned. For example if this is 90, you will lose 0.9 health permanantly for every point of poison damage.", percentRange));
             poisonFoodDamage = Main.configToEdit.Bind("PLAYER", "Poison food damage percent", 0, new ConfigDescription("If this is more than 0 you will lose food or water instead of taking temporary health damage when poisoned. For example if this is 90, you will lose 0.9 food or water for every point of poison damage.", percentRange));
             flareFlicker = Main.configToEdit.Bind("TOOLS", "Flare light flickering", true, "");
-            propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "");
+            propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "Improvements to propulsion cannon UI prompts. Ability ot eat fish you are holding with propulsion cannon. When grabbing and holding table coral with propulsion cannon, you can put it in inventory. Your propulsion cannon will break outcrop when you try to grab it. Propulsion cannon can grab fruits on plants ");
+            beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
+            flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it.");
 
 
 

@@ -180,13 +180,10 @@ namespace Tweaks_Fixes
             //AddDebug("Vehicle OnPilotModeEnd " + currentLights.Length);
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnHandHover")]
+        [HarmonyPostfix, HarmonyPatch("OnHandHover")]
         public static void OnHandHoverPostfix(Vehicle __instance)
         {
-            if (!ConfigToEdit.newUIstrings.Value)
-                return;
-            //AddDebug("SeaMoth_patch.seamothName " + SeaMoth_patch.seamothName);
+            //AddDebug("onGround " + __instance.onGround);
             //EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
             if (__instance.onGround && !Inventory.main.GetHeld() && __instance is SeaMoth && !__instance.docked && !Player.main.IsSwimming())
             {

@@ -16,13 +16,13 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     public class ConfigMain : JsonFile
-    { // dont save enums, nautilus throws exc with certain mods 
+    { // dont save enums, nautilus throws exc with some mods 
         public ConfigMain()
         {
-            this.Load();
         }
 
         public override string JsonFilePath => Paths.ConfigPath + Path.DirectorySeparatorChar + Main.MODNAME + Path.DirectorySeparatorChar + "config.json";
+        // Main. SaveData()
         public Screen_Resolution_Fix.ScreenRes screenRes;
         public Dictionary<string, HashSet<string>> cyclopsFloodLights = new Dictionary<string, HashSet<string>>();
         public Dictionary<string, HashSet<string>> cyclopsLighting = new Dictionary<string, HashSet<string>>();

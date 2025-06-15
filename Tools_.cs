@@ -135,20 +135,24 @@ namespace Tweaks_Fixes
                     if (__instance.beaconLabel.stringBeaconSubmit.IsNullOrWhiteSpace())
                         __instance.beaconLabel.stringBeaconSubmit = Language.main.Get("BeaconSubmit");
 
-                    BoxCollider boxCollider = label.GetComponent<BoxCollider>();
-                    if (boxCollider)
-                        //    UnityEngine.Object.Destroy(boxCollider);
-                        //AddDebug("Beacon Start  label");
-                        label.gameObject.SetActive(false);
+                    if (ConfigToEdit.beaconTweaks.Value)
+                    {
+                        BoxCollider boxCollider = label.GetComponent<BoxCollider>();
+                        if (boxCollider)
+                            //    UnityEngine.Object.Destroy(boxCollider);
+                            //AddDebug("Beacon Start  label");
+                            label.gameObject.SetActive(false);
+                    }
                 }
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("Throw")]
+            [HarmonyPostfix, HarmonyPatch("Throw")]
             static void ThrowPostfix(Beacon __instance)
             {
-                // x and z do not matter, it will stabilize itself
-                __instance.gameObject.transform.rotation = Camera.main.transform.rotation;
-                __instance.transform.Rotate(0f, 180f, 0f);
+                if (ConfigToEdit.beaconTweaks.Value)
+                {
+                    __instance.gameObject.transform.rotation = Camera.main.transform.rotation;
+                    __instance.transform.Rotate(0f, 180f, 0f); // x and z do not matter, it will stabilize itself
+                }
             }
         }
 
@@ -165,15 +169,13 @@ namespace Tweaks_Fixes
                 return volume > stasisSphereVolume;
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("EnableField")]
+            //[HarmonyPostfix,HarmonyPatch("EnableField")]
             private static void EnableFieldPostfix(StasisSphere __instance)
             {
 
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("LateUpdate")]
+            [HarmonyPrefix, HarmonyPatch("LateUpdate")]
             private static bool LateUpdatePrefix(StasisSphere __instance)
             {
                 //if (!Main.config.stasisRifleTweak)
@@ -189,8 +191,7 @@ namespace Tweaks_Fixes
                 return true;
             }
 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("LateUpdate")]
+            //[HarmonyPrefix,HarmonyPatch("LateUpdate")]
             private static bool LateUpdatePrefix_OLD(StasisSphere __instance)
             {
                 //if (!Main.config.stasisRifleTweak)
@@ -363,8 +364,7 @@ namespace Tweaks_Fixes
                 //    Player.main.rigidBody.isKinematic = false;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             private static void AwakePostfix(StasisSphere __instance)
             {
                 stasisTargets = __instance.targets;
@@ -409,8 +409,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Seaglide))]
         class Seaglide_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(Seaglide __instance)
             {// fires after onLightsToggled
                 //Main.logger.LogMessage("Seaglide Start lightsActive " + __instance.toggleLights.lightsActive);
@@ -426,8 +425,7 @@ namespace Tweaks_Fixes
                 //seaglideMap = __instance.GetComponent<VehicleInterface_MapController>();
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnHolster")]
+            [HarmonyPostfix, HarmonyPatch("OnHolster")]
             public static void OnHolsterPostfix(Seaglide __instance)
             { // fires when saving, after nautilus SaveEvent
               //AddDebug("Seaglide OnHolster " + __instance.toggleLights.lightsActive);
@@ -596,49 +594,6 @@ namespace Tweaks_Fixes
                 {
                     __result = false;
                 }
-            }
-        }
-
-        //[HarmonyPatch(typeof(VFXController))]
-        class VFXController_SpawnFX_Patch
-        {
-            //[HarmonyPrefix]
-            //[HarmonyPatch("Play")]
-            static bool PlayPostfix(VFXController __instance, int i)
-            {
-
-                return false;
-            }
-
-            //[HarmonyPrefix]
-            //[HarmonyPatch("SpawnFX")]
-            static bool SpawnFXPrefix(VFXController __instance, int i)
-            {
-                if (__instance.emitters[i].fx == null)
-                    return false;
-
-                Transform parent = __instance.emitters[i].parented ? __instance.emitters[i].parentTransform : __instance.transform;
-                GameObject gameObject = Utils.SpawnPrefabAt(__instance.emitters[i].fx, parent, parent.position);
-                //AddDebug("SpawnFX " + gameObject.name);
-                if (__instance.emitters[i].fakeParent && __instance.emitters[i].parented)
-                {
-                    gameObject.AddComponent<VFXFakeParent>().Parent(__instance.emitters[i].parentTransform, __instance.emitters[i].posOffset, __instance.emitters[i].eulerOffset);
-                }
-                else
-                {
-                    gameObject.transform.localEulerAngles = __instance.emitters[i].eulerOffset;
-                    gameObject.transform.localPosition = __instance.emitters[i].posOffset;
-                }
-                if (__instance.emitters[i].lateTime)
-                    gameObject.AddComponent<VFXLateTimeParticles>();
-
-                if (!__instance.emitters[i].parented)
-                    gameObject.transform.parent = null;
-
-                __instance.emitters[i].instanceGO = gameObject;
-                __instance.emitters[i].fxPS = gameObject.GetComponent<ParticleSystem>();
-                gameObject.SetActive(true);
-                return false;
             }
         }
 

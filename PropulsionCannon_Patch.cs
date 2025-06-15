@@ -196,8 +196,6 @@ namespace Tweaks_Fixes
                     //}
                 }
             }
-
-
         }
 
         [HarmonyPatch(typeof(PropulsionCannon))]
@@ -266,7 +264,6 @@ namespace Tweaks_Fixes
                 //    AddDebug("TraceForGrabTargetPostfix fruitPlant ");
 
                 PickPrefab pickPrefab = go.GetComponent<PickPrefab>();
-
                 if (pickPrefab)
                 {
                     //AddDebug("TraceForGrabTargetPostfix PickPrefab " + pickPrefab.pickTech);

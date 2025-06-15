@@ -34,23 +34,23 @@
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\0Harmony.dll</HintPath>
+      <HintPath>..\..\..\DLL\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Assembly-CSharp-firstpass_publicized.dll</HintPath>
+      <HintPath>..\..\..\DLL\Assembly-CSharp-firstpass_publicized.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Assembly-CSharp_publicized.dll</HintPath>
+      <HintPath>..\..\..\DLL\Assembly-CSharp_publicized.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx, Version=5.4.22.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\BepInEx.dll</HintPath>
+      <HintPath>..\..\..\DLL\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="FMODUnity, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\FMODUnity.dll</HintPath>
+      <HintPath>..\..\..\DLL\FMODUnity.dll</HintPath>
     </Reference>
     <Reference Include="Nautilus, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -60,48 +60,50 @@
     <Reference Include="System.Core" />
     <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Unity.Addressables.dll</HintPath>
+      <HintPath>..\..\..\DLL\Unity.Addressables.dll</HintPath>
     </Reference>
     <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Unity.ResourceManager.dll</HintPath>
+      <HintPath>..\..\..\DLL\Unity.ResourceManager.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\Unity.TextMeshPro.dll</HintPath>
+      <HintPath>..\..\..\DLL\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\DLL\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>..\..\..\DLL\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\..\DLL\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>..\..\..\DLL\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.ParticleSystemModule">
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.ParticleSystemModule.dll</HintPath>
+    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL\UnityEngine.ParticleSystemModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>..\..\..\DLL\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>..\..\..\DLL\UnityEngine.UIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.VRModule">
-      <HintPath>..\..\..\..\..\Games\STEAM\steamapps\common\SN\DLL\UnityEngine.VRModule.dll</HintPath>
+      <HintPath>..\..\..\DLL\UnityEngine.VRModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -151,7 +153,7 @@
     <Compile Include="Decoy_Patch.cs" />
     <Compile Include="Fragment_.cs" />
     <Compile Include="Creature_Aggression.cs" />
-    <Compile Include="Coffee_.cs" />
+    <Compile Include="CoffeeMaker.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
     <Compile Include="Pickupable_Patch.cs" />
     <Compile Include="Oxygen_Patch.cs" />

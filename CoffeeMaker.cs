@@ -8,7 +8,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Coffee_
+    class CoffeeMaker
     {
         static Vector3 coffeeMugScale = new Vector3(.7f, .7f, .7f);
         enum MugsInCoffeeMaker { None, Left, Right, Both }

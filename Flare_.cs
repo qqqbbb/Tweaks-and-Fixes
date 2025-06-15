@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
             flare.light.enabled = true;
             flare.isLightFadinfIn = true;
             //flare.isThrowing = true;
-            flare.hasBeenThrown = true;
+            flare.hasBeenThrown = true;// removing cap animation will not play when throwing
             flare.flareActivateTime = DayNightCycle.main.timePassedAsFloat;
             flare.flareActiveState = true;
             flare.throwDuration = .1f;
