@@ -198,52 +198,12 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        //[HarmonyPatch(typeof(SeaTreaderMeleeAttack))]
-        class AnteChamber_Patch
+        //[HarmonyPatch(typeof(Player), "OnTakeDamage")]
+        class Player_OnTakeDamage_Patch
         {
-            //[HarmonyPostfix, HarmonyPatch("OnAttackTriggerEnter")]
-            static void StartPostfix(SeaTreaderMeleeAttack __instance, Collider collider)
+            static void Postfix(Player __instance, DamageInfo damageInfo)
             {
-                //AddDebug("SeaTreaderMeleeAttack OnAttackTriggerEnter " + collider.name);
-            }
-            //[HarmonyPostfix, HarmonyPatch("GetCanAttack")]
-            static void OnCrystalScanBeginPostfix(SeaTreaderMeleeAttack __instance, GameObject otherGameObject, ref bool __result)
-            {
-                if (otherGameObject != Player.mainObject)
-                    return;
-
-                if (__result)
-                {
-                    AddDebug("SeaTreaderMeleeAttack GetCanAttack Player !");
-                    return;
-                }
-                AddDebug("SeaTreaderMeleeAttack onSurface " + __instance.treader.onSurfaceTracker.onSurface);
-                //AddDebug("SeaTreaderMeleeAttack cinematicMode " + __instance.treader.cinematicMode);
-                //AddDebug("SeaTreaderMeleeAttack attackInterval " + (Time.time > __instance.lastAttackTime + __instance.attackInterval));
-                //AddDebug("SeaTreaderMeleeAttack GetCanHit " + __instance.GetCanHit(otherGameObject));
-                //AddDebug("SeaTreaderMeleeAttack frozen " + __instance.frozen);
-                //AddDebug("SeaTreaderMeleeAttack frozen " + __instance.frozen);
-            }
-            //[HarmonyPostfix, HarmonyPatch("IsValidSurface")]
-            static void UpdatePillarPostfix(OnSurfaceTracker __instance, Collision collisionInfo)
-            {
-
-            }
-            //[HarmonyPostfix, HarmonyPatch("OnCrystalRestored")]
-            static void OnCrystalRestoredPostfix(AnteChamber __instance)
-            {
-                AddDebug("AnteChamber OnCrystalScanBegin");
-            }
-        }
-
-        //[HarmonyPatch(typeof(VFXVolumetricLight), "Awake")]
-        class VFXVolumetricLight_Awake_Patch
-        {
-            static void Postfix(VFXVolumetricLight __instance)
-            {
-                if (__instance.name == "x_FakeVolumletricLight")
-                    Main.logger.LogDebug("VFXVolumetricLight Awake " + __instance.range);
+                AddDebug($"OnTakeDamage {damageInfo.dealer.name}");
             }
         }
 
@@ -277,6 +237,7 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     PlayerTool tool = Inventory.main.GetHeldTool();
+                    //AddDebug("GetContinueMode " + Utils.GetContinueMode());
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
                     //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);

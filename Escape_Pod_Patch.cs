@@ -143,7 +143,7 @@ namespace Tweaks_Fixes
             static bool StartPrefix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget Start");
-                if (Main.configMain.pickedUpFireExt.Contains(SaveLoadManager.main.currentSlot))
+                if (Utils.GetContinueMode() && Main.configMain.pickedUpFireExt.Contains(SaveLoadManager.main.currentSlot))
                 {
                     __instance.extinguisherModel.SetActive(false);
                     UnityEngine.Object.Destroy(__instance.gameObject);

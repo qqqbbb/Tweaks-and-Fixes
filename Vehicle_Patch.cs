@@ -469,11 +469,11 @@ namespace Tweaks_Fixes
             string currentModuleName = Language.main.Get(currentModule);
             currentModuleName = currentModuleName.Replace(UI_Patches.seamothName, "");
             currentModuleName = currentModuleName.TrimStart();
-            currentModuleName = currentModuleName[0].ToString().ToUpper() + currentModuleName.Substring(1); // Uppercase first character
-            if (currentModule == TechType.SeamothElectricalDefense)
-                useButton = currentModuleName + Language.main.Get("TF_seamoth_defence_press") + UI_Patches.leftHandButton + Language.main.Get("TF_seamoth_defence_charge");
-            else
-                useButton = currentModuleName + " " + UI_Patches.leftHandButton;
+            currentModuleName = Util.UppercaseFirstCharacter(currentModuleName);
+            //if (currentModule == TechType.SeamothElectricalDefense)
+            //    useButton = currentModuleName + Language.main.Get("TF_seamoth_defence_press") + UI_Patches.leftHandButton + Language.main.Get("TF_seamoth_defence_charge");
+            //else
+            useButton = currentModuleName + " " + UI_Patches.leftHandButton;
 
             //AddDebug("OnUpgradeModuleToggle " + currentModule + " " + active);
             if (currentModule == TechType.SeamothTorpedoModule)
@@ -549,7 +549,7 @@ namespace Tweaks_Fixes
             }
             if (__instance.GetPilotingMode() && !__instance.ignoreInput)
             {
-                if (ConfigToEdit.newUIstrings.Value)
+                if (ConfigToEdit.vehicleUItweaks.Value)
                 {
                     //AddDebug(" new vehicle UI");
                     HandReticle.main.SetTextRaw(HandReticle.TextType.Use, useButton);
@@ -786,7 +786,7 @@ namespace Tweaks_Fixes
         {
             armName = armName.Replace(exosuitName, "");
             armName = armName.Trim();
-            armName = armName[0].ToString().ToUpper() + armName.Substring(1);
+            armName = Util.UppercaseFirstCharacter(armName);
             return armName;
         }
 
@@ -964,8 +964,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("UpdateUIText")]
         public static bool UpdateUITextPrefix(Exosuit __instance, bool hasPropCannon)
         {
-            //return false;
-            if (Main.vehicleLightsImprovedLoaded || !ConfigToEdit.newUIstrings.Value)
+            if (Main.vehicleLightsImprovedLoaded || !ConfigToEdit.vehicleUItweaks.Value)
                 return true;
 
             if (armNamesChanged || !__instance.hasInitStrings || __instance.lastHasPropCannon != hasPropCannon)

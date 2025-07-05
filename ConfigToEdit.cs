@@ -43,7 +43,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> silentReactor;
         public static ConfigEntry<bool> removeFragmentCrate;
         public static ConfigEntry<bool> creepvineLights;
-        public static ConfigEntry<bool> newUIstrings;
+        public static ConfigEntry<bool> vehicleUItweaks;
         public static ConfigEntry<bool> disableUseText;
         public static ConfigEntry<bool> craftWithoutBattery;
         public static ConfigEntry<bool> disableCyclopsProximitySensor;
@@ -141,6 +141,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> propulsionCannonTweaks;
         public static ConfigEntry<bool> beaconTweaks;
         public static ConfigEntry<bool> flareTweaks;
+        public static ConfigEntry<bool> stasisRifleTweaks;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -198,7 +199,7 @@ namespace Tweaks_Fixes
             silentReactor = Main.configToEdit.Bind("BASE", "Silent nuclear reactor", false);
             removeFragmentCrate = Main.configToEdit.Bind("FRAGMENTS", "Remove fragment crate", false, "When you scan a blueprint fragment, the crate holding the fragment will be removed if this is true.");
             creepvineLights = Main.configToEdit.Bind("PLANTS", "Real creepvine lights", true, "Creepvine seed cluster light intensity will depend on number of seed clusters on the vine if this is true.");
-            newUIstrings = Main.configToEdit.Bind("UI", "New UI text", true, "New UI elements added by the mod wil be disabled if this is false.");
+            vehicleUItweaks = Main.configToEdit.Bind("UI", "Vehicle UI tweaks", true, "Prompts for toggling lights in seamoth and prawn suit. Prompts for installed seamoth upgrade modules. Prompts for installed prawn suit arms. Ability to change current torpedo for seamoth and prawn suit.");
             newStorageUI = Main.configToEdit.Bind("UI", "New storage UI", true, "New UI for storage containers");
 
             disableUseText = Main.configToEdit.Bind("UI", "Disable quickslots text", false, "Text above your quickslots will be disabled if this is true.");
@@ -296,6 +297,7 @@ namespace Tweaks_Fixes
             propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "Improvements to propulsion cannon UI prompts. Ability ot eat fish you are holding with propulsion cannon. When grabbing and holding table coral with propulsion cannon, you can put it in inventory. Your propulsion cannon will break outcrop when you try to grab it. Propulsion cannon can grab fruits on plants ");
             beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
             flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it.");
+            stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "Prompt when stasis rifle is equipped.");
 
 
 

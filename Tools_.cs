@@ -87,7 +87,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("GetCustomUseText")]
             public static void GetCustomUseTextPostfix(PlayerTool __instance, ref string __result)
             {
-                if (__instance is StasisRifle)
+                if (ConfigToEdit.stasisRifleTweaks.Value && __instance is StasisRifle)
                 {
                     __result = UI_Patches.stasisRifleString;
                 }

@@ -128,7 +128,7 @@
     <Compile Include="PropulsionCannon_Patch.cs" />
     <Compile Include="Cutefish_Patch.cs" />
     <Compile Include="Constructor_.cs" />
-    <Compile Include="SeaTreader_Patch.cs" />
+    <Compile Include="SeaTreader_.cs" />
     <Compile Include="Silent_Creatures.cs" />
     <Compile Include="Start_Warning_Patch.cs" />
     <Compile Include="ConfigToEdit.cs" />
@@ -138,7 +138,7 @@
     <Compile Include="Planter_Patch.cs" />
     <Compile Include="Geyser_.cs" />
     <Compile Include="Scanner_Patch.cs" />
-    <Compile Include="Sound_Patch.cs" />
+    <Compile Include="Sounds.cs" />
     <Compile Include="Cyclops_Collision.cs" />
     <Compile Include="DayNightCycle_.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
@@ -185,6 +185,7 @@
     <Compile Include="ConfigMain.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Localization\Chinese %28Simplified%29.json" />
     <None Include="Localization\French.json" />
     <None Include="Localization\German.json" />
     <None Include="Localization\Russian.json" />

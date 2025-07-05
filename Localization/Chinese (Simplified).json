@@ -1,0 +1,26 @@
+﻿{
+  "TF_toggle_base_lights": "开关基地灯光",
+  "TF_crush_depth_equipment": "提升安全下潜深度 ",
+  "TF_crush_damage_equipment": "减少水压伤害 ",
+  "TF_meters": " 米。",
+  "TF_mass": "质量 ",
+  "TF_kg": " 千克",
+  "TF_throw_flare": "丢弃照明弹",
+  "TF_light_and_throw_flare": "点燃并投掷照明弹",
+  "TF_light_flare": "点燃照明弹",
+  "TF_burnt_out_flare": "已燃尽的 ",
+  "TF_lit_flare": "已点燃的 ",
+  "TF_push_seamoth": "推动海蛾号",
+  "TF_need_knife_to_break_outcrop": "需要小刀来开采",
+  "TF_need_knife_to_break_free_resource": "需要小刀来采集资源",
+  "TF_seamoth_defence_press": "。按住 ",
+  "TF_seamoth_defence_charge": " 进行充能",
+  "TF_change_torpedo": " 切换鱼雷类型 ",
+  "TF_swivel_chair_left": "向左旋转座椅",
+  "TF_swivel_chair_right": "向右旋转座椅",
+  "TF_bladderfish_tooltip": " 生食可补充少量氧气。",
+  "TF_propulsion_cannon_release": "释放 ",
+  "TF_VehicleArmorPlating_install_message": "物理伤害将减少至70%",
+  "TF_too_much_weight_message": "你携带的物品过重"
+
+}

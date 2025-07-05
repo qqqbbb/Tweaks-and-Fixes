@@ -5,7 +5,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class Sound_Patch
+    internal class Sounds
     {
 
         [HarmonyPatch(typeof(FMOD_CustomEmitter), "Play")]

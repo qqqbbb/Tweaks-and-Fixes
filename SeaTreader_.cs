@@ -8,10 +8,10 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class SeaTreader_Patch
+    internal class SeaTreader_
     {
-        static bool seaTreaderSoundsOnStep;
-        static bool seaTreaderSoundsOnStomp;
+        static bool seaTreaderStep;
+        static bool seaTreaderStomp;
 
         [HarmonyPatch(typeof(SeaTreaderMeleeAttack), "GetCanAttack")]
         class SeaTreaderMeleeAttack_GetCanAttack_Patch
@@ -30,20 +30,20 @@ namespace Tweaks_Fixes
             public static void OnStepPrefix(SeaTreaderSounds __instance)
             {
                 if (ConfigToEdit.seaTreaderOutcropMult.Value < 100)
-                    seaTreaderSoundsOnStep = true;
+                    seaTreaderStep = true;
             }
             [HarmonyPrefix, HarmonyPatch("OnStomp")]
             public static void OnStompPrefix(SeaTreaderSounds __instance)
             {
                 if (ConfigToEdit.seaTreaderAttackOutcropMult.Value < 100)
-                    seaTreaderSoundsOnStomp = true;
+                    seaTreaderStomp = true;
             }
             [HarmonyPrefix, HarmonyPatch("SpawnChunks")]
             public static bool SpawnChunksPrefix(SeaTreaderSounds __instance)
             {
-                if (seaTreaderSoundsOnStomp)
+                if (seaTreaderStomp)
                 {
-                    seaTreaderSoundsOnStomp = false;
+                    seaTreaderStomp = false;
                     int rnd = UnityEngine.Random.Range(1, 101);
                     if (ConfigToEdit.seaTreaderAttackOutcropMult.Value < rnd)
                     {
@@ -51,9 +51,9 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                else if (seaTreaderSoundsOnStep)
+                else if (seaTreaderStep)
                 {
-                    seaTreaderSoundsOnStep = false;
+                    seaTreaderStep = false;
                     int rnd = UnityEngine.Random.Range(1, 101);
                     if (ConfigToEdit.seaTreaderOutcropMult.Value < rnd)
                     {

@@ -560,6 +560,10 @@ namespace Tweaks_Fixes
             return largeWorld && Player.main ? largeWorld.GetBiome(Player.main.transform.position) : "<unknown>";
         }
 
+        public static string UppercaseFirstCharacter(string s)
+        {
+            return s[0].ToString().ToUpper() + s.Substring(1);
+        }
 
     }
 }
