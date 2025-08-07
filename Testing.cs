@@ -149,6 +149,17 @@ namespace Tweaks_Fixes
         }
 
 
+        //[HarmonyPatch(typeof(RadiatePlayerInRange), "Radiate")]
+        class RadiatePlayerInRange_Radiate_patch
+        {
+            public static void Postfix(RadiatePlayerInRange __instance)
+            {
+                AddDebug("RadiatePlayerInRange Radiate " + __instance.name);
+
+            }
+        }
+
+
         //[HarmonyPatch(typeof(Survival), "UpdateStats")]
         public static class UpdateStatsPatch
         {
@@ -198,14 +209,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Player), "OnTakeDamage")]
-        class Player_OnTakeDamage_Patch
-        {
-            static void Postfix(Player __instance, DamageInfo damageInfo)
-            {
-                AddDebug($"OnTakeDamage {damageInfo.dealer.name}");
-            }
-        }
+
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
@@ -586,5 +590,14 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(ExampleClass), MethodType.Constructor)]
+        //[HarmonyPatch(new Type[] { typeof(int) })]
+        //class ExampleClassConstructorPatch
+        //{
+        //    static void Postfix(int value)
+        //    {
+        //        Console.WriteLine($"Postfix: {value}");
+        //    }
+        //}
     }
 }

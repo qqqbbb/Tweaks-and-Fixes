@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 using UWE;
+using static DebugTargetConsoleCommand;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -154,8 +155,8 @@ namespace Tweaks_Fixes
                     __instance.transform.Rotate(0f, 180f, 0f); // x and z do not matter, it will stabilize itself
                 }
             }
-        }
 
+        }
         [HarmonyPatch(typeof(StasisSphere))]
         class StasisSphere_Patch
         {

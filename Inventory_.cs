@@ -2,12 +2,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class Inventory_Patch
+    internal class Inventory_
     {
         static InventoryItem selectedItem;
         public static GameInput.Button transferAllItemsButton;
@@ -86,7 +85,7 @@ namespace Tweaks_Fixes
             LiveMixin liveMixin = go.GetComponent<LiveMixin>();
             if (liveMixin == null || liveMixin.IsAlive())
                 return;
-            // removing CreatureDeath fixes equipped dead fish moving up
+            // removing CreatureDeath fixes equipped dead fish moving up in player hand
             foreach (Type componentType in componentsToRemoveFromDeadCreature)
             {
                 Component component = go.GetComponent(componentType);
@@ -98,8 +97,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Inventory))]
         class Inventory_Patch_
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnAddItem")]
+            [HarmonyPostfix, HarmonyPatch("OnAddItem")]
             public static void OnAddItemPostfix(Inventory __instance, InventoryItem item)
             {
                 if (!Main.gameLoaded && item.item.GetComponent<Creature>())
@@ -127,8 +125,26 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
+            [HarmonyPostfix, HarmonyPatch("GetItemAction")]
+            static void GetItemActionPostfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
+            {
+                if (__result == ItemAction.Eat)
+                {
+                    if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
+                        __result = ItemAction.None;
+                }
+                else if (__result == ItemAction.Use && ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater())
+                {
+                    if (item.item.GetTechType() == TechType.FirstAidKit)
+                    {
+                        __result = ItemAction.None;
+                        return;
+                    }
+                }
+            }
 
         }
+
 
         [HarmonyPatch(typeof(GamepadInputModule))]
         class GamepadInputModule_Patch

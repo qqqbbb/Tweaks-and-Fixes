@@ -142,6 +142,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> beaconTweaks;
         public static ConfigEntry<bool> flareTweaks;
         public static ConfigEntry<bool> stasisRifleTweaks;
+        //public static ConfigEntry<bool> gasopodsInStasisDontDropGaspods;
+        public static ConfigEntry<bool> coralShellPlateGivesTableCoral;
+
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -160,7 +163,7 @@ namespace Tweaks_Fixes
             alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
 
             dontSpawnKnownFragments = Main.configToEdit.Bind("FRAGMENTS", "Do not spawn fragments for unlocked blueprints", false);
-            cantScanExosuitClawArm = Main.configToEdit.Bind("FRAGMENTS", "Unlock prawn suit only by scanning prawn suit", true, "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arm fragments.");
+            cantScanExosuitClawArm = Main.configToEdit.Bind("FRAGMENTS", "Unlock prawn suit only by scanning prawn suit", false, "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arm fragments.");
             mapRoomFreeCameras = Main.configToEdit.Bind("BASE", "Free camera drones for scanner room", true, "Scanner room will be built without camera drones if this is false.");
             decoyRequiresSub = Main.configToEdit.Bind("ITEMS", "Creature decoy does not work when dropped from inventory", false);
             noKillParticles = Main.configToEdit.Bind("CREATURES", "No yellow cloud particle effect when creature dies", false);
@@ -296,8 +299,10 @@ namespace Tweaks_Fixes
             flareFlicker = Main.configToEdit.Bind("TOOLS", "Flare light flickering", true, "");
             propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "Improvements to propulsion cannon UI prompts. Ability ot eat fish you are holding with propulsion cannon. When grabbing and holding table coral with propulsion cannon, you can put it in inventory. Your propulsion cannon will break outcrop when you try to grab it. Propulsion cannon can grab fruits on plants ");
             beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
-            flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it.");
-            stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "Prompt when stasis rifle is equipped.");
+            flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it. This setting will be disabled if 'Flare repair' mod is installed.");
+            stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "Prompt when stasis rifle is equipped. Gasopods do not drop gas pods when in stasis field. Gas pods do not explode when in stasis field.");
+            //gasopodsInStasisDontDropGaspods = Main.configToEdit.Bind("CREATURES", "Gasopods do not drop gas pods when in stasis field", true, "");
+            coralShellPlateGivesTableCoral = Main.configToEdit.Bind("PLANTS", "Coral Shell Plate gives Table Coral Sample", false, "When you destroy Coral Shell Plate you will get Table Coral Sample instead of Coral Tube Sample");
 
 
 
@@ -474,11 +479,11 @@ namespace Tweaks_Fixes
             Player_Movement.groundSpeedEquipment = Parse01floatDicFromString(groundSpeedEquipment.Value);
             Crush_Damage_.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
             Crush_Damage_.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
-            Pickupable_Patch.itemMass = ParseFloatDicFromString(itemMass.Value);
-            Pickupable_Patch.unmovableItems = ParseSetFromString(unmovableItems.Value);
+            Pickupable_.itemMass = ParseFloatDicFromString(itemMass.Value);
+            Pickupable_.unmovableItems = ParseSetFromString(unmovableItems.Value);
             Gravsphere_Patch.gravTrappable = ParseSetFromString(gravTrappable.Value);
             Silent_Creatures.silentCreatures = ParseSetFromString(silentCreatures.Value);
-            Pickupable_Patch.shinies = ParseSetFromString(stalkerPlayThings.Value);
+            Pickupable_.shinies = ParseSetFromString(stalkerPlayThings.Value);
             LargeWorldEntity_Patch.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
             LargeWorldEntity_Patch.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
             Escape_Pod_Patch.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
@@ -489,8 +494,8 @@ namespace Tweaks_Fixes
             Battery_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
 
             Creatures.bloodColor = ParseColor(bloodColor.Value);
-            Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
-            Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
+            Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_.transferAllItemsButton);
+            Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_.transferSameItemsButton);
             Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
             Enum.TryParse(lightButton.Value.ToString(), out Light_Control.lightButton);
             //Main.logger.LogDebug("transferAllItemsButton " + Inventory_Patch.transferAllItemsButton);

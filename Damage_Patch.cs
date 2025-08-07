@@ -324,7 +324,6 @@ namespace Tweaks_Fixes
                     __result *= ConfigMenu.drillDamageMult.Value;
                     //AddDebug("CalculateDamage Drill");
                 }
-                Vehicle vehicle = target.GetComponent<Vehicle>();
                 if (target == Player.mainObject)
                 {
                     __result *= ConfigMenu.playerDamageMult.Value;
@@ -343,11 +342,10 @@ namespace Tweaks_Fixes
                             }
                         }
                     }
-                    //if (Main.config.newPoisonSystem && type == DamageType.Poison)
-                    //{
-                    //}
+                    return;
                 }
-                else if (vehicle)
+                Vehicle vehicle = target.GetComponent<Vehicle>();
+                if (vehicle)
                 {
                     //AddDebug("Vehicle takes damage");
                     if (type == DamageType.Normal || type == DamageType.Pressure || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture)
@@ -477,6 +475,9 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Start")]
             static void StartPostfix(Drillable __instance)
             {
+                if (ConfigMenu.drillDamageMult.Value == 1)
+                    return;
+
                 for (int index = 0; index < __instance.health.Length; ++index)
                 {
                     __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
@@ -486,6 +487,9 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Restore")]
             static void RestorePostfix(Drillable __instance)
             {
+                if (ConfigMenu.drillDamageMult.Value == 1)
+                    return;
+
                 for (int index = 0; index < __instance.health.Length; ++index)
                 {
                     __instance.health[index] /= ConfigMenu.drillDamageMult.Value;

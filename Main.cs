@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "3.28.0";
+            VERSION = "3.29.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -81,6 +81,8 @@ namespace Tweaks_Fixes
             Player_.healTime = 0;
             Poison_Damage.ResetVars();
             Cyclops_unpowered.poweredSubs.Clear();
+            Pickupable_.beacons.Clear();
+            Precurcor_Patch.used.Clear();
             configMain.Load();
         }
 
@@ -218,8 +220,8 @@ namespace Tweaks_Fixes
             ConfigToEdit.Bind();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
-            CraftData.harvestOutputList[TechType.CoralShellPlate] = TechType.JeweledDiskPiece;
-            SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup);
+            //SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup);
+            WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
             //SaveUtils.RegisterOnSaveEvent(TestSave);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
@@ -230,6 +232,8 @@ namespace Tweaks_Fixes
             OptionsPanelHandler.RegisterModOptions(options);
             AddTechTypesToClassIDtable();
             configMain.Load();
+            if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
+                CraftData.harvestOutputList[TechType.CoralShellPlate] = TechType.JeweledDiskPiece;
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
@@ -241,7 +245,11 @@ namespace Tweaks_Fixes
             //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
             Logger.LogInfo($"Plugin {GUID} {VERSION} is loaded ");
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
+            //WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LateLoad());
+            //WaitScreenHandler.RegisterLoadTask(MODNAME, task => Load());
+            //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => EarlyLoad());
         }
+
 
         private void Start()
         {
@@ -259,9 +267,10 @@ namespace Tweaks_Fixes
             cyclopsOverheatLoaded = Chainloader.PluginInfos.ContainsKey("CyclopsOverheat");
             torpedoImprovementsLoaded = Chainloader.PluginInfos.ContainsKey("com.TorpedoImprovements.mod");
             aggressiveFaunaLoaded = Chainloader.PluginInfos.ContainsKey("com.lee23.aggressivefauna");
+            //com.github.tinyhoot.DeathrunRemade
 
             //foreach (KeyValuePair<string, PluginInfo> plugin in Chainloader.PluginInfos)
-            //logger.LogInfo(plugin.Key + " loaded Mod " + metadata.GUID);
+            //    logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.GUID);
         }
 
         private static void AddTechTypesToClassIDtable()

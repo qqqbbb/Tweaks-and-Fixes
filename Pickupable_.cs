@@ -8,18 +8,19 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Pickupable_Patch
+    class Pickupable_
     {
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> shinies = new HashSet<TechType>();
         public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
-        static FMODAsset eatSound;
+        public static Dictionary<Pickupable, Beacon> beacons = new Dictionary<Pickupable, Beacon>();
+
+
 
         [HarmonyPatch(typeof(Pickupable))]
         public class Pickupable_Patch_
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             static void AwakePostfix(Pickupable __instance)
             {
                 //AddDebug(" Pickupable Awake " + __instance.name);
@@ -30,7 +31,12 @@ namespace Tweaks_Fixes
                 //    rb.drag = 1;
                 //    rb.angularDrag = 1;
                 //}
-
+                if (ConfigToEdit.beaconTweaks.Value)
+                {
+                    Beacon beacon = __instance.GetComponent<Beacon>();
+                    if (beacon)
+                        beacons.Add(__instance, beacon);
+                }
                 TechType tt = __instance.GetTechType();
                 if (unmovableItems.Contains(tt))
                 { // isKinematic gets saved
@@ -63,15 +69,13 @@ namespace Tweaks_Fixes
 
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnHandClick")]
+            //[HarmonyPostfix, HarmonyPatch("OnHandClick")]
             static void OnHandClickPostfix(Pickupable __instance, GUIHand hand)
             {
                 AddDebug("Pickupable OnHandClick");
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnHandHover")]
+            [HarmonyPostfix, HarmonyPatch("OnHandHover")]
             public static void OnHandHoverPostfix(Pickupable __instance, GUIHand hand)
             {
                 if (!hand.IsFreeToInteract())
@@ -79,20 +83,13 @@ namespace Tweaks_Fixes
 
                 //if (!__instance.AllowedToPickUp())
                 //    return;
-
-                TechType techType = __instance.GetTechType();
-                if (techType == TechType.Beacon)
+                if (ConfigToEdit.beaconTweaks.Value && beacons.ContainsKey(__instance))
                 {
-                    //AddDebug("Beacon ");
-                    Beacon beacon = __instance.GetComponent<Beacon>();
-                    if (beacon)
-                    {
-                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                            uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
-
-                        HandReticle.main.SetText(HandReticle.TextType.Hand, UI_Patches.beaconPickString, false);
-                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, beacon.beaconLabel.labelName, false);
-                    }
+                    Beacon beacon = beacons[__instance];
+                    HandReticle.main.SetText(HandReticle.TextType.Hand, UI_Patches.beaconPickString, false);
+                    HandReticle.main.SetText(HandReticle.TextType.HandSubscript, beacon.beaconLabel.labelName, false);
+                    if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                        uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
                 }
             }
 
@@ -104,12 +101,14 @@ namespace Tweaks_Fixes
 
                 //if (!__instance.AllowedToPickUp())
                 //    return false;
+                if (Player.main.currentMountedVehicle == null)
+                    return true;
 
                 Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
                 if (exosuit)
                 {
                     bool hasClawArm = exosuit.leftArmType == TechType.ExosuitClawArmModule || exosuit.rightArmType == TechType.ExosuitClawArmModule;
-
+                    // fix bug: button prompt shown below crosshair when prop arm equipped
                     if (!hasClawArm)
                         return false;
                 }
@@ -117,52 +116,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(BeaconLabel))]
-        class BeaconLabel_Patch
-        {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
-            static void StartPostfix(BeaconLabel __instance)
-            {
-                Collider collider = __instance.GetComponent<Collider>();
-                if (collider)
-                    UnityEngine.Object.Destroy(collider);
-            }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnPickedUp")]
-            static bool OnPickedUpPrefix(BeaconLabel __instance)
-            {
-                return false;
-            }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnDropped")]
-            static bool OnDroppedPrefix(BeaconLabel __instance)
-            {
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Inventory), "GetItemAction")]
-        class Inventory_GetUseItemAction_Patch
-        {
-            static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
-            {
-                if (__result == ItemAction.Eat)
-                {
-                    if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
-                        __result = ItemAction.None;
-                }
-                else if (__result == ItemAction.Use)
-                {
-                    TechType tt = item.item.GetTechType();
-                    if (tt == TechType.FirstAidKit && ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater())
-                    {
-                        __result = ItemAction.None;
-                        return;
-                    }
-                }
-            }
-        }
 
 
     }

@@ -7,7 +7,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class Cutefish_Patch
+    internal class Cutefish_
     {
         [HarmonyPatch(typeof(CuteFishHandTarget))]
         class CuteFishHandTarget_patch

@@ -1,10 +1,10 @@
 ﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using System.Text;
+using UnityEngine;
 using static ErrorMessage;
 using static Tweaks_Fixes.Locker_Door_Anim;
 
@@ -116,7 +116,7 @@ namespace Tweaks_Fixes
             yield return new WaitUntil(() => Main.gameLoaded == true);
             //Main.logger.LogMessage("AddLabel 1 " + door.name);
             //AddDebug("AddLabel  " + locker.name + " " + type);
-            TaskResult <GameObject> result = new TaskResult<GameObject>();
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
             yield return CraftData.InstantiateFromPrefabAsync(TechType.Sign, result);
             GameObject sign = result.Get();
             //AddDebug("AddLabel sign " + sign.name);
@@ -151,12 +151,12 @@ namespace Tweaks_Fixes
                 tr = sign.transform.Find("UI/Base/Plus");
                 tr.localPosition = new Vector3(tr.localPosition.x + 130f, tr.localPosition.y - 320f, tr.localPosition.z);
             }
-            else if (type == DoorType.CyclopsLocker) 
+            else if (type == DoorType.CyclopsLocker)
             {
                 sign.transform.localPosition = new Vector3(-.03f, -.37f, .45f);
                 sign.transform.localEulerAngles = new Vector3(0f, 80f, 90f);
             }
-            else if (type == DoorType.DecoLocker) 
+            else if (type == DoorType.DecoLocker)
             {
                 sign.transform.localPosition = new Vector3(-.31f, -.02f, .45f);
                 sign.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
@@ -280,13 +280,13 @@ namespace Tweaks_Fixes
                     FPModel fPModel = __instance.GetComponent<FPModel>();
                     if (fPModel)
                         fPModel.SetState(false);
-                    
+
                     //Transform tpm = __instance.transform.Find("3rd_person_model");
                     //Transform fpm = __instance.transform.Find("1st_person_model");
                     //if (tpm && fpm)
                     //{
-                        //fpm.gameObject.SetActive(false);
-                        //tpm.gameObject.SetActive(true);
+                    //fpm.gameObject.SetActive(false);
+                    //tpm.gameObject.SetActive(true);
                     //}
                 }
                 //Transform label = __instance.transform.Find("LidLabel");
@@ -305,7 +305,7 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("OnPickedUp")]
             static void OnPickedUpPostfix(DeployableStorage __instance)
             { // does not run during loading if in inventory
-   
+
                 Transform label = __instance.transform.Find("LidLabel");
                 if (label)
                 {
@@ -369,44 +369,44 @@ namespace Tweaks_Fixes
                 //    AddDebug(__instance.name + "  OnConstructedChanged  ");
                 //if (__instance.transform.parent)
                 //    AddDebug(__instance.name + "  OnConstructedChanged parent  " + __instance.transform.parent.name);
-                if (techTag)
-                {
-                    if (techTag.type == TechType.SmallLocker)
-                    {
-                        //AddDebug("StorageContainer CreateContainer " + __instance.prefabRoot.name);
-                        //if (Main.loadingDone && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
-                        { // collision does not match mesh. Can see it after fixing cyclops collision. move it so cant see it when outside
-                            //AddDebug("StorageContainer OnConstructedChanged parent " + __instance.transform.parent.name);
-                            //__instance.transform.position += __instance.transform.forward * .05f;
-                        }
-                        Transform label = __instance.transform.Find("Label");
-                        if (label)
-                        {
-                            Collider collider = label.GetComponent<Collider>();
-                            if (collider)
-                                UnityEngine.Object.Destroy(collider);
-                        }
-                    }
-                    else if (techTag.type == TechType.Locker && !Main.visibleLockerInteriorLoaded)
-                    {
-                        //Transform parent = __instance.transform.parent;
-                        if (parent && parent.name == "DecorativeLockerClosed(Clone)")
-                            return;
+                if (techTag == null)
+                    return;
 
-                        //Main.logger.LogMessage("StorageContainer CreateContainer " + __instance.prefabRoot.name);
-                        Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
-                        if (!labelledLockers.Contains(__instance) && doorRight)// parent is null when built
-                        {
-                            //Main.logger.LogMessage("StorageContainer CreateContainer found door " + __instance.prefabRoot.name);
-                            labelledLockers.Add(__instance);
-                            UWE.CoroutineHost.StartCoroutine(AddLabel(doorRight, 0, __instance.transform));
-                        }
+                if (techTag.type == TechType.SmallLocker)
+                {
+                    //AddDebug("StorageContainer CreateContainer " + __instance.prefabRoot.name);
+                    //if (Main.loadingDone && __instance.transform.parent && __instance.transform.parent.name == "Cyclops-MainPrefab(Clone)")
+                    { // collision does not match mesh. Can see it after fixing cyclops collision. move it so cant see it when outside
+                      //AddDebug("StorageContainer OnConstructedChanged parent " + __instance.transform.parent.name);
+                      //__instance.transform.position += __instance.transform.forward * .05f;
+                    }
+                    Transform label = __instance.transform.Find("Label");
+                    if (label)
+                    {
+                        Collider collider = label.GetComponent<Collider>();
+                        if (collider)
+                            UnityEngine.Object.Destroy(collider);
+                    }
+                }
+                else if (techTag.type == TechType.Locker && !Main.visibleLockerInteriorLoaded)
+                {
+                    //Transform parent = __instance.transform.parent;
+                    if (parent && parent.name == "DecorativeLockerClosed(Clone)")
+                        return;
+
+                    //Main.logger.LogMessage("StorageContainer CreateContainer " + __instance.prefabRoot.name);
+                    Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
+                    if (!labelledLockers.Contains(__instance) && doorRight)// parent is null when built
+                    {
+                        //Main.logger.LogMessage("StorageContainer CreateContainer found door " + __instance.prefabRoot.name);
+                        labelledLockers.Add(__instance);
+                        UWE.CoroutineHost.StartCoroutine(AddLabel(doorRight, 0, __instance.transform));
                     }
                 }
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch( "OnHandHover")]
+            [HarmonyPatch("OnHandHover")]
             static bool OnHandHoverPrefix(StorageContainer __instance, GUIHand hand)
             {
                 if (!ConfigToEdit.newStorageUI.Value)
@@ -502,7 +502,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-        
+
         [HarmonyPatch(typeof(Sign))]
         class Sign_Patch
         {
@@ -535,7 +535,7 @@ namespace Tweaks_Fixes
                     return true;
                 }
                 // dont allow fix from decorations mod to run. It removes text from my locker labels
-                return false; 
+                return false;
             }
         }
 
@@ -590,7 +590,7 @@ namespace Tweaks_Fixes
                 if (!ConfigToEdit.newStorageUI.Value)
                     return;
 
-                if ( __instance.constructedAmount == 0f)
+                if (__instance.constructedAmount == 0f)
                 {
                     if (__instance.techType == TechType.Locker || __instance.techType.ToString() == "DecorativeLockerClosed")
                     {
@@ -703,6 +703,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        enum DoorType {Locker, CyclopsLocker, DecoLocker }
+        enum DoorType { Locker, CyclopsLocker, DecoLocker }
     }
 }

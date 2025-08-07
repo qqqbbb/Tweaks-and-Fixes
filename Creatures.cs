@@ -243,7 +243,9 @@ namespace Tweaks_Fixes
             {
                 if (fishSBs.TryGetValue(__instance, out string s) || Util.IsEatableFish(__instance.gameObject))
                 {
-                    velocity *= ConfigMenu.fishSpeedMult.Value;
+                    if (ConfigMenu.fishSpeedMult.Value != 1)
+                        velocity *= ConfigMenu.fishSpeedMult.Value;
+
                     if (s == null)
                         fishSBs.Add(__instance, "");
                 }
@@ -252,10 +254,10 @@ namespace Tweaks_Fixes
                     velocity *= ConfigMenu.creatureSpeedMult.Value;
                     if (gasopodSBs.TryGetValue(__instance, out string ss) && targetPosition.y > -1f)
                     {
-                        targetPosition.y = UnityEngine.Random.Range(-11, 0);
+                        targetPosition.y = UnityEngine.Random.Range(-11, -1);
                         return;
                     }
-                    if (reefbackSBs.TryGetValue(__instance, out string sss) && targetPosition.y > -15f)
+                    else if (reefbackSBs.TryGetValue(__instance, out string sss) && targetPosition.y > -15f)
                     {
                         targetPosition.y = -15f;
                         return;
@@ -408,6 +410,9 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(GasoPod __instance)
             {
+                if (ConfigToEdit.stasisRifleTweaks.Value == false)
+                    return true;
+
                 Rigidbody rb;
                 if (objectsRBs.TryGetValue(__instance.gameObject, out rb))
                 {
@@ -444,6 +449,9 @@ namespace Tweaks_Fixes
             public static bool UpdatePrefix(GasPod __instance)
             {
                 if (__instance.detonated)
+                    return true;
+
+                if (ConfigToEdit.stasisRifleTweaks.Value == false)
                     return true;
 
                 Rigidbody rb;

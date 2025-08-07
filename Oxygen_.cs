@@ -8,12 +8,8 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Oxygen_Patch
+    class Oxygen_
     {
-        //static GameObject bubble;
-        //public static float extraBreathPeriod = 0f;
-        //public static float bubbleEndTime = 0f;
-
         public static void OnBrainCoralKill(CoralBlendWhite coralBlendWhite)
         {
             coralBlendWhite.killed = true;
@@ -67,15 +63,35 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(IntermittentInstantiate), "OnEnable")]
         class IntermittentInstantiate_OnEnable_Patch
         {
+            static float baseIntervalTime;
+            static float randomIntervalTime;
+
             public static void Postfix(IntermittentInstantiate __instance)
             {
                 if (__instance.GetComponent<BrainCoral>())
                 {
-                    __instance.baseIntervalTime /= __instance.numToInstantiate;
-                    __instance.randomIntervalTime /= __instance.numToInstantiate;
+                    //AddDebug("baseIntervalTime " + __instance.baseIntervalTime);
+                    //AddDebug("randomIntervalTime " + __instance.randomIntervalTime);
+                    //AddDebug("numToInstantiate " + __instance.numToInstantiate);
+                    if (baseIntervalTime == 0)
+                    {
+                        __instance.baseIntervalTime /= __instance.numToInstantiate;
+                        baseIntervalTime = __instance.baseIntervalTime;
+                    }
+                    else
+                        __instance.baseIntervalTime = baseIntervalTime;
+
+                    if (randomIntervalTime == 0)
+                    {
+                        __instance.randomIntervalTime /= __instance.numToInstantiate;
+                        randomIntervalTime = __instance.randomIntervalTime;
+                    }
+                    else
+                        __instance.randomIntervalTime = randomIntervalTime;
+
                     __instance.numToInstantiate = 1;
                     //extraBreathPeriod = __instance.baseIntervalTime + __instance.randomIntervalTime;
-                    //AddDebug("extraBreathPeriodDefault " + extraBreathPeriodDefault);
+
                 }
             }
         }
@@ -88,15 +104,15 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("GetOxygenPerBreath")]
             static void GetOxygenPerBreathPostfix(Player __instance, ref float __result, float breathingInterval, int depthClass)
             {// vanilla script returns wrong value at depth 200-100
-                __result = 0f;
                 if (GameModeUtils.RequiresOxygen())
                     __result = ConfigMenu.oxygenPerBreath.Value;
+                else
+                    __result = 0f;
                 //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
                 //AddDebug("GetOxygenPerBreath  " + __result);
                 //return false;
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("GetBreathPeriod")]
+            [HarmonyPrefix, HarmonyPatch("GetBreathPeriod")]
             static bool GetBreathPeriodPrefix(Player __instance, ref float __result)
             {
                 //AddDebug("depthLevel " + (int)__instance.depthLevel);
@@ -113,7 +129,7 @@ namespace Tweaks_Fixes
                 float depth = Mathf.Abs(__instance.depthLevel);
                 float mult = 1.5f / ConfigMenu.crushDepth.Value;
                 __result = breathPeriodMax - depth * mult;
-                // __result is negative when depth is 2x deeper than crushDepth
+                // fix negative __result when depth is 2x deeper than crushDepth
                 __result = Mathf.Clamp(__result, 0.1f, breathPeriodMax);
                 return false;
             }

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Tweaks_Fixes
 {
-    internal class Start_Warning_Patch
+    internal class Start_Warning
     {
         [HarmonyPatch(typeof(FlashingLightsDisclaimer))]
         class FlashingLightsDisclaimer_CanShow_Patch

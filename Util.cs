@@ -565,5 +565,16 @@ namespace Tweaks_Fixes
             return s[0].ToString().ToUpper() + s.Substring(1);
         }
 
+        public static GameObject FindChild(this GameObject parent, string name)
+        {
+            for (int index = 0; index < parent.transform.childCount; ++index)
+            {
+                Transform child = parent.transform.GetChild(index);
+                if (child.name == name)
+                    return child.gameObject;
+            }
+            return null;
+        }
+
     }
 }
