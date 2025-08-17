@@ -63,15 +63,15 @@ namespace Tweaks_Fixes
             pickupString = Language.main.Get("PickUp");
             pickupString = pickupString.Substring(0, pickupString.IndexOf('{')).Trim();
             changeTorpedoString = Language.main.Get("TF_change_torpedo");
-            rightHandButton = uGUI.FormatButton(GameInput.Button.RightHand);
-            leftHandButton = uGUI.FormatButton(GameInput.Button.LeftHand);
-            altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
-            cycleNextButton = uGUI.FormatButton(GameInput.Button.CycleNext);
-            cyclePrevButton = uGUI.FormatButton(GameInput.Button.CyclePrev);
-            deconstructButton = uGUI.FormatButton(GameInput.Button.Deconstruct);
-            moveDownButton = uGUI.FormatButton(GameInput.Button.MoveDown);
-            moveLeftButton = uGUI.FormatButton(GameInput.Button.MoveLeft);
-            moveRightButton = uGUI.FormatButton(GameInput.Button.MoveRight);
+            rightHandButton = GameInput.FormatButton(GameInput.Button.RightHand);
+            leftHandButton = GameInput.FormatButton(GameInput.Button.LeftHand);
+            altToolButton = GameInput.FormatButton(GameInput.Button.AltTool);
+            cycleNextButton = GameInput.FormatButton(GameInput.Button.CycleNext);
+            cyclePrevButton = GameInput.FormatButton(GameInput.Button.CyclePrev);
+            deconstructButton = GameInput.FormatButton(GameInput.Button.Deconstruct);
+            moveDownButton = GameInput.FormatButton(GameInput.Button.MoveDown);
+            moveLeftButton = GameInput.FormatButton(GameInput.Button.MoveLeft);
+            moveRightButton = GameInput.FormatButton(GameInput.Button.MoveRight);
             Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
             propCannonString = LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool);
             Exosuit_Patch.armNamesChanged = true;
@@ -93,8 +93,8 @@ namespace Tweaks_Fixes
             exosuitChangeRightTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + deconstructButton + ")";
             exosuitChangeBothTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + deconstructButton + ") (" + altToolButton + ")";
             //changeTorpedoExosuitButtonGamepad = Language.main.Get("TF_hold_button") + "(" + altToolButton + ")" + Language.main.Get("TF_press_button") + "(" + cycleNextButton + "), " + "(" + cyclePrevButton + ")" + Language.main.Get("TF_change_torpedo_");
-            slot1Button = "(" + uGUI.FormatButton(GameInput.Button.Slot1) + ")";
-            slot2Button = "(" + uGUI.FormatButton(GameInput.Button.Slot2) + ")";
+            slot1Button = "(" + GameInput.FormatButton(GameInput.Button.Slot1) + ")";
+            slot2Button = "(" + GameInput.FormatButton(GameInput.Button.Slot2) + ")";
             slot1Plus2Button = slot1Button + slot2Button;
             stasisRifleString = Language.main.Get("TF_seamoth_defence_press").Substring(1) + "(" + rightHandButton + ")" + Language.main.Get("TF_seamoth_defence_charge");
             scannerString = LanguageCache.GetButtonFormat("ScannerSelfScanFormat", GameInput.Button.AltTool);
@@ -238,7 +238,7 @@ namespace Tweaks_Fixes
                     foreach (var pair in __instance.inventory.items)
                     {
                         TechType tt = pair.Key.item.GetTechType();
-                        EquipmentType itemType = CraftData.GetEquipmentType(tt);
+                        EquipmentType itemType = TechData.GetEquipmentType(tt);
                         //AddDebug(pair.Key.item.GetTechType() + " " + itemType);
                         string slot = string.Empty;
                         if (equipment.GetCompatibleSlot(itemType, out slot))
@@ -463,12 +463,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(uGUI_PDA), "Update")]
+        //[HarmonyPatch(typeof(uGUI_PDA), "Update")]
         class uGUI_PDA_Update_Patch
         {
             public static void Postfix(uGUI_PDA __instance)
             {
-                if (!Main.gameLoaded || GameInput.lastDevice != GameInput.Device.Keyboard || IngameMenu.main.isActiveAndEnabled || !Player.main.pda.isOpen)
+                if (!Main.gameLoaded || GameInput.lastPrimaryDevice != GameInput.Device.Keyboard || IngameMenu.main.isActiveAndEnabled || !Player.main.pda.isOpen)
                     return;
 
                 if (Input.GetKeyDown(ConfigMenu.nextPDATabKey.Value))

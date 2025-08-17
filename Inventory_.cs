@@ -105,8 +105,8 @@ namespace Tweaks_Fixes
                 //Creature creature = item.item.GetComponent<Creature>();
                 //FixPeeperLOD(Creature peeper, bool alive = false)
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
             public static bool ExecuteItemActionPrefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
                 //AddDebug("ExecuteItemAction  " + item.techType);
@@ -115,7 +115,7 @@ namespace Tweaks_Fixes
                 if (Main.advancedInventoryLoaded || action != ItemAction.Switch || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
                     return true;
 
-                if (GameInput.lastDevice == GameInput.Device.Keyboard)
+                if (GameInput.lastPrimaryDevice == GameInput.Device.Keyboard)
                 {
                     if (Input.GetKey(ConfigMenu.transferSameItemsButton.Value))
                         return !MoveSameItems(item);
@@ -146,11 +146,11 @@ namespace Tweaks_Fixes
         }
 
 
-        [HarmonyPatch(typeof(GamepadInputModule))]
+        //[HarmonyPatch(typeof(GamepadInputModule))]
         class GamepadInputModule_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnUpdate")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GamepadInputModule __instance)
             {
                 if (Input.GetKeyDown(ConfigMenu.transferAllItemsButton.Value) || GameInput.GetButtonDown(transferAllItemsButton))

@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GameInput), "GetMoveDirection")]
         class GameInput_GetMoveDirection_Patch
         {
-            static void Postfix(GameInput __instance, ref Vector3 __result)
+            static void Postfix(ref Vector3 __result)
             {
                 if (!Main.gameLoaded || __result == Vector3.zero || moveDir == __result)
                     return;

@@ -129,12 +129,12 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.dropItemsOnDeath.ToModChoiceOption());
             AddItem(invMultWaterSlider);
             AddItem(invMultLandSlider);
-            AddItem(ConfigMenu.transferAllItemsButton.ToModKeybindOption());
-            AddItem(ConfigMenu.transferSameItemsButton.ToModKeybindOption());
-            AddItem(ConfigMenu.lightButton.ToModKeybindOption());
-            AddItem(ConfigMenu.quickslotButton.ToModKeybindOption());
-            AddItem(ConfigMenu.previousPDATabKey.ToModKeybindOption());
-            AddItem(ConfigMenu.nextPDATabKey.ToModKeybindOption());
+            //AddItem(ConfigMenu.transferAllItemsButton.ToModKeybindOption());
+            //AddItem(ConfigMenu.transferSameItemsButton.ToModKeybindOption());
+            //AddItem(ConfigMenu.lightButton.ToModKeybindOption());
+            //AddItem(ConfigMenu.quickslotButton.ToModKeybindOption());
+            //AddItem(ConfigMenu.previousPDATabKey.ToModKeybindOption());
+            //AddItem(ConfigMenu.nextPDATabKey.ToModKeybindOption());
 
         }
 

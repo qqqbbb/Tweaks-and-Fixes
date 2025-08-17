@@ -204,7 +204,13 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !ConfigMenu.newHungerSystem.Value && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200)
                     return true;
 
+                if (useObj == null)
+                    return false;
+
                 Eatable eatable = useObj.GetComponent<Eatable>();
+                if (eatable == null)
+                    return false;
+
                 int food = (int)eatable.foodValue;
                 int water = (int)eatable.waterValue;
                 int playerMinFood = ConfigMenu.newHungerSystem.Value ? -100 : 0;
@@ -319,7 +325,8 @@ namespace Tweaks_Fixes
                 else if (finalFood > 0 && __instance.food > warn && __instance.food - finalWater < warn)
                     __instance.vitalsOkNotification.Play();
 
-                FMODUWE.PlayOneShot(CraftData.GetUseEatSound(techType), Player.main.transform.position);
+                if (finalFood > 0 || finalWater > 0)
+                    FMODUWE.PlayOneShot(TechData.GetSoundUse(techType), Player.main.transform.position);
 
                 __result = true;
                 return false;
@@ -475,23 +482,6 @@ namespace Tweaks_Fixes
                     //    waterValueMult = 1f;
                     //    foodValueMult = 1f;
                     //}
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(Inventory), "ConsumeResourcesForRecipe")]
-        class Inventory_ConsumeResourcesForRecipe_patch
-        {
-            public static void Postfix(Inventory __instance, TechType techType)
-            {
-                ITechData techData = CraftData.Get(techType);
-                if (techData == null)
-                    return;
-                int index = 0;
-                for (int ingredientCount = techData.ingredientCount; index < ingredientCount; ++index)
-                {
-                    IIngredient ingredient = techData.GetIngredient(index);
-                    TechType ingredientTT = ingredient.techType;
                 }
             }
         }

@@ -44,7 +44,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\DLL\Assembly-CSharp_publicized.dll</HintPath>
     </Reference>
-    <Reference Include="BepInEx, Version=5.4.22.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="BepInEx, Version=5.4.23.3, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\DLL\BepInEx.dll</HintPath>
     </Reference>
@@ -191,19 +191,21 @@
     <None Include="Localization\Russian.json" />
     <None Include="Localization\English.json" />
     <None Include="Localization\Portuguese %28Brazil%29.json" />
-    <None Include="Localization\SpanishLatin America.json" />
+    <None Include="Localization\Spanish.json" />
+    <None Include="Localization\Spanish %28Latin America%29.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes"
-copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
-mkdir "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
-copy /Y "$(ProjectDir)\Localization\*.*" "C:\GAMES\Steam\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
+    <PostBuildEvent>mkdir "D:\SteamLibrary\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes"
+copy /Y "$(TargetPath)" "D:\SteamLibrary\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
+mkdir "D:\SteamLibrary\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
+copy /Y "$(ProjectDir)\Localization\*.*" "D:\SteamLibrary\steamapps\common\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
 	
 mkdir "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes"
 copy /Y "$(TargetPath)" "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
 mkdir "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
-copy /Y "$(ProjectDir)\Localization\*.*" "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"</PostBuildEvent>
+copy /Y "$(ProjectDir)\Localization\*.*" "C:\GAMES\Subnautica\BepInEx\plugins\TweaksAndFixes\Localization"
+</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

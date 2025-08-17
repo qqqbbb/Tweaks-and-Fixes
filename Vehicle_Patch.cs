@@ -915,7 +915,7 @@ namespace Tweaks_Fixes
                 if (GameInput.GetButtonDown(GameInput.Button.MoveDown))
                     ToggleLights(exosuit);
 
-                if (GameInput.lastDevice == GameInput.Device.Controller)
+                if (GameInput.lastPrimaryDevice == GameInput.Device.Controller)
                 {
                     bool leftTorpedo = HasMoreThan1TorpedoType(exosuit, torpedoStorageLeft);
                     bool rightTorpedo = HasMoreThan1TorpedoType(exosuit, torpedoStorageRight);
@@ -992,7 +992,7 @@ namespace Tweaks_Fixes
                 //AddDebug("__instance.sb Length" + __instance.sb.Length);
                 if (!Main.exosuitTorpedoDisplayLoaded)
                 {
-                    if (GameInput.lastDevice == GameInput.Device.Keyboard)
+                    if (GameInput.lastPrimaryDevice == GameInput.Device.Keyboard)
                     {
                         //AddDebug("UpdateUIText leftTorpedo HasMoreThan1TorpedoType " + leftTorpedo);
                         //AddDebug("UpdateUIText rightTorpedo HasMoreThan1TorpedoType " + rightTorpedo);
@@ -1015,7 +1015,7 @@ namespace Tweaks_Fixes
                             //__instance.sb.Append(UI_Patches.changeTorpedoExosuitButton);
                         }
                     }
-                    else if (GameInput.lastDevice == GameInput.Device.Controller)
+                    else if (GameInput.lastPrimaryDevice == GameInput.Device.Controller)
                     { // alt tool button used by prop arm
                         if (leftTorpedo || rightTorpedo)
                             __instance.sb.Append(UI_Patches.exosuitChangeRightTorpedoButton);

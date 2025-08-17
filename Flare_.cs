@@ -84,7 +84,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPrefix, HarmonyPatch("UpdateLight")]
+        //[HarmonyPrefix, HarmonyPatch("UpdateLight")]
         static bool UpdateLightPrefix(Flare __instance)
         {
             if (Main.flareRepairLoaded)

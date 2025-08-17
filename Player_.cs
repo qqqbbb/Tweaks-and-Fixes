@@ -56,10 +56,10 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded)
                     return;
 
-                if (__instance.currentMountedVehicle)
-                    Light_Control.UpdateLights();
-                else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
-                    Light_Control.UpdateLights();
+                //if (__instance.currentMountedVehicle)
+                //    Light_Control.UpdateLights();
+                //else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
+                //    Light_Control.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
                 if (ConfigMenu.crushDamage.Value > 0f && Crush_Damage_.crushInterval + crushTime < Time.time)
                 {

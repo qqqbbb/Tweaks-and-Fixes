@@ -99,10 +99,10 @@ namespace Tweaks_Fixes
             }
 
         }
-        [HarmonyPatch(typeof(QuickSlots))]
+        //[HarmonyPatch(typeof(QuickSlots))]
         class QuickSlots_Bind_Patch
         {
-            [HarmonyPrefix, HarmonyPatch("SlotNext")]
+            //[HarmonyPrefix, HarmonyPatch("SlotNext")]
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 //AddDebug("SlotNext");
@@ -166,7 +166,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPrefix, HarmonyPatch("SlotPrevious")]
+            //[HarmonyPrefix, HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
                 if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(lightButton))
@@ -179,11 +179,11 @@ namespace Tweaks_Fixes
 
         }
 
-        [HarmonyPatch(typeof(MapRoomScreen), "CycleCamera")]
+        //[HarmonyPatch(typeof(MapRoomScreen), "CycleCamera")]
         class MapRoomScreen_CycleCamera_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("CycleCamera")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("CycleCamera")]
             static bool CycleCameraPrefix(MapRoomScreen __instance, int direction)
             {
                 if (!Input.GetKey(ConfigMenu.lightButton.Value))

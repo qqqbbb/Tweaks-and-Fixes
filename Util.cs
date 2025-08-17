@@ -95,13 +95,13 @@ namespace Tweaks_Fixes
 
         public static IEnumerator Cook(GameObject go)
         {
-            TechType cookedData = CraftData.GetCookedData(CraftData.GetTechType(go.gameObject));
+            TechType cookedTT = TechData.GetProcessed(CraftData.GetTechType(go.gameObject));
             //Main.logger.LogDebug("CookFish " + go.name + " cookedData " + cookedData);
-            if (cookedData == TechType.None)
+            if (cookedTT == TechType.None)
                 yield break;
 
             TaskResult<GameObject> result = new TaskResult<GameObject>();
-            yield return CraftData.InstantiateFromPrefabAsync(cookedData, (IOut<GameObject>)result);
+            yield return CraftData.InstantiateFromPrefabAsync(cookedTT, (IOut<GameObject>)result);
             GameObject cooked = result.Get();
             cooked.transform.position = go.transform.position;
             cooked.transform.rotation = go.transform.rotation;
