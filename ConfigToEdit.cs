@@ -124,7 +124,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> disableExosuitSidestep;
         public static ConfigEntry<bool> exosuitThrusterWithoutLimit;
         public static ConfigEntry<bool> fixSeamothMove;
-        public static ConfigEntry<bool> fixCyclopsMove;
+        //public static ConfigEntry<bool> fixCyclopsMove;
         public static ConfigEntry<int> cyclopsVerticalSpeedMod;
         public static ConfigEntry<int> cyclopsBackwardSpeedMod;
         public static ConfigEntry<bool> alwaysSpawnWhenKnifeHarvesting;
@@ -144,6 +144,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> stasisRifleTweaks;
         //public static ConfigEntry<bool> gasopodsInStasisDontDropGaspods;
         public static ConfigEntry<bool> coralShellPlateGivesTableCoral;
+        //public static ConfigEntry<bool> analogCyclopsControls;
 
 
 
@@ -234,7 +235,7 @@ namespace Tweaks_Fixes
 
             cyclopsVerticalSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops vertical speed modifier", 0, "Cyclops speed will be reduced by this percent when moving up or down.");
             cyclopsBackwardSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops backward speed modifier", 0, "Cyclops speed will be reduced by this percent when moving backward.");
-            fixCyclopsMove = Main.configToEdit.Bind("CYCLOPS", "Fix cyclops diagonal movement", true, "Cyclops will not exceed its max speed and will not consume more power when moving diagonally.");
+            //fixCyclopsMove = Main.configToEdit.Bind("CYCLOPS", "Fix cyclops diagonal movement", true, "Cyclops will not exceed its max speed and will not consume more power when moving diagonally.");
             cyclopsFireMusic = Main.configToEdit.Bind("CYCLOPS", "Play dubsteppy music when cyclops engine is on fire", true);
 
 
@@ -303,6 +304,7 @@ namespace Tweaks_Fixes
             stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "Prompt when stasis rifle is equipped. Gasopods do not drop gas pods when in stasis field. Gas pods do not explode when in stasis field.");
             //gasopodsInStasisDontDropGaspods = Main.configToEdit.Bind("CREATURES", "Gasopods do not drop gas pods when in stasis field", true, "");
             coralShellPlateGivesTableCoral = Main.configToEdit.Bind("PLANTS", "Coral Shell Plate gives Table Coral Sample", false, "When you destroy Coral Shell Plate you will get Table Coral Sample instead of Coral Tube Sample");
+            //analogCyclopsControls = Main.configToEdit.Bind("CYCLOPS", "Analog cyclops controls", false, "Cyclops throttle and steering will use analog values from your controller stick if this is true");
 
 
 

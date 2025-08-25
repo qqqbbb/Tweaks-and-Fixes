@@ -36,6 +36,11 @@ namespace Tweaks_Fixes
                 else if (Player.main.currentMountedVehicle is SeaMoth)
                 {
                     __result *= ConfigMenu.seamothSpeedMult.Value;
+                    //if (ConfigToEdit.fixSeamothMove.Value)
+                    //{
+                    //    __result = __result.normalized;
+                    //    AddDebug("!!!");
+                    //}
                 }
                 //else if (Player.main.currentMountedVehicle != null)
                 //{
@@ -43,10 +48,6 @@ namespace Tweaks_Fixes
                 //Player.main.currentMountedVehicle.forwardForce *= 2;
                 //__result *= ConfigMenu.exosuitSpeedMult.Value;
                 //}
-                else if (ConfigToEdit.fixCyclopsMove.Value && Player.main.mode == Player.Mode.Piloting && Player.main.currentSub && Player.main.currentSub.isCyclops)
-                {
-                    __result = __result.normalized;
-                }
                 moveDir = __result;
             }
         }
@@ -77,8 +78,8 @@ namespace Tweaks_Fixes
             float z = input.z > 0 ? input.z * __instance.forwardForce : input.z * __instance.backwardForce;
             Vector3 acceleration = new Vector3(input.x * __instance.sidewardForce, input.y * __instance.verticalForce, z);
             acceleration = __instance.transform.rotation * acceleration * Time.deltaTime;
-            float max = Mathf.Max(Mathf.Abs(inputRaw.x), Mathf.Abs(inputRaw.y), Mathf.Abs(inputRaw.z));
-            acceleration *= max; // fix analog values from controller stick
+            //float max = Mathf.Max(Mathf.Abs(inputRaw.x), Mathf.Abs(inputRaw.y), Mathf.Abs(inputRaw.z));
+            //acceleration *= max; // fix analog values from controller stick
             for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
                 __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
 
@@ -101,10 +102,13 @@ namespace Tweaks_Fixes
                     seamothBackwardForce = __instance.backwardForce;
                     seamothVerticalForce = __instance.verticalForce;
                     seamothSidewardForce = __instance.sidewardForce;
-                    __instance.forwardForce *= ConfigMenu.seamothSpeedMult.Value;
-                    __instance.backwardForce *= ConfigMenu.seamothSpeedMult.Value;
-                    __instance.verticalForce *= ConfigMenu.seamothSpeedMult.Value;
-                    __instance.sidewardForce *= ConfigMenu.seamothSpeedMult.Value;
+                    if (ConfigMenu.seamothSpeedMult.Value != 1)
+                    {
+                        __instance.forwardForce *= ConfigMenu.seamothSpeedMult.Value;
+                        __instance.backwardForce *= ConfigMenu.seamothSpeedMult.Value;
+                        __instance.verticalForce *= ConfigMenu.seamothSpeedMult.Value;
+                        __instance.sidewardForce *= ConfigMenu.seamothSpeedMult.Value;
+                    }
                     if (ConfigToEdit.fixSeamothMove.Value)
                     {
                         ApplyPhysicsMoveSeamoth(__instance);
@@ -113,6 +117,7 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
+
             [HarmonyPostfix, HarmonyPatch("ApplyPhysicsMove")]
             public static void ApplyPhysicsMovePostfix(Vehicle __instance)
             {
@@ -120,7 +125,7 @@ namespace Tweaks_Fixes
                 if (__instance is SeaMoth)
                 {
                     __instance.forwardForce = seamothForwardForce;
-                    __instance.backwardForce = seamothSidewardForce;
+                    __instance.backwardForce = seamothBackwardForce;
                     __instance.verticalForce = seamothVerticalForce;
                     __instance.sidewardForce = seamothSidewardForce;
                 }
@@ -211,7 +216,15 @@ namespace Tweaks_Fixes
                     __instance.ConsumeEngineEnergy(energyCost);
                 }
             }
+            [HarmonyPostfix, HarmonyPatch("GetHUDValues")]
+            [HarmonyPatch("GetHUDValues", new Type[] { typeof(float), typeof(float), typeof(float) }, new[] { ArgumentType.Out, ArgumentType.Out, ArgumentType.Out })]
+            public static void GetHUDValuesPostfix(Exosuit __instance, float health, ref float power, ref float thrust)
+            {
+                if (Main.gameLoaded && ConfigToEdit.exosuitThrusterWithoutLimit.Value && __instance.GetPilotingMode())
+                    thrust = power;
 
+                //AddDebug($"GetHUDValues power {power} thrust {thrust}");
+            }
         }
 
 

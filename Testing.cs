@@ -211,7 +211,7 @@ namespace Tweaks_Fixes
 
 
 
-        [HarmonyPatch(typeof(Player), "Update")]
+        //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)

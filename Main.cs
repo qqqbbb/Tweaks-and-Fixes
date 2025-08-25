@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.0.1";
+            VERSION = "4.0.2";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -89,7 +89,6 @@ namespace Tweaks_Fixes
         public static void LoadedGameSetup()
         {
             //AddDebug("LoadedGameSetup ");
-            AddTechTypesToClassIDtable();
 
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_.DisableExosuitClawArmScan();
@@ -158,8 +157,7 @@ namespace Tweaks_Fixes
             static void Postfix()
             { // Gameinput.PrimaryDevice is null when this runs in Start 
                 //logger.LogDebug("GameInput Initialize");
-                options = new OptionsMenu();
-                OptionsPanelHandler.RegisterModOptions(options);
+
             }
         }
 
@@ -239,6 +237,8 @@ namespace Tweaks_Fixes
             //SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup);
             //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => Setup());
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
+            options = new OptionsMenu();
+            OptionsPanelHandler.RegisterModOptions(options);
             //SaveUtils.RegisterOnSaveEvent(TestSave);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
@@ -252,6 +252,7 @@ namespace Tweaks_Fixes
                 CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
                 //CraftData.harvestOutputList[TechType.CoralShellPlate] = TechType.JeweledDiskPiece;
             }
+            AddTechTypesToClassIDtable();
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
@@ -293,6 +294,9 @@ namespace Tweaks_Fixes
 
         private static void AddTechTypesToClassIDtable()
         {
+            if (CraftData.entClassTechTable == null)
+                CraftData.entClassTechTable = new Dictionary<string, TechType>();
+
             CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
             CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["4f59199f-7049-4e13-9e57-5ee82c8732c5"] = TechType.Cyclops;

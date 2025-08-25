@@ -13,10 +13,6 @@ namespace Tweaks_Fixes
     {
         static CyclopsEntryHatch cyclopsEntryHatch;
         public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
-        //static float vertSpeedMult = .5f;
-        //static float backwardSpeedMult = .5f;
-
-
 
         static void AddCyclopsCollisionExclusion(GameObject go)
         {
@@ -227,55 +223,54 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(CyclopsNoiseManager))]
+        class CyclopsNoiseManager_Patch
+        {
+            static float idleNoise;
+
+            [HarmonyPostfix, HarmonyPatch("RecalculateNoiseValues")]
+            public static void RecalculateNoiseValuesPostfix(CyclopsNoiseManager __instance, float __result)
+            {
+                idleNoise = __result *= .5f;
+            }
+            [HarmonyPostfix, HarmonyPatch("GetNoisePercent")]
+            public static void GetNoisePercentPostfix(CyclopsNoiseManager __instance, ref float __result)
+            {
+                if (Main.gameLoaded == false || __result == default || idleNoise == 0 || __instance.subControl.appliedThrottle == false)
+                    return;
+
+                Vector3 throttle = __instance.subControl.throttle;
+                if (throttle == default)
+                    return;
+
+                //AddDebug("idleNoise " + idleNoise.ToString("0.0"));
+                float max = Mathf.Max(Mathf.Abs(throttle.x), Mathf.Abs(throttle.y), Mathf.Abs(throttle.z));
+                float r = __result * max;
+                if (r < __result)
+                {
+                    if (r > idleNoise)
+                    {
+                        __result = r;
+                        //AddDebug("!!!!! " + r.ToString("0.0"));
+                    }
+                    else if (__result > idleNoise)
+                    {
+                        __result = idleNoise;
+                        //AddDebug("!!!!! " + r.ToString("0.0"));
+                    }
+                    //else
+                    //{
+                    //    AddDebug("__result " + __result.ToString("0.0"));
+                    //    AddDebug("max " + max.ToString("0.0"));
+                    //    AddDebug("r " + r.ToString("0.0"));
+                    //}
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(SubControl))]
         class SubControl_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("UpdateAnimation")]
-            public static bool UpdateAnimationPrefix(SubControl __instance)
-            { // fix steering wheel binary animation
-                if (!Main.gameLoaded)
-                    return false;
-
-                float steeringWheelYaw = 0f;
-                float steeringWheelPitch = 0f;
-                //AddDebug("throttle x " + __instance.throttle.x.ToString("0.0"));
-                //AddDebug("throttle y " + __instance.throttle.y.ToString("0.0"));
-                float throttleX = __instance.throttle.x;
-                float throttleY = __instance.throttle.y;
-                if (Mathf.Abs(throttleX) > 0.0001)
-                {
-                    ShipSide useShipSide;
-                    if (throttleX > 0)
-                    {
-                        useShipSide = ShipSide.Port;
-                        steeringWheelYaw = throttleX;
-                    }
-                    else
-                    {
-                        useShipSide = ShipSide.Starboard;
-                        steeringWheelYaw = throttleX;
-                    }
-                    if (throttleX < -0.1 || throttleX > 0.1)
-                    {
-                        for (int index = 0; index < __instance.turnHandlers.Length; ++index)
-                            __instance.turnHandlers[index].OnSubTurn(useShipSide);
-                    }
-                }
-                if (Mathf.Abs(throttleY) > 0.0001)
-                    steeringWheelPitch = throttleY;
-
-                __instance.steeringWheelYaw = Mathf.Lerp(__instance.steeringWheelYaw, steeringWheelYaw, Time.deltaTime * __instance.steeringReponsiveness);
-                __instance.steeringWheelPitch = Mathf.Lerp(__instance.steeringWheelPitch, steeringWheelPitch, Time.deltaTime * __instance.steeringReponsiveness);
-                if (__instance.mainAnimator)
-                {
-                    __instance.mainAnimator.SetFloat("view_yaw", __instance.steeringWheelYaw * 100f);
-                    __instance.mainAnimator.SetFloat("view_pitch", __instance.steeringWheelPitch * 100f);
-                    //Player.main.playerAnimator.SetFloat("cyclops_yaw", __instance.steeringWheelYaw);
-                    //Player.main.playerAnimator.SetFloat("cyclops_pitch", __instance.steeringWheelPitch);
-                }
-                return false;
-            }
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             public static void StartPostfix(SubControl __instance)

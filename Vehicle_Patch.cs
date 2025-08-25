@@ -41,19 +41,21 @@ namespace Tweaks_Fixes
             return torpedos;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("Awake")]
+        [HarmonyPostfix, HarmonyPatch("Awake")]
         public static void AwakePostfix(Vehicle __instance)
         {
             //Light l1 = __instance.transform.Find("lights_parent/light_left").gameObject.GetComponent<Light>();
             //Light l2 = __instance.transform.Find("lights_parent/light_right").gameObject.GetComponent<Light>();
             TechType tt = CraftData.GetTechType(__instance.gameObject);
             vehicleTechTypes.Add(tt);
-            //if (l1)
-            //AddDebug( " Vehicle.Awake " + tt);
-            //if (l2)
-            //    AddDebug(__instance.gameObject.name + " Awake light 2");
-            Light[] lights = __instance.transform.Find("lights_parent").GetComponentsInChildren<Light>(true);
+            //AddDebug(" Vehicle.Awake " + tt);
+            Transform lightsParent = __instance.transform.Find("lights_parent");
+            if (lightsParent == null)
+                return;
+
+            Light[] lights = lightsParent.GetComponentsInChildren<Light>(true);
+            if (lights == null || lights.Length == 0)
+                return;
             //AddDebug(tt + " Awake lights " + lights.Length);
             Light_Control.lightOrigIntensity[tt] = lights[0].intensity;
             Light_Control.lightIntensityStep[tt] = lights[0].intensity * .1f;

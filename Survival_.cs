@@ -389,14 +389,14 @@ namespace Tweaks_Fixes
                 //    {
                 //AddDebug("DeadMeat " + ecoTarget.name + " PARENT " + ecoTarget.transform.parent.name);
                 //Destroy(__instance.gameObject);
-                if (__instance.decomposes)
+                if (__instance.decomposes && ConfigMenu.foodDecayRateMult.Value != 1)
                 {
                     __instance.kDecayRate *= ConfigMenu.foodDecayRateMult.Value;
                 }
                 if (ConfigMenu.fishFoodWaterRatio.Value > 0)
                 {
                     if (Util.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
-                        __instance.waterValue = __instance.foodValue * ConfigMenu.fishFoodWaterRatio.Value;
+                        __instance.waterValue = __instance.foodValue * ConfigMenu.fishFoodWaterRatio.Value * .01f;
                 }
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //Main.logger.LogMessage("Eatable awake " + tt + " eatableFoodValue.ContainsKey " + Main.config.eatableFoodValue.ContainsKey(tt));
