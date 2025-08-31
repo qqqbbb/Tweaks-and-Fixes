@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-//using static ErrorMessage;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -198,38 +198,36 @@ namespace Tweaks_Fixes
             public static void Postfix(Pickupable __instance, ref bool __result)
             {
                 //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (ConfigMenu.noFishCatching.Value && Util.IsEatableFish(__instance.gameObject) && !Util.IsDead(__instance.gameObject))
+                if (ConfigMenu.noFishCatching.Value == false || Player.main._currentWaterPark || Util.IsEatableFish(__instance.gameObject) == false || Util.IsDead(__instance.gameObject))
                 {
-                    __result = false;
-                    if (Player.main._currentWaterPark)
+                    return;
+                }
+                __result = false;
+                PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
+                if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
+                {
+                    //AddDebug("PropulsionCannonWeapon ");
+                    __result = true;
+                    return;
+                }
+                foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
+                {
+                    if (p == __instance)
                     {
+                        //AddDebug("Gravsphere ");
                         __result = true;
-                        //AddDebug("WaterPark ");
                         return;
                     }
-                    PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
-                    if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
+                }
+                Rigidbody rigidbody = __instance.GetComponent<Rigidbody>();
+                if (rigidbody == null)
+                    return;
+
+                foreach (Rigidbody rb in Tools_.stasisTargets)
+                {
+                    if (rigidbody == rb)
                     {
-                        //AddDebug("PropulsionCannonWeapon ");
                         __result = true;
-                        return;
-                    }
-                    foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
-                    {
-                        if (p == __instance)
-                        {
-                            //AddDebug("Gravsphere ");
-                            __result = true;
-                            return;
-                        }
-                    }
-                    Rigidbody rigidbody = __instance.GetComponent<Rigidbody>();
-                    foreach (Rigidbody rb in Tools_.stasisTargets)
-                    {
-                        if (rigidbody == rb)
-                        {
-                            __result = true;
-                        }
                     }
                 }
 
@@ -399,7 +397,7 @@ namespace Tweaks_Fixes
         class CreatureEgg_Start_patch
         {
             public static void Postfix(CreatureEgg __instance)
-            {
+            { // not fixed
                 VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 vFXSurface.surfaceType = VFXSurfaceTypes.organic;
             }
@@ -475,18 +473,6 @@ namespace Tweaks_Fixes
             {
                 if (!ConfigMenu.waterparkCreaturesBreed.Value)
                     __result = false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Inventory), "CanDropItemHere")]
-        class Inventory_CanDropItemHere_Patch
-        {
-            static void Postfix(Inventory __instance, Pickupable item, ref bool __result)
-            {
-                if (item.GetTechType() == TechType.Cutefish && Player.main.currentSub && Player.main.IsSwimming())
-                {
-                    __result = true;
-                }
             }
         }
 

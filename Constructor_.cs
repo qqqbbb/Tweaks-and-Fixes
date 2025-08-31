@@ -20,24 +20,16 @@ namespace Tweaks_Fixes
             if (itpc)
                 UnityEngine.Object.Destroy(itpc);
 
-            if (!__instance.deployed)
-            { // vanilla underwaterGravity 4
-                //AddDebug("Constructor OnEnable");
-                WorldForces wf = __instance.GetComponent<WorldForces>();
-                if (wf)
-                    wf.underwaterGravity = 1f;
-            }
-            PingInstance pi = __instance.gameObject.EnsureComponent<PingInstance>();
-            pi.pingType = PingType.Signal;
-            pi.origin = __instance.transform;
-            pi.SetLabel(Language.main.Get("Constructor"));
+            Util.AttachPing(__instance.gameObject, PingType.Signal, "Constructor");
             Transform packUpTr = __instance.transform.Find("unequipped/deployed/PickupableTrigger");
             if (packUpTr)
                 UnityEngine.Object.Destroy(packUpTr.gameObject);
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("Deploy")]
+
+
+        //[HarmonyPostfix]
+        //[HarmonyPatch("Deploy")]
         static void DeployPostfix(Constructor __instance, bool value)
         {
             AddDebug("Constructor Deploy " + value);
@@ -53,10 +45,9 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Update")]
         static void UpdatePostfix(Constructor __instance)
         {
-            if (Player.main.transform.position.y > 1f)
+            if (Player.main.transform.position.y > 1f && __instance.climbTrigger.activeSelf)
                 __instance.climbTrigger.SetActive(false);
         }
-
 
     }
 

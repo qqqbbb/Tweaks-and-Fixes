@@ -56,8 +56,6 @@ namespace Tweaks_Fixes
         static public string pickupString = string.Empty;
         static public string constructorString = string.Empty;
 
-
-
         static void GetStrings()
         {
             pickupString = Language.main.Get("PickUp");

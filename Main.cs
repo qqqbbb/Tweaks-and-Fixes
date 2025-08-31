@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.0.2";
+            VERSION = "4.1.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -151,7 +151,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(GameInput), "Initialize")]
+        //[HarmonyPatch(typeof(GameInput), "Initialize")]
         class GameInput_Initialize_Patch
         {
             static void Postfix()

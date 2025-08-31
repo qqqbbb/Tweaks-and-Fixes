@@ -576,5 +576,13 @@ namespace Tweaks_Fixes
             return null;
         }
 
+        public static void AttachPing(GameObject go, PingType pingType, string name, Transform origin = null)
+        {
+            PingInstance pi = go.EnsureComponent<PingInstance>();
+            pi.pingType = pingType;
+            pi.origin = origin == null ? go.transform : origin;
+            pi.SetLabel(Language.main.Get(name));
+        }
+
     }
 }

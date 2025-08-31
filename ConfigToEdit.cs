@@ -124,7 +124,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> disableExosuitSidestep;
         public static ConfigEntry<bool> exosuitThrusterWithoutLimit;
         public static ConfigEntry<bool> fixSeamothMove;
-        //public static ConfigEntry<bool> fixCyclopsMove;
         public static ConfigEntry<int> cyclopsVerticalSpeedMod;
         public static ConfigEntry<int> cyclopsBackwardSpeedMod;
         public static ConfigEntry<bool> alwaysSpawnWhenKnifeHarvesting;
@@ -142,9 +141,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> beaconTweaks;
         public static ConfigEntry<bool> flareTweaks;
         public static ConfigEntry<bool> stasisRifleTweaks;
-        //public static ConfigEntry<bool> gasopodsInStasisDontDropGaspods;
+        public static ConfigEntry<bool> disableWeirdPlantAnimation;
         public static ConfigEntry<bool> coralShellPlateGivesTableCoral;
-        //public static ConfigEntry<bool> analogCyclopsControls;
+        public static ConfigEntry<bool> disableTimeCapsule;
 
 
 
@@ -169,7 +168,7 @@ namespace Tweaks_Fixes
             decoyRequiresSub = Main.configToEdit.Bind("ITEMS", "Creature decoy does not work when dropped from inventory", false);
             noKillParticles = Main.configToEdit.Bind("CREATURES", "No yellow cloud particle effect when creature dies", false);
             cyclopsSunlight = Main.configToEdit.Bind("CYCLOPS", "Sunlight affects lighting in cyclops", false);
-            alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show numbers inside health, food and temperature meters in UI", false);
+            alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show numbers for health, food and temperature meters in UI", false);
             pdaClock = Main.configToEdit.Bind("PDA", "PDA clock", true);
 
             gameStartWarningText = Main.configToEdit.Bind("MISC", "Game start warning text", "", "Text shown when the game starts. If this field is empty the warning will be skipped.");
@@ -189,7 +188,7 @@ namespace Tweaks_Fixes
 
             crushDepthEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush depth equipment", "ReinforcedDiveSuit 0", "Equipment in this list increases your safe diving depth. The format is: item ID, space, number of meters that will be added to your safe diving depth. Every entry is separated by comma.");
             crushDamageEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush damage equipment", "ReinforcedDiveSuit 0", "Equipment in this list reduces your crush damage. The format is: item ID, space, crush damage percent that will be blocked. Every entry is separated by comma.");
-            itemMass = Main.configToEdit.Bind("ITEMS", "Item mass", "PrecursorKey_Blue 5, PrecursorKey_Orange 5, PrecursorKey_Purple 5, PrecursorKey_Red 5, PrecursorKey_White 5", "Allows you to change mass of pickupable items. The format is: item ID, space, item mass in kg as a decimal point number. Every entry is separated by comma.");
+            itemMass = Main.configToEdit.Bind("ITEMS", "Item mass", "PrecursorKey_Blue 5, PrecursorKey_Orange 5, PrecursorKey_Purple 5, PrecursorKey_Red 5, PrecursorKey_White 5", "This allows you to change mass of pickupable items. The format is: item ID, space, item mass in kg as a decimal point number. Every entry is separated by comma.");
             unmovableItems = Main.configToEdit.Bind("ITEMS", "Unmovable items", "", "Contains pickupable items that can not be moved by bumping into them. You will always find them where you dropped them.  Every entry is separated by comma.");
             bloodColor = Main.configToEdit.Bind("CREATURES", "Blood color", "0.784 1.0 0.157", "Creatures‛ blood color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             gravTrappable = Main.configToEdit.Bind("TOOLS", "Gravtrappable items", "seaglide, airbladder, flare, flashlight, builder, lasercutter, ledlight, divereel, propulsioncannon, welder, repulsioncannon, scanner, stasisrifle, knife, heatblade, precursorkey_blue, precursorkey_orange, precursorkey_purple, precursorkey_red, precursorkey_white, compass, fins, fireextinguisher, firstaidkit, doubletank, plasteeltank, radiationsuit, radiationhelmet, radiationgloves, rebreather, reinforceddivesuit, maproomhudchip, tank, stillsuit, swimchargefins, ultraglidefins, highcapacitytank,", "List of items affected by grav trap. This list does not replace vanilla list. Items from this list will be added to vanilla one.");
@@ -203,7 +202,7 @@ namespace Tweaks_Fixes
             silentReactor = Main.configToEdit.Bind("BASE", "Silent nuclear reactor", false);
             removeFragmentCrate = Main.configToEdit.Bind("FRAGMENTS", "Remove fragment crate", false, "When you scan a blueprint fragment, the crate holding the fragment will be removed if this is true.");
             creepvineLights = Main.configToEdit.Bind("PLANTS", "Real creepvine lights", true, "Creepvine seed cluster light intensity will depend on number of seed clusters on the vine if this is true.");
-            vehicleUItweaks = Main.configToEdit.Bind("UI", "Vehicle UI tweaks", true, "Prompts for toggling lights in seamoth and prawn suit. Prompts for installed seamoth upgrade modules. Prompts for installed prawn suit arms. Ability to change current torpedo for seamoth and prawn suit.");
+            vehicleUItweaks = Main.configToEdit.Bind("UI", "Vehicle UI tweaks", true, "UI Prompts for toggling lights in seamoth and prawn suit. UI Prompts for installed seamoth upgrade modules. UI Prompts for installed prawn suit arms. Ability to change current torpedo for seamoth and prawn suit.");
             newStorageUI = Main.configToEdit.Bind("UI", "New storage UI", true, "New UI for storage containers");
 
             disableUseText = Main.configToEdit.Bind("UI", "Disable quickslots text", false, "Text above your quickslots will be disabled if this is true.");
@@ -301,11 +300,11 @@ namespace Tweaks_Fixes
             propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "Improvements to propulsion cannon UI prompts. Ability ot eat fish you are holding with propulsion cannon. When grabbing and holding table coral with propulsion cannon, you can put it in inventory. Your propulsion cannon will break outcrop when you try to grab it. Propulsion cannon can grab fruits on plants ");
             beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
             flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it. This setting will be disabled if 'Flare repair' mod is installed.");
-            stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "Prompt when stasis rifle is equipped. Gasopods do not drop gas pods when in stasis field. Gas pods do not explode when in stasis field.");
+            stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "UI prompt when stasis rifle is equipped. Gasopods do not drop gas pods when in stasis field. Gas pods do not explode when in stasis field.");
             //gasopodsInStasisDontDropGaspods = Main.configToEdit.Bind("CREATURES", "Gasopods do not drop gas pods when in stasis field", true, "");
             coralShellPlateGivesTableCoral = Main.configToEdit.Bind("PLANTS", "Coral Shell Plate gives Table Coral Sample", false, "When you destroy Coral Shell Plate you will get Table Coral Sample instead of Coral Tube Sample");
-            //analogCyclopsControls = Main.configToEdit.Bind("CYCLOPS", "Analog cyclops controls", false, "Cyclops throttle and steering will use analog values from your controller stick if this is true");
-
+            disableWeirdPlantAnimation = Main.configToEdit.Bind("CYCLOPS", "Disable weird plant animation", false, "Disable animation for grub basket, bulbo tree, speckled rattler, pink cap, ming plant");
+            disableTimeCapsule = Main.configToEdit.Bind("TOOLS", "Disable time capsules", false, "");
 
 
 

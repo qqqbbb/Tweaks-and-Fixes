@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -1314,9 +1313,9 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(ExosuitDrillArm))]
     class ExosuitDrillArm_Patch
     {
-        [HarmonyPrefix]
-        [HarmonyPatch("OnHit")]
-        public static bool Prefix(ExosuitDrillArm __instance)
+        //[HarmonyPrefix]
+        //[HarmonyPatch("OnHit")]
+        public static bool OnHitPrefix(ExosuitDrillArm __instance)
         { // fix not showing particles when start drilling
           //AddDebug("OnHit");
             if (!__instance.exosuit.CanPilot() || !__instance.exosuit.GetPilotingMode())
@@ -1406,7 +1405,7 @@ namespace Tweaks_Fixes
 
     }
 
-    [HarmonyPatch(typeof(CollisionSound), "OnCollisionEnter")]
+    //[HarmonyPatch(typeof(CollisionSound), "OnCollisionEnter")]
     class CollisionSound_OnCollisionEnter_Patch
     { // fix fish splat sound when colliding with rocks
         static bool Prefix(CollisionSound __instance, Collision col)

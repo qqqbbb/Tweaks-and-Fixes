@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 using UWE;
-using static DebugTargetConsoleCommand;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -608,7 +607,49 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Constructable))]
+        class Constructable_Construct_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("NotifyConstructedChanged")]
+            public static void Postfix(Constructable __instance, bool constructed)
+            {
+                if (!constructed || !Main.gameLoaded)
+                    return;
 
+                //AddDebug(" NotifyConstructedChanged " + __instance.techType);
+                //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
+                if (!ConfigToEdit.builderPlacingWhenFinishedBuilding.Value)
+                    Player.main.StartCoroutine(BuilderEnd(2));
+            }
+        }
+
+        [HarmonyPatch(typeof(BuilderTool), "HandleInput")]
+        class BuilderTool_HandleInput_patch
+        {
+            public static void Postfix(BuilderTool __instance)
+            {
+                if (Builder.isPlacing && GameInput.GetButtonDown(GameInput.Button.Exit))
+                {
+                    //AddDebug("BuilderTool HandleInput Exit");
+                    //__instance.OnHolster();
+                    Inventory.main.quickSlots.Deselect();
+                }
+            }
+        }
+
+        static IEnumerator BuilderEnd(int waitFrames)
+        {
+            //AddDebug("BuilderEnd start ");
+            //yield return new WaitForSeconds(waitTime);
+            while (waitFrames > 0)
+            {
+                waitFrames--;
+                yield return null;
+            }
+            Builder.End();
+            //AddDebug("BuilderEnd end ");
+        }
 
     }
 }

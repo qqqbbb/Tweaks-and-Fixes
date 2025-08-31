@@ -25,8 +25,6 @@ namespace Tweaks_Fixes
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
-
-
         static bool GetScanTarget(float distance, out GameObject result)
         {
             bool flag = false;
@@ -149,16 +147,140 @@ namespace Tweaks_Fixes
         }
 
 
-        //[HarmonyPatch(typeof(RadiatePlayerInRange), "Radiate")]
-        class RadiatePlayerInRange_Radiate_patch
+        //[HarmonyPatch(typeof(Builder), "Update")]
+        class Builder_Update_patch
         {
-            public static void Postfix(RadiatePlayerInRange __instance)
+            public static void Postfix()
             {
-                AddDebug("RadiatePlayerInRange Radiate " + __instance.name);
-
+                AddDebug("Builder Update " + Builder.isPlacing);
+                if (Builder.isPlacing)
+                {
+                    //Player.main.armsController.StartHolsterTime(disableDelay + viewAnimDuration);
+                }
             }
         }
 
+
+        //[HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
+        class DamageSystem_CalculateDamage_Prefix_Patch
+        {
+            public static bool Prefix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
+            {
+                //AddDebug(target.name + " damage Prefix " + damage);
+                damage *= DamageSystem.damageMultiplier;
+                DamageModifier[] componentsInChildren = target.GetComponentsInChildren<DamageModifier>();
+                for (int i = 0; i < componentsInChildren.Length; i++)
+                {
+                    damage = componentsInChildren[i].ModifyDamage(damage, type);
+                }
+                bool player = target.GetComponent<Player>();
+                Sealed @sealed = target.GetComponent<Sealed>();
+                bool isSealed = @sealed != null && @sealed.IsSealed();
+                switch (type)
+                {
+                    case DamageType.Heat:
+                    case DamageType.Fire:
+                        {
+                            if ((bool)target.GetComponent<Living>() || player)
+                            {
+                                damage *= 2f;
+                            }
+                            HeatResistGene component2 = target.GetComponent<HeatResistGene>();
+                            if ((bool)component2)
+                            {
+                                damage -= 0.75f * component2.Scalar * damage;
+                            }
+                            break;
+                        }
+                    case DamageType.Radiation:
+                        {
+                            if (!player)
+                                break;
+
+                            if ((bool)(Player.main.GetVehicle() as Exosuit))
+                            {
+                                damage = 0f;
+                                break;
+                            }
+                            float num = damage;
+                            AddDebug("CalculateDamage rad " + num);
+                            if (Inventory.main.equipment.GetCount(TechType.RadiationSuit) > 0)
+                            {
+                                damage -= num * 0.5f;
+                            }
+                            if (Inventory.main.equipment.GetCount(TechType.RadiationHelmet) > 0)
+                            {
+                                damage -= num * 0.23f;
+                            }
+                            if (Inventory.main.equipment.GetCount(TechType.RadiationHelmet) > 0)
+                            {
+                                damage -= num * 0.23f;
+                            }
+                            AddDebug("CalculateDamage rad after " + damage);
+                            break;
+                        }
+                    case DamageType.LaserCutter:
+                        if (!isSealed)
+                        {
+                            damage *= 0.5f;
+                        }
+                        break;
+                    case DamageType.Poison:
+                        if (CreatureData.GetBehaviourType(target) == BehaviourType.SmallFish || CraftData.GetTechType(target) == TechType.Gasopod || CraftData.GetTechType(target) == TechType.MapRoomCamera || target.GetComponent<Vehicle>() != null)
+                        {
+                            damage = 0f;
+                        }
+                        break;
+                    case DamageType.Acid:
+                        if (DamageSystem.IsAcidImmune(target))
+                        {
+                            damage = 0f;
+                        }
+                        else if (target.GetComponent<Vehicle>() != null)
+                        {
+                            damage *= 0.05f;
+                        }
+                        break;
+                    case DamageType.Collide:
+                        if (dealer != null && dealer.GetComponent<Vehicle>() != null && target.GetComponentInParent<Base>() != null)
+                        {
+                            damage = 0f;
+                        }
+                        break;
+                }
+                if (isSealed && type != DamageType.LaserCutter)
+                {
+                    damage = 0f;
+                }
+                if (player && type != DamageType.Radiation && type != DamageType.Starve)
+                {
+                    float num2 = 0f;
+                    if (Player.main.HasReinforcedSuit())
+                    {
+                        num2 += 0.4f;
+                    }
+                    if (Player.main.HasReinforcedGloves())
+                    {
+                        num2 += 0.12f;
+                    }
+                    damage -= damage * num2;
+                }
+                if ((bool)NoDamageConsoleCommand.main && NoDamageConsoleCommand.main.GetNoDamageCheat())
+                {
+                    damage = 0f;
+                }
+                if (DamageSystem.instagib && damage > 0f)
+                {
+                    LiveMixin component3 = target.GetComponent<LiveMixin>();
+                    if ((bool)component3)
+                    {
+                        damage = component3.maxHealth * 100f;
+                    }
+                }
+                __result = damage;
+                return false;
+            }
+        }
 
         //[HarmonyPatch(typeof(Survival), "UpdateStats")]
         public static class UpdateStatsPatch
@@ -209,8 +331,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
-
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -218,9 +338,13 @@ namespace Tweaks_Fixes
             {
                 if (!Main.gameLoaded)
                     return;
-
+                //if (__instance._radiationAmount > 0)
+                //{
+                //    AddDebug("rad " + __instance._radiationAmount);
+                //}
                 //PrintRawBiomeNames();
-                //AddDebug("Grounded " + __instance.groundMotor.IsGrounded());
+                //AddDebug("Grounded " + __instance.ground
+                //Motor.IsGrounded());
                 //AddDebug("mode " + __instance.mode);
                 if (Input.GetKeyDown(KeyCode.B))
                 {

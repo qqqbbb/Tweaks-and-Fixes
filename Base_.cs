@@ -144,28 +144,11 @@ namespace Tweaks_Fixes
                     return;
 
                 //AddDebug(" NotifyConstructedChanged " + __instance.techType);
-                //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
-                if (!ConfigToEdit.builderPlacingWhenFinishedBuilding.Value)
-                    Player.main.StartCoroutine(BuilderEnd(2));
-
                 if (!ConfigToEdit.mapRoomFreeCameras.Value && __instance.techType == TechType.BaseMapRoom)
                     camerasToRemove = 2;
                 else
                     camerasToRemove = 0;
             }
-        }
-
-        static IEnumerator BuilderEnd(int waitFrames)
-        {
-            //AddDebug("BuilderEnd start ");
-            //yield return new WaitForSeconds(waitTime);
-            while (waitFrames > 0)
-            {
-                waitFrames--;
-                yield return null;
-            }
-            Builder.End();
-            //AddDebug("BuilderEnd end ");
         }
 
         [HarmonyPatch(typeof(SolarPanel), "OnHandHover")]
@@ -242,25 +225,6 @@ namespace Tweaks_Fixes
             static void Prefix(SolarPanel __instance)
             {
                 __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
-            }
-        }
-
-        [HarmonyPatch(typeof(ModularStairs), "BuildStairs")]
-        class ModularStairs_Patch
-        {
-            static void Postfix(ModularStairs __instance, bool isGhost)
-            {
-                if (isGhost || fixedStairs.Contains(__instance))
-                    return;
-
-                Transform t = __instance.transform.Find("BaseCorridorBulkhead(Clone) (6)/models/BaseCorridorInteriorWallHatch_Split/BaseCorridorInteriorWallHatch_Front");
-                if (t)
-                { // fix texture z fighting above water entrance in glass corridor
-                    //AddDebug($"BuildStairs  fix");
-                    Vector3 pos = t.localPosition;
-                    t.localPosition = new Vector3(pos.x, pos.y + .001f, pos.z);
-                    fixedStairs.Add(__instance);
-                }
             }
         }
 

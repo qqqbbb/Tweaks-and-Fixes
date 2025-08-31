@@ -267,7 +267,7 @@ namespace Tweaks_Fixes
                 {
                     if (__instance.GetComponent<LavaLizard>())
                     { // can damage LavaLizard with heatblade
-                      //AddDebug("LavaLizard");
+                        //AddDebug("LavaLizard");
                         type = DamageType.Normal;
                     }
                 }
@@ -301,14 +301,7 @@ namespace Tweaks_Fixes
             //AddDebug("Survival OnHealTempDamage " + food);
         }
 
-        //[HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
-        class DamageSystem_CalculateDamage_Prefix_Patch
-        {
-            public static void Prefix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
-            {
-                //AddDebug(target.name + " damage Prefix " + damage);
-            }
-        }
+
 
         [HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
         class DamageSystem_CalculateDamage_Patch

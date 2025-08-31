@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("OnHandHover")]
             public static void OnHandHoverPostfix(CuteFishHandTarget __instance)
             {
-          
+
                 if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                 {
                     AddDebug("Deconstruct Button");
@@ -33,6 +33,19 @@ namespace Tweaks_Fixes
             {
                 if (ConfigToEdit.fixCuteFish.Value && !Player.main.IsSwimming())
                     __result = false;
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory), "CanDropItemHere")]
+        class Inventory_CanDropItemHere_Patch
+        {
+            static void Postfix(Inventory __instance, Pickupable item, ref bool __result)
+            {
+                //AddDebug($"CanDropItemHere {item.GetTechType()} {__result}");
+                if (item.GetTechType() == TechType.Cutefish && Player.main.currentSub && Player.main.IsSwimming())
+                {// can release it in flooded base
+                    __result = true;
+                }
             }
         }
 
