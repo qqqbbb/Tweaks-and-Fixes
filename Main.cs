@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.1.0";
+            VERSION = "4.2.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -89,6 +89,7 @@ namespace Tweaks_Fixes
         public static void LoadedGameSetup()
         {
             //AddDebug("LoadedGameSetup ");
+            FixCoralShellPlateHarvestType();
 
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_.DisableExosuitClawArmScan();
@@ -224,9 +225,6 @@ namespace Tweaks_Fixes
 
         public void Setup()
         {
-            //Logger.LogDebug("configOld activeSlot " + config.activeSlot);
-            //configMenu = this.Config;
-            //this.Config.AddSetting
             configMenu = new ConfigFile(configMenuPath, false);
             ConfigMenu.Bind();
             logger = Logger;
@@ -237,6 +235,7 @@ namespace Tweaks_Fixes
             //SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup);
             //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => Setup());
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
+            WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => AddTechTypesToClassIDtable());
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
             //SaveUtils.RegisterOnSaveEvent(TestSave);
@@ -245,14 +244,11 @@ namespace Tweaks_Fixes
             LanguageHandler.RegisterLocalizationFolder();
             GetLoadedMods();
             ConfigToEdit.ParseConfig();
-
             configMain.Load();
             if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
             {
                 CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
-                //CraftData.harvestOutputList[TechType.CoralShellPlate] = TechType.JeweledDiskPiece;
             }
-            AddTechTypesToClassIDtable();
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
@@ -269,6 +265,17 @@ namespace Tweaks_Fixes
             //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => EarlyLoad());
         }
 
+        static void FixCoralShellPlateHarvestType()
+        {
+            if (TechData.Contains(TechType.CoralShellPlate) == false)
+                return;
+
+            JsonValue jv = TechData.entries[TechType.CoralShellPlate];
+            jv.SetInt(TechData.PropertyToID("harvestType"), (int)HarvestType.DamageAlive);
+            //jv.GetInt(id, out int value);
+            //HarvestType harvestType = (HarvestType)value;
+            //AddDebug("CoralShellPlate harvestType " + TechData.GetHarvestType(TechType.CoralShellPlate));
+        }
 
         private void Start()
         {
@@ -294,9 +301,7 @@ namespace Tweaks_Fixes
 
         private static void AddTechTypesToClassIDtable()
         {
-            if (CraftData.entClassTechTable == null)
-                CraftData.entClassTechTable = new Dictionary<string, TechType>();
-
+            CraftData.PreparePrefabIDCache();
             CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
             CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["4f59199f-7049-4e13-9e57-5ee82c8732c5"] = TechType.Cyclops;

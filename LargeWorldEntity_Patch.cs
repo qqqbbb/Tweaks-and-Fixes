@@ -11,6 +11,8 @@ namespace Tweaks_Fixes
 {
     class LargeWorldEntity_Patch
     {
+        public static HashSet<string> harvest = new HashSet<string>();
+
         public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> techTypesToDespawn = new Dictionary<TechType, int> { };
@@ -20,11 +22,12 @@ namespace Tweaks_Fixes
 
         static HashSet<TechType> plantSurfaces = new HashSet<TechType> {TechType.BloodRoot, TechType.BloodOil, TechType.BloodVine, TechType.BluePalm, TechType.KooshChunk, TechType.HugeKoosh, TechType.LargeKoosh, TechType.MediumKoosh, TechType.SmallKoosh, TechType.BulboTreePiece, TechType.BulboTree, TechType.PurpleBranches, TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.AcidMushroom, TechType.WhiteMushroom, TechType.EyesPlant, TechType.FernPalm, TechType.RedRollPlant, TechType.GabeSFeather, TechType.RedGreenTentacle, TechType.JellyPlant, TechType.OrangeMushroom, TechType.SnakeMushroom, TechType.OrangePetalsPlant, TechType.SpikePlant, TechType.MembrainTree, TechType.Melon, TechType.SmallMelon, TechType.MelonPlant, TechType
         .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
-        static HashSet<TechType> coralSurfaces = new HashSet<TechType> { TechType.BigCoralTubes, TechType.CoralShellPlate, TechType.GenericJeweledDisk, TechType.JeweledDiskPiece };
+        static HashSet<TechType> coralSurfaces = new HashSet<TechType> { TechType.BigCoralTubes, TechType.CoralShellPlate, TechType.GenericJeweledDisk, TechType.JeweledDiskPiece, TechType.CoralChunk };
         static HashSet<string> plantsWithNoTechtype = new HashSet<string> { "Coral_reef_small_deco_03(Clone)", "Coral_reef_small_deco_05(Clone)", "Coral_reef_small_deco_08(Clone)" };
         static HashSet<TechType> techTypesToMakeUnmovable = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleBrainCoral, TechType.HangingFruitTree, TechType.SpikePlant };
         static HashSet<TechType> techTypesToRemoveWavingShader = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleVasePlant, TechType.OrangePetalsPlant, TechType.PinkMushroom, TechType.PurpleRattle, TechType.PinkFlower };
         static HashSet<TechType> fruitTechTypes = new HashSet<TechType> { TechType.BloodRoot, TechType.BloodVine, TechType.Creepvine };
+        static HashSet<TechType> techTypesToAddWorldForces = new HashSet<TechType> { TechType.CoralChunk };
         public static GameObject droppedObject;
         public static bool spawning;
 
@@ -104,12 +107,15 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.fruitGrowTime.Value > 0 && fruitTechTypes.Contains(tt))
                 {
                     Util.EnsureFruits(__instance.gameObject);
-                    //fff.Add(__instance.gameObject);
                 }
                 if (drillables.Contains(tt))
                 {
                     if (Util.IsGraphicsPresetHighDetail())
                         SetCellLevel(__instance, LargeWorldEntity.CellLevel.Medium);
+                }
+                if (techTypesToAddWorldForces.Contains(tt))
+                {
+                    AddWorldForces(__instance.gameObject);
                 }
                 if (techTypesToMakeUnmovable.Contains(tt))
                 {
@@ -129,27 +135,17 @@ namespace Tweaks_Fixes
                     Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
                 }
                 if (tt == TechType.BigCoralTubes)
-                {// fix  clipping with terrain 
-                    int x = (int)__instance.transform.position.x;
-                    int y = (int)__instance.transform.position.y;
-                    int z = (int)__instance.transform.position.z;
-                    if (x == 47 && y == -34 && z == -6)
-                    {
-                        __instance.transform.position = new Vector3(__instance.transform.position.x, __instance.transform.position.y, -6.815f);
-                    }
-                    else if (x == -20 && y == -28 && z == -381)
-                    {
-                        __instance.transform.position = new Vector3(__instance.transform.position.x, -28.62f, __instance.transform.position.z);
-                    }
-                    else if (x == 86 && y == -33 && z == -334)
-                    { // let player swim thru it
-                        __instance.transform.position = new Vector3(__instance.transform.position.x, -33.3f, __instance.transform.position.z);
-                    }
-                    else if (x == 448 && y == -77 && z == -7)
-                    { // let player swim thru it
-                        __instance.transform.position = new Vector3(__instance.transform.position.x, __instance.transform.position.y, -6.5f);
-                    }
-                    //86.651 -33.781 -334.973
+                {
+                    FixCoralTubesPositions(__instance);
+                }
+                else if (tt == TechType.Creepvine)
+                {
+                    Vector3 pos = __instance.transform.position;
+                    int x = (int)pos.x;
+                    int y = (int)pos.y;
+                    int z = (int)pos.z;
+                    if (x == 29 && y == -51 && z == -472) // not attached to ground
+                        __instance.transform.position = new Vector3(pos.x, -55f, pos.z);
                 }
                 //else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
@@ -180,30 +176,17 @@ namespace Tweaks_Fixes
                     if (Util.IsGraphicsPresetHighDetail())
                         SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
                 }
-                else if (tt == TechType.FloatingStone) // ?
-                {
-                    //SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
-                }
-                //else if (tt == TechType.HangingStinger)
-                //{
-                //    EnableCreepvineShader(__instance);
-                //}
                 else if (tt == TechType.Floater)
                 {
                     Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.organic);
                 }
                 else if (tt == TechType.PurpleFan) // veined nettle
                 { // disable collision, allow scanning
-                    BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
-                    bc.gameObject.layer = LayerID.Useable;
-                    bc.isTrigger = true;
+                    DisableCollision(__instance);
                 }
                 else if (tt == TechType.PurpleTentacle) // writhing weed
                 { // disable collision, allow scanning
-                    BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
-                    bc.gameObject.layer = LayerID.Useable;
-                    bc.isTrigger = true;
-                    bc.size = new Vector3(bc.size.x, bc.size.y, bc.size.z * 3);
+                    DisableCollision(__instance, new Vector3(1, 1, 3));
                 }
                 else if (tt == TechType.FarmingTray && __instance.name == "Base_exterior_Planter_Tray_01_abandoned(Clone)")
                 {
@@ -243,12 +226,7 @@ namespace Tweaks_Fixes
                     }
                     else if (plantsWithNoTechtype.Contains(__instance.name))
                     {
-                        BoxCollider bc = __instance.GetComponentInChildren<BoxCollider>();
-                        if (bc)
-                        {
-                            bc.isTrigger = true;
-                            bc.gameObject.layer = LayerID.Useable;
-                        }
+                        DisableCollision(__instance);
                         Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
                     }
                     return;
@@ -283,12 +261,76 @@ namespace Tweaks_Fixes
 
             }
 
+            private static void TestHarvest(TechType techType)
+            {
+                HarvestType harvestType = TechData.GetHarvestType(techType);
+                if (harvestType != HarvestType.None)
+                {
+                    TechType harvestOutput = TechData.GetHarvestOutput(techType);
+                    harvest.Add($"{techType} harvest {harvestType} {harvestOutput}");
+                }
+                //AddDebug("AddHarvestResourceToExosuit harvestType " + harvestType);
+            }
+
+            private static void FixCoralTubesPositions(Component component)
+            {
+                int x = (int)component.transform.position.x;
+                int y = (int)component.transform.position.y;
+                int z = (int)component.transform.position.z;
+                if (x == 47 && y == -34 && z == -6)
+                {
+                    component.transform.position = new Vector3(component.transform.position.x, component.transform.position.y, -6.815f);
+                }
+                else if (x == -20 && y == -28 && z == -381)
+                {
+                    component.transform.position = new Vector3(component.transform.position.x, -28.62f, component.transform.position.z);
+                }
+                else if (x == 86 && y == -33 && z == -334)
+                { // let player swim thru it
+                    component.transform.position = new Vector3(component.transform.position.x, -33.3f, component.transform.position.z);
+                }
+                else if (x == 448 && y == -77 && z == -7)
+                { // let player swim thru it
+                    component.transform.position = new Vector3(component.transform.position.x, component.transform.position.y, -6.5f);
+                }
+                //86.651 -33.781 -334.973
+            }
+
+            private static void DisableCollision(Component component, Vector3 sizeMult = default)
+            {
+                BoxCollider bc = component.GetComponentInChildren<BoxCollider>();
+                if (bc)
+                {
+                    bc.gameObject.layer = LayerID.Useable;
+                    bc.isTrigger = true;
+                    if (sizeMult != default)
+                        bc.size = new Vector3(bc.size.x * sizeMult.x, bc.size.y * sizeMult.y, bc.size.z * sizeMult.z);
+                }
+            }
+
+            private static void AddWorldForces(GameObject gameObject, float underWaterGravity = float.MaxValue)
+            {
+                Rigidbody rb = gameObject.GetComponent<Rigidbody>();
+                if (rb == null)
+                    return;
+
+                WorldForces wf = gameObject.EnsureComponent<WorldForces>();
+                if (underWaterGravity != float.MaxValue)
+                    wf.underwaterGravity = underWaterGravity;
+
+                //worldForces.underwaterDrag = 11;
+                wf.useRigidbody = rb;
+                rb.isKinematic = false;
+                rb.useGravity = false;
+                //if (WorldForcesManager.instance.m_AllForces.Contains(worldForces) == false)
+                WorldForcesManager.Instance.AddWorldForces(wf);
+            }
 
             [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(LargeWorldEntity __instance)
             {
                 if (__instance.transform.position.y < 1f && __instance.name.StartsWith("FloatingStone") && !__instance.name.EndsWith("Floaters(Clone)")) // -6 -13
-                { // fix: rocks that block cave entrance fall down bc they load before terrain 
+                { // fix bug: rocks that block cave entrance fall down bc they load before terrain 
                     SetCellLevel(__instance, LargeWorldEntity.CellLevel.Near);
                 }
             }

@@ -38,7 +38,6 @@ namespace Tweaks_Fixes
             static void Postfix(SubRoot __instance)
             {
                 //AddDebug(__instance.name + " SubRoot Awake " + __instance.isBase);
-                //Light[] lights = __instance.GetComponentsInChildren<Light>();
                 if (__instance.isBase)
                 {
                     __instance.subLightsOn = Main.configMain.GetBaseLights(__instance.transform.position);

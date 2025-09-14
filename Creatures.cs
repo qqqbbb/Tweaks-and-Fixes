@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using TMPro;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -18,6 +19,7 @@ namespace Tweaks_Fixes
         public static ConditionalWeakTable<SwimBehaviour, string> reefbackSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static ConditionalWeakTable<SwimBehaviour, string> gasopodSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static Color bloodColor;
+        static public HashSet<TechType> fishTechTypes = new HashSet<TechType> { };
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Patch
@@ -112,6 +114,9 @@ namespace Tweaks_Fixes
                     __instance.GetComponent<Rigidbody>().mass = 4f;
                 }
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (__instance.GetComponent<Eatable>())
+                    fishTechTypes.Add(tt);
+
                 creatureTT.Add(tt);
                 if (tt == TechType.Gasopod)
                 {
@@ -183,12 +188,14 @@ namespace Tweaks_Fixes
                 AvoidObstacles ao = __instance.gameObject.GetComponent<AvoidObstacles>();
                 if (ao == null)
                     return;
+
                 AvoidEscapePod aep = __instance.gameObject.EnsureComponent<AvoidEscapePod>();
                 aep.swimVelocity = ao.swimVelocity;
                 aep.swimInterval = ao.swimInterval;
                 aep.maxDistanceToPod = 100f;
-                //if (__instance.transform.position.y > -15f)
-                //    __instance.transform.position = new Vector3(__instance.transform.position.x, -15f, __instance.transform.position.z);
+                SwimBehaviour sb = __instance.GetComponent<SwimBehaviour>();
+                if (sb)
+                    reefbackSBs.Add(sb, "");
             }
         }
 
@@ -249,10 +256,13 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    velocity *= ConfigMenu.creatureSpeedMult.Value;
+                    //TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    if (ConfigMenu.creatureSpeedMult.Value != 1)
+                        velocity *= ConfigMenu.creatureSpeedMult.Value;
+
                     if (gasopodSBs.TryGetValue(__instance, out string ss) && targetPosition.y > -1f)
                     {
-                        targetPosition.y = UnityEngine.Random.Range(-11, -1);
+                        targetPosition.y = -2;
                         return;
                     }
                     else if (reefbackSBs.TryGetValue(__instance, out string sss) && targetPosition.y > -15f)
@@ -260,23 +270,9 @@ namespace Tweaks_Fixes
                         targetPosition.y = -15f;
                         return;
                     }
-                    TechType tt = CraftData.GetTechType(__instance.gameObject);
-                    if (tt == TechType.Reefback && targetPosition.y > -15f)
-                    { // dont allow them to surface
-                        //AddDebug("Fix reefback y pos");
-                        targetPosition.y = -15f;
-                        reefbackSBs.Add(__instance, "");
-                    }
-                    else if (tt == TechType.Gasopod && targetPosition.y > -1f)
-                    {
-                        targetPosition.y = UnityEngine.Random.Range(-11, 0);
-                        //AddDebug("Gasopod Swim To " + targetPosition.y);
-                        gasopodSBs.Add(__instance, "");
-                    }
                 }
             }
         }
-
 
         [HarmonyPatch(typeof(CollectShiny))]
         class CollectShiny_Patch

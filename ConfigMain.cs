@@ -22,7 +22,6 @@ namespace Tweaks_Fixes
         }
 
         public override string JsonFilePath => Paths.ConfigPath + Path.DirectorySeparatorChar + Main.MODNAME + Path.DirectorySeparatorChar + "config.json";
-        // Main. SaveData()
         public Screen_Resolution_Fix.ScreenRes screenRes;
         public Dictionary<string, HashSet<string>> cyclopsFloodLights = new Dictionary<string, HashSet<string>>();
         public Dictionary<string, HashSet<string>> cyclopsLighting = new Dictionary<string, HashSet<string>>();

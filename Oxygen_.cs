@@ -10,55 +10,6 @@ namespace Tweaks_Fixes
 {
     class Oxygen_
     {
-        public static void OnBrainCoralKill(CoralBlendWhite coralBlendWhite)
-        {
-            coralBlendWhite.killed = true;
-            coralBlendWhite.timeOfDeath = Time.time;
-            coralBlendWhite.RegisterForDeathUpdate();
-            Animator animator = coralBlendWhite.GetComponentInChildren<Animator>();
-            if (animator)
-                //animator.enabled = false;
-                UnityEngine.Object.Destroy(animator);
-
-            AnimatorLink animatorLink = coralBlendWhite.GetComponentInChildren<AnimatorLink>();
-            if (animatorLink)
-                UnityEngine.Object.Destroy(animatorLink);
-
-            IntermittentInstantiate intermittentInstantiate = coralBlendWhite.GetComponent<IntermittentInstantiate>();
-            if (intermittentInstantiate)
-                UnityEngine.Object.Destroy(intermittentInstantiate);
-        }
-
-        [HarmonyPatch(typeof(CoralBlendWhite))]
-        class CoralBlendWhite_OnEnable_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnEnable")]
-            public static void OnEnablePostfix(CoralBlendWhite __instance)
-            {
-                //AddDebug("CoralBlendWhite OnEnable killed " + __instance.killed);
-                //AddDebug("CoralBlendWhite OnEnable done " + __instance.done);
-                LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
-                if (liveMixin && liveMixin.data)
-                {
-                    liveMixin.data.destroyOnDeath = false;
-                    //AddDebug("IsAlive " + liveMixin.IsAlive());
-                    if (!liveMixin.IsAlive())
-                        OnBrainCoralKill(__instance);
-                }
-            }
-            [HarmonyPostfix]
-            [HarmonyPatch("OnKill")]
-            public static void OnKillPostfix(CoralBlendWhite __instance)
-            {
-                //AddDebug("CoralBlendWhite OnEnable killed " + __instance.killed);
-                //AddDebug("CoralBlendWhite OnEnable done " + __instance.done);
-                Animator animator = __instance.GetComponentInChildren<Animator>();
-                if (animator)
-                    OnBrainCoralKill(__instance);
-            }
-        }
-
 
         [HarmonyPatch(typeof(IntermittentInstantiate), "OnEnable")]
         class IntermittentInstantiate_OnEnable_Patch

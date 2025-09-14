@@ -5,7 +5,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
+using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -1308,101 +1310,6 @@ namespace Tweaks_Fixes
             Exosuit_Patch.GetArmNames(__instance.exosuit);
             Exosuit_Patch.armNamesChanged = true;
         }
-    }
-
-    [HarmonyPatch(typeof(ExosuitDrillArm))]
-    class ExosuitDrillArm_Patch
-    {
-        //[HarmonyPrefix]
-        //[HarmonyPatch("OnHit")]
-        public static bool OnHitPrefix(ExosuitDrillArm __instance)
-        { // fix not showing particles when start drilling
-          //AddDebug("OnHit");
-            if (!__instance.exosuit.CanPilot() || !__instance.exosuit.GetPilotingMode())
-                return false;
-
-            Vector3 zero = Vector3.zero;
-            GameObject closestObj = null;
-            __instance.drillTarget = null;
-            UWE.Utils.TraceFPSTargetPosition(__instance.exosuit.gameObject, 5f, ref closestObj, ref zero);
-            if (closestObj == null)
-            {
-                InteractionVolumeUser component = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
-                if (component != null && component.GetMostRecent() != null)
-                    closestObj = component.GetMostRecent().gameObject;
-            }
-            if (closestObj && __instance.drilling)
-            {
-                Drillable drillable = closestObj.FindAncestor<Drillable>();
-                __instance.loopHit.Play();
-                if (drillable)
-                {
-                    GameObject hitObject;
-                    drillable.OnDrill(__instance.fxSpawnPoint.position, __instance.exosuit, out hitObject);
-                    __instance.drillTarget = hitObject;
-                    //if (__instance.fxControl.emitters[0].fxPS == null || __instance.fxControl.emitters[0].fxPS.emission.enabled) 
-                    //AddDebug("emission.enabled " + __instance.fxControl.emitters[0].fxPS.emission.enabled);
-                    //AddDebug("IsAlive " + __instance.fxControl.emitters[0].fxPS.IsAlive());
-                    if (__instance.fxControl.emitters[0].fxPS != null && (!__instance.fxControl.emitters[0].fxPS.IsAlive() || !__instance.fxControl.emitters[0].fxPS.emission.enabled))
-                    {
-                        __instance.fxControl.Play(0);
-                    }
-                }
-                else
-                {
-                    LiveMixin lm = closestObj.FindAncestor<LiveMixin>();
-                    if (lm)
-                    {
-                        lm.IsAlive();
-                        lm.TakeDamage(4f, zero, DamageType.Drill);
-                        __instance.drillTarget = closestObj;
-                    }
-                    //AddDebug("target " + closestObj.name);
-                    VFXSurface vfxSurface = closestObj.GetComponent<VFXSurface>();
-                    if (__instance.drillFXinstance == null)
-                        __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(vfxSurface, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
-                    else if (vfxSurface != null && __instance.prevSurfaceType != vfxSurface.surfaceType)
-                    {
-                        __instance.drillFXinstance.GetComponent<VFXLateTimeParticles>().Stop();
-                        UnityEngine.Object.Destroy(__instance.drillFXinstance.gameObject, 1.6f);
-                        __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(vfxSurface, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
-                        __instance.prevSurfaceType = vfxSurface.surfaceType;
-                    }
-                    closestObj.SendMessage("BashHit", __instance, SendMessageOptions.DontRequireReceiver);
-                }
-            }
-            else
-                __instance.StopEffects();
-
-            return false;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch("StopEffects")]
-        static bool StopEffectsPrefix(ExosuitDrillArm __instance)
-        { // dont stop drilling sound when not hitting anything
-          //AddDebug("StopEffects ");
-            if (__instance.drillFXinstance != null)
-            {
-                __instance.drillFXinstance.GetComponent<VFXLateTimeParticles>().Stop();
-                UnityEngine.Object.Destroy(__instance.drillFXinstance.gameObject, 1.6f);
-                __instance.drillFXinstance = null;
-            }
-            if (__instance.fxControl.emitters[0].fxPS != null && __instance.fxControl.emitters[0].fxPS.emission.enabled)
-                __instance.fxControl.Stop(0);
-            //__instance.loop.Stop();
-            __instance.loopHit.Stop();
-            return false;
-        }
-
-        [HarmonyPatch("IExosuitArm.OnUseUp")]
-        [HarmonyPostfix]
-        static void OnUseUpPostfix(ExosuitDrillArm __instance)
-        {
-            //AddDebug("OnUseUp ");
-            __instance.loop.Stop();
-        }
-
     }
 
     //[HarmonyPatch(typeof(CollisionSound), "OnCollisionEnter")]

@@ -17,26 +17,40 @@ namespace Tweaks_Fixes
         static float knifeDamageDefault = 0f;
         static ParticleSystem[] heatBladeParticles;
 
+        public static float GetKnifeDamage()
+        {
+            if (knifeDamageDefault == 0)
+                return 20;
+
+            return knifeDamageDefault;
+        }
+
         [HarmonyPatch(typeof(PlayerTool))]
         public class PlayerTool_Patch
         {
+            [HarmonyPostfix, HarmonyPatch("Awake")]
+            public static void StartPostfix(PlayerTool __instance)
+            {
+                Knife knife = __instance as Knife;
+                if (knife)
+                {
+                    if (knifeRangeDefault == 0)
+                        knifeRangeDefault = knife.attackDist;
+                    if (knifeDamageDefault == 0)
+                        knifeDamageDefault = knife.damage;
+                }
+            }
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
             {
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 Knife knife = __instance as Knife;
                 if (knife)
                 {
-                    if (knifeRangeDefault == 0f)
-                        knifeRangeDefault = knife.attackDist;
-                    if (knifeDamageDefault == 0f)
-                        knifeDamageDefault = knife.damage;
-
                     knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
                     knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
                     //AddDebug(" attackDist  " + knife.attackDist);
-                    //AddDebug(" damage  " + knife.damage);
+                    //AddDebug("Knife damage  " + knife.damage);
                 }
             }
 
@@ -204,7 +218,7 @@ namespace Tweaks_Fixes
                         else
                             spawnPos = camTr.position;
                     }
-                    CoroutineHost.StartCoroutine(Util.Spawn(techType, spawnPos));
+                    CoroutineHost.StartCoroutine(Util.SpawnAsync(techType, spawnPos));
                 }
             }
         }

@@ -511,9 +511,9 @@ namespace Tweaks_Fixes
             vFXSurface.surfaceType = type;
         }
 
-        public static IEnumerator Spawn(TechType techType, Vector3 pos = default, bool fadeIn = false)
+        public static IEnumerator SpawnAsync(TechType techType, Vector3 pos = default, bool fadeIn = false)
         {
-            //AddDebug("Spawn " + techType);
+            //AddDebug("Spawn " + techType + " " + pos);
             GameObject prefab;
             TaskResult<GameObject> result = new TaskResult<GameObject>();
             yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
@@ -532,9 +532,37 @@ namespace Tweaks_Fixes
                 else
                     go.transform.position = pos;
                 //AddDebug("Spawn " + techType + " " + pos);
+                //AttachPing(go);
                 CrafterLogic.NotifyCraftEnd(go, techType);
             }
             LargeWorldEntity_Patch.spawning = false;
+        }
+
+        public static IEnumerator AddToContainerAsync(TechType techType, ItemsContainer container, bool pickupSound)
+        {
+            TaskResult<GameObject> prefabResult = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(techType, prefabResult);
+            GameObject gameObject = prefabResult.Get();
+            if (gameObject == null)
+                yield break;
+
+            Pickupable pickupable = gameObject.GetComponent<Pickupable>();
+            if (!pickupable)
+            {
+                UnityEngine.Object.Destroy(gameObject);
+                yield break;
+            }
+            if (!container.HasRoomFor(pickupable))
+            {
+                UnityEngine.Object.Destroy(gameObject);
+                yield break;
+            }
+            pickupable.Initialize();
+            if (pickupSound)
+                pickupable.PlayPickupSound();
+
+            InventoryItem item = new InventoryItem(pickupable);
+            container.UnsafeAdd(item);
         }
 
         public static float CelciusToFahrenhiet(float celcius)
@@ -576,11 +604,14 @@ namespace Tweaks_Fixes
             return null;
         }
 
-        public static void AttachPing(GameObject go, PingType pingType, string name, Transform origin = null)
+        public static void AttachPing(GameObject go, PingType pingType = PingType.Signal, string name = "", Transform origin = null)
         {
             PingInstance pi = go.EnsureComponent<PingInstance>();
             pi.pingType = pingType;
             pi.origin = origin == null ? go.transform : origin;
+            if (name.IsNullOrWhiteSpace())
+                name = go.name;
+
             pi.SetLabel(Language.main.Get(name));
         }
 

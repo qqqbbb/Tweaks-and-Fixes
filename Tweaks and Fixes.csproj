@@ -132,12 +132,16 @@
     <Compile Include="Battery_.cs" />
     <Compile Include="Bed_.cs" />
     <Compile Include="Camera_.cs" />
+    <Compile Include="CoralBlendWhite_.cs" />
     <Compile Include="CreatureDeath_.cs" />
     <Compile Include="Cyclops_Doors.cs" />
     <Compile Include="ConfigMenu.cs" />
     <Compile Include="Cyclops_Movement.cs" />
     <Compile Include="Cyclops_unpowered.cs" />
+    <Compile Include="Drillable_.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
+    <Compile Include="Exosuit_Drill.cs" />
+    <Compile Include="Floater_.cs" />
     <Compile Include="Knife_Patch.cs" />
     <Compile Include="Light_Control.cs" />
     <Compile Include="Main_Menu.cs" />

@@ -17,6 +17,7 @@ using TMPro;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
+using static Nautilus.Assets.Gadgets.ScanningGadget;
 
 namespace Tweaks_Fixes
 {
@@ -147,19 +148,18 @@ namespace Tweaks_Fixes
         }
 
 
-        //[HarmonyPatch(typeof(Builder), "Update")]
-        class Builder_Update_patch
+        //[HarmonyPatch(typeof(VFXSurfaceTypeManager), "Play", new Type[] { typeof(VFXSurface), typeof(VFXEventTypes), typeof(Vector3), typeof(Quaternion), typeof(Transform) })]
+        class VFXSurfaceTypeManager_Play_patch
         {
-            public static void Postfix()
+            public static void Postfix(VFXSurfaceTypeManager __instance, VFXSurface surface, VFXEventTypes eventType)
+            //public static void Postfix(VFXSurfaceTypeManager __instance, VFXSurfaceTypes surfaceType, VFXEventTypes eventType)
             {
-                AddDebug("Builder Update " + Builder.isPlacing);
-                if (Builder.isPlacing)
-                {
-                    //Player.main.armsController.StartHolsterTime(disableDelay + viewAnimDuration);
-                }
+                if (surface == null)
+                    AddDebug($"VFXSurfaceTypeManager Play surface == nul");
+                else
+                    AddDebug($"VFXSurfaceTypeManager Play {surface.surfaceType} {eventType}");
             }
         }
-
 
         //[HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
         class DamageSystem_CalculateDamage_Prefix_Patch
@@ -364,7 +364,8 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    PlayerTool tool = Inventory.main.GetHeldTool();
+
+                    //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug("GetContinueMode " + Utils.GetContinueMode());
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
@@ -383,7 +384,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    printTarget();
+                    printTarget(true, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
@@ -428,8 +429,6 @@ namespace Tweaks_Fixes
                     }
                 }
             }
-
-
         }
 
         static void PrintTerrainSurfaceType()
@@ -446,7 +445,7 @@ namespace Tweaks_Fixes
                 AddDebug("no terrain ");
         }
 
-        public static void printTarget()
+        public static void printTarget(bool health = false, bool position = false)
         {
             GameObject target = Player.main.guiHand.activeTarget;
             RaycastHit hitInfo = new RaycastHit();
@@ -459,16 +458,26 @@ namespace Tweaks_Fixes
             if (!target)
                 return;
 
-            //AddDebug("target  " + target.name);
             GameObject root = Util.GetEntityRoot(target);
             if (root)
                 target = root;
 
-            //WorldForces worldForces = target.GetComponent<WorldForces>();
-            //if (worldForces != null)
-            //{
-            //    AddDebug("WorldForces IsAboveWater " + worldForces.IsAboveWater());
-            //}
+            AddDebug(target.name);
+            if (position)
+            {
+                int x = (int)target.transform.position.x;
+                int y = (int)target.transform.position.y;
+                int z = (int)target.transform.position.z;
+                AddDebug($"position {x} {y} {z}");
+            }
+            //Vector3 startPos = target.transform.position;
+            //Vector3 dir = -target.transform.up;
+            //float rayLength = .5f;
+            //bool rayHit = Physics.Raycast(startPos, dir, out RaycastHit hitInfo_, rayLength);
+            //Vector3 endPos = startPos + dir.normalized * rayLength;
+            //CoroutineHost.StartCoroutine(Util.SpawnAsync(TechType.BluePalmSeed, endPos));
+            //AddDebug("ray hit " + rayHit);
+
             VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
             TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
             if (tcpc)
@@ -481,8 +490,14 @@ namespace Tweaks_Fixes
                 vfxSurfaceType = Util.GetObjectSurfaceType(target);
 
             AddDebug("vfxSurfaceType  " + vfxSurfaceType);
-            LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
-            if (lwe)
+            if (health)
+            {
+                LiveMixin lm = target.GetComponent<LiveMixin>();
+                if (lm)
+                    AddDebug("max HP " + lm.data.maxHealth + " HP " + (int)lm.health);
+            }
+            //LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+            //if (lwe)
             {
                 //goToTest = lwe.gameObject;
                 //target = lwe.gameObject;
@@ -498,9 +513,7 @@ namespace Tweaks_Fixes
                 //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
                 //AddDebug(" cellLevel " + lwe.cellLevel);
                 //AddDebug("vfxSurfaceType  " + vfxSurfaceType);
-                //LiveMixin lm = lwe.GetComponent<LiveMixin>();
-                //if (lm)
-                //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
+
             }
             //AddDebug(target.name);
             //AddDebug(target.name + " IsDecoPlant " + Util.IsDecoPlant(target));
@@ -529,12 +542,17 @@ namespace Tweaks_Fixes
 
             }
             if (techType != TechType.None)
+            {
                 AddDebug("TechType  " + techType);
-
-            int x = (int)target.transform.position.x;
-            int y = (int)target.transform.position.y;
-            int z = (int)target.transform.position.z;
-            //AddDebug(x + " " + y + " " + z);
+                TechType harvestOutput = TechData.GetHarvestOutput(techType);
+                if (harvestOutput != TechType.None)
+                {
+                    AddDebug("harvest_Output " + harvestOutput);
+                    HarvestType harvestType = TechData.GetHarvestType(techType);
+                    if (harvestType != HarvestType.None)
+                        AddDebug("harvest_Type " + harvestType);
+                }
+            }
         }
 
         private Vector3 ClipWithTerrain(GameObject go)

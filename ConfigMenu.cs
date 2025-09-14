@@ -144,7 +144,7 @@ namespace Tweaks_Fixes
             dropItemsOnDeath = Main.configMenu.Bind("", "Drop items when you die", DropItemsOnDeath.Vanilla);
             invMultWater = Main.configMenu.Bind("", "Inventory weight multiplier in water", 0f, "When this is not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
             invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on ground", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
-            drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "");
+            drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "You have to reload the game after changing this");
             foodWaterHealThreshold = Main.configMenu.Bind("", "Food heal threshold", 150, "Your health regenerates when sum of your food and water values is greater than this");
             maxPlayerFood = Main.configMenu.Bind("", "Max player food", (int)SurvivalConstants.kMaxOverfillStat, "Your food meter will be capped at this.");
             maxPlayerWater = Main.configMenu.Bind("", "Max player water", (int)SurvivalConstants.kMaxStat, "Your water meter will be capped at this.");

@@ -61,13 +61,15 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Vehicle), "ConsumeEngineEnergy")]
-        class Vehicle_ConsumeEngineEnergy_Patch
+        [HarmonyPatch(typeof(Vehicle), "ConsumeEnergy", new Type[] { typeof(float) })]
+        class Vehicle_ConsumeEnergy_Patch
         {
-            static void Prefix(Vehicle __instance, ref float energyCost)
+            static void Prefix(Vehicle __instance, ref float amount)
             {
-                //AddDebug("Vehicle Consume Energy");
-                energyCost *= ConfigMenu.vehicleEnergyConsMult.Value;
+                if (ConfigMenu.vehicleEnergyConsMult.Value != 1)
+                    amount *= ConfigMenu.vehicleEnergyConsMult.Value;
+                //if (Input.GetKey(KeyCode.LeftShift))
+                //    AddDebug("Vehicle Consume Energy " + amount);
             }
         }
 

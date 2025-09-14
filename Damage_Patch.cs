@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static DamageFX;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -18,26 +19,15 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(DealDamageOnImpact __instance)
             {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 __instance.minDamageInterval = 1f;
-                if (tt == TechType.Gasopod)
+                if (__instance.name == "Gasopod(Clone)")
                 {
                     UnityEngine.Object.Destroy(__instance);
                 }
-                else if (tt == TechType.Seamoth || tt == TechType.Exosuit || tt == TechType.Cyclops)
-                {
-                    //__instance.allowDamageToPlayer = false;
-                    //AddDebug(__instance.name + " tt " + tt + " " + __instance.speedMinimumForDamage);
-                }
-                //else
-                //{
-                //    AddDebug(" DealDamageOnImpact start " + __instance.gameObject.name + " allowDamageToPlayer " + __instance.allowDamageToPlayer + " mirroredSelfDamage " + __instance.mirroredSelfDamage + " minimumMassForDamage " + __instance.minimumMassForDamage + " speedMinimumForDamage " + __instance.speedMinimumForDamage);
-                //    Main.logger.LogInfo(" DealDamageOnImpact start " + __instance.gameObject.name + " allowDamageToPlayer " + __instance.allowDamageToPlayer + " mirroredSelfDamage " + __instance.mirroredSelfDamage + " minimumMassForDamage " + __instance.minimumMassForDamage + " speedMinimumForDamage " + __instance.speedMinimumForDamage);
-                //}
             }
 
             [HarmonyPrefix]
@@ -273,35 +263,93 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch(nameof(LiveMixin.SyncUpdatingState))]
-            static void ManagedUpdatePostfix(LiveMixin __instance)
+            //[HarmonyPrefix, HarmonyPatch("TakeDamage")]
+            static bool TakeDamagePrefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
             {
-                if (__instance.gameObject == Player.mainObject)
+                //bool result = false;
+                bool baseCell = __instance.GetComponent<BaseCell>() != null;
+                bool invincible = GameModeUtils.IsInvisible() && (__instance.invincibleInCreative || baseCell);
+                if (__instance.health > 0f && !__instance.invincible && !__instance.invincible)
                 {
-                    //AddDebug("SyncUpdatingState ");
+                    float damage = 0f;
+                    if (dealer == Player.mainObject)
+                        AddDebug($"TakeDamage {originalDamage} {type} HP {__instance.health}");
+
+                    if (!__instance.shielded)
+                    {
+                        damage = DamageSystem.CalculateDamage(originalDamage, type, __instance.gameObject, dealer);
+                    }
+                    if (dealer == Player.mainObject)
+                        AddDebug($"TakeDamage CalculateDamage {damage}");
+
+                    __instance.health = Mathf.Max(0f, __instance.health - damage);
+                    if (dealer == Player.mainObject)
+                        AddDebug($"TakeDamage HP after {__instance.health}");
+
+                    if (type == DamageType.Cold || type == DamageType.Poison)
+                    {
+                        __instance.tempDamage += damage;
+                        __instance.SyncUpdatingState();
+                    }
+                    __instance.damageInfo.Clear();
+                    __instance.damageInfo.originalDamage = originalDamage;
+                    __instance.damageInfo.damage = damage;
+                    __instance.damageInfo.position = position == default ? __instance.transform.position : position;
+                    __instance.damageInfo.type = type;
+                    __instance.damageInfo.dealer = dealer;
+                    __instance.NotifyAllAttachedDamageReceivers(__instance.damageInfo);
+                    if (__instance.shielded)
+                    {
+                        return __result;
+                    }
+                    if ((bool)__instance.damageClip && damage > 0f && damage >= __instance.minDamageForSound && type != DamageType.Radiation)
+                    {
+                        Utils.PlayEnvSound(__instance.damageClip, __instance.damageInfo.position);
+                    }
+                    if ((bool)__instance.loopingDamageEffect && !__instance.loopingDamageEffectObj && __instance.GetHealthFraction() < __instance.loopEffectBelowPercent)
+                    {
+                        __instance.loopingDamageEffectObj = UWE.Utils.InstantiateWrap(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
+                        __instance.loopingDamageEffectObj.transform.parent = __instance.transform;
+                    }
+                    if (Time.time > __instance.timeLastElecDamageEffect + 2.5f && type == DamageType.Electrical && __instance.electricalDamageEffect != null)
+                    {
+                        FixedBounds fixedBounds = __instance.gameObject.GetComponent<FixedBounds>();
+                        Bounds bounds = fixedBounds == null ? UWE.Utils.GetEncapsulatedAABB(__instance.gameObject) : fixedBounds.bounds;
+                        GameObject obj = UWE.Utils.InstantiateWrap(__instance.electricalDamageEffect, bounds.center, Quaternion.identity);
+                        obj.transform.parent = __instance.transform;
+                        obj.transform.localScale = bounds.size * 0.65f;
+                        __instance.timeLastElecDamageEffect = Time.time;
+                    }
+                    else if (Time.time > __instance.timeLastDamageEffect + 1f && damage > 0f && __instance.damageEffect != null && (type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter || type == DamageType.Drill))
+                    {
+                        Utils.SpawnPrefabAt(__instance.damageEffect, __instance.transform, __instance.damageInfo.position);
+                        __instance.timeLastDamageEffect = Time.time;
+                    }
+                    if (__instance.health <= 0f || __instance.health - __instance.tempDamage <= 0f)
+                    {
+                        __result = true;
+                        if (!__instance.IsCinematicActive() || __instance.ShouldKillInCinematic())
+                        {
+                            __instance.Kill(type);
+                            if (dealer == Player.mainObject)
+                                AddDebug($"TakeDamage kill");
+                        }
+                        else
+                        {
+                            __instance.cinematicModeActive = true;
+                            __instance.SyncUpdatingState();
+                        }
+                    }
                 }
+                return false;
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("TakeDamage")]
+            //[HarmonyPostfix, HarmonyPatch("TakeDamage")]
             static void TakeDamagePostfix(LiveMixin __instance, bool __result, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
             {
-                if (__instance.gameObject.GetComponent<SubControl>())
-                {
-                    //AddDebug(__instance.name + " TakeDamage Postfix " + originalDamage + " " + type);
-                }
+                AddDebug(__instance.name + " TakeDamage Postfix " + originalDamage + " " + type);
             }
         }
-
-        //[HarmonyPatch(typeof(Survival), "OnHealTempDamage")]
-        static void Prefix(Survival __instance, float damage)
-        {
-            float food = Mathf.Clamp(__instance.food - damage * 0.25f, 0f, 200f);
-            //AddDebug("Survival OnHealTempDamage " + food);
-        }
-
-
 
         [HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
         class DamageSystem_CalculateDamage_Patch
@@ -309,14 +357,14 @@ namespace Tweaks_Fixes
             public static void Postfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
             {
                 //AddDebug(target.name + " damage " + damage + ' ' + __result);
-                if (__result <= 0f)
+                if (__result <= 0)
                     return;
 
-                if (type == DamageType.Drill)
-                {
-                    __result *= ConfigMenu.drillDamageMult.Value;
-                    //AddDebug("CalculateDamage Drill");
-                }
+                //if (type == DamageType.Drill)
+                //{
+                //__result *= ConfigMenu.drillDamageMult.Value;
+                //AddDebug("CalculateDamage Drill");
+                //}
                 if (target == Player.mainObject)
                 {
                     __result *= ConfigMenu.playerDamageMult.Value;
@@ -459,35 +507,6 @@ namespace Tweaks_Fixes
                 float damageMin = damageOnPickup.damageAmount * .5f;
                 float damageMax = damageOnPickup.damageAmount * 1.5f;
                 return UnityEngine.Random.Range(damageMin, damageMax);
-            }
-        }
-
-        [HarmonyPatch(typeof(Drillable))]
-        class Drillable_Start_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            static void StartPostfix(Drillable __instance)
-            {
-                if (ConfigMenu.drillDamageMult.Value == 1)
-                    return;
-
-                for (int index = 0; index < __instance.health.Length; ++index)
-                {
-                    __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
-                    //AddDebug("Drillable Start " + __instance.health[index]);
-                }
-            }
-            [HarmonyPostfix, HarmonyPatch("Restore")]
-            static void RestorePostfix(Drillable __instance)
-            {
-                if (ConfigMenu.drillDamageMult.Value == 1)
-                    return;
-
-                for (int index = 0; index < __instance.health.Length; ++index)
-                {
-                    __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
-                    //AddDebug("Drillable Restore " + __instance.health[index]);
-                }
             }
         }
 
