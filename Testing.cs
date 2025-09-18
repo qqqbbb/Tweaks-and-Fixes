@@ -9,6 +9,7 @@ using Nautilus.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -17,12 +18,11 @@ using TMPro;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
-using static Nautilus.Assets.Gadgets.ScanningGadget;
 
 namespace Tweaks_Fixes
 {
     class Testing
-    {
+    {// drillable ion cube 257 -1433 -333
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
@@ -364,7 +364,6 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-
                     //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug("GetContinueMode " + Utils.GetContinueMode());
                     //PrintTerrainSurfaceType();
@@ -469,6 +468,11 @@ namespace Tweaks_Fixes
                 int y = (int)target.transform.position.y;
                 int z = (int)target.transform.position.z;
                 AddDebug($"position {x} {y} {z}");
+            }
+            EcoTarget ecoTarget = target.GetComponent<EcoTarget>();
+            if (ecoTarget != null)
+            {
+                AddDebug("EcoTarget " + ecoTarget.type);
             }
             //Vector3 startPos = target.transform.position;
             //Vector3 dir = -target.transform.up;
@@ -741,5 +745,21 @@ namespace Tweaks_Fixes
         //        Console.WriteLine($"Postfix: {value}");
         //    }
         //}
+
+        //[HarmonyPatch(typeof(DamageSystem), nameof(DamageSystem.CalculateDamage))]
+        public static class DamageSystem_CalculateDamage_Patch
+        {
+            //[HarmonyTranspiler]
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                Main.logger.LogInfo("Start CalculateDamage Instructions dump");
+                var instructionList = new List<CodeInstruction>(instructions);
+                for (int i = 0; i < instructionList.Count; i++)
+                {
+                    Main.logger.LogInfo($"IL_{i:D3}: {instructionList[i].opcode} {instructionList[i].operand}");
+                }
+                return instructionList;
+            }
+        }
     }
 }

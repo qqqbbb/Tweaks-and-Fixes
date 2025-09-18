@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
 {
     class Survival_
     {
-        public static HashSet<Pickupable> cookedFish = new HashSet<Pickupable> { };
+        public static HashSet<GameObject> cookedFish = new HashSet<GameObject> { };
         static bool updatingStats;
         private static bool usingMedkit;
 
@@ -433,13 +433,20 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(EcoTarget __instance)
             {
-                if (ConfigToEdit.removeCookedFishOnReload.Value && !Main.gameLoaded && __instance.type == EcoTargetType.DeadMeat)
-                { // remove cooked fish from lava geysers
-                    Pickupable p = __instance.GetComponent<Pickupable>();
-                    if (p)// p.inventoryItem is null
-                        cookedFish.Add(p);
+                if (ConfigToEdit.removeCookedFishOnReload.Value && !Main.gameLoaded && Util.IsFishCooked(__instance) && Util.IsPickupableInContainer(__instance) == false)
+                {
+                    cookedFish.Add(__instance.gameObject);
                 }
             }
+        }
+
+        public static void RemoveCookedFish()
+        {
+            foreach (GameObject go in cookedFish)
+            {
+                UnityEngine.Object.Destroy(go);
+            }
+            cookedFish.Clear();
         }
 
         [HarmonyPatch(typeof(Plantable), "OnProtoDeserialize")]
@@ -511,15 +518,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(LiveMixin), "TakeDamage")]
-        class LiveMixin_TakeDamage_patch
-        {
-            public static void Prefix(LiveMixin __instance, float originalDamage, Vector3 position = default, DamageType type = DamageType.Normal, GameObject dealer = null)
-            {
-                if (updatingStats) return;
-                AddDebug(" TakeDamage ");
-            }
-        }
+
 
     }
 }

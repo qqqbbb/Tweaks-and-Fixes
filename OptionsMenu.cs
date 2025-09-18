@@ -62,6 +62,9 @@ namespace Tweaks_Fixes
             ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodWaterHealThreshold.ToModSliderOption(100, 400, 10);
             ModSliderOption maxFoodSlider = ConfigMenu.maxPlayerFood.ToModSliderOption(100, 300, 10);
             ModSliderOption maxWaterSlider = ConfigMenu.maxPlayerWater.ToModSliderOption(100, 300, 10);
+            ModSliderOption subtitlesDelaySlider = ConfigMenu.subtitlesDelay.ToModSliderOption(0f, 5f, .1f, "{0:0.#}");
+
+
 
             AddItem(timeFlowSpeedSlider);
             AddItem(playerWaterSpeedSlider);
@@ -129,6 +132,8 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.dropItemsOnDeath.ToModChoiceOption());
             AddItem(invMultWaterSlider);
             AddItem(invMultLandSlider);
+            AddItem(subtitlesDelaySlider);
+
             //AddItem(ConfigMenu.transferAllItemsButton.ToModKeybindOption());
             //AddItem(ConfigMenu.transferSameItemsButton.ToModKeybindOption());
             //AddItem(ConfigMenu.lightButton.ToModKeybindOption());

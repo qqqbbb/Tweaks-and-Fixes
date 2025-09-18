@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.2.0";
+            VERSION = "4.3.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -109,15 +109,10 @@ namespace Tweaks_Fixes
                 Inventory.main.quickSlots.SelectImmediate(configMain.activeSlot);
 
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip"));
-            //LanguageHandler.SetTechTypeTooltip(TechType.SeamothElectricalDefense, Language.main.Get("TF_bladderfish_tooltip")); 
+            //LanguageHandle r.SetTechTypeTooltip(TechType.SeamothElectricalDefense, Language.main.Get("TF_bladderfish_tooltip"));
 
-            foreach (Pickupable p in Survival_.cookedFish)
-            { // remove dead fish from geysers
-                if (p != null && p.inventoryItem == null)
-                    Destroy(p.gameObject);
-            }
-            Survival_.cookedFish.Clear();
-            Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_Patch.OnPlayerUnderwaterChanged));
+            Survival_.RemoveCookedFish();
+            Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_.OnPlayerUnderwaterChanged));
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             CreatureDeath_.TryRemoveCorpses();
             Escape_Pod_Patch.EscapePodInit();
@@ -232,8 +227,6 @@ namespace Tweaks_Fixes
             ConfigToEdit.Bind();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
-            //SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup);
-            //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => Setup());
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
             WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => AddTechTypesToClassIDtable());
             options = new OptionsMenu();

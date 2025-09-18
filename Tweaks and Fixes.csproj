@@ -140,9 +140,10 @@
     <Compile Include="Cyclops_unpowered.cs" />
     <Compile Include="Drillable_.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
+    <Compile Include="Exosuit_Collision_Sound.cs" />
     <Compile Include="Exosuit_Drill.cs" />
     <Compile Include="Floater_.cs" />
-    <Compile Include="Knife_Patch.cs" />
+    <Compile Include="Knife_.cs" />
     <Compile Include="Light_Control.cs" />
     <Compile Include="Main_Menu.cs" />
     <Compile Include="Medical_Cabinet_.cs" />
@@ -189,6 +190,7 @@
     <Compile Include="Creatures.cs" />
     <Compile Include="HangingStinger.cs" />
     <Compile Include="Escape_Pod_Patch.cs" />
+    <Compile Include="Subtitles_.cs" />
     <Compile Include="Survival_.cs" />
     <Compile Include="TimeCapsule_.cs" />
     <Compile Include="Tools_.cs" />

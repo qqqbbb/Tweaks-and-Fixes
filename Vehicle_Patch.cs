@@ -7,7 +7,7 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
-using static HandReticle;
+
 
 namespace Tweaks_Fixes
 {
@@ -873,33 +873,12 @@ namespace Tweaks_Fixes
             //AddDebug("Exosuit Start " + __instance.docked);
             //Main.Log("Exosuit start pos " + __instance.transform.position);
             //Main.Log("Exosuit start locpos " + __instance.transform.localPosition);
-            CreateCollisionSounds(__instance);
             if (Main.configMain.GetExosuitLights(__instance.gameObject))
                 SetLights(__instance, false);
 
             exosuitStarted = true;
         }
 
-        private static void CreateCollisionSounds(Exosuit exosuit)
-        {
-            CollisionSound collisionSound = exosuit.gameObject.EnsureComponent<CollisionSound>();
-            FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
-            so.path = "event:/sub/common/fishsplat";
-            so.id = "{0e47f1c6-6178-41bd-93bf-40bfca179cb6}";
-            collisionSound.hitSoundSmall = so;
-            so = ScriptableObject.CreateInstance<FMODAsset>();
-            so.path = "event:/sub/seamoth/impact_solid_hard";
-            so.id = "{ed65a390-2e80-4005-b31b-56380500df33}";
-            collisionSound.hitSoundFast = so;
-            so = ScriptableObject.CreateInstance<FMODAsset>();
-            so.path = "event:/sub/seamoth/impact_solid_medium";
-            so.id = "{cb2927bf-3f8d-45d8-afe2-c82128f39062}";
-            collisionSound.hitSoundMedium = so;
-            so = ScriptableObject.CreateInstance<FMODAsset>();
-            so.path = "event:/sub/seamoth/impact_solid_soft";
-            so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
-            collisionSound.hitSoundSlow = so;
-        }
 
         [HarmonyPostfix]
         [HarmonyPatch("Update")]
@@ -1312,57 +1291,7 @@ namespace Tweaks_Fixes
         }
     }
 
-    //[HarmonyPatch(typeof(CollisionSound), "OnCollisionEnter")]
-    class CollisionSound_OnCollisionEnter_Patch
-    { // fix fish splat sound when colliding with rocks
-        static bool Prefix(CollisionSound __instance, Collision col)
-        {
-            //SeaMoth seaMoth = __instance.GetComponent<SeaMoth>();
-            //if (seaMoth)
-            //{
-            //    Main.Log(" hitSoundSmall path " + __instance.hitSoundSmall.path);
-            //    Main.Log(" hitSoundSmall id " + __instance.hitSoundSmall.id);
-            //    Main.Log(" hitSoundFast path " + __instance.hitSoundFast.path);
-            //    Main.Log(" hitSoundFast id " + __instance.hitSoundFast.id);
-            //    Main.Log(" hitSoundMedium path " + __instance.hitSoundMedium.path);
-            //    Main.Log(" hitSoundMedium id " + __instance.hitSoundMedium.id);
-            //    Main.Log(" hitSoundSlow path " + __instance.hitSoundSlow.path);
-            //    Main.Log(" hitSoundSlow id " + __instance.hitSoundSlow.id);
-            //}
-            Exosuit exosuit = __instance.GetComponent<Exosuit>();
-            Rigidbody rb = UWE.Utils.GetRootRigidbody(col.gameObject);
-            if (exosuit && !rb)
-                return false;// no sounds when walking on ground
 
-            float magnitude = col.relativeVelocity.magnitude;
-            //FMODAsset asset = !rootRigidbody || rootRigidbody.mass >= 10.0 ? (magnitude <= 8.0 ? (magnitude <= 4.0 ? __instance.hitSoundSlow : __instance.hitSoundMedium) : __instance.hitSoundFast) : __instance.hitSoundSmall;
-            FMODAsset asset = null;
-            if (!rb || rb.mass >= 10.0f)
-            {
-                if (magnitude < 4f)
-                    asset = __instance.hitSoundSlow;
-                else if (magnitude < 8f)
-                    asset = __instance.hitSoundMedium;
-                else
-                    asset = __instance.hitSoundFast;
-            }
-            else if (col.gameObject.GetComponent<Creature>())
-                asset = __instance.hitSoundSmall;// fish splat sound
-            else
-                asset = __instance.hitSoundSlow;
-
-            if (col.gameObject.tag == "Player")
-                asset = __instance.hitSoundSlow;
-
-            if (asset)
-            {
-                //AddDebug("col magnitude " + magnitude);
-                float soundRadiusObsolete = Mathf.Clamp01(magnitude / 8f);
-                Utils.PlayFMODAsset(asset, col.contacts[0].point, soundRadiusObsolete);
-            }
-            return false;
-        }
-    }
 
     [HarmonyPatch(typeof(SeamothStorageContainer))]
     class SeamothStorageContainer_Patch

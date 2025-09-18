@@ -26,7 +26,6 @@ namespace Tweaks_Fixes
             Vector3 position = Vector3.zero;
             GameObject closestObj = null;
             UWE.Utils.TraceFPSTargetPosition(__instance.exosuit.gameObject, ExosuitDrillArm.attackDist, ref closestObj, ref position);
-            GameObject root = null;
 
             if (closestObj == null)
             {
@@ -36,31 +35,23 @@ namespace Tweaks_Fixes
                     closestObj = component.GetMostRecent().gameObject;
                 }
             }
-            else
-                root = Util.GetEntityRoot(closestObj);
-
             if (closestObj && __instance.drilling)
             {
                 //AddDebug($"OnHit closestObj {closestObj.name}");
                 __instance.loopHit.Play();
-                if (root == null)
-                    drillable = closestObj.GetComponent<Drillable>();
-                else
+                targetLiveMixin = closestObj.FindAncestor<LiveMixin>();
+                if (targetLiveMixin)
                 {
-                    drillable = root.GetComponent<Drillable>();
-                    targetLiveMixin = root.GetComponent<LiveMixin>();
-                    if (targetLiveMixin)
+                    wasAlive = targetLiveMixin.IsAlive();
+                    if (targetHealthGiveResourceThreshold == float.MaxValue)
                     {
-                        wasAlive = targetLiveMixin.IsAlive();
-                        if (targetHealthGiveResourceThreshold == float.MaxValue)
-                        {
-                            targetHealthGiveResourceThreshold = targetLiveMixin.health - Knife_Patch.GetKnifeDamage();
-                            //AddDebug("OnHit targetHealthGiveResourceThreshold " + (int)targetHealthGiveResourceThreshold);
-                        }
-                        if (targetLiveMixin.IsAlive())
-                            targetLiveMixin.TakeDamage(ExosuitDrillArm.damage * ConfigMenu.drillDamageMult.Value, position, DamageType.Drill);
+                        targetHealthGiveResourceThreshold = targetLiveMixin.health - Knife_.GetKnifeDamage();
+                        //AddDebug("OnHit targetHealthGiveResourceThreshold " + (int)targetHealthGiveResourceThreshold);
                     }
+                    if (targetLiveMixin.IsAlive())
+                        targetLiveMixin.TakeDamage(ExosuitDrillArm.damage * ConfigMenu.drillDamageMult.Value, position, DamageType.Drill);
                 }
+                drillable = closestObj.FindAncestor<Drillable>();
                 if (drillable)
                 {
                     drillable.OnDrill(__instance.fxSpawnPoint.position, __instance.exosuit, out var hitObject);
@@ -71,10 +62,7 @@ namespace Tweaks_Fixes
                     }
                     return false;
                 }
-                VFXSurface surface = closestObj.GetComponent<VFXSurface>();
-                if (surface == null && root != null)
-                    surface = root.GetComponent<VFXSurface>();
-
+                VFXSurface surface = closestObj.FindAncestor<VFXSurface>();
                 //if (surface == null)
                 //    AddDebug($"OnHit surface == null ");
                 //else
@@ -91,10 +79,7 @@ namespace Tweaks_Fixes
                     __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(surface, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
                     __instance.prevSurfaceType = surface.surfaceType;
                 }
-                if (root)
-                    root.SendMessage("BashHit", __instance, SendMessageOptions.DontRequireReceiver);
-                else
-                    closestObj.SendMessage("BashHit", __instance, SendMessageOptions.DontRequireReceiver);
+                closestObj.SendMessage("BashHit", __instance, SendMessageOptions.DontRequireReceiver);
             }
             else
             {
@@ -151,7 +136,7 @@ namespace Tweaks_Fixes
         }
         [HarmonyPrefix, HarmonyPatch("IExosuitArm.Update")]
         static bool UpdatePrefix(ExosuitDrillArm __instance, ref Quaternion aimDirection)
-        { // dont autoaim the arm
+        { // dont autoaim the arm. Looks stupid when drilling vine
             return false;
         }
 

@@ -302,7 +302,6 @@ namespace Tweaks_Fixes
             beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
             flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it. This setting will be disabled if 'Flare repair' mod is installed.");
             stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "UI prompt when stasis rifle is equipped. Gasopods do not drop gas pods when in stasis field. Gas pods do not explode when in stasis field.");
-            //gasopodsInStasisDontDropGaspods = Main.configToEdit.Bind("CREATURES", "Gasopods do not drop gas pods when in stasis field", true, "");
             coralShellPlateGivesTableCoral = Main.configToEdit.Bind("PLANTS", "Coral Shell Plate gives Table Coral Sample", false, "When you destroy Coral Shell Plate you will get Table Coral Sample instead of Coral Tube Sample");
             disableWeirdPlantAnimation = Main.configToEdit.Bind("CYCLOPS", "Disable weird plant animation", false, "Disable animation for grub basket, bulbo tree, speckled rattler, pink cap, ming plant");
             disableTimeCapsule = Main.configToEdit.Bind("TOOLS", "Disable time capsules", false, "");

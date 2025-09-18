@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -614,6 +615,26 @@ namespace Tweaks_Fixes
 
             pi.SetLabel(Language.main.Get(name));
         }
+
+        public static bool IsFishCooked(EcoTarget ecoTarget)
+        {
+            if (ecoTarget == null || ecoTarget.type != EcoTargetType.DeadMeat)
+                return false;
+
+            return ecoTarget.GetComponent<Creature>() == null;
+        }
+
+        public static bool IsPickupableInContainer(Pickupable pickupable)
+        {
+            return pickupable.inventoryItem != null;
+        }
+
+        public static bool IsPickupableInContainer(Component component)
+        {
+            Pickupable p = component.GetComponent<Pickupable>();
+            return p != null && p.inventoryItem != null;
+        }
+
 
     }
 }

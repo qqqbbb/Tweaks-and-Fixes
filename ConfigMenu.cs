@@ -79,6 +79,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> maxPlayerFood;
         public static ConfigEntry<int> maxPlayerWater;
         public static ConfigEntry<bool> toolsUItweaks;
+        public static ConfigEntry<float> subtitlesDelay;
 
 
         public static void Bind()
@@ -148,7 +149,7 @@ namespace Tweaks_Fixes
             foodWaterHealThreshold = Main.configMenu.Bind("", "Food heal threshold", 150, "Your health regenerates when sum of your food and water values is greater than this");
             maxPlayerFood = Main.configMenu.Bind("", "Max player food", (int)SurvivalConstants.kMaxOverfillStat, "Your food meter will be capped at this.");
             maxPlayerWater = Main.configMenu.Bind("", "Max player water", (int)SurvivalConstants.kMaxStat, "Your water meter will be capped at this.");
-            //toolsUItweaks = Main.configMenu.Bind("", "Tools UI tweaks", false, "");
+            subtitlesDelay = Main.configMenu.Bind("", "Subtitles delay", 0f, "Audio clips may be played with a delay when you have mods installed. Use this to set delay in seconds for subtitles so they are not shown too early.");
 
 
             transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");

@@ -10,7 +10,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class Knife_Patch
+    internal class Knife_
     {
         public static bool giveResourceOnDamage;
         static float knifeRangeDefault = 0f;
@@ -47,8 +47,10 @@ namespace Tweaks_Fixes
                 Knife knife = __instance as Knife;
                 if (knife)
                 {
-                    knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
-                    knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
+                    if (knifeRangeDefault > 0)
+                        knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
+                    if (knifeDamageDefault > 0)
+                        knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
                     //AddDebug(" attackDist  " + knife.attackDist);
                     //AddDebug("Knife damage  " + knife.damage);
                 }
@@ -154,45 +156,6 @@ namespace Tweaks_Fixes
             {
                 giveResourceOnDamage = true;
             }
-
-            //[HarmonyPostfix]
-            //[HarmonyPatch("GiveResourceOnDamage")]
-            public static void GiveResourceOnDamageMy(Knife __instance, GameObject target, bool isAlive, bool wasAlive)
-            {
-                if (isAlive || wasAlive)
-                    return;
-
-                //TechType techType = CraftData.GetTechType(target);
-                //string name = techType.AsString();
-                //if (Main.config.deadCreatureLoot.ContainsKey(name))
-                //{
-                //    Creature creature = target.GetComponent<Creature>();
-                //    if (creature == null)
-                //        return;
-
-                //    if (deadCreatureLoot.ContainsKey(creature))
-                //    {
-                //        foreach (var pair in Main.config.deadCreatureLoot[name])
-                //        {
-                //            TechType loot = pair.Key;
-                //            int max = pair.Value;
-                //            if (deadCreatureLoot[creature].ContainsKey(loot) && deadCreatureLoot[creature][loot] < max)
-                //            {
-                //                CraftData.AddToInventory(loot);
-                //                deadCreatureLoot[creature][loot]++;
-                //            }
-                //        }
-                //    }
-                //    else
-                //    {
-                //        foreach (var pair in Main.config.deadCreatureLoot[name])
-                //        {
-                //            CraftData.AddToInventory(pair.Key);
-                //            deadCreatureLoot.Add(creature, new Dictionary<TechType, int> { { pair.Key, 1 } });
-                //        }
-                //    }
-                //}
-            }
         }
 
         public static void AddToInventoryOrSpawn(TechType techType, int num)
@@ -256,7 +219,7 @@ namespace Tweaks_Fixes
         }
 
         public static void FixHeatBlade()
-        { //  fix heatblade underwater particles 
+        {
             if (heatBladeParticles == null || heatBladeParticles.Length != 3 || heatBladeParticles[0] == null || heatBladeParticles[0].gameObject == null || !heatBladeParticles[0].gameObject.activeInHierarchy)
                 return;
 
