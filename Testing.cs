@@ -282,52 +282,34 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Survival), "UpdateStats")]
-        public static class UpdateStatsPatch
+        //[HarmonyPatch(typeof(Exosuit), "UpdateActiveTarget")]
+        public static class Exosuit_UpdateActiveTarget_Patch
         {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            public static bool Prefix(Exosuit __instance)
             {
-                var codes = new List<CodeInstruction>(instructions);
-                var kFoodTimeField = AccessTools.Field(typeof(SurvivalConstants), nameof(SurvivalConstants.kFoodTime));
-
-                foreach (var instruction in instructions)
-                {
-                    if (instruction.operand != null && instruction.opcode != null)
-                        Main.logger.LogDebug("UpdateStats instruction opcode " + instruction.opcode + " operand " + instruction.operand + " " + instruction.operand.GetType());
-
-                    if (instruction.opcode == OpCodes.Ldc_R4 && (float)instruction.operand == SurvivalConstants.kFoodTime)
-                    {
-                        //instruction.opcode = OpCodes.Ldc_R4;
-                        Main.logger.LogDebug("UpdateStats Transpiler !!!");
-                        instruction.operand = SurvivalConstants.kFoodTime * ConfigMenu.foodLossMult.Value;
-                        Main.logger.LogDebug("UpdateStats Transpiler !!!!!!");
-                    }
-                }
-                return codes.AsEnumerable();
+                AddDebug("Exosuit UpdateActiveTarget");
+                return false;
             }
         }
 
-        //[HarmonyPatch(typeof(GroundMotor), "GetMaxAcceleration")]
-        class GroundMotor_GetMaxAcceleration_Patch
+        //[HarmonyPatch(typeof(PickupableStorage))]
+        class PickupableStorage_Patch
         {
-            public static bool Prefix(GroundMotor __instance, ref float __result)
+            //[HarmonyPatch("OnHandHover")]
+            public static bool Prefix(PickupableStorage __instance, GUIHand hand)
             {
-                //if (!Util.IsGameLoadedAndRunning())
-                //    return;
-
-                //AddDebug("GroundMotor ApplyInputVelocityChange forwardMaxSpeed " + __instance.forwardMaxSpeed);
-                AddDebug("Tf GroundMotor GetMaxAcceleration Prefix ");
-                return false;
+                if (!Main.gameLoaded)
+                    return false;
+                AddDebug("OnHandHover  Prefix ");
+                return true;
             }
-            public static void Postfix(GroundMotor __instance, ref float __result)
+            //[HarmonyPatch("OnHandHover")]
+            public static void Postfix(PickupableStorage __instance, GUIHand hand)
             {
                 if (!Main.gameLoaded)
                     return;
 
-                //AddDebug("GroundMotor ApplyInputVelocityChange forwardMaxSpeed " + __instance.forwardMaxSpeed);
-                AddDebug("TF GroundMotor GetMaxAcceleration Postfix ");
-
-                //throw new Exception();
+                AddDebug("OnHandHover  Postfix ");
             }
         }
 
@@ -338,6 +320,7 @@ namespace Tweaks_Fixes
             {
                 if (!Main.gameLoaded)
                     return;
+
                 //if (__instance._radiationAmount > 0)
                 //{
                 //    AddDebug("rad " + __instance._radiationAmount);
@@ -364,17 +347,17 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
+                    GameObject target = exosuit.GetActiveTarget();
+                    if (target)
+                    {
+                        AddDebug("exosuit target " + target.name);
+                    }
+                    //DestroyTarget();
                     //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug("GetContinueMode " + Utils.GetContinueMode());
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
-                    //AddDebug("activeTarget  " + Player.main.guiHand.activeTarget);
-                    //                bool hit = Physics.Linecast(Player.main.transform.position, Vector3.zero
-                    //                    , Voxeland.GetTerrainLayerMask());
-                    //                AddDebug(" hit from player " + hit);
-                    //                hit = Physics.Linecast(Vector3.zero, Player.main.transform.position
-                    //, Voxeland.GetTerrainLayerMask());
-                    //                AddDebug(" hit to player " + hit);
 
                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    Main.survival.water++; 
@@ -428,6 +411,46 @@ namespace Tweaks_Fixes
                     }
                 }
             }
+
+            private static void DamageTarget(float amount)
+            {
+                GameObject target = Player.main.guiHand.activeTarget;
+                if (!target)
+                    Targeting.GetTarget(Player.main.gameObject, 111f, out target, out float targetDist);
+
+                if (!target)
+                    return;
+
+                GameObject root = Util.GetEntityRoot(target);
+                if (root)
+                    target = root;
+
+                LiveMixin lm = target.GetComponent<LiveMixin>();
+                if (lm)
+                {
+                    AddDebug($"Damage {target.name} {amount}");
+                    lm.TakeDamage(amount);
+                }
+                else
+                    AddDebug($"{target.name} has no LiveMixin");
+            }
+        }
+
+        private static void DestroyTarget()
+        {
+            GameObject target = Player.main.guiHand.activeTarget;
+            if (!target)
+                Targeting.GetTarget(Player.main.gameObject, 111f, out target, out float targetDist);
+
+            if (!target)
+                return;
+
+            GameObject root = Util.GetEntityRoot(target);
+            if (root)
+                target = root;
+
+            AddDebug($"Destroy {target.name} ");
+            UnityEngine.Object.Destroy(target);
         }
 
         static void PrintTerrainSurfaceType()

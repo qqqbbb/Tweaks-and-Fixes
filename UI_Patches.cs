@@ -55,6 +55,7 @@ namespace Tweaks_Fixes
         static public string propCannonEatString = string.Empty;
         static public string pickupString = string.Empty;
         static public string constructorString = string.Empty;
+        static public string bagString = string.Empty;
 
         static void GetStrings()
         {
@@ -83,7 +84,7 @@ namespace Tweaks_Fixes
             beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             beaconPickString = LanguageCache.GetPickupText(TechType.Beacon) + "(" + leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             smallStorageString = "\n" + LanguageCache.GetPackUpText(TechType.SmallStorage) + " (" + altToolButton + ")\n";
-
+            bagString = LanguageCache.GetPackUpText(TechType.LuggageBag) + " (" + altToolButton + ")\n";
 
             constructorString = Language.main.Get("Climb") + "(" + leftHandButton + "), " + LanguageCache.GetPackUpText(TechType.Constructor) + " (" + rightHandButton + ")";
             changeTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + altToolButton + ")";
@@ -108,7 +109,7 @@ namespace Tweaks_Fixes
                 Exosuit_Patch.GetArmNames(exosuit);
         }
 
-        private static void HandleBaseLights(SubRoot subRoot)
+        private static void HandleBaseLightsControl(SubRoot subRoot)
         {
             HandReticle.main.SetTextRaw(HandReticle.TextType.Use, toggleBaseLightsString);
             if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
@@ -277,9 +278,44 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
         {
+            //[HarmonyPrefix, HarmonyPatch("Send")]
+            public static bool OnUpdatePrefix(GUIHand __instance, GameObject target, HandTargetEventType e, GUIHand hand)
+            {
+                if (!Main.gameLoaded)
+                    return false;
+
+                AddDebug($"GUIHand Send {target.name} {e}");
+                if (target == null || !target.activeInHierarchy || e == HandTargetEventType.None)
+                {
+                    return false;
+                }
+                IHandTarget handTarget = target.GetComponent<IHandTarget>();
+                if (handTarget == null)
+                {
+                    return false;
+                }
+                try
+                {
+                    //switch (e)
+                    {
+                        //case HandTargetEventType.Hover:
+                        //    handTarget.OnHandHover(hand);
+                        //    break;
+                        //case HandTargetEventType.Click:
+                        //    handTarget.OnHandClick(hand);
+                        //    break;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
+                return false;
+            }
+
             [HarmonyPostfix, HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
-            {
+            { // this runs when player in exosuit is looking at floating container
                 if (!Main.gameLoaded)
                     return;
 
@@ -388,12 +424,13 @@ namespace Tweaks_Fixes
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
                     {
-                        HandleBaseLights(subRoot);
+                        HandleBaseLightsControl(subRoot);
                     }
                 }
                 if (!__instance.activeTarget)
                     return;
-                //Main.Message("activeTarget layer " + __instance.activeTarget.layer);
+                //AddDebug("activeTarget " + __instance.activeTarget.name);
+                //AddDebug("activeTarget layer " + __instance.activeTarget.layer);
                 //if (__instance.activeTarget.layer == LayerID.NotUseable)
                 //    Main.Message("activeTarget Not Useable layer ");
                 TechType targetTT = CraftData.GetTechType(__instance.activeTarget);

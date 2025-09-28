@@ -154,28 +154,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Pickupable), "OnHandHover")]
-        class Pickupable_OnHandHover_Patch
-        {
-            static void Prefix(Pickupable __instance, GUIHand hand)
-            {
-                //UnityEngine.Object.Destroy(__instance.gameObject);
-                //return false;
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //AddDebug("OnHandHover " + tt);
-                CyclopsDecoy cd = __instance.gameObject.GetComponent<CyclopsDecoy>();
-                if (cd)
-                {
-                    //AddDebug("IsInvoking " + cd.IsInvoking("Despawn"));
-                }
-                //UniqueIdentifier lm = __instance.gameObject.GetComponent<UniqueIdentifier>();
-                //if (lm && Main.config.expiredDecoys.Contains(lm.id))
-                //    AddDebug(tt + " expired ");
-                //else
-                //    AddDebug(tt + " no  UniqueIdentifier");
-            }
-        }
-
         [HarmonyPatch(typeof(CyclopsDecoyManager), "Start")]
         class CyclopsDecoyManager_Start_Patch
         {

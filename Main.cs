@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.3.0";
+            VERSION = "4.4.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -35,7 +35,7 @@ namespace Tweaks_Fixes
         public static bool flareRepairLoaded;
         public static bool cyclopsDockingLoaded;
         public static bool vehicleLightsImprovedLoaded; // not updated
-        public static bool pickupFullCarryallsLoaded;  // not updated
+        public static bool pickupFullCarryallIsLoaded;  // not updated
         public static bool seaglideMapControlsLoaded;  // not updated
         public static bool baseLightSwitchLoaded;
         public static bool visibleLockerInteriorLoaded;
@@ -82,6 +82,8 @@ namespace Tweaks_Fixes
             Poison_Damage.ResetVars();
             Cyclops_unpowered.poweredSubs.Clear();
             Pickupable_.beacons.Clear();
+            Pickupable_.pickupableStorage.Clear();
+            Pickupable_.pickupableStorage_.Clear();
             Precurcor_Patch.used.Clear();
             configMain.Load();
         }
@@ -279,7 +281,7 @@ namespace Tweaks_Fixes
         {
             visibleLockerInteriorLoaded = Chainloader.PluginInfos.ContainsKey("VisibleLockerInterior");
             baseLightSwitchLoaded = Chainloader.PluginInfos.ContainsKey("com.ahk1221.baselightswitch") || Chainloader.PluginInfos.ContainsKey("Cookie_BaseLightSwitch");
-            pickupFullCarryallsLoaded = Chainloader.PluginInfos.ContainsKey("PickupableStorageEnhanced");
+            pickupFullCarryallIsLoaded = Chainloader.PluginInfos.ContainsKey("PickupableStorageEnhanced");
             advancedInventoryLoaded = Chainloader.PluginInfos.ContainsKey("sn.advancedinventory.mod");
             flareRepairLoaded = Chainloader.PluginInfos.ContainsKey("com.remodor.rm_flarerepair");
             cyclopsDockingLoaded = Chainloader.PluginInfos.ContainsKey("com.osubmarin.cyclopsdockingmod");

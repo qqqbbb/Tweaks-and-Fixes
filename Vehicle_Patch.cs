@@ -3,10 +3,12 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
+
 
 
 namespace Tweaks_Fixes
@@ -16,13 +18,13 @@ namespace Tweaks_Fixes
     {
         public static GameObject decoyPrefab;
         public static TechType currentVehicleTT;
-        //public static Dictionary<Vehicle, Vehicle.DockType> dockedVehicles = new Dictionary<Vehicle, Vehicle.DockType>();
         static FMODAsset fireSound = null;
         public static float changeTorpedoTimeLeft = 0;
         public static float changeTorpedoTimeRight = 0;
         public static float changeTorpedoInterval = .5f;
         public static HashSet<TechType> vehicleTechTypes = new HashSet<TechType> { TechType.Cyclops };
         public static string exosuitName;
+
 
         public static List<TorpedoType> GetTorpedos(Vehicle vehicle, ItemsContainer torpedoStorage)
         {
@@ -221,7 +223,7 @@ namespace Tweaks_Fixes
             else if (armorUpgrades > 2)
                 msg = msg.Replace("70", "40");
 
-            AddDebug(msg);
+            ErrorMessage.AddDebug(msg);
         }
 
         private static int GetNumModules(Vehicle __instance, TechType ttToCount)
@@ -574,7 +576,6 @@ namespace Tweaks_Fixes
     class Exosuit_Patch
     {
         public static string exosuitName;
-        //public static string exitButton;
         public static string leftArm;
         public static string rightArm;
         public static bool armNamesChanged = false;
@@ -583,7 +584,8 @@ namespace Tweaks_Fixes
         public static TorpedoType selectedTorpedoRight = null;
         public static ItemsContainer torpedoStorageLeft;
         public static ItemsContainer torpedoStorageRight;
-        //public static Transform lightsTransform;
+        static Vector3 aimTargetLeftPos;
+        static Vector3 aimTargetRightpos;
 
         public static List<TorpedoType> GetTorpedos(Exosuit exosuit, ItemsContainer torpedoStorage)
         {
@@ -836,15 +838,9 @@ namespace Tweaks_Fixes
             return t;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("Start")]
+        [HarmonyPostfix, HarmonyPatch("Start")]
         static void StartPostfix(Exosuit __instance)
         {
-            //__instance.StartCoroutine(PlayClip(__instance.mainAnimator, "exo_docked"));
-            //AddDebug("Exosuit Start currentLeftArmType " + __instance.currentLeftArmType);
-            //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
-            //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
-            //GetArmNames(__instance);
             if (exosuitName == null)
             {
                 //AddDebug("Start exosuitName == null");
@@ -852,42 +848,63 @@ namespace Tweaks_Fixes
             }
             // lights will follow camera
             GetLightsTransform(__instance).SetParent(__instance.leftArmAttach);
-            //if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
-            {
-                //Vehicle.DockType dockType = Vehicle_patch.dockedVehicles[__instance];
-                //if (dockType == Vehicle.DockType.Cyclops)
-                //{
-                //AddDebug("Play exo_docked Cyclops");
-                //__instance.mainAnimator.Play("exo_docked");
-                //}
-                //else if (dockType == Vehicle.DockType.Base)
-                //{
-                //AddDebug("Exosuit Start DockType.Base)");
-                //__instance.StartCoroutine(PlayClip(__instance.mainAnimator, "exo_docked", 11f));
-                //AddDebug("Play exoMoonp_docked");
-                //__instance.mainAnimator.Play("exo_docked");
-                //__instance.mainAnimator.Play("exoMoonp_docked");
-                //}
-            }
+            //TestDockedExosuit(__instance);
             armNamesChanged = true;
             //AddDebug("Exosuit Start " + __instance.docked);
-            //Main.Log("Exosuit start pos " + __instance.transform.position);
-            //Main.Log("Exosuit start locpos " + __instance.transform.localPosition);
             if (Main.configMain.GetExosuitLights(__instance.gameObject))
                 SetLights(__instance, false);
 
             exosuitStarted = true;
         }
 
-
-        [HarmonyPostfix]
-        [HarmonyPatch("Update")]
-        public static void UpdatePostfix(Exosuit __instance)
+        private static void TestDockedExosuit(Exosuit __instance)
         {
-            if (!Main.gameLoaded || Main.vehicleLightsImprovedLoaded)
+            //if (Vehicle_patch.dockedVehicles.ContainsKey(__instance))
+            //{
+            //    Vehicle.DockType dockType = Vehicle_patch.dockedVehicles[__instance];
+            //    if (dockType == Vehicle.DockType.Cyclops)
+            //    {
+            //        AddDebug("Play exo_docked Cyclops");
+            //        __instance.mainAnimator.Play("exo_docked");
+            //    }
+            //    else if (dockType == Vehicle.DockType.Base)
+            //    {
+            //        AddDebug("Exosuit Start DockType.Base)");
+            //        __instance.StartCoroutine(PlayClip(__instance.mainAnimator, "exo_docked", 11f));
+            //        AddDebug("Play exoMoonp_docked");
+            //        __instance.mainAnimator.Play("exo_docked");
+            //        __instance.mainAnimator.Play("exoMoonp_docked");
+            //    }
+            //}
+        }
+
+        [HarmonyPrefix, HarmonyPatch("Update")]
+        public static void UpdatePrefix(Exosuit __instance)
+        {
+            if (Main.gameLoaded == false)
                 return;
 
-            CheckExosuitButtons(__instance);
+            if (__instance.IsPowered() == false)
+            {
+                aimTargetLeftPos = __instance.aimTargetLeft.position;
+                aimTargetRightpos = __instance.aimTargetRight.position;
+            }
+        }
+
+        [HarmonyPostfix, HarmonyPatch("Update")]
+        public static void UpdatePostfix(Exosuit __instance)
+        {
+            if (Main.gameLoaded == false)
+                return;
+
+            if (Main.vehicleLightsImprovedLoaded == false)
+                CheckExosuitButtons(__instance);
+
+            if (__instance.IsPowered() == false)
+            { // fix bug: exosuit can move arms when unpowered
+                __instance.aimTargetLeft.position = aimTargetLeftPos;
+                __instance.aimTargetRight.position = aimTargetRightpos;
+            }
         }
 
         private static void CheckExosuitButtons(Exosuit exosuit)
@@ -920,15 +937,21 @@ namespace Tweaks_Fixes
             if (lightsTransform == null)
                 return;
 
+            //AddDebug("ToggleLights lightsTransform activeSelf " + lightsTransform.gameObject.activeSelf);
+            //AddDebug("ToggleLights hasCharge " + exosuit.energyInterface.hasCharge);
             if (!lightsTransform.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
             {
                 lightsTransform.gameObject.SetActive(true);
                 Main.configMain.DeleteExosuitLights(exosuit.gameObject);
+                if (Exosuit_Sounds.lightOnSound)
+                    Utils.PlayFMODAsset(Exosuit_Sounds.lightOnSound, exosuit.transform.position);
             }
             else if (lightsTransform.gameObject.activeSelf)
             {
                 lightsTransform.gameObject.SetActive(false);
                 Main.configMain.SaveExosuitLights(exosuit.gameObject);
+                if (Exosuit_Sounds.lightOffSound)
+                    Utils.PlayFMODAsset(Exosuit_Sounds.lightOffSound, exosuit.transform.position);
             }
             //AddDebug("lights " + lightsT.gameObject.activeSelf);
         }
@@ -1157,106 +1180,137 @@ namespace Tweaks_Fixes
 
     }
 
+    [HarmonyPatch(typeof(SupplyCrate), "Start")]
+    class SupplyCrate_Start_Patch
+    {
+        public static void Postfix(SupplyCrate __instance)
+        {
+            ExosuitClawArm_Patch.supplyCrates.Add(__instance.gameObject);
+        }
+    }
+
     [HarmonyPatch(typeof(ExosuitClawArm))]
     class ExosuitClawArm_Patch
     {
-        [HarmonyPostfix]
-        [HarmonyPatch("IExosuitArm.GetInteractableRoot")]
+        public static HashSet<GameObject> supplyCrates = new HashSet<GameObject>();
+
+        [HarmonyPostfix, HarmonyPatch("IExosuitArm.GetInteractableRoot")]
         static void GetInteractableRootPostfix(ExosuitClawArm __instance, GameObject target, ref GameObject __result)
         {
-            //AddDebug("ExosuitClawArm GetInteractableRoot Postfix target " + target.name);
-            if (__result == null && target.GetComponent<SupplyCrate>())
-                __result = target.gameObject;
-        }
-        [HarmonyPrefix]
-        [HarmonyPatch("TryUse", new Type[] { typeof(float) }, new[] { ArgumentType.Out })]
-        static bool TryUsePrefix(ExosuitClawArm __instance, ref float cooldownDuration, ref bool __result)
-        { // open supply crates
-            if (Time.time - __instance.timeUsed >= __instance.cooldownTime)
+            if (target && supplyCrates.Contains(target))
             {
-                Pickupable pickupable = null;
-                PickPrefab pickPrefab = null;
-                SupplyCrate supplyCrate = null;
-                __result = false;
-                bool playAnim = false;
-                GameObject target = __instance.exosuit.GetActiveTarget();
-                if (target)
-                {
-                    pickupable = target.GetComponent<Pickupable>();
-                    pickPrefab = target.GetComponent<PickPrefab>();
-                    supplyCrate = target.GetComponent<SupplyCrate>();
-                }
-                if (pickupable != null && pickupable.isPickupable)
-                {
-                    if (__instance.exosuit.storageContainer.container.HasRoomFor(pickupable))
-                    {
-                        __instance.animator.SetTrigger("use_tool");
-                        __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
-                        __result = true;
-                        return false;
-                    }
-                    else
-                        ErrorMessage.AddMessage(Language.main.Get("ContainerCantFit"));
-                }
-                else if (pickPrefab)
-                {
-                    __instance.animator.SetTrigger("use_tool");
-                    __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
-                    __result = true;
-                    return false;
-                }
-                else if (supplyCrate)
-                {
-                    if (supplyCrate.sealedComp && supplyCrate.sealedComp.IsSealed())
-                        return false;
-
-                    if (!supplyCrate.open)
-                    {
-                        supplyCrate.ToggleOpenState();
-                        playAnim = true;
-                    }
-                    else if (supplyCrate.open)
-                    {
-                        if (supplyCrate.itemInside)
-                        {
-                            if (__instance.exosuit.storageContainer.container.HasRoomFor(supplyCrate.itemInside))
-                            {
-                                ItemsContainer container = __instance.exosuit.storageContainer.container;
-                                supplyCrate.itemInside.Initialize();
-                                InventoryItem inventoryItem = new InventoryItem(supplyCrate.itemInside);
-                                container.UnsafeAdd(inventoryItem);
-                                Utils.PlayFMODAsset(__instance.pickupSound, __instance.front, 5f);
-                                supplyCrate.itemInside = null;
-                                playAnim = true;
-                            }
-                            else
-                            {
-                                ErrorMessage.AddMessage(Language.main.Get("ContainerCantFit"));
-                                return false;
-                            }
-                        }
-                    }
-                    if (playAnim)
-                    {
-                        __instance.animator.SetTrigger("use_tool");
-                        __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
-                        //supplyCrate.OnHandClick(null);
-                        __result = true;
-                    }
-                    return false;
-                }
-                else
-                {
-                    __instance.animator.SetTrigger("bash");
-                    __instance.cooldownTime = cooldownDuration = __instance.cooldownPunch;
-                    __instance.fxControl.Play(0);
-                    __result = true;
-                    return false;
-                }
+                //AddDebug("ExosuitClawArm GetInteractableRoot Postfix target " + target.name);
+                __result = target;
             }
-            cooldownDuration = 0f;
-            __result = false;
+        }
+
+        [HarmonyPostfix, HarmonyPatch("TryUse", new Type[] { typeof(float) }, new[] { ArgumentType.Out })]
+        static void TryUsePostfix(ExosuitClawArm __instance, ref float cooldownDuration, ref bool __result)
+        {
+            if (__instance.timeUsed + __instance.cooldownPickup > Time.time)
+                return;
+
+            //GameObject target = __instance.exosuit.GetActiveTarget();
+            //if (target)
+            //    AddDebug("TryUse target " + target.name);
+            //else
+            //    AddDebug("TryUse no target ");
+
+            __instance.animator.ResetTrigger("bash");
+            __instance.animator.SetTrigger("use_tool");
+            __instance.timeUsed = Time.time;
+            if (TryPickUpGrabbedObject(__instance))
+                return;
+
+            TryUseCrate(__instance);
+        }
+
+        private static bool TryUseCrate(ExosuitClawArm clawArm)
+        {
+            GameObject target = clawArm.exosuit.GetActiveTarget();
+            if (target == null)
+                return false;
+
+            SupplyCrate supplyCrate = null;
+            if (supplyCrates.Contains(target))
+                supplyCrate = target.GetComponent<SupplyCrate>();
+
+            if (supplyCrate == null)
+                return false;
+
+            if (supplyCrate.sealedComp && supplyCrate.sealedComp.IsSealed())
+                return false;
+
+            if (supplyCrate.open == false)
+            {
+                supplyCrate.ToggleOpenState();
+                return true;
+            }
+            if (supplyCrate.itemInside == null)
+                return false;
+
+            if (AddToExosuitContainer(clawArm.exosuit, supplyCrate.itemInside, clawArm.pickupSound, clawArm.front, 5f))
+            {
+                supplyCrate.itemInside = null;
+                return true;
+            }
             return false;
+        }
+
+        private static bool TryPickUpGrabbedObject(ExosuitClawArm clawArm)
+        {
+            GameObject grabbedObject = GetGrabbedObject(clawArm.exosuit);
+            if (grabbedObject == null)
+                return false;
+
+            Pickupable pickupable = grabbedObject.GetComponent<Pickupable>();
+            if (pickupable == null)
+                return false;
+            //AddDebug("Pick Up Grabbed Object " + pickupable.name);
+            return AddToExosuitContainer(clawArm.exosuit, pickupable, clawArm.pickupSound, clawArm.front, 5f);
+        }
+
+        private static bool AddToExosuitContainer(Exosuit exosuit, Pickupable pickupable, FMODAsset pickUpSound = null, Transform soundPos = default, float soundRadius = default)
+        {
+            if (ConfigToEdit.canPickUpContainerWithItems.Value == false && Pickupable_.pickupableStorage_.ContainsKey(pickupable))
+            {
+                PickupableStorage ps = Pickupable_.pickupableStorage_[pickupable];
+                ErrorMessage.AddDebug(Language.main.Get(ps.cantPickupClickText));
+                return false;
+            }
+            ItemsContainer exosuitContainer = exosuit.storageContainer.container;
+            if (exosuitContainer.HasRoomFor(pickupable))
+            {
+                pickupable.Initialize();
+                InventoryItem inventoryItem = new InventoryItem(pickupable);
+                exosuitContainer.UnsafeAdd(inventoryItem);
+                if (pickUpSound)
+                    Utils.PlayFMODAsset(pickUpSound, soundPos, soundRadius);
+
+                return true;
+            }
+            else
+            {
+                ErrorMessage.AddMessage(Language.main.Get("ContainerCantFit"));
+            }
+            return false;
+        }
+
+        private static GameObject GetGrabbedObject(Exosuit exosuit)
+        {
+            if (exosuit.currentLeftArmType == TechType.ExosuitPropulsionArmModule)
+            {
+                ExosuitPropulsionArm propArm = exosuit.leftArm as ExosuitPropulsionArm;
+                if (propArm && propArm.propulsionCannon.grabbedObject)
+                    return propArm.propulsionCannon.grabbedObject;
+            }
+            if (exosuit.currentRightArmType == TechType.ExosuitPropulsionArmModule)
+            {
+                ExosuitPropulsionArm propArm = exosuit.rightArm as ExosuitPropulsionArm;
+                if (propArm && propArm.propulsionCannon.grabbedObject)
+                    return propArm.propulsionCannon.grabbedObject;
+            }
+            return null;
         }
     }
 
@@ -1290,8 +1344,6 @@ namespace Tweaks_Fixes
             Exosuit_Patch.armNamesChanged = true;
         }
     }
-
-
 
     [HarmonyPatch(typeof(SeamothStorageContainer))]
     class SeamothStorageContainer_Patch

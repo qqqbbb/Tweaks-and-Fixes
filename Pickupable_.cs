@@ -1,7 +1,9 @@
 ﻿using HarmonyLib;
+using Nautilus.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
@@ -14,6 +16,9 @@ namespace Tweaks_Fixes
         public static HashSet<TechType> shinies = new HashSet<TechType>();
         public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
         public static Dictionary<Pickupable, Beacon> beacons = new Dictionary<Pickupable, Beacon>();
+        public static Dictionary<Pickupable, StorageContainer> pickupableStorage = new Dictionary<Pickupable, StorageContainer>();
+        public static Dictionary<Pickupable, PickupableStorage> pickupableStorage_ = new Dictionary<Pickupable, PickupableStorage>();
+
 
 
 
@@ -38,6 +43,16 @@ namespace Tweaks_Fixes
                         beacons.Add(__instance, beacon);
                 }
                 TechType tt = __instance.GetTechType();
+                if (tt == TechType.SmallStorage || tt == TechType.LuggageBag)
+                {
+                    PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
+                    if (ps)
+                        pickupableStorage_.Add(__instance, ps);
+
+                    StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
+                    if (sc)
+                        pickupableStorage.Add(__instance, sc);
+                }
                 if (unmovableItems.Contains(tt))
                 { // isKinematic gets saved
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
@@ -69,10 +84,28 @@ namespace Tweaks_Fixes
 
             }
 
-            //[HarmonyPostfix, HarmonyPatch("OnHandClick")]
-            static void OnHandClickPostfix(Pickupable __instance, GUIHand hand)
+            [HarmonyPrefix, HarmonyPatch("OnHandHover")]
+            public static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)
             {
-                AddDebug("Pickupable OnHandClick");
+                //AddDebug(__instance.name + " Pickupable OnHandHover AllowedToPickUp " + __instance.AllowedToPickUp());
+
+                if (!hand.IsFreeToInteract())
+                    return false;
+
+                if (!__instance.AllowedToPickUp())
+                    return false;
+
+                Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
+                if (exosuit)
+                {
+                    bool hasClawArm = exosuit.leftArmType == TechType.ExosuitClawArmModule || exosuit.rightArmType == TechType.ExosuitClawArmModule;
+                    // fix bug: button prompt shown below crosshair when prop arm equipped
+                    if (!hasClawArm)
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             [HarmonyPostfix, HarmonyPatch("OnHandHover")]
@@ -81,8 +114,6 @@ namespace Tweaks_Fixes
                 if (!hand.IsFreeToInteract())
                     return;
 
-                //if (!__instance.AllowedToPickUp())
-                //    return;
                 if (ConfigToEdit.beaconTweaks.Value && beacons.ContainsKey(__instance))
                 {
                     Beacon beacon = beacons[__instance];
@@ -91,32 +122,95 @@ namespace Tweaks_Fixes
                     if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                         uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
                 }
-            }
-
-            [HarmonyPrefix, HarmonyPatch("OnHandHover")]
-            public static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)
-            {
-                if (!hand.IsFreeToInteract())
-                    return false;
-
-                //if (!__instance.AllowedToPickUp())
-                //    return false;
-                if (Player.main.currentMountedVehicle == null)
-                    return true;
-
-                Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
-                if (exosuit)
+                if (ConfigToEdit.canPickUpContainerWithItems.Value == false && pickupableStorage_.ContainsKey(__instance) && Player.main.currentMountedVehicle is Exosuit)
                 {
-                    bool hasClawArm = exosuit.leftArmType == TechType.ExosuitClawArmModule || exosuit.rightArmType == TechType.ExosuitClawArmModule;
-                    // fix bug: button prompt shown below crosshair when prop arm equipped
-                    if (!hasClawArm)
-                        return false;
+                    //AddDebug(__instance.name + " Pickupable OnHandHover AllowedToPickUp " + __instance.AllowedToPickUp());
+                    if (__instance.AllowedToPickUp() == false)
+                    {
+                        PickupableStorage ps = pickupableStorage_[__instance];
+                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, Language.main.Get(ps.cantPickupClickText), true);
+                    }
                 }
-                return true;
             }
+
+            //[HarmonyPrefix, HarmonyPatch("OnHandClick")]
+            public static bool OnHandClickPrefix(Pickupable __instance, GUIHand hand)
+            {
+                //AddDebug(__instance.name + " Pickupable OnHandClick AllowedToPickUp " + __instance.AllowedToPickUp());
+                return false;
+            }
+
+            [HarmonyPostfix, HarmonyPatch("AllowedToPickUp")]
+            public static void AllowedToPickUpPostfix(Pickupable __instance, ref bool __result)
+            {
+                if (pickupableStorage.ContainsKey(__instance))
+                { // fix bug: exosuit can pick up containers with items
+                    if (ConfigToEdit.canPickUpContainerWithItems.Value)
+                        __result = true;
+                    else
+                        __result = pickupableStorage[__instance].container.IsEmpty();
+                    //AddDebug(__instance.name + " Pickupable AllowedToPickUp " + __result);
+                    return;
+                }
+                if (ConfigMenu.noFishCatching.Value && Player.main._currentWaterPark == null && Util.IsEatableFish(__instance.gameObject) && Util.IsDead(__instance.gameObject) == false)
+                {
+                    __result = false;
+                }
+                PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
+                if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
+                {
+                    //AddDebug("PropulsionCannonWeapon ");
+                    __result = true;
+                    return;
+                }
+                foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
+                {
+                    if (p == __instance)
+                    {
+                        //AddDebug("Gravsphere ");
+                        __result = true;
+                        return;
+                    }
+                }
+                Rigidbody rigidbody = __instance.GetComponent<Rigidbody>();
+                if (rigidbody == null)
+                    return;
+
+                foreach (Rigidbody rb in Tools_.stasisTargets)
+                {
+                    if (rigidbody == rb)
+                    {
+                        __result = true;
+                    }
+                }
+            }
+
+            [HarmonyPatch(typeof(ExosuitClawArm))]
+            public static class ExosuitClawArm_Patch
+            {
+                [HarmonyPrefix, HarmonyPatch("OnPickup")]
+                public static bool OnPickupPrefix(ExosuitClawArm __instance)
+                {
+                    //AddDebug("ExosuitClawArm OnPickup");
+                    if (ConfigToEdit.canPickUpContainerWithItems.Value)
+                        return true;
+
+                    GameObject target = __instance.exosuit.GetActiveTarget();
+                    if (target)
+                    {
+                        Pickupable p = target.GetComponent<Pickupable>();
+                        if (p && pickupableStorage.ContainsKey(p))
+                        {
+                            bool empty = pickupableStorage[p].IsEmpty();
+                            //AddDebug("ExosuitClawArm OnPickup pickupableStorage " + empty);
+                            return empty;
+                        }
+                    }
+                    return true;
+                }
+            }
+
+
         }
-
-
-
     }
 }

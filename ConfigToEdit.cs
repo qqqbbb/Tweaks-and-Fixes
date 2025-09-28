@@ -145,6 +145,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> coralShellPlateGivesTableCoral;
         public static ConfigEntry<bool> disableTimeCapsule;
         public static ConfigEntry<bool> spawnResourcesWhenDrilling;
+        public static ConfigEntry<bool> canPickUpContainerWithItems;
 
 
 
@@ -306,6 +307,7 @@ namespace Tweaks_Fixes
             disableWeirdPlantAnimation = Main.configToEdit.Bind("CYCLOPS", "Disable weird plant animation", false, "Disable animation for grub basket, bulbo tree, speckled rattler, pink cap, ming plant");
             disableTimeCapsule = Main.configToEdit.Bind("TOOLS", "Disable time capsules", false, "");
             spawnResourcesWhenDrilling = Main.configToEdit.Bind("TOOLS", "Spawn resources instead of adding them to prawn suit container when drilling", false, "");
+            canPickUpContainerWithItems = Main.configToEdit.Bind("MISC", "Can pick up containers with items", false, "");
 
 
 

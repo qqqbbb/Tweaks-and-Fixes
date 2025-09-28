@@ -199,48 +199,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Pickupable), "AllowedToPickUp")]
-        class Pickupable_AllowedToPickUp_Patch
-        {
-            public static void Postfix(Pickupable __instance, ref bool __result)
-            {
-                //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (ConfigMenu.noFishCatching.Value == false || Player.main._currentWaterPark || Util.IsEatableFish(__instance.gameObject) == false || Util.IsDead(__instance.gameObject))
-                {
-                    return;
-                }
-                __result = false;
-                PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
-                if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
-                {
-                    //AddDebug("PropulsionCannonWeapon ");
-                    __result = true;
-                    return;
-                }
-                foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
-                {
-                    if (p == __instance)
-                    {
-                        //AddDebug("Gravsphere ");
-                        __result = true;
-                        return;
-                    }
-                }
-                Rigidbody rigidbody = __instance.GetComponent<Rigidbody>();
-                if (rigidbody == null)
-                    return;
-
-                foreach (Rigidbody rb in Tools_.stasisTargets)
-                {
-                    if (rigidbody == rb)
-                    {
-                        __result = true;
-                    }
-                }
-
-            }
-        }
-
         [HarmonyPatch(typeof(SwimBehaviour), "SwimToInternal")]
         class SwimBehaviour_SwimToInternal_patch
         {
