@@ -20,8 +20,6 @@ namespace Tweaks_Fixes
         public static Dictionary<Pickupable, PickupableStorage> pickupableStorage_ = new Dictionary<Pickupable, PickupableStorage>();
 
 
-
-
         [HarmonyPatch(typeof(Pickupable))]
         public class Pickupable_Patch_
         {
@@ -185,32 +183,55 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPatch(typeof(ExosuitClawArm))]
-            public static class ExosuitClawArm_Patch
-            {
-                [HarmonyPrefix, HarmonyPatch("OnPickup")]
-                public static bool OnPickupPrefix(ExosuitClawArm __instance)
+            [HarmonyPostfix, HarmonyPatch("Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
+            static void DropPostfix(Pickupable __instance)
+            { // fix: when placing bag in cyclops, collider collides with floor bc it was edited in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
+                if (__instance.GetTechType() == TechType.LuggageBag)
                 {
-                    //AddDebug("ExosuitClawArm OnPickup");
-                    if (ConfigToEdit.canPickUpContainerWithItems.Value)
-                        return true;
-
-                    GameObject target = __instance.exosuit.GetActiveTarget();
-                    if (target)
-                    {
-                        Pickupable p = target.GetComponent<Pickupable>();
-                        if (p && pickupableStorage.ContainsKey(p))
-                        {
-                            bool empty = pickupableStorage[p].IsEmpty();
-                            //AddDebug("ExosuitClawArm OnPickup pickupableStorage " + empty);
-                            return empty;
-                        }
-                    }
-                    return true;
+                    //AddDebug(" Pickupable Drop " + __instance.name);
+                    BoxCollider boxCollider = __instance.GetComponentInChildren<BoxCollider>();
+                    boxCollider.isTrigger = false;
                 }
             }
-
-
+            [HarmonyPostfix, HarmonyPatch("Pickup")]
+            static void PickupPostfix(Pickupable __instance)
+            {// fix: when placing bag in cyclops, collider collides with floor bc it was edited in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
+                if (__instance.GetTechType() == TechType.LuggageBag)
+                {
+                    //AddDebug(" Pickupable Pickup " + __instance.name);
+                    BoxCollider boxCollider = __instance.GetComponentInChildren<BoxCollider>();
+                    boxCollider.isTrigger = true;
+                }
+            }
         }
+
+        [HarmonyPatch(typeof(ExosuitClawArm))]
+        public static class ExosuitClawArm_Patch
+        {
+            [HarmonyPrefix, HarmonyPatch("OnPickup")]
+            public static bool OnPickupPrefix(ExosuitClawArm __instance)
+            {
+                //AddDebug("ExosuitClawArm OnPickup");
+                if (ConfigToEdit.canPickUpContainerWithItems.Value)
+                    return true;
+
+                GameObject target = __instance.exosuit.GetActiveTarget();
+                if (target)
+                {
+                    Pickupable p = target.GetComponent<Pickupable>();
+                    if (p && pickupableStorage.ContainsKey(p))
+                    {
+                        bool empty = pickupableStorage[p].IsEmpty();
+                        //AddDebug("ExosuitClawArm OnPickup pickupableStorage " + empty);
+                        return empty;
+                    }
+                }
+                return true;
+            }
+        }
+
+
+
+
     }
 }

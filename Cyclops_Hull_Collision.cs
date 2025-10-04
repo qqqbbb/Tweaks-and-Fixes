@@ -9,7 +9,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Cyclops_Collision
+    class Cyclops_Hull_Collision
     {
         static bool fixCyclopsCollision = true;
         // Storage_Patch 510

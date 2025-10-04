@@ -347,11 +347,17 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
-                    GameObject target = exosuit.GetActiveTarget();
-                    if (target)
+                    Main.logger.LogMessage("Dump ency");
+                    AddDebug("Dump ency");
+                    foreach (var kv in PDAEncyclopedia.mapping)
                     {
-                        AddDebug("exosuit target " + target.name);
+                        PDAEncyclopedia.EntryData data = kv.Value;
+                        Main.logger.LogMessage($"{kv.Key}   kind: {data.kind} key: {data.key} path: {data.path} unlocked: {data.unlocked}");
+                        if (data.nodes != null && data.nodes.Length > 0)
+                        {
+                            for (int i = 0; i < data.nodes.Length; i++)
+                                Main.logger.LogMessage($"{kv.Key}   node {i} {data.nodes[i]}");
+                        }
                     }
                     //DestroyTarget();
                     //PlayerTool tool = Inventory.main.GetHeldTool();
@@ -388,21 +394,6 @@ namespace Tweaks_Fixes
                     //bool moving = vel.x > 1f || vel.y > 1f || vel.z > 1f;
                     //AddDebug("moving " + moving);
 
-                    //AddDebug(" " + target.gameObject.name );
-                    //if (target.transform.parent)
-                    //    AddDebug("parent  " + target.transform.parent.name);
-
-                    //if (target.GetComponent<InfectedMixin>())
-                    //{
-                    //    AddDebug("infectedAmount  " + target.GetComponent<InfectedMixin>().infectedAmount);
-                    //}
-                    //int x = (int)target.transform.position.x;
-                    //int y = (int)target.transform.position.y;
-                    //int z = (int)target.transform.position.z;
-                    //AddDebug(x + " " + y + " " + z);
-                    //Rigidbody rb = target.GetComponent<Rigidbody>();
-                    //if (rb)
-                    //    AddDebug("Rigidbody " + rb.mass);
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
                     }

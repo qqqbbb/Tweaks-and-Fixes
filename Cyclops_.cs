@@ -1,8 +1,6 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using static ErrorMessage;
@@ -12,23 +10,6 @@ namespace Tweaks_Fixes
     public class Cyclops_
     {
         static CyclopsEntryHatch cyclopsEntryHatch;
-        public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
-
-        static void AddCyclopsCollisionExclusion(GameObject go)
-        {
-            //AddDebug(__instance.name + " in cyclops");
-            Collider[] myCols = go.GetAllComponentsInChildren<Collider>();
-            foreach (Collider c in collidersInSub)
-            {
-                if (c == null)
-                    continue;
-                foreach (Collider myCol in myCols)
-                    Physics.IgnoreCollision(myCol, c);
-            }
-            collidersInSub.AddRange(myCols);
-            //foreach (Collider c in myCols)
-            //AddDebug("add collider to collidersInSub");
-        }
 
         static int GetFireCountInEngineRoom(SubFire subFire)
         {
@@ -406,38 +387,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Constructable), "Start")]
-        class Constructable_Start_Patch
-        {
-            public static void Postfix(Constructable __instance)
-            {
-                if (__instance.GetComponentInParent<SubControl>())
-                {
-                    //AddDebug("Constructable Start");
-                    AddCyclopsCollisionExclusion(__instance.gameObject);
-                }
-            }
-        }
 
-        [HarmonyPatch(typeof(Plantable), "Spawn")]
-        public class Plantable_Spawn_Patch
-        {
-            public static void Postfix(Plantable __instance, Transform parent, bool isIndoor, GameObject __result)
-            {
-                if (__result && __instance.GetComponentInParent<SubControl>())
-                    AddCyclopsCollisionExclusion(__result);
-            }
-        }
-
-        [HarmonyPatch(typeof(GrownPlant), "Awake")]
-        public class GrownPlant_Awake_Patch
-        {
-            public static void Postfix(GrownPlant __instance)
-            {
-                if (__instance.GetComponentInParent<SubControl>())
-                    AddCyclopsCollisionExclusion(__instance.gameObject);
-            }
-        }
 
 
         [HarmonyPatch(typeof(CyclopsLightingPanel))]

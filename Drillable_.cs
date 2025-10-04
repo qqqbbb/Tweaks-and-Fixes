@@ -25,7 +25,7 @@ namespace Tweaks_Fixes
             );
             if (codeMatcher.IsInvalid)
             {
-                Debug.LogError("[YourModName] Failed to find the target instruction (5f) in OnDrill method!");
+                Debug.LogError("[YourModName] Failed to find Drillable.drillDamage in OnDrill method!");
                 return instructions;
             }
             codeMatcher.SetInstructionAndAdvance(

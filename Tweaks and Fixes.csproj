@@ -134,6 +134,7 @@
     <Compile Include="Camera_.cs" />
     <Compile Include="CoralBlendWhite_.cs" />
     <Compile Include="CreatureDeath_.cs" />
+    <Compile Include="Cyclops_Constructable_Collision.cs" />
     <Compile Include="Cyclops_Doors.cs" />
     <Compile Include="ConfigMenu.cs" />
     <Compile Include="Cyclops_Movement.cs" />
@@ -165,7 +166,7 @@
     <Compile Include="Geyser_.cs" />
     <Compile Include="Scanner_Patch.cs" />
     <Compile Include="Sounds.cs" />
-    <Compile Include="Cyclops_Collision.cs" />
+    <Compile Include="Cyclops_Hull_Collision.cs" />
     <Compile Include="DayNightCycle_.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Base_.cs" />

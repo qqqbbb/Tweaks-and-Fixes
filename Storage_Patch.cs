@@ -276,21 +276,24 @@ namespace Tweaks_Fixes
                 if (techType == TechType.LuggageBag)
                 //if (parent && parent.name == "docking_luggage_01_bag4(Clone)")
                 {
+                    //AddDebug("CreateContainer LuggageBag");
+                    Pickupable p = parent.GetComponent<Pickupable>();
+                    if (p == null)
+                        return;
+
                     Transform t = parent.Find("model/Cube");
                     if (t)
                     {
                         BoxCollider colliderToDelete = t.GetComponent<BoxCollider>();
-                        Pickupable p = parent.GetComponent<Pickupable>();
-                        if (p && p.disabledColliders != null)
-                            p.disabledColliders.Remove(colliderToDelete);
-
+                        p.disabledColliders?.Remove(colliderToDelete);
                         UnityEngine.Object.Destroy(colliderToDelete);
                     }
                     t = parent.Find("storage");
                     if (t)
                     {
                         BoxCollider boxCollider = t.GetComponent<BoxCollider>();
-                        boxCollider.isTrigger = false;
+                        p.disabledColliders?.Add(boxCollider);
+                        //boxCollider.isTrigger = false;
                         boxCollider.center = new Vector3(0, .23f, 0);
                         boxCollider.size = new Vector3(1, .45f, .5f);
                     }
