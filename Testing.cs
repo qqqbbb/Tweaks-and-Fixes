@@ -282,13 +282,26 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Exosuit), "UpdateActiveTarget")]
-        public static class Exosuit_UpdateActiveTarget_Patch
+        //[HarmonyPrefix, HarmonyPatch("TakeDamage")]
+        static bool TakeDamagePrefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
         {
-            public static bool Prefix(Exosuit __instance)
+
+            return false;
+        }
+
+        //[HarmonyPatch(typeof(LiveMixin), "TakeDamage")]   
+        public static class LiveMixin_UpdateActiveTarget_Patch
+        {
+            public static void Prefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
             {
-                AddDebug("Exosuit UpdateActiveTarget");
-                return false;
+                if (__instance.name == "Cyclops-MainPrefab(Clone)")
+                {
+                    if (dealer == null)
+                        AddDebug("cyclops TakeDamage dealer null");
+                    else
+                        AddDebug("cyclops TakeDamage " + dealer.name);
+
+                }
             }
         }
 

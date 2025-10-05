@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.4.1";
+            VERSION = "4.4.2";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -59,7 +59,7 @@ namespace Tweaks_Fixes
             Databox_Light.databoxLights.Clear();
             Crush_Damage_.extraCrushDepth = 0;
             Crush_Damage_.crushDamageResistance = 0;
-            Cyclops_Constructable_Collision.collidersInSub.Clear();
+            Cyclops_Constructable_Collision.CleanUp();
             Geyser_.eruptionForce.Clear();
             Geyser_.rotationForce.Clear();
             Gravsphere_Patch.gasPods.Clear();

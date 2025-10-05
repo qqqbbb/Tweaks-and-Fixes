@@ -9,48 +9,62 @@ namespace Tweaks_Fixes
 {
     internal class Cyclops_Constructable_Collision
     {
-        public static HashSet<Collider> collidersInSub = new HashSet<Collider>();
+        static Dictionary<SubControl, Collider[]> subColliders = new Dictionary<SubControl, Collider[]>();
+
+        public static void CleanUp()
+        {
+            subColliders.Clear();
+        }
 
         public static void AddCyclopsCollisionExclusion(GameObject go)
         {
+            SubControl subControl = go.GetComponentInParent<SubControl>();
+            if (subControl == null || subControl.name == "__LIGHTMAPPED_PREFAB__")
+                return;
+
             Collider[] myCols = go.GetAllComponentsInChildren<Collider>();
-            AddDebug($"AddCyclopsCollisionExclusion {go.name} {myCols.Length}");
-            foreach (Collider c in collidersInSub)
+            if (myCols == null || myCols.Length == 0)
+                return;
+
+            if (subColliders.ContainsKey(subControl) == false)
+            {
+                Transform t = subControl.transform.Find("CyclopsCollision");
+                if (t == null)
+                    return;
+
+                subColliders[subControl] = t.GetComponentsInChildren<Collider>();
+            }
+            //AddDebug($"AddCyclopsCollisionExclusion {go.name} {myCols.Length}");
+            foreach (Collider c in subColliders[subControl])
             {
                 if (c == null)
                     continue;
                 foreach (Collider myCol in myCols)
                     Physics.IgnoreCollision(myCol, c);
             }
-            collidersInSub.AddRange(myCols);
-            //foreach (Collider c in myCols)
-            //AddDebug("add collider to collidersInSub");
         }
 
-        //[HarmonyPatch(typeof(Constructable), "Start")]
+        [HarmonyPatch(typeof(Constructable), "Start")]
         class Constructable_Start_Patch
         {
             public static void Postfix(Constructable __instance)
             {
                 if (__instance.GetComponentInParent<SubControl>())
-                {
-                    //AddDebug("Constructable Start");
                     AddCyclopsCollisionExclusion(__instance.gameObject);
-                }
             }
         }
 
-        //[HarmonyPatch(typeof(Plantable), "Spawn")]
+        [HarmonyPatch(typeof(Plantable), "Spawn")]
         public class Plantable_Spawn_Patch
         {
             public static void Postfix(Plantable __instance, Transform parent, bool isIndoor, GameObject __result)
             {
-                if (__result && __instance.GetComponentInParent<SubControl>())
-                    AddCyclopsCollisionExclusion(__result);
+                if (__instance.GetComponentInParent<SubControl>())
+                    AddCyclopsCollisionExclusion(__instance.gameObject);
             }
         }
 
-        //[HarmonyPatch(typeof(GrownPlant), "Awake")]
+        [HarmonyPatch(typeof(GrownPlant), "Awake")]
         public class GrownPlant_Awake_Patch
         {
             public static void Postfix(GrownPlant __instance)
@@ -66,14 +80,14 @@ namespace Tweaks_Fixes
             //[HarmonyPostfix, HarmonyPatch("CreateGhostModel")]
             static void CreateGhostModelPostfix(PlaceTool __instance)
             {
-                AddDebug("CreateGhostModel " + __instance.name);
+                //AddDebug("CreateGhostModel " + __instance.name);
                 //AddCyclopsCollisionExclusion(__instance.gameObject);
 
             }
             //[HarmonyPostfix, HarmonyPatch("OnPlace")]
             static void DestroyGhostModelPostfix(PlaceTool __instance)
             {
-                AddDebug("PlaceTool OnPlace " + __instance.name);
+                //AddDebug("PlaceTool OnPlace " + __instance.name);
                 //pickupable.droppedEvent.AddHandler(base.gameObject, OnDropped);
             }
         }

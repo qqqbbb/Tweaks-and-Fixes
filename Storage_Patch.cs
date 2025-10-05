@@ -293,7 +293,7 @@ namespace Tweaks_Fixes
                     {
                         BoxCollider boxCollider = t.GetComponent<BoxCollider>();
                         p.disabledColliders?.Add(boxCollider);
-                        //boxCollider.isTrigger = false;
+                        //boxCollider.isTrigger = false; this gives problems when placing bag in cyclops
                         boxCollider.center = new Vector3(0, .23f, 0);
                         boxCollider.size = new Vector3(1, .45f, .5f);
                     }

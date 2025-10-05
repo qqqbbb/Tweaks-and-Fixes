@@ -137,7 +137,6 @@ namespace Tweaks_Fixes
                 //AddDebug(__instance.name + " Pickupable OnHandClick AllowedToPickUp " + __instance.AllowedToPickUp());
                 return false;
             }
-
             [HarmonyPostfix, HarmonyPatch("AllowedToPickUp")]
             public static void AllowedToPickUpPostfix(Pickupable __instance, ref bool __result)
             {
@@ -185,7 +184,7 @@ namespace Tweaks_Fixes
 
             [HarmonyPostfix, HarmonyPatch("Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
             static void DropPostfix(Pickupable __instance)
-            { // fix: when placing bag in cyclops, collider collides with floor bc it was edited in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
+            { // collider that is not trigger gets destroyed in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
                 if (__instance.GetTechType() == TechType.LuggageBag)
                 {
                     //AddDebug(" Pickupable Drop " + __instance.name);
@@ -195,7 +194,7 @@ namespace Tweaks_Fixes
             }
             [HarmonyPostfix, HarmonyPatch("Pickup")]
             static void PickupPostfix(Pickupable __instance)
-            {// fix: when placing bag in cyclops, collider collides with floor bc it was edited in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
+            {// collider that is not trigger gets destroyed in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
                 if (__instance.GetTechType() == TechType.LuggageBag)
                 {
                     //AddDebug(" Pickupable Pickup " + __instance.name);

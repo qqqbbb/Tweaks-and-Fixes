@@ -114,7 +114,9 @@ namespace Tweaks_Fixes
             TaskResult<GameObject> result = new TaskResult<GameObject>();
             yield return CraftData.InstantiateFromPrefabAsync(TechType.Coffee, result);
             GameObject mug = result.Get();
-            mug.GetComponent<Rigidbody>().isKinematic = true;
+            Rigidbody rigidbody = mug.GetComponent<Rigidbody>();
+            //rigidbody.isKinematic = true;
+            UWE.Utils.SetIsKinematicAndUpdateInterpolation(rigidbody, true);
             Pickupable pickupable = mug.GetComponent<Pickupable>();
             pickupable.isPickupable = false;
             mug.transform.localScale = coffeeMugScale;
@@ -132,6 +134,7 @@ namespace Tweaks_Fixes
             float y = UnityEngine.Random.Range(45, 136);
             Vector3 rot = new Vector3(0, y, 0);
             mug.transform.Rotate(rot);
+            Cyclops_Constructable_Collision.AddCyclopsCollisionExclusion(mug);
             yield return new WaitForSeconds(cvm.spawnDelay);
             pickupable.isPickupable = true;
         }
@@ -143,7 +146,12 @@ namespace Tweaks_Fixes
             public static void OnProtoDeserializeAsyncPostfix(Pickupable __instance)
             {
                 if (Main.gameLoaded == false && IsCoffeeMug(__instance.gameObject) && GetCoffeeMaker(__instance.gameObject))
+                {
                     __instance.isPickupable = true;
+                    Rigidbody rigidbody = __instance.GetComponent<Rigidbody>();
+                    UWE.Utils.SetIsKinematicAndUpdateInterpolation(rigidbody, true);
+                    Cyclops_Constructable_Collision.AddCyclopsCollisionExclusion(__instance.gameObject);
+                }
             }
         }
 
