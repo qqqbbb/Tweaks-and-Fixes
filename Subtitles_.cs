@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         [HarmonyPrefix, HarmonyPatch("AddRawLong")]
         public static void Prefix(Subtitles __instance, StringBuilder text, ref float delay, float durationText, float durationSound)
         {
-            delay = ConfigMenu.subtitlesDelay.Value;
+            delay += ConfigMenu.subtitlesDelay.Value;
             //AddDebug($"Subtitles AddRawLong delay {delay} ::: {text.ToString()}");
         }
 

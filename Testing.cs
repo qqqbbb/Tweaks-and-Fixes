@@ -416,28 +416,29 @@ namespace Tweaks_Fixes
                 }
             }
 
-            private static void DamageTarget(float amount)
+        }
+
+        private static void DamageTarget(float amount)
+        {
+            GameObject target = Player.main.guiHand.activeTarget;
+            if (!target)
+                Targeting.GetTarget(Player.main.gameObject, 111f, out target, out float targetDist);
+
+            if (!target)
+                return;
+
+            GameObject root = Util.GetEntityRoot(target);
+            if (root)
+                target = root;
+
+            LiveMixin lm = target.GetComponent<LiveMixin>();
+            if (lm)
             {
-                GameObject target = Player.main.guiHand.activeTarget;
-                if (!target)
-                    Targeting.GetTarget(Player.main.gameObject, 111f, out target, out float targetDist);
-
-                if (!target)
-                    return;
-
-                GameObject root = Util.GetEntityRoot(target);
-                if (root)
-                    target = root;
-
-                LiveMixin lm = target.GetComponent<LiveMixin>();
-                if (lm)
-                {
-                    AddDebug($"Damage {target.name} {amount}");
-                    lm.TakeDamage(amount);
-                }
-                else
-                    AddDebug($"{target.name} has no LiveMixin");
+                AddDebug($"Damage {target.name} {amount}");
+                lm.TakeDamage(amount);
             }
+            else
+                AddDebug($"{target.name} has no LiveMixin");
         }
 
         private static void DestroyTarget()
