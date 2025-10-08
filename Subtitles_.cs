@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
         //[HarmonyPrefix, HarmonyPatch("AddInternal")]
         public static void AddInternalPrefix(Subtitles __instance, string key)
         {
-            AddDebug($"Subtitles AddInternal  {key} ");
+            //AddDebug($"Subtitles AddInternal  {key} ");
         }
 
 

@@ -495,7 +495,7 @@ namespace Tweaks_Fixes
             CreatureDeath_.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
             CreatureDeath_.respawnTime = ParseIntDicFromString(respawnTime.Value);
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
-            Battery_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
+            Charger_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
 
             Creatures.bloodColor = ParseColor(bloodColor.Value);
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_.transferAllItemsButton);

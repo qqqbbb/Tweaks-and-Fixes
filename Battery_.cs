@@ -14,7 +14,6 @@ namespace Tweaks_Fixes
         static EnergyMixin playerToolEM;
         static EnergyInterface propCannonEI;
         static Dictionary<string, float> defaultBatteryCharge = new Dictionary<string, float>();
-        public static HashSet<TechType> notRechargableBatteries = new HashSet<TechType>();
 
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
@@ -129,59 +128,6 @@ namespace Tweaks_Fixes
                     if (__instance.charge > __instance._capacity)
                         __instance.charge = __instance._capacity;
                 }
-            }
-        }
-
-        [HarmonyPatch(typeof(Charger), "Start")]
-        class Charger_Start_Patch
-        {
-            static void Postfix(Charger __instance)
-            {
-                //AddDebug(__instance.name + " Charger Start");
-                foreach (TechType tt in notRechargableBatteries)
-                {
-                    if (__instance.allowedTech.Contains(tt))
-                    {
-                        __instance.allowedTech.Remove(tt);
-                        //AddDebug("remove " + tt + " from " + __instance.name);
-                    }
-                }
-                //Main.logger.LogMessage(__instance.name + " Charger Start");
-                //foreach (var tt in __instance.allowedTech)
-                //    Main.logger.LogMessage(__instance.name + " allowedTech " + tt);
-            }
-        }
-
-
-        //[HarmonyPatch(typeof(Charger), "IsAllowedToAdd")]
-        class Charger_IsAllowedToAdd_Patch
-        {
-            static bool Prefix(Charger __instance, Pickupable pickupable, ref bool __result)
-            {
-                if (pickupable == null)
-                {
-                    __result = false;
-                    return false;
-                }
-                TechType tt = pickupable.GetTechType();
-                //string name = t.AsString();
-                //TechTypeExtensions.FromString(name, out TechType tt, true);
-                //TechType techType = pickupable.GetTechType();
-                if (tt == TechType.None)
-                {
-                    __result = false;
-                    return false;
-                }
-                if (notRechargableBatteries.Contains(tt))
-                {
-                    AddDebug("nonRechargeable " + tt);
-                    __result = false;
-                    return false;
-                }
-                if (__instance.allowedTech != null && __instance.allowedTech.Contains(tt))
-                    __result = true;
-
-                return false;
             }
         }
 

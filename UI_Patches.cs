@@ -11,7 +11,6 @@ namespace Tweaks_Fixes
 {
     class UI_Patches
     {
-        static bool textInput = false;
         static bool chargerOpen = false;
         //static List <TechType> landPlantSeeds = new List<TechType> { TechType.BulboTreePiece, TechType.PurpleVegetable, TechType.FernPalmSeed, TechType.OrangePetalsPlantSeed, TechType.HangingFruit, TechType.MelonSeed, TechType.PurpleVasePlantSeed, TechType.PinkMushroomSpore, TechType.PurpleRattleSpore, TechType.PinkFlowerSeed };
         //static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.AcidMushroomSpore, TechType.BloodOil, TechType.BluePalmSeed, TechType.KooshChunk, TechType.PurpleBranchesSeed, TechType.WhiteMushroomSpore, TechType.EyesPlantSeed, TechType.RedRollPlantSeed, TechType.GabeSFeatherSeed, TechType.JellyPlantSeed, TechType.RedGreenTentacleSeed, TechType.SnakeMushroomSpore, TechType.MembrainTreeSeed, TechType.SmallFanSeed, TechType.RedBushSeed, TechType.RedConePlantSeed, TechType.RedBasketPlantSeed, TechType.SeaCrownSeed, TechType.ShellGrassSeed, TechType.SpottedLeavesPlantSeed, TechType.SpikePlantSeed, TechType.PurpleFanSeed, TechType.PurpleStalkSeed, TechType.PurpleTentacleSeed };
@@ -249,7 +248,7 @@ namespace Tweaks_Fixes
                             if (chargerOpen)
                             {
                                 //chargerOpen = true;
-                                if (Battery_.notRechargableBatteries.Contains(tt))
+                                if (Charger_.notRechargableBatteries.Contains(tt))
                                 {
                                     pair.Value.SetChroma(0f);
                                     continue;
@@ -316,7 +315,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
             { // this runs when player in exosuit is looking at floating container
-                if (!Main.gameLoaded)
+                if (Main.gameLoaded == false || FPSInputModule.current.lockMovement)
                     return;
 
                 PlayerTool tool = __instance.GetTool();
@@ -419,7 +418,7 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, sb.ToString());
                     }
                 }
-                else if (!IngameMenu.main.isActiveAndEnabled && !Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
+                else if (!IngameMenu.main.isActiveAndEnabled && !Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !uGUI._main.craftingMenu.selected)
                 {
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
@@ -705,26 +704,6 @@ namespace Tweaks_Fixes
                     }
                 }
 
-            }
-        }
-
-
-        [HarmonyPatch(typeof(uGUI_InputGroup))]
-        class uGUI_InputGroup_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnSelect")]
-            static void OnSelectPostfix(uGUI_InputGroup __instance)
-            {
-                //AddDebug("uGUI_InputGroup OnSelect");
-                textInput = true;
-            }
-            [HarmonyPostfix]
-            [HarmonyPatch("OnDeselect")]
-            static void OnDeselectPostfix(uGUI_InputGroup __instance)
-            {
-                //AddDebug("uGUI_InputGroup OnDeselect");
-                textInput = false;
             }
         }
 

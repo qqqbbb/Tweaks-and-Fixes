@@ -635,6 +635,15 @@ namespace Tweaks_Fixes
             return p != null && p.inventoryItem != null;
         }
 
+        public static bool IsAnimationPlaying(Animator animator, int layerIndex = 0)
+        {
+            if (animator == null || !animator.enabled || !animator.gameObject.activeInHierarchy)
+                return false;
+
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
+            return stateInfo.length > 0 && stateInfo.normalizedTime < 1.0f;
+        }
+
 
     }
 }
