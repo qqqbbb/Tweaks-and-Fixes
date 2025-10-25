@@ -173,7 +173,7 @@ namespace Tweaks_Fixes
                 if (rigidbody == null)
                     return;
 
-                foreach (Rigidbody rb in Tools_.stasisTargets)
+                foreach (Rigidbody rb in Tools.stasisTargets)
                 {
                     if (rigidbody == rb)
                     {

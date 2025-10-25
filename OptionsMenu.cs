@@ -1,4 +1,5 @@
-﻿using Nautilus.Options;
+﻿using Nautilus.Handlers;
+using Nautilus.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,30 @@ namespace Tweaks_Fixes
 {
     public class OptionsMenu : ModOptions
     {
+        static public GameInput.Button moveAllItemsButton = EnumHandler.AddEntry<GameInput.Button>("TF_moveAllItems")
+            .CreateInput("Transfer all items")
+            .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Shift)
+            .WithControllerBinding(GameInputHandler.Paths.Gamepad.RightTrigger)
+            .WithCategory("Tweaks and Fixes");
+        static public GameInput.Button moveSameItemsButton = EnumHandler.AddEntry<GameInput.Button>("TF_moveSameItems")
+            .CreateInput("Transfer same items")
+            .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Ctrl)
+            .WithControllerBinding(GameInputHandler.Paths.Gamepad.LeftTrigger)
+            .WithCategory("Tweaks and Fixes");
+        static public GameInput.Button previousPDAtab = EnumHandler.AddEntry<GameInput.Button>("TF_PreviousPDAtab")
+            .CreateInput("Previous PDA tab")
+            .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Q)
+            .WithCategory("Tweaks and Fixes");
+        static public GameInput.Button nextPDAtab = EnumHandler.AddEntry<GameInput.Button>("TF_NextPDAtab")
+            .CreateInput("Next PDA tab")
+            .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.E)
+            .WithCategory("Tweaks and Fixes");
+        static public GameInput.Button quickSlotCycle = EnumHandler.AddEntry<GameInput.Button>("TF_quickSlot")
+            .CreateInput("Cycle tools in quickslot")
+            .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Alt)
+            .WithControllerBinding(GameInputHandler.Paths.Gamepad.ButtonSouth)
+            .WithCategory("Tweaks and Fixes");
+
         public OptionsMenu() : base("Tweaks and Fixes")
         {
             ModSliderOption timeFlowSpeedSlider = ConfigMenu.timeFlowSpeed.ToModSliderOption(.1f, 10f, .1f, "{0:0.#}");
@@ -121,9 +146,7 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.damageImpactEffect.ToModToggleOption());
             AddItem(ConfigMenu.damageScreenFX.ToModToggleOption());
             AddItem(stalkerLoseToothChanceSlider);
-            //AddItem(ConfigMenu.disableHints.ToModToggleOption());
             AddItem(ConfigMenu.realOxygenCons.ToModToggleOption());
-            //AddItem(ConfigMenu.cameraBobbing.ToModToggleOption());
             AddItem(decoyLifeTimeSlider);
             AddItem(decoyHPslider);
             AddItem(escapePodMaxPowerSlider);
@@ -134,12 +157,6 @@ namespace Tweaks_Fixes
             AddItem(invMultLandSlider);
             AddItem(subtitlesDelaySlider);
 
-            //AddItem(ConfigMenu.transferAllItemsButton.ToModKeybindOption());
-            //AddItem(ConfigMenu.transferSameItemsButton.ToModKeybindOption());
-            //AddItem(ConfigMenu.lightButton.ToModKeybindOption());
-            //AddItem(ConfigMenu.quickslotButton.ToModKeybindOption());
-            //AddItem(ConfigMenu.previousPDATabKey.ToModKeybindOption());
-            //AddItem(ConfigMenu.nextPDATabKey.ToModKeybindOption());
 
         }
 

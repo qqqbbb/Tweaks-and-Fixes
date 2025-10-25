@@ -30,8 +30,8 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("OnCollisionEnter")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnCollisionEnter")]
             public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
                 if (!ConfigToEdit.replaceDealDamageOnImpactScript.Value)

@@ -11,13 +11,6 @@ namespace Tweaks_Fixes
 {
     internal class ConfigMenu
     {
-
-        public static ConfigEntry<KeyCode> transferAllItemsButton;
-        public static ConfigEntry<KeyCode> transferSameItemsButton;
-        public static ConfigEntry<KeyCode> quickslotButton;
-        public static ConfigEntry<KeyCode> lightButton;
-        public static ConfigEntry<KeyCode> nextPDATabKey;
-        public static ConfigEntry<KeyCode> previousPDATabKey;
         public static ConfigEntry<float> timeFlowSpeed;
         public static ConfigEntry<float> playerWaterSpeedMult;
         public static ConfigEntry<float> playerGroundSpeedMult;
@@ -150,14 +143,6 @@ namespace Tweaks_Fixes
             maxPlayerFood = Main.configMenu.Bind("", "Max player food", (int)SurvivalConstants.kMaxOverfillStat, "Your food meter will be capped at this.");
             maxPlayerWater = Main.configMenu.Bind("", "Max player water", (int)SurvivalConstants.kMaxStat, "Your water meter will be capped at this.");
             subtitlesDelay = Main.configMenu.Bind("", "Subtitles delay", 0f, "Audio clips may be played with a delay when you have mods installed. Use this to set delay in seconds for subtitles so they are not shown too early.");
-
-
-            transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
-            transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
-            quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot.");
-            lightButton = Main.configMenu.Bind("", "Light intensity button", KeyCode.None, "When holding a tool in your hand or driving a vehicle press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to change the tool or vehicle light intensity.");
-            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab.");
-            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab.");
 
 
         }

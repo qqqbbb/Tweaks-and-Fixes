@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -69,13 +68,15 @@ namespace Tweaks_Fixes
 
         public static void SetBloodColor(GameObject go)
         {
+            if (Creatures.bloodColor == default)
+                return;
+
             ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
             //Main.logger.LogMessage("SetBloodColor " + go.name + " to " + Creature_Tweaks.bloodColor);
             foreach (ParticleSystem ps in pss)
             {
                 ParticleSystem.MainModule psMain = ps.main;
                 //Main.logger.LogMessage("startColor " + psMain.startColor.color);
-                //Color newColor = Creatures.bloodColor.x, Creatures.bloodColor.y, Creatures.bloodColor.z, psMain.startColor.color.a);
                 psMain.startColor = new ParticleSystem.MinMaxGradient(Creatures.bloodColor);
             }
         }
@@ -643,6 +644,29 @@ namespace Tweaks_Fixes
             AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
             return stateInfo.length > 0 && stateInfo.normalizedTime < 1.0f;
         }
+
+        public static string TruncateAfterFirstCharacter(string input, char c)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            int index = input.IndexOf(c);
+            if (index >= 0)
+                return input.Substring(0, index);
+
+            return input;
+        }
+
+        public static Transform GetExosuitLightsTransform(Exosuit exosuit)
+        {
+            //Main.logger.LogDebug("GetLightsTransform");
+            Transform t = exosuit.leftArmAttach.transform.Find("lights_parent");
+            if (t == null)
+                return exosuit.transform.Find("lights_parent");
+
+            return t;
+        }
+
 
 
     }

@@ -197,8 +197,7 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("Eat")]
+            [HarmonyPrefix, HarmonyPatch("Eat")]
             public static bool EatPrefix(Survival __instance, GameObject useObj, ref bool __result)
             {
                 if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !ConfigMenu.newHungerSystem.Value && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200)
@@ -211,6 +210,7 @@ namespace Tweaks_Fixes
                 if (eatable == null)
                     return false;
 
+                //AddDebug("Eat " + eatable.name);
                 int food = (int)eatable.foodValue;
                 int water = (int)eatable.waterValue;
                 int playerMinFood = ConfigMenu.newHungerSystem.Value ? -100 : 0;

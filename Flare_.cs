@@ -11,6 +11,7 @@ namespace Tweaks_Fixes
     class Flare_
     {
         private static float defaultFlickerInterval;
+        public static Color flareLightColor;
 
         public static void LightFlare(Flare flare)
         {
@@ -84,29 +85,21 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPrefix, HarmonyPatch("UpdateLight")]
-        static bool UpdateLightPrefix(Flare __instance)
+        [HarmonyPrefix, HarmonyPatch("Awake")]
+        static void AwakePrefix(Flare __instance)
         {
             if (Main.flareRepairLoaded)
-                return true;
-
-            if (Input.GetKey(ConfigMenu.lightButton.Value) || GameInput.GetButtonHeld(Light_Control.lightButton))
-                return false;
-
-            return true;
-        }
-
-        [HarmonyPatch("UpdateLight"), HarmonyPostfix]
-        static void UpdateLightPostfix(Flare __instance)
-        {
-            //if (Input.GetKeyDown(KeyCode.LeftShift))
-            //    AddDebug($"energy {__instance.energyLeft.ToString("0.0")} intensity {__instance.light.intensity.ToString("0.0")} range {__instance.light.range.ToString("0.0")}");
-
-            if (Main.flareRepairLoaded || ConfigToEdit.flareFlicker.Value)
                 return;
 
-            __instance.light.intensity = __instance.originalIntensity;
-            __instance.light.range = __instance.originalrange;
+            Light light = __instance.GetComponentInChildren<Light>();
+            float newIntensity = light.intensity * ConfigToEdit.flareLightIntensityMult.Value;
+            //Main.logger.LogMessage($"Flare default intensity {light.intensity} new intensity {newIntensity}");
+            //Main.logger.LogMessage($"Flare color {light.color}");
+            if (ConfigToEdit.flareLightIntensityMult.Value < 1)
+                light.intensity *= ConfigToEdit.flareLightIntensityMult.Value;
+
+            if (flareLightColor != default)
+                light.color = flareLightColor;
         }
 
         [HarmonyPostfix, HarmonyPatch("OnDraw")]
@@ -123,9 +116,9 @@ namespace Tweaks_Fixes
             //AddDebug($"OnDraw origFlickerInterval {origFlickerInterval}  flickerInterval {__instance.flickerInterval} ");
         }
 
-        [HarmonyPrefix, HarmonyPatch(nameof(Flare.OnRightHandDown))]
+        [HarmonyPrefix, HarmonyPatch("OnToolUseAnim")]
         static bool OnRightHandDownPostfix(Flare __instance)
-        { // fix: can throw flare in base
+        { // fix bug: can throw flare in base
             bool canThrow = ConfigToEdit.dropItemsAnywhere.Value || Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
             //AddDebug("OnRightHandDown CanDropItemHere " + canThrow);
             return canThrow;
@@ -133,7 +126,7 @@ namespace Tweaks_Fixes
 
         [HarmonyPrefix, HarmonyPatch("OnToolUseAnim")]
         static bool OnToolUseAnimPostfix(Flare __instance)
-        { // fix: can throw flare in base
+        { // fix bug: can throw flare in base
             bool canThrow = ConfigToEdit.dropItemsAnywhere.Value || Inventory.CanDropItemHere(__instance.GetComponent<Pickupable>(), false);
             //AddDebug("OnToolUseAnim CanDropItemHere " + canThrow);
             return canThrow;

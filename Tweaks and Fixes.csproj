@@ -83,6 +83,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\DLL\Unity.Addressables.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>..\..\..\DLL\Unity.InputSystem.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\DLL\Unity.ResourceManager.dll</HintPath>
@@ -142,11 +145,12 @@
     <Compile Include="Cyclops_unpowered.cs" />
     <Compile Include="Drillable_.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
+    <Compile Include="MapRoomCamera_.cs" />
+    <Compile Include="VehicleLightFix.cs" />
     <Compile Include="Exosuit_Sounds.cs" />
     <Compile Include="Exosuit_Drill.cs" />
     <Compile Include="Floater_.cs" />
     <Compile Include="Knife_.cs" />
-    <Compile Include="Light_Control.cs" />
     <Compile Include="Main_Menu.cs" />
     <Compile Include="Medical_Cabinet_.cs" />
     <Compile Include="Menu_Buttons.cs" />
@@ -156,6 +160,7 @@
     <Compile Include="PropulsionCannon_Patch.cs" />
     <Compile Include="Cutefish_.cs" />
     <Compile Include="Constructor_.cs" />
+    <Compile Include="Seaglide_.cs" />
     <Compile Include="SeaTreader_.cs" />
     <Compile Include="Silent_Creatures.cs" />
     <Compile Include="Start_Warning.cs" />
@@ -195,12 +200,12 @@
     <Compile Include="Subtitles_.cs" />
     <Compile Include="Survival_.cs" />
     <Compile Include="TimeCapsule_.cs" />
-    <Compile Include="Tools_.cs" />
+    <Compile Include="Tools.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="NoBreakingWithHands.cs" />
     <Compile Include="Player_Movement.cs" />
     <Compile Include="Player_.cs" />
-    <Compile Include="QuickSlots_Patch.cs" />
+    <Compile Include="QuickSlot_Cycle.cs" />
     <Compile Include="Cyclops_.cs" />
     <Compile Include="Testing.cs" />
     <Compile Include="UGUI_meters.cs" />

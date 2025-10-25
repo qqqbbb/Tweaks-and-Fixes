@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.4.4";
+            VERSION = "4.5.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -55,17 +55,15 @@ namespace Tweaks_Fixes
         {
             //logger.LogInfo("CleanUp");
             gameLoaded = false;
-            QuickSlots_Patch.invChanged = true;
+            QuickSlot_Cycle.invChanged = true;
             Databox_Light.databoxLights.Clear();
             Crush_Damage_.extraCrushDepth = 0;
             Crush_Damage_.crushDamageResistance = 0;
             Cyclops_Constructable_Collision.CleanUp();
-            Geyser_.eruptionForce.Clear();
-            Geyser_.rotationForce.Clear();
+            Geyser_.CleanUp();
             Gravsphere_Patch.gasPods.Clear();
             Gravsphere_Patch.gravSphereFish.Clear();
             Decoy_Patch.decoysToDestroy.Clear();
-            Light_Control.currentLights = new Light[2];
             Vehicle_patch.currentVehicleTT = TechType.None;
             Exosuit_Patch.exosuitStarted = false;
             Damage_Patch.healTempDamageTime = 0;
@@ -229,9 +227,11 @@ namespace Tweaks_Fixes
             ConfigToEdit.Bind();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
+            options = new OptionsMenu();
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
             WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => AddTechTypesToClassIDtable());
-            options = new OptionsMenu();
+            //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => StartCoroutine(BeforeLoading(TechType.Seaglide)));
+
             OptionsPanelHandler.RegisterModOptions(options);
             //SaveUtils.RegisterOnSaveEvent(TestSave);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
@@ -244,20 +244,29 @@ namespace Tweaks_Fixes
             {
                 CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
             }
-            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
-            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(348.3f, -25.3f, -205.1f)));
-            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-637f, -110.5f, -49.2f)));
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-185f, -42f, 138.5f)));
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-63.85f, -16f, -223f)));
-            //new Spawnables.Stone().Patch();
-            //CustomPrefab stone = new CustomPrefab( "TF_Stone", "TF_Stone", "");
-            //stone.SetSpawns(new SpawnLocation(new Vector3(0.67f, -14.11f, -323.3f), new Vector3(0f, 310f, 329f)));
-            //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
+            //CustomSpawns();
             Logger.LogInfo($"Plugin {GUID} {VERSION} is loaded ");
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
             //WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LateLoad());
             //WaitScreenHandler.RegisterLoadTask(MODNAME, task => Load());
             //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => EarlyLoad());
+        }
+
+        private static void CustomSpawns()
+        {
+            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
+            //new Spawnables.Stone().Patch();
+            //CustomPrefab stone = new CustomPrefab("TF_Stone", "TF_Stone", "");
+            //stone.SetSpawns(new SpawnLocation(new Vector3(0.67f, -14.11f, -323.3f), new Vector3(0f, 310f, 329f)));
+            //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
+        }
+
+        public static IEnumerator BeforeLoading(TechType techType)
+        {
+            logger.LogDebug("BeforeLoading " + techType);
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
+            yield return request;
+            logger.LogDebug("BeforeLoading !!! " + techType);
         }
 
         static void FixCoralShellPlateHarvestType()

@@ -4,19 +4,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR;
 using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Tools_
+    class Tools
     {
-        //public static List<GameObject> repCannonGOs = new List<GameObject>();
-        //static ToggleLights seaglideLights;
-        //static VehicleInterface_MapController seaglideMap;
         public static Dictionary<Creature, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<Creature, Dictionary<TechType, int>>();
         public static List<Rigidbody> stasisTargets = new List<Rigidbody>();
+        public static Color flashLightLightColor;
 
 
         [HarmonyPatch(typeof(FlashLight), "Start")]
@@ -24,11 +21,21 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(FlashLight __instance)
             {
-                Light[] lights = __instance.GetComponentsInChildren<Light>(true);
+                Transform lightParentTransform = __instance.transform.Find("lights_parent");
+                Light[] lights = lightParentTransform.GetComponentsInChildren<Light>(true);
                 for (int i = lights.Length - 1; i >= 0; i--)
                 {
-                    if (lights[i].type == LightType.Point)
-                        lights[i].enabled = false;
+                    Light light = lights[i];
+                    if (light.type == LightType.Point)
+                        light.enabled = false;
+                    else
+                    {
+                        if (flashLightLightColor != default)
+                            light.color = flashLightLightColor;
+
+                        if (ConfigToEdit.flashlightLightIntensityMult.Value < 1)
+                            light.intensity *= ConfigToEdit.flashlightLightIntensityMult.Value;
+                    }
                 }
             }
         }
@@ -36,7 +43,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PlayerTool))]
         public class PlayerTool_Patch
         {
-            [HarmonyPrefix, HarmonyPatch("Awake")]
+            //[HarmonyPrefix, HarmonyPatch("Awake")]
             public static void AwakePrefix(PlayerTool __instance)
             {
                 Light[] lights = __instance.GetComponentsInChildren<Light>(true);
@@ -47,8 +54,8 @@ namespace Tweaks_Fixes
                     if (tt == TechType.DiveReel || tt == TechType.LaserCutter)
                         return;
 
-                    Light_Control.lightOrigIntensity[tt] = lights[0].intensity;
-                    Light_Control.lightIntensityStep[tt] = lights[0].intensity * .1f;
+                    //Light_Control.lightOrigIntensity[tt] = lights[0].intensity;
+                    //Light_Control.lightIntensityStep[tt] = lights[0].intensity * .1f;
                     //Main.logger.LogMessage(tt + " lightOrigIntensity " + lights[0].intensity);
                 }
             }
@@ -64,18 +71,18 @@ namespace Tweaks_Fixes
                     __instance.transform.localPosition = new Vector3(pos.x -= .07f, pos.y += .03f, pos.z += .07f);
                     return;
                 }
-                if (Light_Control.IsLightSaved(tt))
+                //if (Light_Control.IsLightSaved(tt))
                 {
-                    Light[] lights = __instance.GetComponentsInChildren<Light>(true);
+                    //Light[] lights = __instance.GetComponentsInChildren<Light>(true);
                     //AddDebug(tt + " Lights " + lights.Length);
-                    float intensity = Light_Control.GetLightIntensity(tt);
-                    foreach (Light l in lights)
-                        l.intensity = intensity;
+                    //float intensity = Light_Control.GetLightIntensity(tt);
+                    //foreach (Light l in lights)
+                    //    l.intensity = intensity;
 
-                    if (__instance is Flare)
+                    //if (__instance is Flare)
                     {
-                        Flare flare = __instance as Flare;
-                        flare.originalIntensity = intensity;
+                        //Flare flare = __instance as Flare;
+                        //flare.originalIntensity = intensity;
                         //AddDebug($"OnDraw Flare Intensity {intensity} originalIntensity {flare.originalIntensity}");
                     }
                 }
@@ -96,30 +103,6 @@ namespace Tweaks_Fixes
                     //AddDebug("GetCustomUseText");
                     __result = UI_Patches.scannerString;
                 }
-            }
-        }
-
-        [HarmonyPatch(typeof(MapRoomCamera))]
-        class MapRoomCamera_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("ControlCamera")]
-            private static void ControlCameraPostfix(MapRoomCamera __instance)
-            {
-                //AddDebug("MapRoomCamera ControlCamera");
-                Vehicle_patch.currentVehicleTT = TechType.MapRoomCamera;
-                Light_Control.currentLights = __instance.GetComponentsInChildren<Light>(true);
-                if (Light_Control.IsLightSaved(TechType.MapRoomCamera))
-                {
-                    float intensity = Light_Control.GetLightIntensity(TechType.MapRoomCamera);
-                    foreach (Light l in Light_Control.currentLights)
-                        l.intensity = intensity;
-                }
-            }
-            [HarmonyPostfix, HarmonyPatch("FreeCamera")]
-            private static void FreeCameraPostfix(MapRoomCamera __instance)
-            {
-                Light_Control.currentLights[0] = null;
-                //AddDebug("MapRoomCamera FreeCamera");
             }
         }
 
@@ -185,10 +168,7 @@ namespace Tweaks_Fixes
                     return false;
 
                 updateFrame = !updateFrame;
-                if (!updateFrame)
-                    return false;
-
-                return true;
+                return updateFrame;
             }
 
             //[HarmonyPrefix,HarmonyPatch("LateUpdate")]
@@ -371,71 +351,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static void SaveSeaglideState(Seaglide seaglide)
-        {
-            var seaglideMap = seaglide.GetComponent<VehicleInterface_MapController>();
-            if (seaglideMap && seaglideMap.miniWorld)
-            {
-                if (seaglideMap.miniWorld.active)
-                    Main.configMain.DeleteSeaglideMap(seaglide.gameObject);
-                else
-                    Main.configMain.SaveSeaglideMap(seaglide.gameObject);
-            }
-            if (seaglide.toggleLights)
-            {
-                if (seaglide.toggleLights.lightsActive)
-                    Main.configMain.SaveSeaglideLights(seaglide.gameObject);
-                else
-                    Main.configMain.DeleteSeaglideLights(seaglide.gameObject);
-            }
-        }
-
-        public static IEnumerator LoadSeaglideState(Seaglide seaglide)
-        {
-            if (seaglide == null)
-                yield break;
-
-            if (seaglide.toggleLights == null)
-                yield return null;
-
-            seaglide.toggleLights.SetLightsActive(Main.configMain.GetSeaglideLights(seaglide.gameObject));
-            var map = seaglide.GetComponent<VehicleInterface_MapController>();
-            if (map == null)
-                yield break;
-
-            if (map.miniWorld == null)
-                yield return null;
-
-            map.miniWorld.active = Main.configMain.GetSeaglideMap(seaglide.gameObject);
-        }
-
-        [HarmonyPatch(typeof(Seaglide))]
-        class Seaglide_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(Seaglide __instance)
-            {// fires after onLightsToggled
-                //Main.logger.LogMessage("Seaglide Start lightsActive " + __instance.toggleLights.lightsActive);
-                CoroutineHost.StartCoroutine(LoadSeaglideState(__instance));
-            }
-
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnDraw")]
-            public static void OnDrawPostfix(Seaglide __instance)
-            {
-                //AddDebug("Seaglide OnDraw " + Main.config.seaglideLights);
-                //seaglideLights = __instance.toggleLights;
-                //seaglideMap = __instance.GetComponent<VehicleInterface_MapController>();
-            }
-
-            [HarmonyPostfix, HarmonyPatch("OnHolster")]
-            public static void OnHolsterPostfix(Seaglide __instance)
-            { // fires when saving, after nautilus SaveEvent
-              //AddDebug("Seaglide OnHolster " + __instance.toggleLights.lightsActive);
-                SaveSeaglideState(__instance);
-            }
-        }
-
         [HarmonyPatch(typeof(BuilderTool), "HasEnergyOrInBase")]
         class BuilderTool_HasEnergyOrInBase_Patch
         {
@@ -500,6 +415,20 @@ namespace Tweaks_Fixes
             }
             Builder.End();
             //AddDebug("BuilderEnd end ");
+        }
+
+        [HarmonyPatch(typeof(LaserCutter))]
+        internal class LaserCutter_
+        {
+            [HarmonyPostfix, HarmonyPatch("RandomizeIntensity")]
+            static void RandomizeIntensityPostfix(LaserCutter __instance)
+            {
+                if (ConfigToEdit.laserCutterLightIntensityMult.Value == 1)
+                    return;
+
+                __instance.lightIntensity *= ConfigToEdit.laserCutterLightIntensityMult.Value;
+                //AddDebug("Randomize Intensity " + __instance.lightIntensity.ToString("0.0"));
+            }
         }
 
     }

@@ -9,8 +9,6 @@ namespace Tweaks_Fixes
     internal class Inventory_
     {
         static InventoryItem selectedItem;
-        public static GameInput.Button transferAllItemsButton;
-        public static GameInput.Button transferSameItemsButton;
         private static readonly Type[] componentsToRemoveFromDeadCreature = new Type[]
         {
             typeof(CollectShiny),
@@ -40,12 +38,15 @@ namespace Tweaks_Fixes
 
         public static bool MoveAllItems(InventoryItem item)
         {
-            //AddDebug("MoveAllItems ");
             if (item == null)
                 return false;
 
+            //AddDebug("MoveAllItems ");
             ItemsContainer container = (ItemsContainer)item.container;
             IItemsContainer oppositeContainer = Inventory.main.GetOppositeContainer(item);
+            if (container == null || oppositeContainer == null || oppositeContainer is Equipment)
+                return false;
+
             List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
             foreach (TechType itemType in container.GetItemTypes())
                 container.GetItems(itemType, itemsToTransfer);
@@ -57,6 +58,7 @@ namespace Tweaks_Fixes
                 if (Inventory.AddOrSwap(ii, oppositeContainer))
                     swapped = true;
             }
+            selectedItem = null;
             return swapped;
         }
 
@@ -77,6 +79,7 @@ namespace Tweaks_Fixes
                 if (Inventory.AddOrSwap(ii, oppositeContainer))
                     swapped = true;
             }
+            selectedItem = null;
             return swapped;
         }
 
@@ -85,7 +88,7 @@ namespace Tweaks_Fixes
             LiveMixin liveMixin = go.GetComponent<LiveMixin>();
             if (liveMixin == null || liveMixin.IsAlive())
                 return;
-            // removing CreatureDeath fixes equipped dead fish moving up in player hand
+            // removing CreatureDeath fix bug equipped dead fish moving up in player hand
             foreach (Type componentType in componentsToRemoveFromDeadCreature)
             {
                 Component component = go.GetComponent(componentType);
@@ -105,24 +108,20 @@ namespace Tweaks_Fixes
                 //Creature creature = item.item.GetComponent<Creature>();
                 //FixPeeperLOD(Creature peeper, bool alive = false)
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
+            [HarmonyPrefix]
+            [HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
             public static bool ExecuteItemActionPrefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
                 //AddDebug("ExecuteItemAction  " + item.techType);
                 //AddDebug("ExecuteItemAction action " + action);
-                IItemsContainer oppositeContainer = __instance.GetOppositeContainer(item);
-                if (Main.advancedInventoryLoaded || action != ItemAction.Switch || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
+                if (Main.advancedInventoryLoaded || action != ItemAction.Switch || item.container is Equipment)
                     return true;
 
-                if (GameInput.lastPrimaryDevice == GameInput.Device.Keyboard)
-                {
-                    if (Input.GetKey(ConfigMenu.transferSameItemsButton.Value))
-                        return !MoveSameItems(item);
+                if (GameInput.GetButtonHeld(OptionsMenu.moveAllItemsButton))
+                    return !MoveAllItems(item);
+                else if (GameInput.GetButtonHeld(OptionsMenu.moveSameItemsButton))
+                    return !MoveSameItems(item);
 
-                    if (Input.GetKey(ConfigMenu.transferAllItemsButton.Value))
-                        return !MoveAllItems(item);
-                }
                 return true;
             }
             [HarmonyPostfix, HarmonyPatch("GetItemAction")]
@@ -133,43 +132,34 @@ namespace Tweaks_Fixes
                     if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
                         __result = ItemAction.None;
                 }
-                else if (__result == ItemAction.Use && ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater())
+                else if (__result == ItemAction.Use && ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater() && item.item.GetTechType() == TechType.FirstAidKit)
                 {
-                    if (item.item.GetTechType() == TechType.FirstAidKit)
-                    {
-                        __result = ItemAction.None;
-                        return;
-                    }
+                    __result = ItemAction.None;
+                    return;
                 }
             }
-
         }
-
 
         //[HarmonyPatch(typeof(GamepadInputModule))]
         class GamepadInputModule_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnUpdate")]
+            //[HarmonyPostfix, HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GamepadInputModule __instance)
             {
-                if (Input.GetKeyDown(ConfigMenu.transferAllItemsButton.Value) || GameInput.GetButtonDown(transferAllItemsButton))
-                {
-                    MoveAllItems(selectedItem);
-                }
-                else if (Input.GetKeyDown(ConfigMenu.transferSameItemsButton.Value) || GameInput.GetButtonDown(transferSameItemsButton))
-                {
-                    MoveSameItems(selectedItem);
-                }
-            }
+                if (selectedItem == null || Inventory.main.GetUsedStorageCount() == 0)
+                    return;
 
+                if (GameInput.GetButtonDown(OptionsMenu.moveAllItemsButton))
+                    MoveAllItems(selectedItem);
+                else if (GameInput.GetButtonDown(OptionsMenu.moveSameItemsButton))
+                    MoveSameItems(selectedItem);
+            }
         }
 
-        [HarmonyPatch(typeof(uGUI_ItemsContainer))]
+        //[HarmonyPatch(typeof(uGUI_ItemsContainer))]
         class uGUI_ItemsContainer_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("SelectItem")]
+            //[HarmonyPostfix,HarmonyPatch("SelectItem")]
             static void Prefix(uGUI_ItemsContainer __instance, object item)
             {
                 uGUI_ItemIcon key = item as uGUI_ItemIcon;
@@ -178,7 +168,6 @@ namespace Tweaks_Fixes
 
                 //AddDebug("uGUI_ItemsContainer SelectItem " + selectedItem.techType);
             }
-
         }
 
 

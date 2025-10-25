@@ -52,22 +52,22 @@ namespace Tweaks_Fixes
             TechType tt = CraftData.GetTechType(__instance.gameObject);
             vehicleTechTypes.Add(tt);
             //AddDebug(" Vehicle.Awake " + tt);
-            Transform lightsParent = __instance.transform.Find("lights_parent");
-            if (lightsParent == null)
-                return;
+            //Transform lightsParent = __instance.transform.Find("lights_parent");
+            //if (lightsParent == null)
+            //    return;
 
-            Light[] lights = lightsParent.GetComponentsInChildren<Light>(true);
-            if (lights == null || lights.Length == 0)
-                return;
+            //Light[] lights = lightsParent.GetComponentsInChildren<Light>(true);
+            //if (lights == null || lights.Length == 0)
+            //    return;
             //AddDebug(tt + " Awake lights " + lights.Length);
-            Light_Control.lightOrigIntensity[tt] = lights[0].intensity;
-            Light_Control.lightIntensityStep[tt] = lights[0].intensity * .1f;
-            if (Light_Control.IsLightSaved(tt))
-            {
-                float intensity = Light_Control.GetLightIntensity(tt);
-                foreach (Light l in lights)
-                    l.intensity = intensity;
-            }
+            //Light_Control.lightOrigIntensity[tt] = lights[0].intensity;
+            //Light_Control.lightIntensityStep[tt] = lights[0].intensity * .1f;
+            //if (Light_Control.IsLightSaved(tt))
+            //{
+            //    float intensity = Light_Control.GetLightIntensity(tt);
+            //    foreach (Light l in lights)
+            //        l.intensity = intensity;
+            //}
         }
 
         [HarmonyPostfix]
@@ -253,17 +253,31 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPostfix]
-        //[HarmonyPatch("OnDockedChanged")]
+        [HarmonyPostfix, HarmonyPatch("OnDockedChanged")]
         public static void OnDockedChangedPrefix(Vehicle __instance, bool docked, Vehicle.DockType dockType)
         {
-            //AddDebug("OnDockedChanged docked " + docked);
+            //AddDebug("OnDockedChanged  " + docked);
             //if (docked)
             //    dockedVehicles[__instance] = dockType;
             //else
             //    dockedVehicles[__instance] = Vehicle.DockType.None;
         }
 
+        [HarmonyPostfix, HarmonyPatch("UpdateCollidersForDocking")]
+        public static void UpdateCollidersForDockingPrefix(Vehicle __instance, bool docked)
+        {
+            //AddDebug("UpdateCollidersForDocking  " + docked);
+        }
+        [HarmonyPostfix, HarmonyPatch("AttachToBay")]
+        public static void AttachToBayPrefix(Vehicle __instance)
+        {
+            //AddDebug("AttachToBay  ");
+        }
+        [HarmonyPostfix, HarmonyPatch("SetPlayerInside")]
+        public static void SetPlayerInsidePrefix(Vehicle __instance, bool inside)
+        {
+            //AddDebug("SetPlayerInside " + inside);
+        }
         //[HarmonyPrefix]
         //[HarmonyPatch("ToggleSlot", new Type[] { typeof(int), typeof(bool) })]
         public static bool ToggleSlotPrefix(int slotID, bool state, Vehicle __instance)
@@ -811,7 +825,7 @@ namespace Tweaks_Fixes
             {
                 Util.FreezeObject(__instance.gameObject, false);
             }
-            Light_Control.currentLights = GetLightsTransform(__instance).GetComponentsInChildren<Light>(true);
+            //Light_Control.currentLights = Util.GetExosuitLightsTransform(__instance).GetComponentsInChildren<Light>(true);
             //__instance.OnUpgradeModuleToggle();
             //exitButton = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit) + " " + Main.config.translatableStrings[17] + " " + TooltipFactory.stringRightHand;
             //seamothName = Language.main.Get(TechType.Seamoth);
@@ -829,15 +843,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        static Transform GetLightsTransform(Exosuit __instance)
-        {
-            Transform t = __instance.leftArmAttach.transform.Find("lights_parent");
-            if (t == null)
-                return __instance.transform.Find("lights_parent");
-
-            return t;
-        }
-
         [HarmonyPostfix, HarmonyPatch("Start")]
         static void StartPostfix(Exosuit __instance)
         {
@@ -847,15 +852,16 @@ namespace Tweaks_Fixes
                 exosuitName = Language.main.Get("Exosuit");
             }
             // lights will follow camera
-            GetLightsTransform(__instance).SetParent(__instance.leftArmAttach);
             //TestDockedExosuit(__instance);
             armNamesChanged = true;
             //AddDebug("Exosuit Start " + __instance.docked);
-            if (Main.configMain.GetExosuitLights(__instance.gameObject))
-                SetLights(__instance, false);
+
+
+
 
             exosuitStarted = true;
         }
+
 
         private static void TestDockedExosuit(Exosuit __instance)
         {
@@ -911,9 +917,6 @@ namespace Tweaks_Fixes
         {
             if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.currentMountedVehicle == exosuit)
             {
-                if (GameInput.GetButtonDown(GameInput.Button.MoveDown))
-                    ToggleLights(exosuit);
-
                 if (GameInput.lastPrimaryDevice == GameInput.Device.Controller)
                 {
                     bool leftTorpedo = HasMoreThan1TorpedoType(exosuit, torpedoStorageLeft);
@@ -931,39 +934,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        private static void ToggleLights(Exosuit exosuit)
-        {
-            Transform lightsTransform = GetLightsTransform(exosuit);
-            if (lightsTransform == null)
-                return;
-
-            //AddDebug("ToggleLights lightsTransform activeSelf " + lightsTransform.gameObject.activeSelf);
-            //AddDebug("ToggleLights hasCharge " + exosuit.energyInterface.hasCharge);
-            if (!lightsTransform.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
-            {
-                lightsTransform.gameObject.SetActive(true);
-                Main.configMain.DeleteExosuitLights(exosuit.gameObject);
-                if (Exosuit_Sounds.lightOnSound)
-                    Utils.PlayFMODAsset(Exosuit_Sounds.lightOnSound, exosuit.transform.position);
-            }
-            else if (lightsTransform.gameObject.activeSelf)
-            {
-                lightsTransform.gameObject.SetActive(false);
-                Main.configMain.SaveExosuitLights(exosuit.gameObject);
-                if (Exosuit_Sounds.lightOffSound)
-                    Utils.PlayFMODAsset(Exosuit_Sounds.lightOffSound, exosuit.transform.position);
-            }
-            //AddDebug("lights " + lightsT.gameObject.activeSelf);
-        }
-
-        private static void SetLights(Exosuit exosuit, bool on)
-        {
-            if (on && !exosuit.energyInterface.hasCharge)
-                return;
-
-            GetLightsTransform(exosuit).gameObject.SetActive(on);
-            //AddDebug("SetLights " + active);
-        }
 
         [HarmonyPrefix]
         [HarmonyPatch("UpdateUIText")]

@@ -21,10 +21,10 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> cyclopsSunlight;
         public static ConfigEntry<bool> alwaysShowHealthFoodNunbers;
         public static ConfigEntry<bool> pdaClock;
-        public static ConfigEntry<Button> transferAllItemsButton;
-        public static ConfigEntry<Button> transferSameItemsButton;
-        public static ConfigEntry<Button> quickslotButton;
-        public static ConfigEntry<Button> lightButton;
+        //public static ConfigEntry<Button> transferAllItemsButton;
+        //public static ConfigEntry<Button> transferSameItemsButton;
+        //public static ConfigEntry<Button> quickslotButton;
+        //public static ConfigEntry<Button> lightButton;
         public static ConfigEntry<string> gameStartWarningText;
         public static ConfigEntry<string> newGameLoot;
         public static ConfigEntry<string> crushDepthEquipment;
@@ -136,7 +136,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> removeBigParticlesWhenKnifing;
         public static ConfigEntry<int> permPoisonDamage;
         public static ConfigEntry<int> poisonFoodDamage;
-        public static ConfigEntry<bool> flareFlicker;
         public static ConfigEntry<bool> propulsionCannonTweaks;
         public static ConfigEntry<bool> beaconTweaks;
         public static ConfigEntry<bool> flareTweaks;
@@ -148,17 +147,32 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> canPickUpContainerWithItems;
 
 
-
+        public static ConfigEntry<float> exosuitLightIntensityMult;
+        public static ConfigEntry<float> seamothLightIntensityMult;
+        public static ConfigEntry<float> cyclopsLightIntensityMult;
+        public static ConfigEntry<float> seaglideLightIntensityMult;
+        public static ConfigEntry<float> flareLightIntensityMult;
+        public static ConfigEntry<float> laserCutterLightIntensityMult;
+        public static ConfigEntry<float> cameraLightIntensityMult;
+        public static ConfigEntry<float> flashlightLightIntensityMult;
+        private static ConfigEntry<string> cameraLightColor;
+        private static ConfigEntry<string> seaglideLightColor;
+        private static ConfigEntry<string> seamothLightColor;
+        private static ConfigEntry<string> exosuitLightColor;
+        private static ConfigEntry<string> cyclopsLightColor;
+        private static ConfigEntry<string> flashlightLightColor;
+        private static ConfigEntry<string> flareLightColor;
         public static ConfigEntry<bool> disableIonCubeFabricator;
 
 
-
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
+        public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
         public static AcceptableValueRange<int> freeTorpedosRange = new AcceptableValueRange<int>(0, 6);
 
         public static void Bind()
         {  // “ ” ‛
+
 
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
@@ -216,16 +230,16 @@ namespace Tweaks_Fixes
             crushDamageScreenEffect = Main.configToEdit.Bind("PLAYER", "Crush damage screen effect", true, "There will be no screen effects when player takes crush damage if this is false.");
             removeCookedFishOnReload = Main.configToEdit.Bind("CREATURES", "Remove cooked fish when loading saved game", false, "Cooked fish will be removed from the world (not from containers) when loading saved game if this is true.");
             disableGravityForExosuit = Main.configToEdit.Bind("VEHICLES", "Disable gravity for prawn suit", false, "Prawn suit will ignore gravity when you are not piloting it if this is true. Use this if your prawn suit falls through the ground.");
-            replaceDealDamageOnImpactScript = Main.configToEdit.Bind("VEHICLES", "Replace DealDamageOnImpact script", false, "The game will use vanilla script when vehicles collide with objects if this is false.");
-            cyclopsDealDamageMinSpeed = Main.configToEdit.Bind("CYCLOPS", "Cyclops min speed to deal damage", 2f, "Min speed in meters per second at which cyclops deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            cyclopsTakeDamageMinSpeed = Main.configToEdit.Bind("CYCLOPS", "Cyclops min speed to take damage", 2f, "Min speed in meters per second at which cyclops takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            cyclopsTakeDamageMinMass = Main.configToEdit.Bind("CYCLOPS", "Min mass that can damage cyclops", 200f, "Min mass in kg for objects that can damage cyclops when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            exosuitDealDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Prawn suit min speed to deal damage", 7f, "Min speed in meters per second at which prawn suit deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            exosuitTakeDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Prawn suit min speed to take damage", 7f, "Min speed in meters per second at which prawn suit takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            exosuitTakeDamageMinMass = Main.configToEdit.Bind("VEHICLES", "Min mass that can damage prawn suit", 5f, "Min mass in kg for objects that can damage prawn suit when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            seamothDealDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Seamoth min speed to deal damage", 7f, "Min speed in meters per second at which seamoth deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            seamothTakeDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Seamoth min speed to take damage", 7f, "Min speed in meters per second at which seamoth takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            seamothTakeDamageMinMass = Main.configToEdit.Bind("VEHICLES", "Min mass that can damage seamoth", 5f, "Min mass in kg for objects that can damage seamoth when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //replaceDealDamageOnImpactScript = Main.configToEdit.Bind("VEHICLES", "Replace DealDamageOnImpact script", false, "The game will use vanilla script when vehicles collide with objects if this is false.");
+            //cyclopsDealDamageMinSpeed = Main.configToEdit.Bind("CYCLOPS", "Cyclops min speed to deal damage", 2f, "Min speed in meters per second at which cyclops deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //cyclopsTakeDamageMinSpeed = Main.configToEdit.Bind("CYCLOPS", "Cyclops min speed to take damage", 2f, "Min speed in meters per second at which cyclops takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //cyclopsTakeDamageMinMass = Main.configToEdit.Bind("CYCLOPS", "Min mass that can damage cyclops", 200f, "Min mass in kg for objects that can damage cyclops when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //exosuitDealDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Prawn suit min speed to deal damage", 7f, "Min speed in meters per second at which prawn suit deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //exosuitTakeDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Prawn suit min speed to take damage", 7f, "Min speed in meters per second at which prawn suit takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //exosuitTakeDamageMinMass = Main.configToEdit.Bind("VEHICLES", "Min mass that can damage prawn suit", 5f, "Min mass in kg for objects that can damage prawn suit when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //seamothDealDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Seamoth min speed to deal damage", 7f, "Min speed in meters per second at which seamoth deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //seamothTakeDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Seamoth min speed to take damage", 7f, "Min speed in meters per second at which seamoth takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
+            //seamothTakeDamageMinMass = Main.configToEdit.Bind("VEHICLES", "Min mass that can damage seamoth", 5f, "Min mass in kg for objects that can damage seamoth when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             vehiclesHurtCreatures = Main.configToEdit.Bind("VEHICLES", "Vehicles hurt creatures", true, "Vehicles will not hurt creatures when colliding with them if this is false.");
             fixSeamothMove = Main.configToEdit.Bind("VEHICLES", "Fix seamoth movement", true, "Seamoth will not exceed its max speed when moving diagonally. It will use analog values from controller stick.");
             seamothSidewardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seamoth sideward speed modifier", 0, "Seamoth speed will be reduced by this percent when moving sideward.");
@@ -298,24 +312,33 @@ namespace Tweaks_Fixes
             removeBigParticlesWhenKnifing = Main.configToEdit.Bind("CREATURES", "Remove big particles when slashing creatures with knife", false, "You will see less blood particles when slashing creatures with knife if this is true.");
             permPoisonDamage = Main.configToEdit.Bind("PLAYER", "Permanent poison damage percent", 0, new ConfigDescription("If this is more than 0 you will take not temporary but permanent health damage when poisoned. For example if this is 90, you will lose 0.9 health permanantly for every point of poison damage.", percentRange));
             poisonFoodDamage = Main.configToEdit.Bind("PLAYER", "Poison food damage percent", 0, new ConfigDescription("If this is more than 0 you will lose food or water instead of taking temporary health damage when poisoned. For example if this is 90, you will lose 0.9 food or water for every point of poison damage.", percentRange));
-            flareFlicker = Main.configToEdit.Bind("TOOLS", "Flare light flickering", true, "");
             propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "Improvements to propulsion cannon UI prompts. Ability ot eat fish you are holding with propulsion cannon. When grabbing and holding table coral with propulsion cannon, you can put it in inventory. Your propulsion cannon will break outcrop when you try to grab it. Propulsion cannon can grab fruits on plants ");
             beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
             flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it. This setting will be disabled if 'Flare repair' mod is installed.");
             stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "UI prompt when stasis rifle is equipped. Gasopods do not drop gas pods when in stasis field. Gas pods do not explode when in stasis field.");
             coralShellPlateGivesTableCoral = Main.configToEdit.Bind("PLANTS", "Coral Shell Plate gives Table Coral Sample", false, "When you destroy Coral Shell Plate you will get Table Coral Sample instead of Coral Tube Sample");
-            disableWeirdPlantAnimation = Main.configToEdit.Bind("CYCLOPS", "Disable weird plant animation", false, "Disable animation for grub basket, bulbo tree, speckled rattler, pink cap, ming plant");
-            disableTimeCapsule = Main.configToEdit.Bind("TOOLS", "Disable time capsules", false, "");
-            spawnResourcesWhenDrilling = Main.configToEdit.Bind("TOOLS", "Spawn resources instead of adding them to prawn suit container when drilling", false, "");
+            disableWeirdPlantAnimation = Main.configToEdit.Bind("PLANTS", "Disable weird plant animation", false, "Disable animation for grub basket, bulbo tree, speckled rattler, pink cap, ming plant");
+            disableTimeCapsule = Main.configToEdit.Bind("MISC", "Disable time capsules", false, "");
+            spawnResourcesWhenDrilling = Main.configToEdit.Bind("VEHICLES", "Spawn resources instead of adding them to prawn suit container when drilling", false, "");
             canPickUpContainerWithItems = Main.configToEdit.Bind("MISC", "Can pick up containers with items", false, "");
 
+            exosuitLightIntensityMult = Main.configToEdit.Bind("VEHICLES", "Prawn suit light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            seamothLightIntensityMult = Main.configToEdit.Bind("VEHICLES", "Seamoth light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            cyclopsLightIntensityMult = Main.configToEdit.Bind("CYCLOPS", "Cyclops light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            seaglideLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Seaglide light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            flareLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Flare light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            laserCutterLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Laser cutter light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            cameraLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Camera drone light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            flashlightLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Flashlight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
 
+            cameraLightColor = Main.configToEdit.Bind("TOOLS", "Camera drone light color", "0.463 0.902 0.902", "Camera drone light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            seaglideLightColor = Main.configToEdit.Bind("TOOLS", "Seaglide light color", "0.016 1 1", "Seaglide light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            seamothLightColor = Main.configToEdit.Bind("VEHICLES", "SeaMoth light color", "0.463 0.902 0.902", "Seaglide light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            exosuitLightColor = Main.configToEdit.Bind("VEHICLES", "Prawn suit light color", "0.463 0.902 0.902", "Prawn suit light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            cyclopsLightColor = Main.configToEdit.Bind("CYCLOPS", "Cyclops light color", "1 1 1", "Cyclops light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            flashlightLightColor = Main.configToEdit.Bind("TOOLS", "Flashlight light color", "1 1 1", "Flashlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            flareLightColor = Main.configToEdit.Bind("TOOLS", "Flare light color", "0.706 0.448 0.431", "Flare light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
 
-
-            transferAllItemsButton = Main.configToEdit.Bind("BUTTON BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod options menu.");
-            transferSameItemsButton = Main.configToEdit.Bind("BUTTON BIND", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod options menu.");
-            quickslotButton = Main.configToEdit.Bind("BUTTON BIND", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod options menu.");
-            lightButton = Main.configToEdit.Bind("BUTTON BIND", "Light intensity button", Button.None, "When holding a tool in your hand or driving a vehicle press 'Cycle next' or 'Cycle previous' button while holding down this button to change the tool's or vehicle's light intensity. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
 
 
         }
@@ -472,7 +495,7 @@ namespace Tweaks_Fixes
             if (r == float.MaxValue || g == float.MaxValue || b == float.MaxValue)
             {
                 Main.logger.LogWarning("Could not parse color: " + input);
-                return new Color(0.784f, 1f, 0.157f);
+                return default;
             }
             return new Color(Mathf.Clamp01(r), Mathf.Clamp01(g), Mathf.Clamp01(b));
         }
@@ -498,12 +521,14 @@ namespace Tweaks_Fixes
             Charger_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
 
             Creatures.bloodColor = ParseColor(bloodColor.Value);
-            Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_.transferAllItemsButton);
-            Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_.transferSameItemsButton);
-            Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
-            Enum.TryParse(lightButton.Value.ToString(), out Light_Control.lightButton);
-            //Main.logger.LogDebug("transferAllItemsButton " + Inventory_Patch.transferAllItemsButton);
-            //Main.logger.LogDebug("transferSameItemsButton " + Inventory_Patch.transferSameItemsButton);
+            MapRoomCamera_.lightColor = ParseColor(cameraLightColor.Value);
+            Seaglide_.lightColor = ParseColor(seaglideLightColor.Value);
+            VehicleLightFix.seamothLightColor = ParseColor(seamothLightColor.Value);
+            VehicleLightFix.exosuitLightColor = ParseColor(exosuitLightColor.Value);
+            Cyclops_.cyclopsLightColor = ParseColor(cyclopsLightColor.Value);
+            Tools.flashLightLightColor = ParseColor(flashlightLightColor.Value);
+            Flare_.flareLightColor = ParseColor(flareLightColor.Value);
+
             Player_Movement.CacheSettings();
         }
 

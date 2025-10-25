@@ -369,7 +369,7 @@ namespace Tweaks_Fixes
                 if (objectsRBs.TryGetValue(__instance.gameObject, out rb))
                 {
                     //Rigidbody rb = objectsRBs[__instance.gameObject];
-                    if (rb && Tools_.stasisTargets.Contains(rb))
+                    if (rb && Tools.stasisTargets.Contains(rb))
                     {
                         //AddDebug("GasoPod in stasis");
                         return false;
@@ -410,7 +410,7 @@ namespace Tweaks_Fixes
                 if (objectsRBs.TryGetValue(__instance.gameObject, out rb))
                 {
                     //Rigidbody rb = objectsRBs[__instance.gameObject];
-                    if (rb && Tools_.stasisTargets.Contains(rb))
+                    if (rb && Tools.stasisTargets.Contains(rb))
                     {
                         //AddDebug("GasPod in stasis");
                         return false;

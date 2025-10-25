@@ -497,7 +497,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(uGUI_PDA), "Update")]
+        [HarmonyPatch(typeof(uGUI_PDA), "Update")]
         class uGUI_PDA_Update_Patch
         {
             public static void Postfix(uGUI_PDA __instance)
@@ -505,12 +505,12 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded || GameInput.lastPrimaryDevice != GameInput.Device.Keyboard || IngameMenu.main.isActiveAndEnabled || !Player.main.pda.isOpen)
                     return;
 
-                if (Input.GetKeyDown(ConfigMenu.nextPDATabKey.Value))
+                if (GameInput.GetButtonDown(OptionsMenu.nextPDAtab))
                 {
                     //if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     __instance.OpenTab(__instance.GetNextTab());
                 }
-                else if (Input.GetKeyDown(ConfigMenu.previousPDATabKey.Value))
+                else if (GameInput.GetButtonDown(OptionsMenu.previousPDAtab))
                 {
                     __instance.OpenTab(__instance.GetPreviousTab());
                 }

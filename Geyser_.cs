@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -12,9 +13,14 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(Geyser))]
     class Geyser_
     {
-        public static GameObject fishToCook;
-        public static Dictionary<Geyser, Vector3> eruptionForce = new Dictionary<Geyser, Vector3>();
-        public static Dictionary<Geyser, Vector3> rotationForce = new Dictionary<Geyser, Vector3>();
+        static Dictionary<Geyser, Vector3> eruptionForce = new Dictionary<Geyser, Vector3>();
+        static Dictionary<Geyser, Vector3> rotationForce = new Dictionary<Geyser, Vector3>();
+
+        public static void CleanUp()
+        {
+            eruptionForce.Clear();
+            rotationForce.Clear();
+        }
 
         [HarmonyPrefix, HarmonyPatch("Start")]
         static void StartPrefix(Geyser __instance)
@@ -104,42 +110,28 @@ namespace Tweaks_Fixes
         [HarmonyPostfix, HarmonyPatch("OnTriggerStay")]
         static void OnTriggerStayPostfix(Geyser __instance, Collider other)
         {
-            if (!__instance.erupting)
+            if (!__instance.erupting || ConfigToEdit.lavaGeyserEruptionForce.Value == 0)
                 return;
 
             GameObject go = Util.GetEntityRoot(other.gameObject);
             if (!go)
                 go = other.gameObject;
             //AddDebug("Geyser OnTriggerStay " + go.name);
-            if (Util.IsEatableFish(go) && Util.IsDead(go))
-            {
-                if (fishToCook == go)
-                { // wait 1 frame so we dont get 2 cooked fishes when geyser kills fish
-                    fishToCook = null;
-                    //Main.logger.LogDebug("Geyser OnTriggerStay " + go.name);
-                    Player.main.StartCoroutine(Util.Cook(go));
-                }
-                else
-                    fishToCook = go;
-            }
+
             //if (other.gameObject.tag == "Player")
             //    AddDebug("Geyser OnTriggerStay " + other.gameObject.tag);
 
-            //Rigidbody rb = other.GetComponentInChildren<Rigidbody>();
-            if (ConfigToEdit.lavaGeyserEruptionForce.Value == 0)
+            Rigidbody rb = go.GetComponentInChildren<Rigidbody>();
+            if (rb == null)
                 return;
 
-            Rigidbody rb = go.GetComponentInChildren<Rigidbody>();
-            if (rb != null)
+            if (eruptionForce.ContainsKey(__instance))
             {
-                if (eruptionForce.ContainsKey(__instance))
-                {
-                    //AddDebug("Geyser AddForce " + rb.name + " " + rb.mass);
-                    rb.AddForce(eruptionForce[__instance]);
-                }
-                if (rotationForce.ContainsKey(__instance))
-                    rb.AddTorque(rotationForce[__instance]);
+                //AddDebug("Geyser AddForce " + rb.name + " " + rb.mass);
+                rb.AddForce(eruptionForce[__instance]);
             }
+            if (rotationForce.ContainsKey(__instance))
+                rb.AddTorque(rotationForce[__instance]);
         }
 
         private static Vector3 CalculateGeyserForce()

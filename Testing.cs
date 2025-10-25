@@ -21,8 +21,10 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Testing
+    public class Testing
     {// drillable ion cube 257 -1433 -333
+        // geyser -50 -11 -430
+        // sealed door 905 -195 613
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
@@ -326,6 +328,26 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(VFXVolumetricLight), "Awake")]
+        class VFXVolumetricLight_Awake_Patch
+        {
+            static void Prefix(VFXVolumetricLight __instance)
+            {
+
+                Main.logger.LogDebug("VFXVolumetricLight Awake Prefix " + Util.GetEntityRoot(__instance.gameObject));
+                //AddDebug("VFXVolumetricLight Awake ");
+            }
+        }
+
+        //[HarmonyPatch(typeof(PlatformUtils), "PlatformInitAsync")]
+        class PlatformUtils_PlatformInitAsync_Patch
+        {
+            static void Postfix(PlatformUtils __instance)
+            {
+                Main.logger.LogDebug("PlatformUtils PlatformInitAsync ");
+            }
+        }
+
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -360,18 +382,8 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    Main.logger.LogMessage("Dump ency");
-                    AddDebug("Dump ency");
-                    foreach (var kv in PDAEncyclopedia.mapping)
-                    {
-                        PDAEncyclopedia.EntryData data = kv.Value;
-                        Main.logger.LogMessage($"{kv.Key}   kind: {data.kind} key: {data.key} path: {data.path} unlocked: {data.unlocked}");
-                        if (data.nodes != null && data.nodes.Length > 0)
-                        {
-                            for (int i = 0; i < data.nodes.Length; i++)
-                                Main.logger.LogMessage($"{kv.Key}   node {i} {data.nodes[i]}");
-                        }
-                    }
+                    //AddDebug("UsedStorageCount " + Inventory.main.GetUsedStorageCount());
+                    //DumpEncy();
                     //DestroyTarget();
                     //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug("GetContinueMode " + Utils.GetContinueMode());
@@ -385,7 +397,8 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    printTarget(true, false);
+                    //printTarget(true, false);
+
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
@@ -416,6 +429,21 @@ namespace Tweaks_Fixes
                 }
             }
 
+            private static void DumpEncy()
+            {
+                Main.logger.LogMessage("Dump ency");
+                AddDebug("Dump ency");
+                foreach (var kv in PDAEncyclopedia.mapping)
+                {
+                    PDAEncyclopedia.EntryData data = kv.Value;
+                    Main.logger.LogMessage($"{kv.Key}  key: {data.key} path: {data.path} unlocked: {data.unlocked}");
+                    if (data.nodes != null && data.nodes.Length > 0)
+                    {
+                        for (int i = 0; i < data.nodes.Length; i++)
+                            Main.logger.LogMessage($"{kv.Key}   node {i} {data.nodes[i]}");
+                    }
+                }
+            }
         }
 
         private static void DamageTarget(float amount)

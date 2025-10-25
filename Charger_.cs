@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using UWE;
@@ -35,18 +34,57 @@ namespace Tweaks_Fixes
             return true;
         }
 
+        [HarmonyPostfix, HarmonyPatch("ToggleUIPowered")]
+        public static void ToggleUIPoweredPostfix(Charger __instance, bool powered)
+        {
+            if (powered && __instance.ui.activeSelf)
+                return;
+            else if (powered == false && __instance.ui.activeSelf == false)
+                return;
+
+            PowerRelay powerRelay = PowerSource.FindRelay(__instance.transform);
+            __instance.ui.SetActive(powerRelay.IsPowered());
+        }
+
         [HarmonyPrefix, HarmonyPatch("OnHandClick")]
         public static bool OnHandClickPrefix(Charger __instance)
         {
+            if (__instance.enabled && __instance.opened == false)
+            {
+                PowerRelay powerRelay = PowerSource.FindRelay(__instance.transform);
+                //AddDebug($"OnHandClick IsPowered {powerRelay.IsPowered()}");
+                if (powerRelay.IsPowered() == false)
+                    return false;
+            }
             bool animPlaying = Util.IsAnimationPlaying(__instance.animator);
             //AddDebug($"OnHandClick {animPlaying}");
             return animPlaying == false;
+        }
+
+        [HarmonyPrefix, HarmonyPatch("OnCloseCallback")]
+        public static bool OnCloseCallbackPreix(Charger __instance)
+        {
+            if (__instance.enabled && __instance.opened)
+            { // dont play animation when unpowered
+                PowerRelay powerRelay = PowerSource.FindRelay(__instance.transform);
+                //AddDebug($"OnHandClick IsPowered {powerRelay.IsPowered()}");
+                if (powerRelay.IsPowered() == false)
+                    return false;
+            }
+            return true;
+        }
+
+        //[HarmonyPostfix, HarmonyPatch("OnHandHover")]
+        public static void UpdatePostfix(Charger __instance)
+        {
+            //AddDebug("nextChargeAttemptTimer " + __instance.nextChargeAttemptTimer.ToString("0.0"));
         }
 
         [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(Charger __instance)
         {
             //AddDebug(__instance.name + " Charger Start");
+            //__instance.uiUnpoweredText.color = Color.white;
             if (__instance.allowedTech == null)
                 return;
 

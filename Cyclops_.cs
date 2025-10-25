@@ -10,6 +10,7 @@ namespace Tweaks_Fixes
     public class Cyclops_
     {
         static CyclopsEntryHatch cyclopsEntryHatch;
+        public static Color cyclopsLightColor;
 
         static int GetFireCountInEngineRoom(SubFire subFire)
         {
@@ -40,11 +41,13 @@ namespace Tweaks_Fixes
             return overheatValue;
         }
 
-        [HarmonyPatch(typeof(VehicleDockingBay), "SetVehicleDocked")]
-        class VehicleDockingBay_SetVehicleDocked_Patch
+        [HarmonyPatch(typeof(VehicleDockingBay))]
+        class VehicleDockingBay_Patch
         {
-            public static void Postfix(VehicleDockingBay __instance, Vehicle vehicle)
+            [HarmonyPostfix, HarmonyPatch("SetVehicleDocked")]
+            public static void SetVehicleDockedPostfix(VehicleDockingBay __instance, Vehicle vehicle)
             { // runs when loading saved game too
+                //AddDebug("SetVehicleDocked");
                 Transform hatchTransform = __instance.transform.parent.parent.parent.transform.Find("CyclopsMeshAnimated/submarine_hatch_03_base 1/submarine_hatch_03 1");
                 if (hatchTransform)
                 {
@@ -52,6 +55,18 @@ namespace Tweaks_Fixes
                     if (openable)
                         openable.PlayOpenAnimation(true, openable.animTime);
                 }
+            }
+            //[HarmonyPostfix, HarmonyPatch("OnUndockingStart")]
+            public static void OnUndockingStartPostfix(VehicleDockingBay __instance)
+            {
+                //AddDebug("OnUndockingStart");
+
+            }
+            //[HarmonyPostfix, HarmonyPatch("DockVehicle")]
+            public static void DockVehiclePostfix(VehicleDockingBay __instance, Vehicle vehicle)
+            {
+                //AddDebug("DockVehicle");
+
             }
         }
 
@@ -95,14 +110,14 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix, HarmonyPatch("StartPiloting")]
+            //[HarmonyPostfix, HarmonyPatch("StartPiloting")]
             public static void StartPilotingPostfix(CyclopsHelmHUDManager __instance)
             {
                 Vehicle_patch.currentVehicleTT = TechType.Cyclops;
                 Transform lightsTransform = __instance.transform.parent.Find("Floodlights");
                 if (lightsTransform)
                 {
-                    Light_Control.currentLights = lightsTransform.GetComponentsInChildren<Light>(true);
+                    //Light_Control.currentLights = lightsTransform.GetComponentsInChildren<Light>(true);
                 }
                 //AddDebug("StartPiloting  " + rb.mass);
                 //AddDebug(" " + __instance.transform.parent.name); 
@@ -121,13 +136,27 @@ namespace Tweaks_Fixes
                 newLight.intensity = oldLight.intensity;
                 newLight.range = oldLight.range;
                 newLight.shadows = oldLight.shadows;
+
+                if (ConfigToEdit.cyclopsLightIntensityMult.Value == 1 && cyclopsLightColor == default)
+                    return;
+
+                Light[] lights = lightsTransform.GetComponentsInChildren<Light>(true);
+                foreach (Light light in lights)
+                {
+                    //Main.logger.LogInfo("cyclops Light color " + light.color);
+                    if (ConfigToEdit.cyclopsLightIntensityMult.Value < 1)
+                        light.intensity *= ConfigToEdit.cyclopsLightIntensityMult.Value;
+
+                    if (cyclopsLightColor != default)
+                        light.color = cyclopsLightColor;
+                }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("StopPiloting")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("StopPiloting")]
             public static void StopPilotingPostfix(CyclopsHelmHUDManager __instance)
             {
-                Light_Control.currentLights[0] = null;
+                //Light_Control.currentLights[0] = null;
                 //__instance.hudActive = true;
                 //__instance.hornObject.SetActive(true);
                 //AddDebug("StopPiloting  ");
@@ -275,15 +304,15 @@ namespace Tweaks_Fixes
                 //if (tr) // not used
                 //    UnityEngine.Object.Destroy(tr.gameObject);
 
-                Light_Control.lightOrigIntensity[TechType.Cyclops] = 2f;
-                Light_Control.lightIntensityStep[TechType.Cyclops] = .2f;
+                //Light_Control.lightOrigIntensity[TechType.Cyclops] = 2f;
+                //Light_Control.lightIntensityStep[TechType.Cyclops] = .2f;
 
-                if (Light_Control.IsLightSaved(TechType.Cyclops))
-                {
-                    float intensity = Light_Control.GetLightIntensity(TechType.Cyclops);
-                    foreach (Light l in __instance.transform.Find("Floodlights").GetComponentsInChildren<Light>(true))
-                        l.intensity = intensity;
-                }
+                //if (Light_Control.IsLightSaved(TechType.Cyclops))
+                //{
+                //    float intensity = Light_Control.GetLightIntensity(TechType.Cyclops);
+                //    foreach (Light l in __instance.transform.Find("Floodlights").GetComponentsInChildren<Light>(true))
+                //        l.intensity = intensity;
+                //}
 
             }
 

@@ -2,24 +2,22 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class QuickSlots_Patch
+    class QuickSlot_Cycle
     {
-        static HashSet<TechType> eqiupped;
-        static Queue<InventoryItem> toEqiup;
-        static HashSet<TechType> toEqiupTT;
-        public static GameInput.Button quickslotButton;
+        static HashSet<TechType> eqiupped = new HashSet<TechType>();
+        static Queue<InventoryItem> toEqiup = new Queue<InventoryItem>();
+        static HashSet<TechType> toEqiupTT = new HashSet<TechType>();
         public static bool invChanged = true;
 
         public static void GetTools()
         {
-            toEqiup = new Queue<InventoryItem>();
-            toEqiupTT = new HashSet<TechType>();
+            toEqiup.Clear();
+            toEqiupTT.Clear();
             GetEquippedTools();
             //Main.Log("GetTools " );
             foreach (InventoryItem item in Inventory.main.container)
@@ -40,7 +38,7 @@ namespace Tweaks_Fixes
 
         public static void GetEquippedTools()
         {
-            eqiupped = new HashSet<TechType>();
+            eqiupped.Clear();
             //Main.Log("GetEquippedTools");
             foreach (TechType item in Inventory.main.quickSlots.GetSlotBinding())
             {
@@ -96,22 +94,22 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(QuickSlots))]
+        [HarmonyPatch(typeof(QuickSlots))]
         class QuickSlots_Bind_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Bind")]
+            [HarmonyPostfix]
+            [HarmonyPatch("Bind")]
             public static void BindPostfix(QuickSlots __instance)
             {
                 GetEquippedTools();
                 //AddDebug(" Bind ");
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("SlotNext")]
+            [HarmonyPrefix]
+            [HarmonyPatch("SlotNext")]
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 //AddDebug("SlotNext");
-                if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
+                if (GameInput.GetButtonHeld(OptionsMenu.quickSlotCycle))
                 {
                     //AddDebug("quickslotButton");
                     Pickupable pickupable = Inventory.main.GetHeld();
@@ -123,12 +121,11 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("SlotPrevious")]
+            [HarmonyPrefix]
+            [HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
-                //if (Input.GetKey(Main.configOld.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
+                if (GameInput.GetButtonHeld(OptionsMenu.quickSlotCycle))
                 {
                     Pickupable pickupable = Inventory.main.GetHeld();
                     if (pickupable != null)
