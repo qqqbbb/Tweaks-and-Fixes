@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using UWE;
@@ -18,6 +17,7 @@ namespace Tweaks_Fixes
         static GameObject seamothLightCone;
         public static Color seamothLightColor;
         public static Color exosuitLightColor;
+        static Vector3 exosuitLightBeamPos = new Vector3(0, 0.4f, -0.8f); // y changes after entering exosuit
 
         public static void AddVolLight(GameObject parent, Vector3 pos = default)
         {
@@ -94,9 +94,9 @@ namespace Tweaks_Fixes
             {
                 Transform lightTransform = Util.GetExosuitLightsTransform(exosuit);
                 Light[] Lights = lightTransform.GetComponentsInChildren<Light>();
-                for (int i = 0; i < Lights.Length; i++)
+
+                foreach (var light in Lights)
                 {
-                    Light light = Lights[i];
                     //Main.logger.LogInfo("Exosuit light color " + light.color);
                     if (ConfigToEdit.exosuitLightIntensityMult.Value < 1)
                         light.intensity *= ConfigToEdit.exosuitLightIntensityMult.Value;
@@ -104,13 +104,7 @@ namespace Tweaks_Fixes
                     if (exosuitLightColor != default)
                         light.color = exosuitLightColor;
 
-                    Vector3 pos;
-                    if (i == 0)
-                        pos = new Vector3(0.07f, 0.3f, -0.6f);
-                    else
-                        pos = new Vector3(-0.07f, 0.3f, -0.6f);
-
-                    AddVolLight(light.gameObject, pos);
+                    AddVolLight(light.gameObject, exosuitLightBeamPos);
                 }
             }
 
@@ -139,19 +133,32 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("EnterVehicle")]
             public static void EnterVehiclePostfix(Exosuit __instance)
             {
-                Transform lightT = Util.GetExosuitLightsTransform(__instance);
+                CoroutineHost.StartCoroutine(DisableLightBeam(__instance));
+            }
+
+            static IEnumerator DisableLightBeam(Exosuit exosuit)
+            {
+                yield return new WaitUntil(() => Main.gameLoaded);
+                ToggleLightBeam(exosuit, false);
+            }
+
+            static void ToggleLightBeam(Exosuit exosuit, bool on)
+            {
+                Transform lightT = Util.GetExosuitLightsTransform(exosuit);
                 VFXVolumetricLight[] volLights = lightT.GetComponentsInChildren<VFXVolumetricLight>();
                 foreach (var volL in volLights)
-                    volL.DisableVolume();
+                {
+                    if (on)
+                        volL.RestoreVolume();
+                    else
+                        volL.DisableVolume();
+                }
             }
 
             [HarmonyPostfix, HarmonyPatch("OnPilotModeEnd")]
             public static void OnPlayerEnteredPostfix(Exosuit __instance)
             {
-                Transform lightT = Util.GetExosuitLightsTransform(__instance);
-                VFXVolumetricLight[] volLights = lightT.GetComponentsInChildren<VFXVolumetricLight>();
-                foreach (var volL in volLights)
-                    volL.RestoreVolume();
+                ToggleLightBeam(__instance, true);
             }
         }
 
