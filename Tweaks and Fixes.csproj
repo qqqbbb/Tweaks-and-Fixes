@@ -136,6 +136,7 @@
     <Compile Include="Bed_.cs" />
     <Compile Include="Camera_.cs" />
     <Compile Include="Charger_.cs" />
+    <Compile Include="BaseSpotLight_.cs" />
     <Compile Include="CoralBlendWhite_.cs" />
     <Compile Include="CreatureDeath_.cs" />
     <Compile Include="Cyclops_Constructable_Collision.cs" />

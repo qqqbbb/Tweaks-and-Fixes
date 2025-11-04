@@ -47,7 +47,7 @@ namespace Tweaks_Fixes
             volLight.sphereMat = seamothVFXVolumetricLight.sphereMat;
             volLight.volumMesh = seamothVFXVolumetricLight.volumMesh;
             volLight.block = seamothVFXVolumetricLight.block;
-            volLight.lightSource = parent.GetComponentInChildren<Light>();
+            volLight.lightSource = parent.GetComponentInChildren<Light>(true);
             volLight.volumGO = lightCone;
             volLight.volumRenderer = lightCone.GetComponent<MeshRenderer>();
             volLight.volumMeshFilter = lightCone.GetComponent<MeshFilter>();
@@ -197,7 +197,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SeaMoth))]
         class SeaMoth_patch
         {
-            [HarmonyPrefix, HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             public static void AwakePrefix(SeaMoth __instance)
             {
                 GetSeaMothVolLight(__instance);
@@ -238,7 +238,7 @@ namespace Tweaks_Fixes
                     return;
 
                 Transform lightParentTransform = seaMoth.transform.Find("lights_parent");
-                Light light = lightParentTransform.GetComponentInChildren<Light>();
+                Light light = lightParentTransform.GetComponentInChildren<Light>(true);
                 Transform fakeLightTransform = light.transform.Find("x_FakeVolumletricLight");
                 seamothLightCone = fakeLightTransform.gameObject;
                 seamothVFXVolumetricLight = light.GetComponent<VFXVolumetricLight>();

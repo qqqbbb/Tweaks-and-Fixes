@@ -88,9 +88,8 @@ namespace Tweaks_Fixes
         [HarmonyPrefix, HarmonyPatch("Awake")]
         static void AwakePrefix(Flare __instance)
         {
-            Light light = __instance.GetComponentInChildren<Light>();
             if (flareLightColor != default)
-                light.color = flareLightColor;
+                __instance.light.color = flareLightColor;
 
             if (Main.flareRepairLoaded)
                 return;
@@ -99,7 +98,7 @@ namespace Tweaks_Fixes
             //Main.logger.LogMessage($"Flare default intensity {light.intensity} new intensity {newIntensity}");
             //Main.logger.LogMessage($"Flare color {light.color}");
             if (ConfigToEdit.flareLightIntensityMult.Value < 1)
-                light.intensity *= ConfigToEdit.flareLightIntensityMult.Value;
+                __instance.light.intensity *= ConfigToEdit.flareLightIntensityMult.Value;
         }
 
         [HarmonyPostfix, HarmonyPatch("OnDraw")]

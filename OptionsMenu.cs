@@ -12,25 +12,25 @@ namespace Tweaks_Fixes
     public class OptionsMenu : ModOptions
     {
         static public GameInput.Button moveAllItemsButton = EnumHandler.AddEntry<GameInput.Button>("TF_moveAllItems")
-            .CreateInput("Transfer all items")
-            .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Shift)
-            .WithControllerBinding(GameInputHandler.Paths.Gamepad.RightTrigger)
-            .WithCategory("Tweaks and Fixes");
+    .CreateInput("Transfer all items", "Hold down this key and press 'switch container' key to transfer all items from one container to another")
+    .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Shift)
+    .WithControllerBinding(GameInputHandler.Paths.Gamepad.RightTrigger)
+    .WithCategory("Tweaks and Fixes");
         static public GameInput.Button moveSameItemsButton = EnumHandler.AddEntry<GameInput.Button>("TF_moveSameItems")
-            .CreateInput("Transfer same items")
+            .CreateInput("Transfer same items", "Hold down this key and press 'switch container' key to transfer the same items from one container to another")
             .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Ctrl)
             .WithControllerBinding(GameInputHandler.Paths.Gamepad.LeftTrigger)
             .WithCategory("Tweaks and Fixes");
         static public GameInput.Button previousPDAtab = EnumHandler.AddEntry<GameInput.Button>("TF_PreviousPDAtab")
-            .CreateInput("Previous PDA tab")
+            .CreateInput("Previous PDA tab", "Press this key to open PDA tab to the left of the opened one")
             .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Q)
             .WithCategory("Tweaks and Fixes");
         static public GameInput.Button nextPDAtab = EnumHandler.AddEntry<GameInput.Button>("TF_NextPDAtab")
-            .CreateInput("Next PDA tab")
+            .CreateInput("Next PDA tab", "Press this key to open PDA tab to the right of the opened one")
             .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.E)
             .WithCategory("Tweaks and Fixes");
         static public GameInput.Button quickSlotCycle = EnumHandler.AddEntry<GameInput.Button>("TF_quickSlot")
-            .CreateInput("Cycle tools in quickslot")
+            .CreateInput("Cycle tools in quickslot", "hold down this key and press 'Cycle next' or 'Cycle previous' key to cycle tools in your current quickslot")
             .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Alt)
             .WithControllerBinding(GameInputHandler.Paths.Gamepad.ButtonSouth)
             .WithCategory("Tweaks and Fixes");

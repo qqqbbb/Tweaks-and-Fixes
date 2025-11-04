@@ -147,6 +147,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> canPickUpContainerWithItems;
 
 
+        public static ConfigEntry<float> spotlightLightIntensityMult;
         public static ConfigEntry<float> exosuitLightIntensityMult;
         public static ConfigEntry<float> seamothLightIntensityMult;
         public static ConfigEntry<float> cyclopsLightIntensityMult;
@@ -162,6 +163,9 @@ namespace Tweaks_Fixes
         private static ConfigEntry<string> cyclopsLightColor;
         private static ConfigEntry<string> flashlightLightColor;
         private static ConfigEntry<string> flareLightColor;
+        private static ConfigEntry<string> spotlightLightColor;
+
+
         public static ConfigEntry<bool> disableIonCubeFabricator;
 
 
@@ -330,6 +334,8 @@ namespace Tweaks_Fixes
             laserCutterLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Laser cutter light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
             cameraLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Camera drone light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
             flashlightLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Flashlight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            spotlightLightIntensityMult = Main.configToEdit.Bind("BASE", "Spotlight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+
 
             cameraLightColor = Main.configToEdit.Bind("TOOLS", "Camera drone light color", "0.463 0.902 0.902", "Camera drone light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             seaglideLightColor = Main.configToEdit.Bind("TOOLS", "Seaglide light color", "0.016 1 1", "Seaglide light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
@@ -338,6 +344,7 @@ namespace Tweaks_Fixes
             cyclopsLightColor = Main.configToEdit.Bind("CYCLOPS", "Cyclops light color", "1 1 1", "Cyclops light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             flashlightLightColor = Main.configToEdit.Bind("TOOLS", "Flashlight light color", "1 1 1", "Flashlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             flareLightColor = Main.configToEdit.Bind("TOOLS", "Flare light color", "0.706 0.448 0.431", "Flare light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            spotlightLightColor = Main.configToEdit.Bind("BASE", "Spotlight light color", "0.779 0.890 1", "Spotlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
 
 
 
@@ -528,6 +535,8 @@ namespace Tweaks_Fixes
             Cyclops_.cyclopsLightColor = ParseColor(cyclopsLightColor.Value);
             Tools.flashLightLightColor = ParseColor(flashlightLightColor.Value);
             Flare_.flareLightColor = ParseColor(flareLightColor.Value);
+            BaseSpotLight_.lightColor = ParseColor(spotlightLightColor.Value);
+
 
             Player_Movement.CacheSettings();
         }
