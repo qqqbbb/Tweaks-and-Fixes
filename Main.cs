@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.6.0";
+            VERSION = "4.7.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -35,7 +35,7 @@ namespace Tweaks_Fixes
         public static bool flareRepairLoaded;
         public static bool cyclopsDockingLoaded;
         public static bool vehicleLightsImprovedLoaded; // not updated
-        public static bool pickupFullCarryallIsLoaded;  // not updated
+        public static bool pickupFullCarryallIsLoaded;
         public static bool seaglideMapControlsLoaded;  // not updated
         public static bool baseLightSwitchLoaded;
         public static bool visibleLockerInteriorLoaded;
@@ -83,6 +83,7 @@ namespace Tweaks_Fixes
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
             Precurcor_Patch.used.Clear();
+            Pings.visiblePings.Clear();
             configMain.Load();
         }
 
@@ -298,7 +299,6 @@ namespace Tweaks_Fixes
             torpedoImprovementsLoaded = Chainloader.PluginInfos.ContainsKey("com.TorpedoImprovements.mod");
             aggressiveFaunaLoaded = Chainloader.PluginInfos.ContainsKey("com.lee23.aggressivefauna");
             //com.github.tinyhoot.DeathrunRemade
-
             //foreach (KeyValuePair<string, PluginInfo> plugin in Chainloader.PluginInfos)
             //    logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.GUID);
         }

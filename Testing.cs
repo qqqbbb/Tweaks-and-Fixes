@@ -284,13 +284,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPrefix, HarmonyPatch("TakeDamage")]
-        static bool TakeDamagePrefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
-        {
-
-            return false;
-        }
-
         //[HarmonyPatch(typeof(LiveMixin), "TakeDamage")]   
         public static class LiveMixin_UpdateActiveTarget_Patch
         {
@@ -328,14 +321,13 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(VFXVolumetricLight), "Awake")]
-        class VFXVolumetricLight_Awake_Patch
-        {
-            static void Prefix(VFXVolumetricLight __instance)
-            {
 
-                Main.logger.LogDebug("VFXVolumetricLight Awake Prefix " + Util.GetEntityRoot(__instance.gameObject));
-                //AddDebug("VFXVolumetricLight Awake ");
+        //[HarmonyPatch(typeof(Player), "SetCurrentSub")]
+        class Player_SetCurrentSub_Patch
+        {
+            static void Prefix(Player __instance)
+            {
+                AddDebug("SetCurrentSub  ");
             }
         }
 

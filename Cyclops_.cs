@@ -320,7 +320,7 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(CyclopsEntryHatch), "OnTriggerEnter")]
         class CyclopsEntryHatch_Start_Patch
-        { // fix entrance hatch not close 
+        { // fix bug: entrance hatch not close 
             static void Postfix(CyclopsEntryHatch __instance, Collider col)
             {
                 //AddDebug("CyclopsEntryHatch OnTriggerEnter " + Player.main.IsInSubmarine());

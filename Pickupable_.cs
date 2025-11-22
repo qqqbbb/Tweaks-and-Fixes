@@ -43,13 +43,16 @@ namespace Tweaks_Fixes
                 TechType tt = __instance.GetTechType();
                 if (tt == TechType.SmallStorage || tt == TechType.LuggageBag)
                 {
-                    PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
-                    if (ps)
-                        pickupableStorage_.Add(__instance, ps);
+                    if (Main.pickupFullCarryallIsLoaded == false)
+                    {
+                        PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
+                        if (ps)
+                            pickupableStorage_.Add(__instance, ps);
 
-                    StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
-                    if (sc)
-                        pickupableStorage.Add(__instance, sc);
+                        StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
+                        if (sc)
+                            pickupableStorage.Add(__instance, sc);
+                    }
                 }
                 if (unmovableItems.Contains(tt))
                 { // isKinematic gets saved
@@ -120,7 +123,7 @@ namespace Tweaks_Fixes
                     if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                         uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
                 }
-                if (ConfigToEdit.canPickUpContainerWithItems.Value == false && pickupableStorage_.ContainsKey(__instance) && Player.main.currentMountedVehicle is Exosuit)
+                if (Main.pickupFullCarryallIsLoaded == false && ConfigToEdit.canPickUpContainerWithItems.Value == false && pickupableStorage_.ContainsKey(__instance) && Player.main.currentMountedVehicle is Exosuit)
                 {
                     //AddDebug(__instance.name + " Pickupable OnHandHover AllowedToPickUp " + __instance.AllowedToPickUp());
                     if (__instance.AllowedToPickUp() == false)
@@ -140,7 +143,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("AllowedToPickUp")]
             public static void AllowedToPickUpPostfix(Pickupable __instance, ref bool __result)
             {
-                if (pickupableStorage.ContainsKey(__instance))
+                if (Main.pickupFullCarryallIsLoaded == false && pickupableStorage.ContainsKey(__instance))
                 { // fix bug: exosuit can pick up containers with items
                     if (ConfigToEdit.canPickUpContainerWithItems.Value)
                         __result = true;
@@ -185,6 +188,9 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
             static void DropPostfix(Pickupable __instance)
             { // collider that is not trigger gets destroyed in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
+                if (Main.pickupFullCarryallIsLoaded)
+                    return;
+
                 if (__instance.GetTechType() == TechType.LuggageBag)
                 {
                     //AddDebug(" Pickupable Drop " + __instance.name);
@@ -195,6 +201,9 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Pickup")]
             static void PickupPostfix(Pickupable __instance)
             {// collider that is not trigger gets destroyed in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
+                if (Main.pickupFullCarryallIsLoaded)
+                    return;
+
                 if (__instance.GetTechType() == TechType.LuggageBag)
                 {
                     //AddDebug(" Pickupable Pickup " + __instance.name);
@@ -211,7 +220,7 @@ namespace Tweaks_Fixes
             public static bool OnPickupPrefix(ExosuitClawArm __instance)
             {
                 //AddDebug("ExosuitClawArm OnPickup");
-                if (ConfigToEdit.canPickUpContainerWithItems.Value)
+                if (ConfigToEdit.canPickUpContainerWithItems.Value || Main.pickupFullCarryallIsLoaded)
                     return true;
 
                 GameObject target = __instance.exosuit.GetActiveTarget();

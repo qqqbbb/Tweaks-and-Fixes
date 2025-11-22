@@ -1186,8 +1186,8 @@ namespace Tweaks_Fixes
             //else
             //    AddDebug("TryUse no target ");
 
-            __instance.animator.ResetTrigger("bash");
-            __instance.animator.SetTrigger("use_tool");
+            //__instance.animator.ResetTrigger("bash");
+            //__instance.animator.SetTrigger("use_tool");
             __instance.timeUsed = Time.time;
             if (TryPickUpGrabbedObject(__instance))
                 return;

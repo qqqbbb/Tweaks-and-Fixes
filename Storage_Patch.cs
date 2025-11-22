@@ -277,6 +277,9 @@ namespace Tweaks_Fixes
                 //if (parent && parent.name == "docking_luggage_01_bag4(Clone)")
                 {
                     //AddDebug("CreateContainer LuggageBag");
+                    if (Main.pickupFullCarryallIsLoaded)
+                        return;
+
                     Pickupable p = parent.GetComponent<Pickupable>();
                     if (p == null)
                         return;
@@ -306,6 +309,9 @@ namespace Tweaks_Fixes
                       //AddDebug("StorageContainer OnConstructedChanged parent " + __instance.transform.parent.name);
                       //__instance.transform.position += __instance.transform.forward * .05f;
                     }
+                    if (Main.pickupFullCarryallIsLoaded)
+                        return;
+
                     Transform label = __instance.transform.Find("Label");
                     if (label)
                     {
@@ -346,7 +352,10 @@ namespace Tweaks_Fixes
                 if (c && !c.constructed)
                     return false;
 
+                PickupableStorage ps = null;
                 bool decoLocker = false;
+                ColoredLabel label = null;
+
                 //AddDebug("StorageContainer OnHandHover " + __instance.name);
                 //AddDebug("StorageContainer IsEmpty " + __instance.IsEmpty());
                 Transform parent = __instance.transform.parent;
@@ -356,22 +365,6 @@ namespace Tweaks_Fixes
                     //AddDebug("parent TechTag " + parentTT.type.ToString());
                     decoLocker = parentTT.type.ToString() == "DecorativeLockerClosed";
                 }
-                StringBuilder stringBuilder = new StringBuilder(Language.main.Get(__instance.hoverText));
-                stringBuilder.Append(" (");
-                stringBuilder.Append(UI_Patches.leftHandButton);
-                stringBuilder.Append(")\n");
-                //string text = __instance.hoverText + " (" + TooltipFactory.stringLeftHand + ")\n";
-                //string textEmpty = __instance.IsEmpty() ? "Empty" : string.Empty;
-                string textEmpty = string.Empty;
-                bool empty = __instance.IsEmpty();
-                ColoredLabel label = null;
-                PickupableStorage ps = null;
-                Sign sign = null;
-                if (decoLocker)
-                    sign = parent.GetComponentInChildren<Sign>();
-                else
-                    sign = __instance.GetComponentInChildren<Sign>();
-
                 if (__instance.GetComponent<SmallStorage>())
                 {
                     //AddDebug("OnHandHover SmallStorage");
@@ -389,6 +382,42 @@ namespace Tweaks_Fixes
                 }
                 else
                     label = __instance.GetComponentInChildren<ColoredLabel>();
+
+                if (ps && Main.pickupFullCarryallIsLoaded)
+                    return true;
+
+                StringBuilder stringBuilder = new StringBuilder(Language.main.Get(__instance.hoverText));
+                stringBuilder.Append(" (");
+                stringBuilder.Append(UI_Patches.leftHandButton);
+                stringBuilder.Append(")\n");
+                //string text = __instance.hoverText + " (" + TooltipFactory.stringLeftHand + ")\n";
+                //string textEmpty = __instance.IsEmpty() ? "Empty" : string.Empty;
+                string textEmpty = string.Empty;
+                bool empty = __instance.IsEmpty();
+                Sign sign = null;
+                if (decoLocker)
+                    sign = parent.GetComponentInChildren<Sign>();
+                else
+                    sign = __instance.GetComponentInChildren<Sign>();
+
+
+                if (ps)
+                {
+                    bool canPickUp = empty || ConfigToEdit.canPickUpContainerWithItems.Value || Main.pickupFullCarryallIsLoaded;
+                    //AddDebug("PickupableStorage cantPickupHoverText " + ps.cantPickupHoverText);
+                    if (canPickUp)
+                    {
+                        if (label) // floating locker
+                            stringBuilder.Append(UI_Patches.smallStorageString);
+                        else // bag
+                            stringBuilder.Append(UI_Patches.bagString);
+                    }
+                    else
+                        textEmpty = Language.main.Get(ps.cantPickupClickText);
+
+                    if (canPickUp && GameInput.GetButtonDown(GameInput.Button.AltTool))
+                        ps.pickupable.OnHandClick(hand);
+                }
 
                 if (label && label.enabled)
                 {
@@ -412,23 +441,7 @@ namespace Tweaks_Fixes
                     if (GameInput.GetButtonDown(GameInput.Button.RightHand))
                         sign.signInput.Select(true);
                 }
-                if (ps)
-                {
-                    bool canPickUp = empty || ConfigToEdit.canPickUpContainerWithItems.Value || Main.pickupFullCarryallIsLoaded;
-                    //AddDebug("PickupableStorage cantPickupHoverText " + ps.cantPickupHoverText);
-                    if (canPickUp)
-                    {
-                        if (label) // floating locker
-                            stringBuilder.Append(UI_Patches.smallStorageString);
-                        else // bag
-                            stringBuilder.Append(UI_Patches.bagString);
-                    }
-                    else
-                        textEmpty = Language.main.Get(ps.cantPickupClickText);
 
-                    if (canPickUp && GameInput.GetButtonDown(GameInput.Button.AltTool))
-                        ps.pickupable.OnHandClick(hand);
-                }
                 //HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), true, GameInput.Button.RightHand);
                 HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), true);
                 //AddDebug(stringBuilder.ToString());
@@ -452,7 +465,7 @@ namespace Tweaks_Fixes
                     if (fPModel)
                         fPModel.SetState(false);
                 }
-                if (!ConfigToEdit.newStorageUI.Value)
+                if (!ConfigToEdit.newStorageUI.Value || Main.pickupFullCarryallIsLoaded)
                     return;
                 //AddDebug("DeployableStorage Awake");
                 //PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>(true);
@@ -647,7 +660,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix, HarmonyPatch("OnHandHover")]
             static bool OnHandHoverPrefix(PickupableStorage __instance, GUIHand hand)
             {
-                if (ConfigToEdit.canPickUpContainerWithItems.Value == false)
+                if (ConfigToEdit.canPickUpContainerWithItems.Value == false || Main.pickupFullCarryallIsLoaded)
                     return true;
 
                 __instance.pickupable.OnHandHover(hand);
@@ -656,7 +669,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix, HarmonyPatch("OnHandClick")]
             static bool CreateContainerPrefix(PickupableStorage __instance, GUIHand hand)
             {
-                if (ConfigToEdit.canPickUpContainerWithItems.Value == false)
+                if (ConfigToEdit.canPickUpContainerWithItems.Value == false || Main.pickupFullCarryallIsLoaded)
                     return true;
 
                 __instance.pickupable.OnHandClick(hand);
