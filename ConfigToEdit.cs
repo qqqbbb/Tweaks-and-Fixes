@@ -146,7 +146,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> spawnResourcesWhenDrilling;
         public static ConfigEntry<bool> canPickUpContainerWithItems;
 
-
         public static ConfigEntry<float> spotlightLightIntensityMult;
         public static ConfigEntry<float> exosuitLightIntensityMult;
         public static ConfigEntry<float> seamothLightIntensityMult;
@@ -164,6 +163,8 @@ namespace Tweaks_Fixes
         private static ConfigEntry<string> flashlightLightColor;
         private static ConfigEntry<string> flareLightColor;
         private static ConfigEntry<string> spotlightLightColor;
+        public static ConfigEntry<string> damageModifiers;
+        public static ConfigEntry<bool> craftedPowercellInheritsBatteryCharge;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -207,6 +208,7 @@ namespace Tweaks_Fixes
             waterSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Water speed equipment", "", "Equipment in this list affects your movement speed in water. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma. If this list is not empty, vanilla script that changes your movement speed will not run. ");
 
             crushDepthEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush depth equipment", "ReinforcedDiveSuit 0", "Equipment in this list increases your safe diving depth. The format is: item ID, space, number of meters that will be added to your safe diving depth. Every entry is separated by comma.");
+            damageModifiers = Main.configToEdit.Bind("CREATURES", "Damage modifiers", "", "Use this to modify damage taken by things. Negative numbers reduce damage. Positive numbers increase damage. The format is: ID, space, damage percent that will be added or subtracted. Every entry is separated by comma.");
             crushDamageEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush damage equipment", "ReinforcedDiveSuit 0", "Equipment in this list reduces your crush damage. The format is: item ID, space, crush damage percent that will be blocked. Every entry is separated by comma.");
             itemMass = Main.configToEdit.Bind("ITEMS", "Item mass", "PrecursorKey_Blue 5, PrecursorKey_Orange 5, PrecursorKey_Purple 5, PrecursorKey_Red 5, PrecursorKey_White 5", "This allows you to change mass of pickupable items. The format is: item ID, space, item mass in kg as a decimal point number. Every entry is separated by comma.");
             unmovableItems = Main.configToEdit.Bind("ITEMS", "Unmovable items", "", "Contains pickupable items that can not be moved by bumping into them. You will always find them where you dropped them.  Every entry is separated by comma.");
@@ -339,12 +341,13 @@ namespace Tweaks_Fixes
 
             cameraLightColor = Main.configToEdit.Bind("TOOLS", "Camera drone light color", "0.463 0.902 0.902", "Camera drone light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             seaglideLightColor = Main.configToEdit.Bind("TOOLS", "Seaglide light color", "0.016 1 1", "Seaglide light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
-            seamothLightColor = Main.configToEdit.Bind("VEHICLES", "SeaMoth light color", "0.463 0.902 0.902", "Seaglide light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            seamothLightColor = Main.configToEdit.Bind("VEHICLES", "SeaMoth light color", "0.463 0.902 0.902", "SeaMoth light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             exosuitLightColor = Main.configToEdit.Bind("VEHICLES", "Prawn suit light color", "0.463 0.902 0.902", "Prawn suit light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             cyclopsLightColor = Main.configToEdit.Bind("CYCLOPS", "Cyclops light color", "1 1 1", "Cyclops light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             flashlightLightColor = Main.configToEdit.Bind("TOOLS", "Flashlight light color", "1 1 1", "Flashlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             flareLightColor = Main.configToEdit.Bind("TOOLS", "Flare light color", "0.706 0.448 0.431", "Flare light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             spotlightLightColor = Main.configToEdit.Bind("BASE", "Spotlight light color", "0.779 0.890 1", "Spotlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            craftedPowercellInheritsBatteryCharge = Main.configToEdit.Bind("ITEMS", "Crafted powercell inherits charge from batteries", false, "");
 
 
 
@@ -353,6 +356,9 @@ namespace Tweaks_Fixes
 
         private static Dictionary<TechType, int> ParseIntDicFromString(string input)
         {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
             Dictionary<TechType, int> dic = new Dictionary<TechType, int>();
             string[] entries = input.Split(',');
             for (int i = 0; i < entries.Length; i++)
@@ -383,6 +389,49 @@ namespace Tweaks_Fixes
                     continue;
 
                 dic.Add(tt, a);
+            }
+            return dic;
+        }
+
+        private static Dictionary<TechType, float> ParseFloatDicFromPercentString(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
+            //Main.logger.LogMessage("ParseFloatDicFromPercentString " + input);
+            Dictionary<TechType, float> dic = new Dictionary<TechType, float>();
+            string[] entries = input.Split(',');
+            for (int i = 0; i < entries.Length; i++)
+            {
+                string s = entries[i].Trim();
+                string techType;
+                string amount;
+                int index = s.IndexOf(' ');
+                if (index == -1)
+                    continue;
+
+                techType = s.Substring(0, index);
+                amount = s.Substring(index);
+
+                if (!TechTypeExtensions.FromString(techType, out TechType tt, true))
+                    continue;
+
+                //Main.logger.LogMessage("ParseFloatDicFromPercentString TechType " + tt);
+                int a = 0;
+                try
+                {
+                    a = int.Parse(amount);
+                }
+                catch (Exception)
+                {
+                    Main.logger.LogWarning("Could not parse: " + input);
+                    continue;
+                }
+                //Main.logger.LogMessage("ParseFloatDicFromPercentString amount " + a);
+                if (a == 0)
+                    continue;
+
+                dic.Add(tt, a * .01f + 1f);
             }
             return dic;
         }
@@ -536,7 +585,8 @@ namespace Tweaks_Fixes
             Tools.flashLightLightColor = ParseColor(flashlightLightColor.Value);
             Flare_.flareLightColor = ParseColor(flareLightColor.Value);
             BaseSpotLight_.lightColor = ParseColor(spotlightLightColor.Value);
-
+            Damage_Patch.damageModifiers = ParseFloatDicFromPercentString(damageModifiers.Value);
+            Main.logger.LogMessage("Damage_Patch.damageModifiers " + Damage_Patch.damageModifiers.Count);
 
             Player_Movement.CacheSettings();
         }

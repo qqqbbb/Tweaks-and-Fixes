@@ -106,7 +106,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(Battery))]
         class Battery_Patch_
         {

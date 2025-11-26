@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         static float poisonDamageInterval = .8f;
         static float poisonDamage = .5f;
         static bool clawArmHit;
-
+        public static Dictionary<TechType, float> damageModifiers = new Dictionary<TechType, float>();
 
         [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_patch
@@ -240,6 +240,13 @@ namespace Tweaks_Fixes
             static void TakeDamagePrefix_(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
             {
                 bool hitByPlayer = dealer == Player.main.gameObject || clawArmHit || type == DamageType.Drill;
+                //Main.logger.LogMessage("damageModifiers.Count " + damageModifiers.Count);
+                if (damageModifiers.Count > 0)
+                {
+                    TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    if (damageModifiers.ContainsKey(tt))
+                        originalDamage *= damageModifiers[tt];
+                }
                 if (ConfigToEdit.removeBigParticlesWhenKnifing.Value && Main.gameLoaded && hitByPlayer && originalDamage > 0 && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter)
                 { // dont spawn big damage particles if knifed by player
                     if (__instance.damageEffect)

@@ -83,10 +83,12 @@ namespace Tweaks_Fixes
                 //AddDebug("OnRemoveItem " + item.item.GetTechName());
                 if (crafting)
                 {
-                    Battery battery = item.item.GetComponent<Battery>();
-                    if (battery)
-                        batteriesUsedForCrafting.Add(battery);
-
+                    if (ConfigToEdit.craftedPowercellInheritsBatteryCharge.Value)
+                    {
+                        Battery battery = item.item.GetComponent<Battery>();
+                        if (battery)
+                            batteriesUsedForCrafting.Add(battery);
+                    }
                     if (Util.IsEatableFish(item.item.gameObject))
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
@@ -96,8 +98,6 @@ namespace Tweaks_Fixes
                         //foodValueMult = eatable.GetFoodValue() / eatable.foodValue;
                         timeDecayStart = eatable.timeDecayStart;
                     }
-                    //else
-                    //    timeDecayStart = 0f;
                 }
             }
         }

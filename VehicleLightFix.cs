@@ -31,7 +31,6 @@ namespace Tweaks_Fixes
             lightCone.transform.localPosition = pos;
             lightCone.transform.localRotation = Quaternion.identity;
             VFXVolumetricLight volLight = parent.gameObject.AddComponent<VFXVolumetricLight>();
-            volLight.syncMeshWithLight = seamothVFXVolumetricLight.syncMeshWithLight;
             volLight.angle = seamothVFXVolumetricLight.angle;
             volLight.range = seamothVFXVolumetricLight.range;
             volLight.intensity = seamothVFXVolumetricLight.intensity;
@@ -48,9 +47,13 @@ namespace Tweaks_Fixes
             volLight.volumMesh = seamothVFXVolumetricLight.volumMesh;
             volLight.block = seamothVFXVolumetricLight.block;
             volLight.lightSource = parent.GetComponentInChildren<Light>(true);
+            //Main.logger.LogMessage("AddVolLight lightSource.color " + volLight.lightSource.color);
             volLight.volumGO = lightCone;
             volLight.volumRenderer = lightCone.GetComponent<MeshRenderer>();
             volLight.volumMeshFilter = lightCone.GetComponent<MeshFilter>();
+            volLight.syncMeshWithLight = seamothVFXVolumetricLight.syncMeshWithLight;
+            volLight.enabled = false;
+            volLight.enabled = true; // need this for exosuit
         }
 
         private static void ToggleLights(Exosuit exosuit)
@@ -93,7 +96,7 @@ namespace Tweaks_Fixes
             private static void FixExosuitLight(Exosuit exosuit)
             {
                 Transform lightTransform = Util.GetExosuitLightsTransform(exosuit);
-                Light[] Lights = lightTransform.GetComponentsInChildren<Light>();
+                Light[] Lights = lightTransform.GetComponentsInChildren<Light>(true);
 
                 foreach (var light in Lights)
                 {
@@ -101,6 +104,7 @@ namespace Tweaks_Fixes
                     if (ConfigToEdit.exosuitLightIntensityMult.Value < 1)
                         light.intensity *= ConfigToEdit.exosuitLightIntensityMult.Value;
 
+                    //AddDebug("exosuitLightColor " + exosuitLightColor);
                     if (exosuitLightColor != default)
                         light.color = exosuitLightColor;
 
@@ -212,8 +216,8 @@ namespace Tweaks_Fixes
             private static void FixSeamothLights(SeaMoth __instance)
             {
                 Transform lightParentTransform = __instance.transform.Find("lights_parent");
-                Light[] lights = lightParentTransform.GetComponentsInChildren<Light>();
-
+                Light[] lights = lightParentTransform.GetComponentsInChildren<Light>(true);
+                //AddDebug("FixSeamothLights " + lights.Length);
                 for (int i = 0; i < lights.Length; i++)
                 {
                     Light light = lights[i];

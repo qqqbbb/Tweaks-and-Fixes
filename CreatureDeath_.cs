@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
         public static HashSet<CreatureDeath> creatureDeathsToDestroy = new HashSet<CreatureDeath>();
         public static HashSet<TechType> notRespawningCreatures;
         public static HashSet<TechType> notRespawningCreaturesIfKilledByPlayer;
-        public static Dictionary<TechType, int> respawnTime = new Dictionary<TechType, int>();
+        public static Dictionary<TechType, int> respawnTime;
 
         public static void TryRemoveCorpses()
         {
@@ -49,11 +49,15 @@ namespace Tweaks_Fixes
             //    creatureDeaths.Add(techType);
             //    Main.logger.LogMessage("CreatureDeath " + techType + " respawns " + __instance.respawn + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature + " respawnInterval " + __instance.respawnInterval);
             //}
-            __instance.respawn = !notRespawningCreatures.Contains(techType);
-            __instance.respawnOnlyIfKilledByCreature = notRespawningCreaturesIfKilledByPlayer.Contains(techType);
+            if (notRespawningCreatures != null)
+                __instance.respawn = !notRespawningCreatures.Contains(techType);
+
+            if (notRespawningCreaturesIfKilledByPlayer != null)
+                __instance.respawnOnlyIfKilledByCreature = notRespawningCreaturesIfKilledByPlayer.Contains(techType);
+
             //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawn " + __instance.respawn);
             //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
-            if (respawnTime.ContainsKey(techType))
+            if (respawnTime != null && respawnTime.ContainsKey(techType))
                 __instance.respawnInterval = respawnTime[techType] * DayNightCycle.kDayLengthSeconds;
         }
         [HarmonyPostfix, HarmonyPatch("OnTakeDamage")]
