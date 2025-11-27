@@ -239,13 +239,20 @@ namespace Tweaks_Fixes
             [HarmonyPrefix, HarmonyPatch("TakeDamage")]
             static void TakeDamagePrefix_(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
             {
-                bool hitByPlayer = dealer == Player.main.gameObject || clawArmHit || type == DamageType.Drill;
+                if (Main.gameLoaded == false)
+                    return;
+
+                bool playerDealer = dealer != null && dealer == Player.main.gameObject;
+                bool hitByPlayer = playerDealer || clawArmHit || type == DamageType.Drill;
                 //Main.logger.LogMessage("damageModifiers.Count " + damageModifiers.Count);
-                if (damageModifiers.Count > 0)
+                if (damageModifiers?.Count > 0)
                 {
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    //var d = originalDamage;
                     if (damageModifiers.ContainsKey(tt))
                         originalDamage *= damageModifiers[tt];
+
+                    //AddDebug($"TakeDamage or {d} mod {damageModifiers[tt]} d {originalDamage}");
                 }
                 if (ConfigToEdit.removeBigParticlesWhenKnifing.Value && Main.gameLoaded && hitByPlayer && originalDamage > 0 && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter)
                 { // dont spawn big damage particles if knifed by player
@@ -260,7 +267,7 @@ namespace Tweaks_Fixes
                         __instance.timeLastDamageEffect = Time.time;
                     }
                 }
-                else if (type == DamageType.Heat && !__instance.shielded && dealer == Player.mainObject)
+                else if (type == DamageType.Heat && !__instance.shielded && playerDealer)
                 {
                     if (__instance.GetComponent<LavaLizard>())
                     { // can damage LavaLizard with heatblade

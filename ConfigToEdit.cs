@@ -430,8 +430,17 @@ namespace Tweaks_Fixes
                 //Main.logger.LogMessage("ParseFloatDicFromPercentString amount " + a);
                 if (a == 0)
                     continue;
+                else if (a == -100)
+                {
+                    dic.Add(tt, 0);
+                    continue;
+                }
+                float f = a * .01f + 1f;
+                if (f < 0 || Mathf.Approximately(f, 0f))
+                    f = 0;
 
-                dic.Add(tt, a * .01f + 1f);
+                //Main.logger.LogMessage("ParseFloatDicFromPercentString amount ! " + f);
+                dic.Add(tt, f);
             }
             return dic;
         }
@@ -558,8 +567,11 @@ namespace Tweaks_Fixes
 
         public static void ParseConfig()
         {
+
             Player_Movement.waterSpeedEquipment = Parse01floatDicFromString(waterSpeedEquipment.Value);
             Player_Movement.groundSpeedEquipment = Parse01floatDicFromString(groundSpeedEquipment.Value);
+            Player_Movement.CacheSettings();
+
             Crush_Damage_.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
             Crush_Damage_.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
             Pickupable_.itemMass = ParseFloatDicFromString(itemMass.Value);
@@ -575,7 +587,6 @@ namespace Tweaks_Fixes
             CreatureDeath_.respawnTime = ParseIntDicFromString(respawnTime.Value);
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
             Charger_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
-
             Creatures.bloodColor = ParseColor(bloodColor.Value);
             MapRoomCamera_.lightColor = ParseColor(cameraLightColor.Value);
             Seaglide_.lightColor = ParseColor(seaglideLightColor.Value);
@@ -586,9 +597,7 @@ namespace Tweaks_Fixes
             Flare_.flareLightColor = ParseColor(flareLightColor.Value);
             BaseSpotLight_.lightColor = ParseColor(spotlightLightColor.Value);
             Damage_Patch.damageModifiers = ParseFloatDicFromPercentString(damageModifiers.Value);
-            Main.logger.LogMessage("Damage_Patch.damageModifiers " + Damage_Patch.damageModifiers.Count);
-
-            Player_Movement.CacheSettings();
+            //Main.logger.LogMessage("ParseConfig done ");
         }
 
         public enum EscapePodMedicalCabinetWorks { Always, After_repairing_life_pod, Never }
