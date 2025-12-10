@@ -22,7 +22,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Open")]
             static bool OpenPrefix(PDA __instance, PDATab tab, Transform target, PDA.OnClose onCloseCallback, ref bool __result)
             {// remove delay
-                if (__instance.isInUse || __instance.ignorePDAInput)
+                if (__instance.isInUse || __instance.ignorePDAInput || Main.gameLoaded == false)
                 {
                     __result = false;
                     return false;

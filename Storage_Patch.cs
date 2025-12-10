@@ -309,9 +309,6 @@ namespace Tweaks_Fixes
                       //AddDebug("StorageContainer OnConstructedChanged parent " + __instance.transform.parent.name);
                       //__instance.transform.position += __instance.transform.forward * .05f;
                     }
-                    if (Main.pickupFullCarryallIsLoaded)
-                        return;
-
                     Transform label = __instance.transform.Find("Label");
                     if (label)
                     {
@@ -399,7 +396,6 @@ namespace Tweaks_Fixes
                     sign = parent.GetComponentInChildren<Sign>();
                 else
                     sign = __instance.GetComponentInChildren<Sign>();
-
 
                 if (ps)
                 {

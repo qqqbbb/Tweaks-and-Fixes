@@ -70,7 +70,7 @@ namespace Tweaks_Fixes
             //ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
             ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0, 100, 1);
             ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .01f, "{0:0.0#}");
-            ModSliderOption fruitGrowTimeSlider = ConfigMenu.fruitGrowTime.ToModSliderOption(0, 30, 1);
+            //ModSliderOption fruitGrowTimeSlider = ConfigMenu.fruitGrowTime.ToModSliderOption(0, 30, 1);
             ModSliderOption fishSpeedSlider = ConfigMenu.fishSpeedMult.ToModSliderOption(0.1f, 5f, .1f, "{0:0.#}");
             ModSliderOption creatureSpeedSlider = ConfigMenu.creatureSpeedMult.ToModSliderOption(0.1f, 5f, .1f, "{0:0.#}");
             ModSliderOption CreatureFleeChanceSlider = ConfigMenu.CreatureFleeChance.ToModSliderOption(0, 100, 1);
@@ -134,7 +134,7 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.cantEatUnderwater.ToModToggleOption());
             AddItem(ConfigMenu.cantUseMedkitUnderwater.ToModToggleOption());
             AddItem(foodDecayRateSlider);
-            AddItem(fruitGrowTimeSlider);
+            //AddItem(fruitGrowTimeSlider);
             AddItem(fishSpeedSlider);
             AddItem(creatureSpeedSlider);
             AddItem(CreatureFleeChanceSlider);

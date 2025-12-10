@@ -115,7 +115,10 @@ namespace Tweaks_Fixes
                 }
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (__instance.GetComponent<Eatable>())
+                {
+                    //AddDebug("fishTechTypes Add " + tt);
                     fishTechTypes.Add(tt);
+                }
 
                 creatureTT.Add(tt);
                 if (tt == TechType.Gasopod)

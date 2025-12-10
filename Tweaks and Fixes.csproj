@@ -137,6 +137,9 @@
     <Compile Include="Camera_.cs" />
     <Compile Include="Charger_.cs" />
     <Compile Include="BaseSpotLight_.cs" />
+    <Compile Include="PowerConsumption.cs" />
+    <Compile Include="FiltrationMachine_.cs" />
+    <Compile Include="InventoryItemIconColorChanger.cs" />
     <Compile Include="Pings.cs" />
     <Compile Include="CoralBlendWhite_.cs" />
     <Compile Include="CreatureDeath_.cs" />
@@ -192,7 +195,7 @@
     <Compile Include="Gravsphere_Patch.cs" />
     <Compile Include="Pickupable_.cs" />
     <Compile Include="Oxygen_.cs" />
-    <Compile Include="Crafting_.cs" />
+    <Compile Include="Crafting.cs" />
     <Compile Include="Damage_Patch.cs" />
     <Compile Include="Databox_Light.cs" />
     <Compile Include="Crush_Damage_.cs" />

@@ -188,10 +188,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
             static void DropPostfix(Pickupable __instance)
             { // collider that is not trigger gets destroyed in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
-                if (Main.pickupFullCarryallIsLoaded)
-                    return;
-
-                if (__instance.GetTechType() == TechType.LuggageBag)
+                if (__instance.GetTechType() == TechType.LuggageBag && Main.pickupFullCarryallIsLoaded == false)
                 {
                     //AddDebug(" Pickupable Drop " + __instance.name);
                     BoxCollider boxCollider = __instance.GetComponentInChildren<BoxCollider>();
@@ -201,10 +198,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Pickup")]
             static void PickupPostfix(Pickupable __instance)
             {// collider that is not trigger gets destroyed in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
-                if (Main.pickupFullCarryallIsLoaded)
-                    return;
-
-                if (__instance.GetTechType() == TechType.LuggageBag)
+                if (__instance.GetTechType() == TechType.LuggageBag && Main.pickupFullCarryallIsLoaded == false)
                 {
                     //AddDebug(" Pickupable Pickup " + __instance.name);
                     BoxCollider boxCollider = __instance.GetComponentInChildren<BoxCollider>();

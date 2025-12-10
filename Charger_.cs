@@ -83,8 +83,10 @@ namespace Tweaks_Fixes
         [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(Charger __instance)
         {
-            //AddDebug(__instance.name + " Charger Start");
             //__instance.uiUnpoweredText.color = Color.white;
+            __instance.chargeSpeed *= ConfigToEdit.batteryChargeSpeedMult.Value;
+            //AddDebug($"{__instance.name}  Charger Start {s} mod {__instance.chargeSpeed}");
+
             if (__instance.allowedTech == null)
                 return;
 

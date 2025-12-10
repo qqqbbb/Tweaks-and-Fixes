@@ -200,7 +200,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix, HarmonyPatch("Eat")]
             public static bool EatPrefix(Survival __instance, GameObject useObj, ref bool __result)
             {
-                if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !ConfigMenu.newHungerSystem.Value && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200)
+                if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Default && !ConfigMenu.newHungerSystem.Value && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200)
                     return true;
 
                 if (useObj == null)
@@ -231,7 +231,7 @@ namespace Tweaks_Fixes
                 {
                     if (food > 0)
                     {
-                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla)
+                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Default)
                         {
                             minFood = food;
                             maxFood = food;
@@ -254,7 +254,7 @@ namespace Tweaks_Fixes
                     }
                     if (water > 0)
                     {
-                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla)
+                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Default)
                         {
                             minWater = water;
                             maxWater = water;

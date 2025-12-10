@@ -55,7 +55,7 @@ namespace Tweaks_Fixes
             {
                 return false;
             }
-            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Vanilla || ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes)
+            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Default || ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes)
             {
                 return true;
             }
@@ -446,7 +446,7 @@ namespace Tweaks_Fixes
             FruitPlant fp = go.EnsureComponent<FruitPlant>();
             fp.fruitSpawnEnabled = true;
             //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);
-            fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.kDayLengthSeconds;
+            fp.fruitSpawnInterval = ConfigToEdit.fruitGrowTime.Value * DayNightCycle.kDayLengthSeconds;
             if (fp.fruitSpawnInterval == 0f)
                 fp.fruitSpawnInterval = 1f;
             //AddDebug(__instance.name + " fruitSpawnInterval after " + fp.fruitSpawnInterval);

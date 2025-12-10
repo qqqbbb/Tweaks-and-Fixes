@@ -58,11 +58,11 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             public static void StartPrefix(FruitPlant __instance)
             { // wild lantern tree respawns fruits only in creative mode
-                if (ConfigMenu.fruitGrowTime.Value > 0)
+                if (ConfigToEdit.fruitGrowTime.Value > 0)
                 {
                     __instance.fruitSpawnEnabled = true;
                     // fruitSpawnInterval will be mult by 'plants growth' from Day night speed mod 
-                    __instance.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.kDayLengthSeconds;
+                    __instance.fruitSpawnInterval = ConfigToEdit.fruitGrowTime.Value * DayNightCycle.kDayLengthSeconds;
                 }
             }
             [HarmonyPrefix]

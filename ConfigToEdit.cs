@@ -165,6 +165,10 @@ namespace Tweaks_Fixes
         private static ConfigEntry<string> spotlightLightColor;
         public static ConfigEntry<string> damageModifiers;
         public static ConfigEntry<bool> craftedPowercellInheritsBatteryCharge;
+        public static ConfigEntry<float> filtrationMachineWaterTimeMult;
+        public static ConfigEntry<float> filtrationMachineSaltTimeMult;
+        public static ConfigEntry<float> batteryChargeSpeedMult;
+        public static ConfigEntry<float> fruitGrowTime;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -205,7 +209,7 @@ namespace Tweaks_Fixes
             oneHandToolSwimSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "One handed tool swimming speed modifier", 0, "Your swimming speed will be reduced by this percent when holding tool or PDA with one hand.");
             twoHandToolSwimSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Two handed tool swimming speed modifier", 0, "Your swimming speed will be reduced by this percent when holding tool with both hands.");
             groundSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Ground speed equipment", "", "Equipment in this list affects your movement speed on ground. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma.");
-            waterSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Water speed equipment", "", "Equipment in this list affects your movement speed in water. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma. If this list is not empty, vanilla script that changes your movement speed will not run. ");
+            waterSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Water speed equipment", "", "Equipment in this list affects your movement speed in water. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma.");
 
             crushDepthEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush depth equipment", "ReinforcedDiveSuit 0", "Equipment in this list increases your safe diving depth. The format is: item ID, space, number of meters that will be added to your safe diving depth. Every entry is separated by comma.");
             damageModifiers = Main.configToEdit.Bind("CREATURES", "Damage modifiers", "", "Use this to modify damage taken by things. Negative numbers reduce damage. Positive numbers increase damage. The format is: ID, space, damage percent that will be added or subtracted. Every entry is separated by comma.");
@@ -348,9 +352,10 @@ namespace Tweaks_Fixes
             flareLightColor = Main.configToEdit.Bind("TOOLS", "Flare light color", "0.706 0.448 0.431", "Flare light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             spotlightLightColor = Main.configToEdit.Bind("BASE", "Spotlight light color", "0.779 0.890 1", "Spotlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             craftedPowercellInheritsBatteryCharge = Main.configToEdit.Bind("ITEMS", "Crafted powercell inherits charge from batteries", false, "");
-
-
-
+            filtrationMachineWaterTimeMult = Main.configToEdit.Bind("BASE", "Filtration machine water time multiplier", 1f, "Time it takes filtration machine to produce water will be multiplied by this");
+            filtrationMachineSaltTimeMult = Main.configToEdit.Bind("BASE", "Filtration machine salt time multiplier", 1f, "Time it takes filtration machine to produce salt will be multiplied by this");
+            batteryChargeSpeedMult = Main.configToEdit.Bind("BASE", "Battery charging rate multiplier", 1f, "Charging rate of battery charger and power cell charger will be multiplied by this. The faster they charge batteries the more power they drain.");
+            fruitGrowTime = Main.configMenu.Bind("", "Fruit growth time", 0f, "Time in days it takes a lantern tree fruit, creepvine seeds, blood oil to grow. Default values will be used if this is 0: fruits from wild plants will never grow back after ypu pick them, fruits from your plants will grow in less than a day.");
         }
 
 

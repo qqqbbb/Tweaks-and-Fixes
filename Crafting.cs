@@ -7,7 +7,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Crafting_
+    class Crafting
     {
         static bool crafting = false;
         static List<Battery> batteriesUsedForCrafting = new List<Battery>();

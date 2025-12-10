@@ -39,7 +39,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> cantEatUnderwater;
         public static ConfigEntry<bool> cantUseMedkitUnderwater;
         public static ConfigEntry<float> foodDecayRateMult;
-        public static ConfigEntry<int> fruitGrowTime;
+        //public static ConfigEntry<int> fruitGrowTime;
         public static ConfigEntry<float> fishSpeedMult;
         public static ConfigEntry<float> creatureSpeedMult;
         public static ConfigEntry<int> CreatureFleeChance;
@@ -110,14 +110,14 @@ namespace Tweaks_Fixes
             crushDamage = Main.configMenu.Bind("", "Crush damage", 0f, "Player takes this damage when below crush depth.");
             crushDamageProgression = Main.configMenu.Bind("", "Crush damage progression", 0f, "If this is more than 0, the crush damage you take will be: 'Crush damage' value + 'Crush damage' value * this * number of meters below crush depth.");
             vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 1f, "Vehicle crush damage will be multiplied by this.");
-            emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Vanilla, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
+            emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Default, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
             newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
             fishFoodWaterRatio = Main.configMenu.Bind("", "Fish water/food value ratio", 0, "Fish's water value will be this percent of its food value if this is more than 0. Game has to be reloaded after changing this.");
-            eatRawFish = Main.configMenu.Bind("", "Eating raw fish", EatingRawFish.Vanilla, "This changes amount of food you get by eating raw fish. Harmless: it is a random number between 0 and fish's food value. Risky: it is a random number between fish's negative food value and fish's food value. Harmful: it is a random number between fish's negative food value and 0.");
+            eatRawFish = Main.configMenu.Bind("", "Eating raw fish", EatingRawFish.Default, "This changes amount of food you get by eating raw fish. Harmless: it is a random number between 0 and fish's food value. Risky: it is a random number between fish's negative food value and fish's food value. Harmful: it is a random number between fish's negative food value and 0.");
             cantEatUnderwater = Main.configMenu.Bind("", "Can not eat underwater", false, "You will not be able to eat or drink when swimming underwater if this is on.");
             cantUseMedkitUnderwater = Main.configMenu.Bind("", "Can not use first aid kit underwater", false, "You will not be able to use first aid kit when swimming underwater if this is on.");
             foodDecayRateMult = Main.configMenu.Bind("", "Food decay rate multiplier", 1f, "Food decay rate will be multiplied by this. You have to reload the game after changing this.");
-            fruitGrowTime = Main.configMenu.Bind("", "Fruit growth time", 0, "Time in days it takes a lantern tree fruit, creepvine seeds, blood oil to grow. Vanilla values will be used if this is 0: fruits from wild plants will never grow back after ypu pick them, fruits from your plants will grow in less than a day. You have to reload your game after changing this.");
+            //fruitGrowTime = Main.configMenu.Bind("", "Fruit growth time", 0, "Time in days it takes a lantern tree fruit, creepvine seeds, blood oil to grow. Default values will be used if this is 0: fruits from wild plants will never grow back after ypu pick them, fruits from your plants will grow in less than a day. You have to reload your game after changing this.");
             fishSpeedMult = Main.configMenu.Bind("", "Catchable fish speed multiplier", 1f, "Swimming speed of fish that you can catch will be multiplied by this.");
             creatureSpeedMult = Main.configMenu.Bind("", "Creature speed multiplier", 1f, "Swimming speed of creatures that you can not catch will be multiplied by this.");
             CreatureFleeChance = Main.configMenu.Bind("", "Creature flee chance percent", 100, "Creature's flee chance percent when it is under attack and its flee damage threshold is reached.");
@@ -129,13 +129,13 @@ namespace Tweaks_Fixes
             damageImpactEffect = Main.configMenu.Bind("", "Player impact damage screen effects", true, "This toggles cracks on your swimming mask when you take damage.");
             damageScreenFX = Main.configMenu.Bind("", "Player damage screen effects", true, "This toggles red screen effect when you take damage.");
             stalkerLoseToothChance = Main.configMenu.Bind("", "Chance percent for stalker to lose its tooth", 50, "Probability percent for stalker to lose its tooth when it bites something hard.");
-            realOxygenCons = Main.configMenu.Bind("", "Realistic oxygen consumption", false, "Vanilla oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth above 100 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be equal to vanilla max oxygen consumption and will increase as you dive deeper.");
+            realOxygenCons = Main.configMenu.Bind("", "Realistic oxygen consumption", false, "Default oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth above 100 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be equal to default max oxygen consumption and will increase as you dive deeper.");
             decoyLifeTime = Main.configMenu.Bind("", "Creature decoy battery life time", 90, "Creature decoy stops working after this number of seconds.");
             decoyHP = Main.configMenu.Bind("", "Creature decoy HP", 0, "Creature decoy will be destroyed after taking this amount of damage if this value is not 0. By default creature decoy HP is infinite.");
             escapePodMaxPower = Main.configMenu.Bind("", "Life pod power cell max charge", 25, "Max charge for each of its 3 power cells. Game has to be reloaded after changing this.");
             batteryChargeMult = Main.configMenu.Bind("", "Battery charge multiplier", 1f, "Max charge of batteries and power cells will be multiplied by this. Game has to be reloaded after changing this.");
             craftedBatteryCharge = Main.configMenu.Bind("", "Crafted battery charge percent", 100, "Charge percent of batteries and power cells you craft will be set to this.");
-            dropItemsOnDeath = Main.configMenu.Bind("", "Drop items when you die", DropItemsOnDeath.Vanilla);
+            dropItemsOnDeath = Main.configMenu.Bind("", "Drop items when you die", DropItemsOnDeath.Default);
             invMultWater = Main.configMenu.Bind("", "Inventory weight multiplier in water", 0f, "When this is not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
             invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on ground", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
             drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "You have to reload the game after changing this");
@@ -147,8 +147,8 @@ namespace Tweaks_Fixes
 
         }
 
-        public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
-        public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
-        public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
+        public enum DropItemsOnDeath { Default, Drop_everything, Do_not_drop_anything }
+        public enum EmptyVehiclesCanBeAttacked { Default, Yes, No, Only_if_lights_on }
+        public enum EatingRawFish { Default, Harmless, Risky, Harmful }
     }
 }

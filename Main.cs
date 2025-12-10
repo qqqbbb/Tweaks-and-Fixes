@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.8.1";
+            VERSION = "4.9.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -69,8 +69,7 @@ namespace Tweaks_Fixes
             Damage_Patch.healTempDamageTime = 0;
             Storage_Patch.savedSigns.Clear();
             Storage_Patch.labelledLockers.Clear();
-            Battery_.subPowerRelays.Clear();
-            UI_Patches.planters.Clear();
+            PowerConsumption.subPowerRelays.Clear();
             Creatures.pickupShinies.Clear();
             Base_.CleanUp();
             CreatureDeath_.creatureDeathsToDestroy.Clear();
@@ -83,6 +82,7 @@ namespace Tweaks_Fixes
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
             Precurcor_Patch.used.Clear();
+            InventoryItemIconColorChanger.CleanUp();
             configMain.Load();
         }
 

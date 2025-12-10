@@ -104,7 +104,7 @@ namespace Tweaks_Fixes
                             MakeUnmovable(__instance.gameObject);
                     }
                 }
-                if (ConfigMenu.fruitGrowTime.Value > 0 && fruitTechTypes.Contains(tt))
+                if (ConfigToEdit.fruitGrowTime.Value > 0 && fruitTechTypes.Contains(tt))
                 {
                     Util.EnsureFruits(__instance.gameObject);
                 }
