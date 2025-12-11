@@ -355,7 +355,7 @@ namespace Tweaks_Fixes
             filtrationMachineWaterTimeMult = Main.configToEdit.Bind("BASE", "Filtration machine water time multiplier", 1f, "Time it takes filtration machine to produce water will be multiplied by this");
             filtrationMachineSaltTimeMult = Main.configToEdit.Bind("BASE", "Filtration machine salt time multiplier", 1f, "Time it takes filtration machine to produce salt will be multiplied by this");
             batteryChargeSpeedMult = Main.configToEdit.Bind("BASE", "Battery charging rate multiplier", 1f, "Charging rate of battery charger and power cell charger will be multiplied by this. The faster they charge batteries the more power they drain.");
-            fruitGrowTime = Main.configMenu.Bind("", "Fruit growth time", 0f, "Time in days it takes a lantern tree fruit, creepvine seeds, blood oil to grow. Default values will be used if this is 0: fruits from wild plants will never grow back after ypu pick them, fruits from your plants will grow in less than a day.");
+            fruitGrowTime = Main.configToEdit.Bind("", "Fruit growth time", 0f, "Time in days it takes a lantern tree fruit, creepvine seeds, blood oil to grow. Default values will be used if this is 0: fruits from wild plants will never grow back after ypu pick them, fruits from your plants will grow in less than a day.");
         }
 
 
