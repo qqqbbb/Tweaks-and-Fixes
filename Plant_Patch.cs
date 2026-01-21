@@ -289,8 +289,10 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("MakeSpikePlantDocile Planter");
                 if (grownPlant.TryGetComponent(out RangeAttacker ra))
+                { // attacks player for 1 frame when growing stops
+                    SafeAnimator.SetBool(ra.animator, "attack", false);
                     UnityEngine.Object.Destroy(ra);
-
+                }
                 if (grownPlant.TryGetComponent(out RangeTargeter rt))
                     UnityEngine.Object.Destroy(rt);
             }
