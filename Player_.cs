@@ -61,10 +61,10 @@ namespace Tweaks_Fixes
                 //else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
                 //    Light_Control.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (ConfigMenu.crushDamage.Value > 0f && Crush_Damage_.crushInterval + crushTime < Time.time)
+                if (ConfigMenu.crushDamage.Value > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
-                    Crush_Damage_.CrushDamagePlayer();
+                    Crush_Damage.CrushDamagePlayer();
                 }
                 float hpToHeal = Main.configMain.GetHPtoHeal();
                 if (hpToHeal > 0 && Time.time > healTime)
@@ -91,7 +91,7 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    __instance.crushDepth = ConfigMenu.crushDepth.Value + Crush_Damage_.extraCrushDepth;
+                    __instance.crushDepth = ConfigMenu.crushDepth.Value + Crush_Damage.extraCrushDepth;
                     float depth = Ocean.GetDepthOf(__instance.gameObject);
                     if (depth > __instance.crushDepth)
                         depthClass = Ocean.DepthClass.Crush;

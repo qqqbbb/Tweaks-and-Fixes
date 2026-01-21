@@ -4,8 +4,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static ErrorMessage;
 using UnityEngine;
+using UWE;
+using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -18,20 +20,32 @@ namespace Tweaks_Fixes
         {
             public float startRotation;
             public float endRotation;
-            public float t;
+            public float timeElapsed;
             public float duration = 1f;
             public float openAngle = 135f;
             public float doubleDoorOpenAngle = 90f;
 
-            public IEnumerator Rotate(Transform door, bool playCloseSound = false, bool deco = false)
+            public IEnumerator Rotate(Transform door, bool playCloseSound = false, bool deco = false, bool fixOpenedLockerDoor = false)
             {
-                while (t < duration)
+                while (timeElapsed < duration)
                 {
-                    t += Time.deltaTime;
-                    float f = t / duration;
+                    if (fixOpenedLockerDoor && timeElapsed == 0)
+                    {
+                        float dist = Vector3.Distance(Player.main.transform.position, door.transform.position);
+                        if (dist < 1)
+                        {
+                            Vector3 directionToPlayer = Player.main.transform.position - transform.position;
+                            float angle = Vector3.Angle(transform.forward, directionToPlayer.normalized);
+                            //AddDebug($"angle {angle}");
+                            if (angle > 30 && angle < 50)
+                                endRotation = 190;
+                            else if (angle > 50 && angle < 70)
+                                endRotation = 90;
+                        }
+                    }
+                    timeElapsed += Time.deltaTime;
+                    float f = timeElapsed / duration;
                     float rotation = Mathf.Lerp(startRotation, endRotation, f);
-                    //Main.Log("rotation " + rotation );
-                    //AddDebug(" rotation " + rotation);
                     if (deco)
                         door.localEulerAngles = new Vector3(door.localEulerAngles.x, rotation, door.localEulerAngles.z);
                     //else if (test)
@@ -60,10 +74,10 @@ namespace Tweaks_Fixes
 
             public IEnumerator Rotate(Transform doorLeft, Transform doorRight, bool playCloseSound = false)
             {
-                while (t < duration)
+                while (timeElapsed < duration)
                 {
-                    t += Time.deltaTime;
-                    float f = t / duration;
+                    timeElapsed += Time.deltaTime;
+                    float f = timeElapsed / duration;
                     float rotation = Mathf.Lerp(startRotation, endRotation, f);
                     doorLeft.localEulerAngles = new Vector3(doorLeft.localEulerAngles.x, doorLeft.localEulerAngles.y, -rotation);
                     doorRight.localEulerAngles = new Vector3(doorRight.localEulerAngles.x, doorRight.localEulerAngles.y, rotation);
@@ -96,6 +110,7 @@ namespace Tweaks_Fixes
                 }
                 if (oldController)
                     Destroy(oldController);
+
                 _storageContainer = gameObject.transform.GetComponentInChildren<StorageContainer>();
             }
 
@@ -141,8 +156,8 @@ namespace Tweaks_Fixes
                     LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                     rotater.startRotation = door.transform.localEulerAngles.z;
                     rotater.endRotation = rotater.startRotation + rotater.openAngle;
-                    rotater.t = 0f;
-                    rotater.StartCoroutine(rotater.Rotate(door));
+                    rotater.timeElapsed = 0f;
+                    rotater.StartCoroutine(rotater.Rotate(door, false, false, true));
                     if (openSound != null)
                         Utils.PlayFMODAsset(openSound, __instance.transform);
                 }
@@ -157,13 +172,12 @@ namespace Tweaks_Fixes
                     LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                     rotater.startRotation = door.transform.localEulerAngles.z;
                     rotater.endRotation = 0f;
-                    rotater.t = 0f;
+                    rotater.timeElapsed = 0f;
                     rotater.StartCoroutine(rotater.Rotate(door, true));
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             static void AwakePostfix(StorageContainer __instance)
             {
                 //TechTag techTag = __instance.GetComponent<TechTag>();
@@ -184,15 +198,14 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("Open", new Type[] { typeof(Transform) })]
+            [HarmonyPostfix, HarmonyPatch("Open", new Type[] { typeof(Transform) })]
             static void OpenPostfix(StorageContainer __instance, Transform useTransform)
             {
                 TechTag techTag = __instance.GetComponent<TechTag>();
                 if (techTag == null)
                     techTag = __instance.transform.parent.GetComponent<TechTag>();
 
-                //AddDebug(" Open  " + __instance.name);
+                //AddDebug("StorageContainer Open " + __instance.name);
                 //AddDebug(" Open  useTransform " + useTransform.name);
                 //if (__instance.transform.parent.name == "upgrade_geoHldr")
                 //{
@@ -220,7 +233,7 @@ namespace Tweaks_Fixes
                         LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                         rotater.startRotation = doorLeft.transform.localEulerAngles.z;
                         rotater.endRotation = rotater.startRotation + rotater.doubleDoorOpenAngle;
-                        rotater.t = 0f;
+                        rotater.timeElapsed = 0f;
                         rotater.StartCoroutine(rotater.Rotate(doorLeft, doorRight));
                         if (openSound != null)
                             Utils.PlayFMODAsset(openSound, __instance.transform);
@@ -236,7 +249,7 @@ namespace Tweaks_Fixes
                         LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                         rotater.startRotation = door.transform.localEulerAngles.z;
                         rotater.endRotation = rotater.startRotation + rotater.openAngle;
-                        rotater.t = 0f;
+                        rotater.timeElapsed = 0f;
                         rotater.StartCoroutine(rotater.Rotate(door, false, true));
                         if (openSound != null)
                             Utils.PlayFMODAsset(openSound, __instance.transform);
@@ -259,7 +272,7 @@ namespace Tweaks_Fixes
                         LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                         rotater.startRotation = door.transform.localEulerAngles.z;
                         rotater.endRotation = rotater.startRotation + rotater.openAngle;
-                        rotater.t = 0f;
+                        rotater.timeElapsed = 0f;
                         rotater.StartCoroutine(rotater.Rotate(door));
                         if (openSound != null)
                             Utils.PlayFMODAsset(openSound, __instance.transform);
@@ -267,8 +280,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnClose")]
+            [HarmonyPostfix, HarmonyPatch("OnClose")]
             static void OnClosePostfix(StorageContainer __instance)
             {
                 TechTag techTag = __instance.GetComponent<TechTag>();
@@ -292,7 +304,7 @@ namespace Tweaks_Fixes
                         LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                         rotater.startRotation = doorRight.transform.localEulerAngles.z;
                         rotater.endRotation = 0f;
-                        rotater.t = 0f;
+                        rotater.timeElapsed = 0f;
                         rotater.StartCoroutine(rotater.Rotate(doorLeft, doorRight, true));
                     }
                 }
@@ -305,7 +317,7 @@ namespace Tweaks_Fixes
                         LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                         rotater.startRotation = door.transform.localEulerAngles.y;
                         rotater.endRotation = 0f;
-                        rotater.t = 0f;
+                        rotater.timeElapsed = 0f;
                         rotater.StartCoroutine(rotater.Rotate(door, true, true));
                     }
                 }

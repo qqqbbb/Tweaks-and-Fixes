@@ -115,7 +115,7 @@ namespace Tweaks_Fixes
             if (tt == TechType.None)
                 return;
 
-            GameObject rootGO = Util.GetEntityRoot(other.gameObject);
+            //GameObject rootGO = Util.GetEntityRoot(other.gameObject);
             //AddDebug("HangingStinger OnTriggerEnter " + tt);
             if (Vehicle_patch.vehicleTechTypes.Contains(tt))
             {

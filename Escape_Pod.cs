@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
     //Operational sky MasterIntensity 10
     //Operational sky DiffIntensity 2
     //Operational sky specIntensity 1.5
-    class Escape_Pod_Patch
+    class Escape_Pod
     {
         public static Dictionary<TechType, int> newGameLoot = new Dictionary<TechType, int>();
 
@@ -90,8 +90,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnRepair")]
+            [HarmonyPostfix, HarmonyPatch("OnRepair")]
             public static void OnRepairPostfix(EscapePod __instance)
             {
                 //RepairPod(__instance);
@@ -112,8 +111,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(EscapePodFirstUseCinematicsController))]
         class EscapePodFirstUseCinematicsController_Patch
         {// exiting escape pod using top hatch
-            [HarmonyPostfix]
-            [HarmonyPatch("OnTopHatchCinematicEnd")]
+            [HarmonyPostfix, HarmonyPatch("OnTopHatchCinematicEnd")]
             public static void OnTopHatchCinematicEnd(EscapePodFirstUseCinematicsController __instance)
             {
                 //AddDebug("OnTopHatchCinematicEnd ");
@@ -138,8 +136,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(IntroFireExtinguisherHandTarget))]
         class IntroFireExtinguisherHandTarget_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("Start")]
+            [HarmonyPrefix,HarmonyPatch("Start")]
             static bool StartPrefix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget Start");
@@ -150,8 +147,7 @@ namespace Tweaks_Fixes
                 }
                 return false;
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("UseVolume")]
+            [HarmonyPostfix,HarmonyPatch("UseVolume")]
             static void StartPostfix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget UseVolume");
@@ -164,6 +160,9 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(LootSpawner __instance)
             {
+                if (newGameLoot == null || newGameLoot.Count == 0)
+                    return;
+
                 __instance.escapePodTechTypes.Clear();
                 foreach (KeyValuePair<TechType, int> loot in newGameLoot)
                 {

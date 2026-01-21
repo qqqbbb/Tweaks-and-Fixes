@@ -9,8 +9,6 @@ using UnityEngine;
 using UWE;
 using static ErrorMessage;
 
-
-
 namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(Vehicle))]
@@ -210,7 +208,7 @@ namespace Tweaks_Fixes
             if (!Main.gameLoaded || Language.isQuitting || techType != TechType.VehicleArmorPlating)
                 return;
 
-            int armorUpgrades = GetNumModules(__instance, TechType.VehicleArmorPlating);
+            int armorUpgrades = Util.GetNumModules(__instance, TechType.VehicleArmorPlating);
             if (armorUpgrades == 0)
                 return;
 
@@ -226,17 +224,6 @@ namespace Tweaks_Fixes
             ErrorMessage.AddDebug(msg);
         }
 
-        private static int GetNumModules(Vehicle __instance, TechType ttToCount)
-        {
-            int count = 0;
-            for (int i = 0; i < __instance.slotIDs.Length; ++i)
-            {
-                TechType tt = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[i]);
-                if (tt == ttToCount)
-                    count++;
-            }
-            return count;
-        }
 
         [HarmonyPrefix]
         [HarmonyPatch("OnKill")]

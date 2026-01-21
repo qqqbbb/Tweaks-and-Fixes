@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.9.2";
+            VERSION = "4.10.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -57,16 +57,16 @@ namespace Tweaks_Fixes
             gameLoaded = false;
             QuickSlot_Cycle.invChanged = true;
             Databox_Light.databoxLights.Clear();
-            Crush_Damage_.extraCrushDepth = 0;
-            Crush_Damage_.crushDamageResistance = 0;
+            Crush_Damage.extraCrushDepth = 0;
+            Crush_Damage.crushDamageResistance = 0;
             Cyclops_Constructable_Collision.CleanUp();
             Geyser_.CleanUp();
-            Gravsphere_Patch.gasPods.Clear();
-            Gravsphere_Patch.gravSphereFish.Clear();
+            Gravsphere_.gasPods.Clear();
+            Gravsphere_.gravSphereFish.Clear();
             Decoy_Patch.decoysToDestroy.Clear();
             Vehicle_patch.currentVehicleTT = TechType.None;
             Exosuit_Patch.exosuitStarted = false;
-            Damage_Patch.healTempDamageTime = 0;
+            Damage_.healTempDamageTime = 0;
             Storage_Patch.savedSigns.Clear();
             Storage_Patch.labelledLockers.Clear();
             PowerConsumption.subPowerRelays.Clear();
@@ -115,7 +115,7 @@ namespace Tweaks_Fixes
             Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_.OnPlayerUnderwaterChanged));
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             CreatureDeath_.TryRemoveCorpses();
-            Escape_Pod_Patch.EscapePodInit();
+            Escape_Pod.EscapePodInit();
             Drop_items_anywhere.OnGameLoadingFinished();
             Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
             Player_Movement.UpdateModifiers();

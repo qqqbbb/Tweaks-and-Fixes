@@ -16,12 +16,15 @@ namespace Tweaks_Fixes
             subColliders.Clear();
         }
 
-        public static void AddCyclopsCollisionExclusion(GameObject go)
+        public static void AddCyclopsCollisionExclusion(GameObject go, SubControl subControl = null)
         {
-            SubControl subControl = go.GetComponentInParent<SubControl>();
-            if (subControl == null || subControl.name == "__LIGHTMAPPED_PREFAB__")
-                return;
+            if (subControl == null)
+            {
+                if (Player.main.currentSub == null || Player.main.currentSub.isCyclops == false)
+                    return;
 
+                subControl = Player.main.currentSub.GetComponent<SubControl>();
+            }
             Collider[] myCols = go.GetAllComponentsInChildren<Collider>();
             if (myCols == null || myCols.Length == 0)
                 return;
@@ -49,8 +52,11 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Constructable __instance)
             {
-                if (__instance.GetComponentInParent<SubControl>())
-                    AddCyclopsCollisionExclusion(__instance.gameObject);
+                SubControl subControl = __instance.GetComponentInParent<SubControl>();
+                if (subControl == null || subControl.name == "__LIGHTMAPPED_PREFAB__")
+                    return;
+
+                AddCyclopsCollisionExclusion(__instance.gameObject, subControl);
             }
         }
 
@@ -59,8 +65,11 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Plantable __instance, Transform parent, bool isIndoor, GameObject __result)
             {
-                if (__instance.GetComponentInParent<SubControl>())
-                    AddCyclopsCollisionExclusion(__instance.gameObject);
+                SubControl subControl = __instance.GetComponentInParent<SubControl>();
+                if (subControl == null || subControl.name == "__LIGHTMAPPED_PREFAB__")
+                    return;
+
+                AddCyclopsCollisionExclusion(__instance.gameObject, subControl);
             }
         }
 
@@ -69,8 +78,11 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(GrownPlant __instance)
             {
-                if (__instance.GetComponentInParent<SubControl>())
-                    AddCyclopsCollisionExclusion(__instance.gameObject);
+                SubControl subControl = __instance.GetComponentInParent<SubControl>();
+                if (subControl == null || subControl.name == "__LIGHTMAPPED_PREFAB__")
+                    return;
+
+                AddCyclopsCollisionExclusion(__instance.gameObject, subControl);
             }
         }
 

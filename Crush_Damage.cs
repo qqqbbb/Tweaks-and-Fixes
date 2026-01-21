@@ -5,7 +5,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    public class Crush_Damage_
+    public class Crush_Damage
     {
         public static float crushInterval = 3f;
         public static float crushDamageResistance = 0f;

@@ -417,14 +417,17 @@ namespace Tweaks_Fixes
 
                 if (label && label.enabled)
                 {
-                    //AddDebug("ColoredLabel " + cl.stringEditLabel);
+                    //AddDebug("ColoredLabel " + label.stringEditLabel);
                     stringBuilder.Append(Language.main.Get(label.stringEditLabel));
                     stringBuilder.Append(" (");
                     stringBuilder.Append(UI_Patches.rightHandButton);
                     stringBuilder.Append(")");
                     //text  += Language.main.Get(cl.stringEditLabel) + " (" + TooltipFactory.stringRightHand+ ")";
                     if (GameInput.GetButtonDown(GameInput.Button.RightHand))
+                    {
+                        //AddDebug("signInput Select");
                         label.signInput.Select(true);
+                    }
                 }
                 else if (sign && sign.enabled)
                 {
@@ -450,8 +453,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(DeployableStorage))]
         public class DeployableStorage_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             static void AwakePostfix(DeployableStorage __instance)
             {
                 Pickupable p = __instance.GetComponent<Pickupable>();
@@ -515,8 +517,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Sign))]
         class Sign_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("UpdateCollider")]
+            [HarmonyPrefix, HarmonyPatch("UpdateCollider")]
             static bool UpdateColliderPrefix(Sign __instance)
             { // avoid NRE 
                 if (__instance.boxCollider == null)
@@ -551,8 +552,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(uGUI_SignInput))]
         class SignInput_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnDeselect")]
+            [HarmonyPostfix, HarmonyPatch("OnDeselect")]
             static void OnDeselectPostfix(uGUI_SignInput __instance)
             {
                 if (!ConfigToEdit.newStorageUI.Value)
@@ -592,8 +592,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Constructable))]
         class Constructable_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("DeconstructAsync")]
+            [HarmonyPostfix, HarmonyPatch("DeconstructAsync")]
             static void DeconstructPostfix(Constructable __instance)
             {
                 if (!ConfigToEdit.newStorageUI.Value)
@@ -670,6 +669,28 @@ namespace Tweaks_Fixes
 
                 __instance.pickupable.OnHandClick(hand);
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(uGUI_InputField), "EndEdit")]
+        class uGUI_InputField_EndEdit_Patch
+        {
+            static bool shift = false;
+            static void Prefix(uGUI_InputField __instance)
+            {
+                if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    shift = true;
+            }
+            static void Postfix(uGUI_InputField __instance)
+            {
+                //AddDebug("EndEdit " + __instance.text);
+                if (shift)
+                {
+                    //AddDebug("Postfix Shift");
+                    __instance.text += '\n';
+                    __instance.group.Select();
+                    shift = false;
+                }
             }
         }
 

@@ -16,6 +16,9 @@ using System.Reflection.Emit;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.LowLevel;
 using UWE;
 using static ErrorMessage;
 
@@ -25,6 +28,7 @@ namespace Tweaks_Fixes
     {// drillable ion cube 257 -1433 -333
         // geyser -50 -11 -430
         // sealed door 905 -195 613
+        // spike plant 360 -106 98
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
@@ -148,7 +152,6 @@ namespace Tweaks_Fixes
             //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(Player.main.transform.position));
             //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
         }
-
 
         //[HarmonyPatch(typeof(VFXSurfaceTypeManager), "Play", new Type[] { typeof(VFXSurface), typeof(VFXEventTypes), typeof(Vector3), typeof(Quaternion), typeof(Transform) })]
         class VFXSurfaceTypeManager_Play_patch
@@ -321,22 +324,46 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        //[HarmonyPatch(typeof(Player), "SetCurrentSub")]
-        class Player_SetCurrentSub_Patch
+        public static void SimulateKeyPress(Key k)
         {
-            static void Prefix(Player __instance)
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if (keyboard == null) return;
+            AddDebug("SimulateKeyPress " + k);
+            InputSystem.QueueStateEvent(keyboard,
+                new KeyboardState(k));
+            InputSystem.QueueStateEvent(keyboard,
+                new KeyboardState());
+        }
+
+        //[HarmonyPatch(typeof(uGUI_InputField), "Validate")]
+        class uGUI_InputField_Validate_Patch
+        {
+            static bool Prefix(uGUI_InputField __instance, string text, int pos, char ch)
             {
-                AddDebug("SetCurrentSub  ");
+                AddDebug("Validate " + text);
+                //if (Input.GetKey(KeyCode.LeftShift))
+                //{
+                //    AddDebug("LeftShift");
+                //    __instance.Select();
+                //    return false;
+                //}
+                return true;
             }
         }
 
-        //[HarmonyPatch(typeof(PlatformUtils), "PlatformInitAsync")]
-        class PlatformUtils_PlatformInitAsync_Patch
+        //[HarmonyPatch(typeof(uGUI_UserInput), "OnEndEdit")]
+        class uGUI_UserInput_Patch
         {
-            static void Postfix(PlatformUtils __instance)
+            static bool Prefix(uGUI_UserInput __instance)
             {
-                Main.logger.LogDebug("PlatformUtils PlatformInitAsync ");
+                AddDebug("uGUI_UserInput OnEndEdit");
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    AddDebug("LeftShift");
+                    //__instance.Select();
+                    return false;
+                }
+                return true;
             }
         }
 
@@ -389,8 +416,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    //printTarget(true, false);
-
+                    printTarget(true, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {

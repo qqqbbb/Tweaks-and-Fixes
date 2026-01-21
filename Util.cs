@@ -81,20 +81,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static IEnumerator SetParent(GameObject go, Transform parent, int framesToWait = 1)
-        {
-            while (framesToWait >= 0)
-            {
-                framesToWait--;
-                yield return null;
-                if (framesToWait == 0)
-                {
-                    go.transform.SetParent(parent);
-                    AddDebug("SetParent ");
-                }
-            }
-        }
-
         public static IEnumerator Cook(GameObject go)
         {
             TechType cookedTT = TechData.GetProcessed(CraftData.GetTechType(go.gameObject));
@@ -107,11 +93,12 @@ namespace Tweaks_Fixes
             GameObject cooked = result.Get();
             cooked.transform.position = go.transform.position;
             cooked.transform.rotation = go.transform.rotation;
-            Rigidbody rb = cooked.GetComponent<Rigidbody>();
-            rb.mass = go.GetComponent<Rigidbody>().mass;
-            rb.velocity = go.GetComponent<Rigidbody>().velocity;
-            rb.angularDrag = 1;
-            rb.drag = 1; // WorldForces.Start overwrites drag 
+            Rigidbody cookedRB = cooked.GetComponent<Rigidbody>();
+            Rigidbody rb_ = go.GetComponent<Rigidbody>();
+            cookedRB.mass = rb_.mass;
+            cookedRB.velocity = rb_.velocity;
+            cookedRB.angularDrag = 1;
+            cookedRB.drag = 1; // WorldForces.Start overwrites drag 
             UnityEngine.Object.Destroy(go);
         }
 
@@ -193,7 +180,7 @@ namespace Tweaks_Fixes
             if (playerTool is FireExtinguisher)
                 return true;
 
-            if (playerTool.GetComponent<Creature>())
+            if (playerTool.TryGetComponent<Creature>(out _))
                 return true;
 
             return playerTool.hasBashAnimation;
@@ -201,39 +188,43 @@ namespace Tweaks_Fixes
 
         public static bool IsDecoPlant(GameObject go)
         {
-            if (go.GetComponent<Creature>())
+            if (go.TryGetComponent<Creature>(out _))
                 return false;
 
-            if (go.GetComponent<Pickupable>())
+            if (go.TryGetComponent<Pickupable>(out _))
                 return false;
 
-            if (go.GetComponent<SpawnOnKill>())
+            if (go.TryGetComponent<SpawnOnKill>(out _))
                 return false;
 
-            if (go.GetComponent<FruitPlant>())
+            if (go.TryGetComponent<FruitPlant>(out _))
                 return false;
 
-            if (!go.GetComponent<Rigidbody>())
+            if (go.TryGetComponent<Rigidbody>(out _) == false)
                 return false;
 
-            if (!go.GetComponent<LiveMixin>())
+            if (go.TryGetComponent<LiveMixin>(out _) == false)
                 return false;
 
-            if (go.GetComponent<Vehicle>())
+            if (go.TryGetComponent<Vehicle>(out _))
                 return false;
 
-            if (go.GetComponent<EnergyMixin>())
+            if (go.TryGetComponent<EnergyMixin>(out _))
                 return false;
 
-            if (go.GetComponent<PowerRelay>())
+            if (go.TryGetComponent<PowerRelay>(out _))
                 return false;
 
-            VFXSurfaceTypes surfaceType = GetObjectSurfaceType(go);
-            //Main.logger.LogMessage(go.name + " IsDecoPlant surfaceType " + surfaceType);
-            if (surfaceType == VFXSurfaceTypes.none || surfaceType == VFXSurfaceTypes.vegetation || surfaceType == VFXSurfaceTypes.fallback || surfaceType == VFXSurfaceTypes.coral)
-                return true;
-
-            return false;
+            switch (GetObjectSurfaceType(go))
+            {
+                case VFXSurfaceTypes.none:
+                case VFXSurfaceTypes.vegetation:
+                case VFXSurfaceTypes.fallback:
+                case VFXSurfaceTypes.coral:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public static void FreezeObject(GameObject go, bool state)
@@ -299,21 +290,15 @@ namespace Tweaks_Fixes
 
         public static bool IsEatableFish(GameObject go)
         {
-            Creature creature = go.GetComponent<Creature>();
-            if (creature == null)
-                return false;
-
-            return go.GetComponent<Eatable>();
+            return go.TryGetComponent<Creature>(out _) && go.TryGetComponent<Eatable>(out _);
         }
 
         public static bool IsCreatureAlive(GameObject go)
         {
-            Creature creature = go.GetComponent<Creature>();
-            if (creature == null)
+            if (go.TryGetComponent<Creature>(out _) == false)
                 return false;
 
-            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
-            if (liveMixin == null)
+            if (go.TryGetComponent(out LiveMixin liveMixin) == false)
                 return false;
 
             return liveMixin.IsAlive();
@@ -336,11 +321,8 @@ namespace Tweaks_Fixes
         public static void Message(string str)
         {
             int count = main.messages.Count;
-
             if (count == 0)
-            {
                 AddDebug(str);
-            }
             else
             {
                 _Message message = main.messages[main.messages.Count - 1];
@@ -494,10 +476,8 @@ namespace Tweaks_Fixes
 
         public static GameObject GetEntityRoot(GameObject go)
         {
-            UniqueIdentifier prefabIdentifier = go.GetComponent<UniqueIdentifier>();
-            if (prefabIdentifier == null)
-                prefabIdentifier = go.GetComponentInParent<UniqueIdentifier>();
-            return prefabIdentifier != null ? prefabIdentifier.gameObject : null;
+            UniqueIdentifier ui = go.GetComponentInParent<UniqueIdentifier>();
+            return ui != null ? ui.gameObject : null;
         }
 
         public static IEnumerable<GameObject> FindAllRootGameObjects()
@@ -622,7 +602,7 @@ namespace Tweaks_Fixes
             if (ecoTarget == null || ecoTarget.type != EcoTargetType.DeadMeat)
                 return false;
 
-            return ecoTarget.GetComponent<Creature>() == null;
+            return ecoTarget.TryGetComponent<Creature>(out _) == false;
         }
 
         public static bool IsPickupableInContainer(Pickupable pickupable)
@@ -667,7 +647,83 @@ namespace Tweaks_Fixes
             return t;
         }
 
+        public static bool IsFacingCamera(GameObject go)
+        {
+            if (Camera.main == null)
+                return false;
+            // Direction from object to camera
+            Vector3 toCamera = Camera.main.transform.position - go.transform.position;
+            // Normalize vectors for accurate dot product
+            Vector3 objectForward = go.transform.forward;
+            // Dot product: 1 = exactly facing, 0 = perpendicular, -1 = facing away
+            float dotProduct = Vector3.Dot(objectForward.normalized, toCamera.normalized);
+            return dotProduct > 0;
+        }
 
+        public static IEnumerator Rotate(Transform transform, float duration, Vector3 rotation)
+        {
+            float elapsedTime = 0f;
+            Vector3 initialRotation = transform.localEulerAngles;
+            //AddDebug("Rotate " + rotation);
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                //float progress = Mathf.Clamp01(elapsedTime / duration);
+                //Vector3 rot = Vector3.Lerp(initialRotation, rotation, progress);
+                Vector3 rot = rotation * Time.deltaTime / duration;
+                transform.Rotate(rot, Space.Self);
+                //transform.localEulerAngles = Vector3.Lerp(initialRotation, rotation, progress);
+                yield return null;
+            }
+            transform.localEulerAngles = initialRotation + rotation;
+            //AddDebug("stop Rotate " + transform.localEulerAngles);
+        }
+
+        public static IEnumerator PlayFMODAsset(FMODAsset asset, Vector3 position, float delay = 0)
+        {
+            //AddDebug("PlayFMODAsset " + delay);
+            yield return new WaitForSeconds(delay);
+            FMODUWE.PlayOneShot(asset, position);
+        }
+
+        public static IEnumerator DelayMethodCall(Action action, float delaySeconds)
+        {
+            yield return new WaitForSeconds(delaySeconds);
+            action?.Invoke();
+        }
+
+        public static IEnumerator DelayMethodCall(Action action, int framesToWait)
+        {
+            while (framesToWait > 0)
+            {
+                framesToWait--;
+                yield return null;
+            }
+            action?.Invoke();
+        }
+
+        public static int GetNumModules(Vehicle vehicle, TechType ttToCount)
+        {
+            int count = 0;
+            for (int i = 0; i < vehicle.slotIDs.Length; ++i)
+            {
+                TechType tt = vehicle.modules.GetTechTypeInSlot(vehicle.slotIDs[i]);
+                if (tt == ttToCount)
+                    count++;
+            }
+            return count;
+        }
+
+        public static bool HasModule(Vehicle vehicle, TechType moduleTT)
+        {
+            for (int i = 0; i < vehicle.slotIDs.Length; ++i)
+            {
+                TechType tt = vehicle.modules.GetTechTypeInSlot(vehicle.slotIDs[i]);
+                if (tt == moduleTT)
+                    return true;
+            }
+            return false;
+        }
 
     }
 }

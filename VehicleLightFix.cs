@@ -19,7 +19,7 @@ namespace Tweaks_Fixes
         public static Color exosuitLightColor;
         static Vector3 exosuitLightBeamPos = new Vector3(0, 0.4f, -0.8f); // y changes after entering exosuit
 
-        public static void AddVolLight(GameObject parent, Vector3 pos = default)
+        public static void AddVolLight(GameObject parent, Vector3 pos = default, Vector3 scale = default)
         {
             if (seamothLightCone == null)
             {
@@ -30,6 +30,9 @@ namespace Tweaks_Fixes
             lightCone.transform.parent = parent.transform;
             lightCone.transform.localPosition = pos;
             lightCone.transform.localRotation = Quaternion.identity;
+            if (scale != default)
+                lightCone.transform.localScale = scale;
+
             VFXVolumetricLight volLight = parent.gameObject.AddComponent<VFXVolumetricLight>();
             volLight.angle = seamothVFXVolumetricLight.angle;
             volLight.range = seamothVFXVolumetricLight.range;

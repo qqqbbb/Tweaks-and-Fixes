@@ -8,7 +8,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Fragment_
+    class Fragment
     {
         static bool IsFragmentCrate(Transform transform)
         {

@@ -155,6 +155,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> laserCutterLightIntensityMult;
         public static ConfigEntry<float> cameraLightIntensityMult;
         public static ConfigEntry<float> flashlightLightIntensityMult;
+        public static ConfigEntry<float> vehicleDockingBayLightIntensityMult;
+
         private static ConfigEntry<string> cameraLightColor;
         private static ConfigEntry<string> seaglideLightColor;
         private static ConfigEntry<string> seamothLightColor;
@@ -163,12 +165,18 @@ namespace Tweaks_Fixes
         private static ConfigEntry<string> flashlightLightColor;
         private static ConfigEntry<string> flareLightColor;
         private static ConfigEntry<string> spotlightLightColor;
+        private static ConfigEntry<string> vehicleDockingBayLightColor;
+
         public static ConfigEntry<string> damageModifiers;
         public static ConfigEntry<bool> craftedPowercellInheritsBatteryCharge;
         public static ConfigEntry<float> filtrationMachineWaterTimeMult;
         public static ConfigEntry<float> filtrationMachineSaltTimeMult;
         public static ConfigEntry<float> batteryChargeSpeedMult;
         public static ConfigEntry<float> fruitGrowTime;
+
+        public static ConfigEntry<bool> armorModuleProtectsSeamothFromBrine;
+        public static ConfigEntry<bool> armorModuleProtectsExosuitFromBrine;
+        public static ConfigEntry<bool> armorModuleProtectsOtherVehiclesFromBrine;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -179,10 +187,13 @@ namespace Tweaks_Fixes
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
         public static AcceptableValueRange<int> freeTorpedosRange = new AcceptableValueRange<int>(0, 6);
 
+        public static void Bind_()
+        {
+
+        }
         public static void Bind()
         {  // “ ” ‛
-
-
+            Bind_();
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
@@ -285,7 +296,7 @@ namespace Tweaks_Fixes
             shroomDamageChance = Main.configToEdit.Bind("PLANTS", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed. The script to do it was always in the game but was disabled.", percentRange));
             escapePodPowerTweak = Main.configToEdit.Bind("LIFE POD", "Life pod power tweaks", false, "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod power cells are not charged.");
             stalkerPlayThings = Main.configToEdit.Bind("CREATURES", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
-            stalkersGrabShinyTool = Main.configToEdit.Bind("CREATURES", "Stalkers grab tools from player hands when playing", false, "Stalkers can grab only things that are in the ‛Items stalkers can grab‛ list.");
+            stalkersGrabShinyTool = Main.configToEdit.Bind("CREATURES", "Stalkers grab tools from player hands", false, "Stalkers can grab only things that are in the ‛Items stalkers can grab‛ list.");
             dropHeldTool = Main.configToEdit.Bind("PLAYER", "Drop tool in your hands when taking damage", false, "Chance percent to drop your tool is equal to amount of damage taken.");
             //newPoisonSystem = Main.configToEdit.Bind("PLAYER", "New poison damage system", false, "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.");
             freeTorpedos = Main.configToEdit.Bind("VEHICLES", "Free torpedos", 2, new ConfigDescription("Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.", freeTorpedosRange));
@@ -341,7 +352,7 @@ namespace Tweaks_Fixes
             cameraLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Camera drone light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
             flashlightLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Flashlight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
             spotlightLightIntensityMult = Main.configToEdit.Bind("BASE", "Spotlight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
-
+            vehicleDockingBayLightIntensityMult = Main.configToEdit.Bind("BASE", "Moonpool exterior light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
 
             cameraLightColor = Main.configToEdit.Bind("TOOLS", "Camera drone light color", "0.463 0.902 0.902", "Camera drone light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             seaglideLightColor = Main.configToEdit.Bind("TOOLS", "Seaglide light color", "0.016 1 1", "Seaglide light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
@@ -351,11 +362,15 @@ namespace Tweaks_Fixes
             flashlightLightColor = Main.configToEdit.Bind("TOOLS", "Flashlight light color", "1 1 1", "Flashlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             flareLightColor = Main.configToEdit.Bind("TOOLS", "Flare light color", "0.706 0.448 0.431", "Flare light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             spotlightLightColor = Main.configToEdit.Bind("BASE", "Spotlight light color", "0.779 0.890 1", "Spotlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            vehicleDockingBayLightColor = Main.configToEdit.Bind("BASE", "Moonpool exterior light color", "0.361 1 1", "Moonpool's exterior light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             craftedPowercellInheritsBatteryCharge = Main.configToEdit.Bind("ITEMS", "Crafted powercell inherits charge from batteries", false, "");
             filtrationMachineWaterTimeMult = Main.configToEdit.Bind("BASE", "Filtration machine water time multiplier", 1f, "Time it takes filtration machine to produce water will be multiplied by this");
             filtrationMachineSaltTimeMult = Main.configToEdit.Bind("BASE", "Filtration machine salt time multiplier", 1f, "Time it takes filtration machine to produce salt will be multiplied by this");
             batteryChargeSpeedMult = Main.configToEdit.Bind("BASE", "Battery charging rate multiplier", 1f, "Charging rate of battery charger and power cell charger will be multiplied by this. The faster they charge batteries the more power they drain.");
             fruitGrowTime = Main.configToEdit.Bind("PLANTS", "Fruit growth time", 0f, "Time in days it takes a lantern tree fruit, creepvine seeds, blood oil to grow. Default values will be used if this is 0: fruits from wild plants will never grow back after ypu pick them, fruits from your plants will grow in less than a day.");
+            armorModuleProtectsSeamothFromBrine = Main.configToEdit.Bind("VEHICLES", "Hull reinforcement protects seamoth from brine damage", true, "");
+            armorModuleProtectsExosuitFromBrine = Main.configToEdit.Bind("VEHICLES", "Hull reinforcement protects prawn suit from brine damage", false, "Your prawn suit will take damage in brine pools if this is true. To protect it you will have to install hull reinforcement module.");
+            armorModuleProtectsOtherVehiclesFromBrine = Main.configToEdit.Bind("VEHICLES", "Hull reinforcement protects other vehicles from brine damage", true, "");
         }
 
 
@@ -575,16 +590,16 @@ namespace Tweaks_Fixes
             Player_Movement.waterSpeedEquipment = Parse01floatDicFromString(waterSpeedEquipment.Value);
             Player_Movement.groundSpeedEquipment = Parse01floatDicFromString(groundSpeedEquipment.Value);
             Player_Movement.CacheSettings();
-            Crush_Damage_.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
-            Crush_Damage_.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
+            Crush_Damage.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
+            Crush_Damage.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
             Pickupable_.itemMass = ParseFloatDicFromString(itemMass.Value);
             Pickupable_.unmovableItems = ParseSetFromString(unmovableItems.Value);
-            Gravsphere_Patch.gravTrappable = ParseSetFromString(gravTrappable.Value);
+            Gravsphere_.gravTrappable = ParseSetFromString(gravTrappable.Value);
             Silent_Creatures.silentCreatures = ParseSetFromString(silentCreatures.Value);
             Pickupable_.shinies = ParseSetFromString(stalkerPlayThings.Value);
             LargeWorldEntity_Patch.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
             LargeWorldEntity_Patch.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
-            Escape_Pod_Patch.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
+            Escape_Pod.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
             CreatureDeath_.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
             CreatureDeath_.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
             CreatureDeath_.respawnTime = ParseIntDicFromString(respawnTime.Value);
@@ -598,8 +613,10 @@ namespace Tweaks_Fixes
             Cyclops_.cyclopsLightColor = ParseColor(cyclopsLightColor.Value);
             Tools.flashLightLightColor = ParseColor(flashlightLightColor.Value);
             Flare_.flareLightColor = ParseColor(flareLightColor.Value);
-            BaseSpotLight_.lightColor = ParseColor(spotlightLightColor.Value);
-            Damage_Patch.damageModifiers = ParseFloatDicFromPercentString(damageModifiers.Value);
+            Base_Light.spotlightLightColor = ParseColor(spotlightLightColor.Value);
+            Base_Light.vehicleDockingBayLightColor = ParseColor(vehicleDockingBayLightColor.Value);
+
+            Damage_.damageModifiers = ParseFloatDicFromPercentString(damageModifiers.Value);
             //Main.logger.LogMessage("ParseConfig done ");
         }
 

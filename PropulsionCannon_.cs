@@ -9,7 +9,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class PropulsionCannon_Patch
+    internal class PropulsionCannon_
     {
         static bool grabbingResource;
         static string releaseString;
@@ -116,11 +116,10 @@ namespace Tweaks_Fixes
                     }
                 }
                 //AddDebug("GetCustomUseText  ");
-
                 StringBuilder sb = new StringBuilder();
                 if (isGrabbingObject)
                 {
-                    if (Util.CanPlayerEat() && grabbedEatable)
+                    if (grabbedEatable && Util.CanPlayerEat())
                     {
                         //AddDebug("GetCustomUseText grabbedEatable");
                         sb.Append(UI_Patches.propCannonEatString + ", ");
@@ -155,7 +154,7 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPostfix, HarmonyPatch("UpdateEquipped")]
-            public static void OnRightHandDownPostfix(PropulsionCannonWeapon __instance, GameObject sender, string slot)
+            public static void UpdateEquippedPostfix(PropulsionCannonWeapon __instance, GameObject sender, string slot)
             {
                 if (Player.main.currentSub && ConfigToEdit.dropItemsAnywhere.Value)
                 {
@@ -269,7 +268,7 @@ namespace Tweaks_Fixes
                     //AddDebug("TraceForGrabTargetPostfix PickPrefab " + pickPrefab.pickTech);
                     PickPrefab pp = null;
                     if (go.name == "farming_plant_02(Clone)")
-                    { // picking PickPrefab on farmibg_plant_02 root GO destroys the plant
+                    { // picking PickPrefab on farming_plant_02 root GO destroys the plant
                         Transform t = go.transform.Find("farming_plant_02");
                         if (t != null)
                             pp = t.GetComponentInChildren<PickPrefab>();

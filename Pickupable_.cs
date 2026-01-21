@@ -69,20 +69,40 @@ namespace Tweaks_Fixes
                         rb.mass = itemMass[tt];
                     }
                 }
-                if (shinies.Contains(tt))
-                {
-                    HardnessMixin hm = __instance.gameObject.EnsureComponent<HardnessMixin>();
-                    hm.hardness = 1f;
-                    EcoTarget[] ets = __instance.gameObject.GetComponents<EcoTarget>();
-                    foreach (EcoTarget et in ets)
-                    {
-                        if (et.type == EcoTargetType.Shiny)
-                            return;
-                    }
-                    EcoTarget ecoTarget1 = __instance.gameObject.AddComponent<EcoTarget>();
-                    ecoTarget1.type = EcoTargetType.Shiny;
-                }
+                CheckShinyEcoTarget(__instance.gameObject, shinies.Contains(tt));
+            }
 
+            private static void CheckShinyEcoTarget(GameObject go, bool addShinyEcoTarget)
+            {
+                EcoTarget ecoTarget = null;
+                foreach (EcoTarget et in go.GetComponents<EcoTarget>())
+                {
+                    if (et.type == EcoTargetType.Shiny)
+                    {
+                        //AddDebug(go.name + " is Shiny");
+                        ecoTarget = et;
+                        break;
+                    }
+                }
+                if (addShinyEcoTarget)
+                {
+                    HardnessMixin hm = go.EnsureComponent<HardnessMixin>();
+                    hm.hardness = 1f;
+                    if (ecoTarget == null)
+                    {
+                        //AddDebug(go.name + " add Shiny EcoTarget");
+                        EcoTarget ecoTarget1 = go.AddComponent<EcoTarget>();
+                        ecoTarget1.type = EcoTargetType.Shiny;
+                    }
+                }
+                else if (ecoTarget)
+                {
+                    //AddDebug(go.name + " Destroy Shiny ecotarget");
+                    UnityEngine.Object.Destroy(ecoTarget);
+                    HardnessMixin hm = go.GetComponent<HardnessMixin>();
+                    if (hm)
+                        UnityEngine.Object.Destroy(hm);
+                }
             }
 
             [HarmonyPrefix, HarmonyPatch("OnHandHover")]
@@ -163,7 +183,7 @@ namespace Tweaks_Fixes
                     __result = true;
                     return;
                 }
-                foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
+                foreach (Pickupable p in Gravsphere_.gravSphereFish)
                 {
                     if (p == __instance)
                     {

@@ -8,7 +8,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {   // not tested with more than 1 grav trap
     [HarmonyPatch(typeof(Gravsphere))]
-    public class Gravsphere_Patch
+    public class Gravsphere_
     {
         static public HashSet<Gravsphere> gravSpheres = new HashSet<Gravsphere>();
         static public HashSet<Pickupable> gravSphereFish = new HashSet<Pickupable>();
@@ -18,14 +18,14 @@ namespace Tweaks_Fixes
         [HarmonyPrefix, HarmonyPatch("OnDropped")]
         public static void OnDropped(Gravsphere __instance)
         {
-            AddDebug("OnDropped  ");
+            //AddDebug("OnDropped  ");
             gravSpheres.Add(__instance);
         }
 
         [HarmonyPostfix, HarmonyPatch("OnPickedUp")]
         public static void OnPickedUp(Gravsphere __instance)
         {
-            AddDebug("OnPickedUp  ");
+            //AddDebug("OnPickedUp  ");
             gravSpheres.Remove(__instance);
         }
 
@@ -66,9 +66,8 @@ namespace Tweaks_Fixes
         {
             //AddDebug("ClearAll ");
             foreach (GasPod gp in gasPods)
-            {
                 gp.grabbedByPropCannon = false;
-            }
+
             gasPods.Clear();
             gravSphereFish.Clear();
         }
@@ -94,11 +93,11 @@ namespace Tweaks_Fixes
                 {
                     foreach (var gravSphere in gravSpheres)
                     {
-                        int num = gravSphere.attractableList.IndexOf(__instance.GetComponent<Rigidbody>());
-                        if (num == -1)
+                        int index = gravSphere.attractableList.IndexOf(__instance.GetComponent<Rigidbody>());
+                        if (index == -1)
                             return;
                         //AddDebug("Pick up gravSphere");
-                        gravSphere.removeList.Add(num);
+                        gravSphere.removeList.Add(index);
                     }
                 }
             }

@@ -529,17 +529,17 @@ namespace Tweaks_Fixes
                         TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
                     }
                 }
-                if (Crush_Damage_.crushDepthEquipment.ContainsKey(techType) && Crush_Damage_.crushDepthEquipment[techType] > 0)
+                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
                 {
                     StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_crush_depth_equipment"));
-                    sb_.Append(Crush_Damage_.crushDepthEquipment[techType]);
+                    sb_.Append(Crush_Damage.crushDepthEquipment[techType]);
                     sb_.Append(Language.main.Get("TF_meters"));
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
-                if (Crush_Damage_.crushDamageEquipment.ContainsKey(techType) && Crush_Damage_.crushDamageEquipment[techType] > 0)
+                if (Crush_Damage.crushDamageEquipment.ContainsKey(techType) && Crush_Damage.crushDamageEquipment[techType] > 0)
                 {
                     StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_crush_damage_equipment"));
-                    sb_.Append(Crush_Damage_.crushDamageEquipment[techType]);
+                    sb_.Append(Crush_Damage.crushDamageEquipment[techType]);
                     sb_.Append("%");
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
