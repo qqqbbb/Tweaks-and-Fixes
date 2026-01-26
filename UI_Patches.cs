@@ -711,30 +711,29 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(uGUI_ExosuitHUD), "Update")]
         public static class uGUI_ExosuitHUD_Update_Patch
         {
             static string tempSuffix;
             static int lastTemperature = int.MinValue;
             public static void Postfix(uGUI_ExosuitHUD __instance)
-            {
-                if (ConfigToEdit.showTempFahrenhiet.Value && Player.main.currentMountedVehicle is Exosuit)
+            { // runs in main menu
+                if (Main.gameLoaded == false || ConfigToEdit.showTempFahrenhiet.Value == false || Player.main.currentMountedVehicle is Exosuit == false)
+                    return;
+
+                if (__instance.lastTemperature == lastTemperature)
+                    return;
+
+                __instance.textTemperature.text = IntStringCache.GetStringForInt((int)Util.CelciusToFahrenhiet(__instance.lastTemperature));
+                if (tempSuffix == null)
                 {
-                    if (__instance.lastTemperature == lastTemperature)
-                        return;
-
-                    __instance.textTemperature.text = IntStringCache.GetStringForInt((int)Util.CelciusToFahrenhiet(__instance.lastTemperature));
-                    if (tempSuffix == null)
-                    {
-                        __instance.textTemperatureSuffix.text = __instance.textTemperatureSuffix.text.Replace("°C", "°F");
-                        tempSuffix = __instance.textTemperatureSuffix.text;
-                    }
-                    else
-                        __instance.textTemperatureSuffix.text = tempSuffix;
-
-                    lastTemperature = __instance.lastTemperature;
+                    __instance.textTemperatureSuffix.text = __instance.textTemperatureSuffix.text.Replace("°C", "°F");
+                    tempSuffix = __instance.textTemperatureSuffix.text;
                 }
+                else
+                    __instance.textTemperatureSuffix.text = tempSuffix;
+
+                lastTemperature = __instance.lastTemperature;
             }
         }
 
@@ -745,22 +744,22 @@ namespace Tweaks_Fixes
             static int lastTemperature = int.MinValue;
             public static void Postfix(uGUI_SeamothHUD __instance)
             {
-                if (ConfigToEdit.showTempFahrenhiet.Value && Player.main.currentMountedVehicle is SeaMoth)
+                if (Main.gameLoaded == false || ConfigToEdit.showTempFahrenhiet.Value == false || Player.main.currentMountedVehicle is SeaMoth == false)
+                    return;
+
+                if (__instance.lastTemperature == lastTemperature)
+                    return;
+
+                __instance.textTemperature.text = IntStringCache.GetStringForInt((int)Util.CelciusToFahrenhiet(__instance.lastTemperature));
+                if (tempSuffix == null)
                 {
-                    if (__instance.lastTemperature == lastTemperature)
-                        return;
-
-                    __instance.textTemperature.text = IntStringCache.GetStringForInt((int)Util.CelciusToFahrenhiet(__instance.lastTemperature));
-                    if (tempSuffix == null)
-                    {
-                        __instance.textTemperatureSuffix.text = __instance.textTemperatureSuffix.text.Replace("°C", "°F");
-                        tempSuffix = __instance.textTemperatureSuffix.text;
-                    }
-                    else
-                        __instance.textTemperatureSuffix.text = tempSuffix;
-
-                    lastTemperature = __instance.lastTemperature;
+                    __instance.textTemperatureSuffix.text = __instance.textTemperatureSuffix.text.Replace("°C", "°F");
+                    tempSuffix = __instance.textTemperatureSuffix.text;
                 }
+                else
+                    __instance.textTemperatureSuffix.text = tempSuffix;
+
+                lastTemperature = __instance.lastTemperature;
             }
         }
 

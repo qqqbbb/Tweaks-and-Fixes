@@ -107,17 +107,19 @@ namespace Tweaks_Fixes
                     infection = im != null ? im.infectedAmount : 0f;
                 }
                 //UnityEngine.Debug.DrawLine(aggressionTarget.transform.position, __instance.transform.position, Color.white);
-                float playerAggrMult = 1;
+                float aggrMult = 1;
                 if (aggressionTarget == Player.mainObject)
                 {
                     //AddDebug(__instance.myTechType + " target Player " + __instance.creature.Aggression.Value);
-                    playerAggrMult = ConfigMenu.aggrMult.Value;
+                    aggrMult = ConfigMenu.aggrMult.Value;
                 }
-                __instance.creature.Aggression.Add(__instance.aggressionPerSecond * distMult * infection * playerAggrMult);
+                __instance.creature.Aggression.Add(__instance.aggressionPerSecond * distMult * infection * aggrMult);
                 __instance.lastTarget.SetTarget(aggressionTarget);
                 if (!Silent_Creatures.silentCreatures.Contains(__instance.myTechType) && __instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying())
+                {
+                    //AddDebug("sightedSound");
                     __instance.sightedSound.StartEvent();
-
+                }
                 return false;
             }
 

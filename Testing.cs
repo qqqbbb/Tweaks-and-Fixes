@@ -409,10 +409,10 @@ namespace Tweaks_Fixes
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
 
-                    //if (Input.GetKey(KeyCode.LeftShift))
-                    //    Main.survival.water++; 
-                    //else
-                    //    Main.survival.food++;
+                    if (Input.GetKey(KeyCode.LeftShift))
+                        Time.timeScale = 0;
+                    else
+                        Time.timeScale = 1;
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {

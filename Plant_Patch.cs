@@ -267,37 +267,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(GrownPlant), "Awake")]
-        class GrownPlant_Awake_Patch
-        { // SpikePlant.OnGrown does not run when loading saved game
-            public static void Postfix(GrownPlant __instance)
-            {
-                //Main.logger.LogMessage("GrownPlant Awake " + __instance.name);
-                CoroutineHost.StartCoroutine(MakeSpikePlantDocile(__instance));
-            }
-        }
-
-        public static IEnumerator MakeSpikePlantDocile(GrownPlant grownPlant)
-        {
-            while (grownPlant.transform.parent == null || grownPlant.transform.parent.parent == null || grownPlant.seed == null)
-                yield return null;
-
-            if (grownPlant.seed.plantTechType != TechType.SpikePlant)
-                yield break;
-
-            if (grownPlant.transform.parent.parent.TryGetComponent<Planter>(out _))
-            {
-                //AddDebug("MakeSpikePlantDocile Planter");
-                if (grownPlant.TryGetComponent(out RangeAttacker ra))
-                { // attacks player for 1 frame when growing stops
-                    SafeAnimator.SetBool(ra.animator, "attack", false);
-                    UnityEngine.Object.Destroy(ra);
-                }
-                if (grownPlant.TryGetComponent(out RangeTargeter rt))
-                    UnityEngine.Object.Destroy(rt);
-            }
-        }
-
 
     }
 }

@@ -114,12 +114,11 @@ namespace Tweaks_Fixes
                     __instance.GetComponent<Rigidbody>().mass = 4f;
                 }
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (__instance.GetComponent<Eatable>())
+                if (__instance.TryGetComponent<Eatable>(out _))
                 {
                     //AddDebug("fishTechTypes Add " + tt);
                     fishTechTypes.Add(tt);
                 }
-
                 creatureTT.Add(tt);
                 if (tt == TechType.Gasopod)
                 {

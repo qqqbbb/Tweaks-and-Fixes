@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,16 +11,16 @@ namespace Tweaks_Fixes
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
 
-        [HarmonyPatch(typeof(Creature))]
-        public static class Creature_Patch
+        [HarmonyPatch(typeof(Creature), "Start")]
+        public static class Creature_Start_Patch
         {
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(Creature __instance)
+            public static void Postfix(Creature __instance)
             {
+                //AddDebug(" Creature.Start " + __instance.name);
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (silentCreatures.Contains(tt))
                 {
-                    //AddDebug(tt + " Creature Start");
+                    //AddDebug(" silentCreatures.Contains " + tt);
                     foreach (FMOD_StudioEventEmitter ee in __instance.GetComponentsInChildren<FMOD_StudioEventEmitter>())
                         ee.evt.setVolume(0);
 
@@ -40,6 +41,7 @@ namespace Tweaks_Fixes
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (silentCreatures.Contains(tt))
                 {
+                    //AddDebug("AttackLastTarget silentCreatures.Contains " + tt);
                     __instance.attackStartSound.evt.setVolume(0);
                     //AddDebug(tt + " AttackLastTarget StartPerform");
                 }

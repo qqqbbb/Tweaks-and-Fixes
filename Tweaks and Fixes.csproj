@@ -137,6 +137,9 @@
     <Compile Include="Camera_.cs" />
     <Compile Include="Charger_.cs" />
     <Compile Include="Base_Light.cs" />
+    <Compile Include="Silent_Creatures.cs" />
+    <Compile Include="Creature_Aggression.cs" />
+    <Compile Include="Spike_Plant.cs" />
     <Compile Include="CyclopsLocker_.cs" />
     <Compile Include="PowerConsumption.cs" />
     <Compile Include="FiltrationMachine_.cs" />
@@ -168,7 +171,6 @@
     <Compile Include="Constructor_.cs" />
     <Compile Include="Seaglide_.cs" />
     <Compile Include="SeaTreader_.cs" />
-    <Compile Include="Silent_Creatures.cs" />
     <Compile Include="FlashingLightsDisclaimer_.cs" />
     <Compile Include="ConfigToEdit.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
@@ -191,7 +193,6 @@
     <Compile Include="Flare_.cs" />
     <Compile Include="Decoy_Patch.cs" />
     <Compile Include="Fragment.cs" />
-    <Compile Include="Creature_Aggression.cs" />
     <Compile Include="CoffeeMaker.cs" />
     <Compile Include="Gravsphere_.cs" />
     <Compile Include="Pickupable_.cs" />
