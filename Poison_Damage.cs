@@ -55,11 +55,10 @@ namespace Tweaks_Fixes
             while (foodDamageTotal > 0)
             {
                 float damageToDeal = foodDamageTotal < 1 ? foodDamageTotal : 1;
-                int foodMin = ConfigMenu.newHungerSystem.Value ? -100 : 0;
                 if (UnityEngine.Random.value > .5f)
-                    survival.food = Mathf.Max(foodMin, survival.food - damageToDeal);
+                    survival.food = Mathf.Max(ConfigToEdit.starvationThreshold.Value, survival.food - damageToDeal);
                 else
-                    survival.water = Mathf.Max(foodMin, survival.water - damageToDeal);
+                    survival.water = Mathf.Max(ConfigToEdit.dehydrationThreshold.Value, survival.water - damageToDeal);
 
                 foodDamageTotal--;
                 DamageInfo damageInfo = liveMixin.damageInfo;

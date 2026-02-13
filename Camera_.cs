@@ -57,7 +57,7 @@ namespace Tweaks_Fixes
             }
 
             private static void HighFOVseaglideOnUpdate(MainCameraControl mainCameraControl)
-            {// fix: can see your neck wnen using seaglide and high FOV
+            {// fix bug: can see your neck wnen using seaglide and high FOV
                 //AddDebug("MainCameraControl OnUpdate " + Inventory.main.quickSlots.activeToolName);
                 float deltaTime = Time.deltaTime;
                 mainCameraControl.swimCameraAnimation = !mainCameraControl.underWaterTracker.isUnderWater ? Mathf.Clamp01(mainCameraControl.swimCameraAnimation - deltaTime) : Mathf.Clamp01(mainCameraControl.swimCameraAnimation + deltaTime);

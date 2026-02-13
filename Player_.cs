@@ -118,7 +118,7 @@ namespace Tweaks_Fixes
             public static bool Prefix(Inventory __instance)
             {
                 //AddDebug("LoseItems");
-                if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Drop_everything)
+                if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.TF_drop_items_death_setting_everything)
                 {
                     List<InventoryItem> inventoryItemList = new List<InventoryItem>();
                     foreach (InventoryItem inventoryItem in Inventory.main.container)
@@ -137,7 +137,7 @@ namespace Tweaks_Fixes
                     }
                     return false;
                 }
-                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Do_not_drop_anything)
+                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.TF_drop_items_death_setting_nothing)
                 {
                     return false;
                 }

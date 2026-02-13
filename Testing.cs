@@ -21,6 +21,7 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UWE;
 using static ErrorMessage;
+using static KnownTech;
 
 namespace Tweaks_Fixes
 {
@@ -29,6 +30,7 @@ namespace Tweaks_Fixes
         // geyser -50 -11 -430
         // sealed door 905 -195 613
         // spike plant 360 -106 98
+        // databox -489 -500 1328
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
@@ -335,34 +337,40 @@ namespace Tweaks_Fixes
                 new KeyboardState());
         }
 
-        //[HarmonyPatch(typeof(uGUI_InputField), "Validate")]
-        class uGUI_InputField_Validate_Patch
+        //[HarmonyPatch(typeof(NotificationManager), "Add")]
+        class NotificationManager_Add_Patch
         {
-            static bool Prefix(uGUI_InputField __instance, string text, int pos, char ch)
+            static bool Prefix(NotificationManager __instance, NotificationManager.Group group, string key, float duration, float timeLeft)
             {
-                AddDebug("Validate " + text);
+                AddDebug("NotificationManager Add " + key);
                 //if (Input.GetKey(KeyCode.LeftShift))
                 //{
                 //    AddDebug("LeftShift");
                 //    __instance.Select();
                 //    return false;
                 //}
+                return false;
+            }
+        }
+
+        //[HarmonyPatch(typeof(KnownTech), "Add")]
+        class KnownTech_Add_Patch
+        {
+            static bool Prefix(TechType techType, ref bool verbose)
+            {
+                //AddDebug("KnownTech Add " + techType + " " + verbose);
+                //verbose = false;
                 return true;
             }
         }
 
-        //[HarmonyPatch(typeof(uGUI_UserInput), "OnEndEdit")]
-        class uGUI_UserInput_Patch
+        //[HarmonyPatch(typeof(KnownTech), "NotifyAnalyze")]
+        class KnownTech_NotifyAnalyze_Patch
         {
-            static bool Prefix(uGUI_UserInput __instance)
+            static bool Prefix(AnalysisTech analysis, bool verbose)
             {
-                AddDebug("uGUI_UserInput OnEndEdit");
-                if (Input.GetKey(KeyCode.LeftShift))
-                {
-                    AddDebug("LeftShift");
-                    //__instance.Select();
-                    return false;
-                }
+                AddDebug("KnownTech NotifyAnalyze " + analysis.techType + " " + verbose);
+                verbose = false;
                 return true;
             }
         }
@@ -401,6 +409,8 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    //string s = ConfigMenu.GetLocString("TF_time_flow_desc");
+                    //AddDebug(s);
                     //AddDebug("UsedStorageCount " + Inventory.main.GetUsedStorageCount());
                     //DumpEncy();
                     //DestroyTarget();
@@ -409,10 +419,10 @@ namespace Tweaks_Fixes
                     //PrintTerrainSurfaceType();
                     //FindObjectClosestToPlayer(3);
 
-                    if (Input.GetKey(KeyCode.LeftShift))
-                        Time.timeScale = 0;
-                    else
-                        Time.timeScale = 1;
+                    //if (Input.GetKey(KeyCode.LeftShift))
+                    //    Time.timeScale = 0;
+                    //else
+                    //    Time.timeScale = 1;
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {

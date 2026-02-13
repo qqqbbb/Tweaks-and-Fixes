@@ -17,7 +17,7 @@ namespace Tweaks_Fixes
             public static void Postfix(uGUI_Pings __instance, ref bool __result)
             {
                 //AddDebug("uGUI_Pings IsVisibleNow " + __result);
-                if (Player.main == null)
+                if (Player.main == null || ConfigToEdit.disablePingsInSub.Value == false)
                     return;
 
                 if (Player.main.currentSub && Player.main.currentSub.isCyclops == false)

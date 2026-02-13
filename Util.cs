@@ -55,11 +55,11 @@ namespace Tweaks_Fixes
             {
                 return false;
             }
-            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Default || ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes)
+            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.TF_default_setting || ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes)
             {
                 return true;
             }
-            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on)
+            else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.TF_empty_vehicle_can_be_attacked_setting_light)
             {
                 return IsLightOn(vehicle);
             }
@@ -288,7 +288,7 @@ namespace Tweaks_Fixes
             return component == null && !ReferenceEquals(component, null);
         }
 
-        public static bool IsEatableFish(GameObject go)
+        public static bool IsRawFish(GameObject go)
         {
             return go.TryGetComponent<Creature>(out _) && go.TryGetComponent<Eatable>(out _);
         }
@@ -308,14 +308,14 @@ namespace Tweaks_Fixes
         {
             Eatable eatable = go.EnsureComponent<Eatable>();
             eatable.foodValue = food;
-            eatable.despawns = IsEatableFish(go);
+            eatable.despawns = IsRawFish(go);
         }
 
         public static void MakeDrinkable(GameObject go, float water)
         {
             Eatable eatable = go.EnsureComponent<Eatable>();
             eatable.waterValue = water;
-            eatable.despawns = IsEatableFish(go);
+            eatable.despawns = IsRawFish(go);
         }
 
         public static void Message(string str)
@@ -702,13 +702,13 @@ namespace Tweaks_Fixes
             action?.Invoke();
         }
 
-        public static int GetNumModules(Vehicle vehicle, TechType ttToCount)
+        public static int GetNumModules(Vehicle vehicle, TechType moduleTT)
         {
             int count = 0;
             for (int i = 0; i < vehicle.slotIDs.Length; ++i)
             {
                 TechType tt = vehicle.modules.GetTechTypeInSlot(vehicle.slotIDs[i]);
-                if (tt == ttToCount)
+                if (tt == moduleTT)
                     count++;
             }
             return count;
@@ -723,6 +723,30 @@ namespace Tweaks_Fixes
                     return true;
             }
             return false;
+        }
+
+        static public float GetFishFoodValue(float food)
+        {
+            if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmless || food <= 0)
+                return food;
+
+            float min = 0, max = 0;
+            if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmless)
+            {
+                min = 0;
+                max = food;
+            }
+            else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_risky)
+            {
+                min = -food;
+                max = food;
+            }
+            else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmful)
+            {
+                min = -food;
+                max = 0;
+            }
+            return UnityEngine.Random.Range(min, max);
         }
 
 

@@ -58,16 +58,17 @@ namespace Tweaks_Fixes
             static IEnumerator FixVehicleDockingBayLights(VehicleDockingBay vehicleDockingBay)
             {
                 yield return new WaitUntil(() => Main.gameLoaded);
+                //Main.logger.LogMessage("FixVehicleDockingBayLights " + vehicleDockingBay.name);
+                //AddDebug("FixVehicleDockingBayLights " + vehicleDockingBay.name);
                 List<Light> lights = GetPillarLights(vehicleDockingBay);
                 if (lights == null || lights.Count == 0)
-                    yield return null;
+                    yield break;
 
                 //AddDebug("FixVehicleDockingBayLights  " + lights.Count);
                 for (int i = 0; i < lights.Count; i++)
                 {// no VFXVolumetricLight
                     Light light = lights[i];
                     Vector3 lightBeamPos = vehicleDockingBayLightBeamPos[i];
-                    //Vector3 lightBeamPos = Vector3.zero;
                     VehicleLightFix.AddVolLight(light.gameObject, lightBeamPos, vehicleDockingBayLightScale);
                     //Main.logger.LogInfo("VehicleDockingBay lightColor " + light.color);
                     light.range = 20;

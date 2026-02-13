@@ -11,31 +11,31 @@ namespace Tweaks_Fixes
 {
     public class OptionsMenu : ModOptions
     {
-        static public GameInput.Button moveAllItemsButton = EnumHandler.AddEntry<GameInput.Button>("TF_moveAllItems")
-    .CreateInput("Transfer all items", "Hold down this key and press 'switch container' key to transfer all items from one container to another")
+        static public GameInput.Button moveAllItemsButton = EnumHandler.AddEntry<GameInput.Button>("TF_move_all_items")
+    .CreateInput(Language.main.Get("TF_move_all_items"), Language.main.Get("TF_move_all_items_desc"))
     .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Shift)
     .WithControllerBinding(GameInputHandler.Paths.Gamepad.RightTrigger)
-    .WithCategory("Tweaks and Fixes").AvoidConflicts();
-        static public GameInput.Button moveSameItemsButton = EnumHandler.AddEntry<GameInput.Button>("TF_moveSameItems")
-            .CreateInput("Transfer same items", "Hold down this key and press 'switch container' key to transfer the same items from one container to another")
+    .WithCategory(Main.MODNAME).AvoidConflicts();
+        static public GameInput.Button moveSameItemsButton = EnumHandler.AddEntry<GameInput.Button>("TF_move_same_items")
+            .CreateInput(Language.main.Get("TF_move_same_items"), Language.main.Get("TF_move_same_items_desc"))
             .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Ctrl)
             .WithControllerBinding(GameInputHandler.Paths.Gamepad.LeftTrigger)
-            .WithCategory("Tweaks and Fixes").AvoidConflicts();
-        static public GameInput.Button previousPDAtab = EnumHandler.AddEntry<GameInput.Button>("TF_PreviousPDAtab")
-            .CreateInput("Previous PDA tab", "Press this key to open PDA tab to the left of the opened one")
+            .WithCategory(Main.MODNAME).AvoidConflicts();
+        static public GameInput.Button previousPDAtab = EnumHandler.AddEntry<GameInput.Button>("TF_previous_PDA_tab")
+            .CreateInput(Language.main.Get("TF_previous_PDA_tab"), Language.main.Get("TF_previous_PDA_tab_desc"))
             .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Q)
-            .WithCategory("Tweaks and Fixes").AvoidConflicts();
-        static public GameInput.Button nextPDAtab = EnumHandler.AddEntry<GameInput.Button>("TF_NextPDAtab")
-            .CreateInput("Next PDA tab", "Press this key to open PDA tab to the right of the opened one")
+            .WithCategory(Main.MODNAME).AvoidConflicts();
+        static public GameInput.Button nextPDAtab = EnumHandler.AddEntry<GameInput.Button>("TF_next_PDA_tab")
+            .CreateInput(Language.main.Get("TF_next_PDA_tab"), Language.main.Get("TF_next_PDA_tab_desc"))
             .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.E)
-            .WithCategory("Tweaks and Fixes").AvoidConflicts();
-        static public GameInput.Button quickSlotCycle = EnumHandler.AddEntry<GameInput.Button>("TF_quickSlot")
-            .CreateInput("Cycle tools in quickslot", "hold down this key and press 'Cycle next' or 'Cycle previous' key to cycle tools in your current quickslot")
+            .WithCategory(Main.MODNAME).AvoidConflicts();
+        static public GameInput.Button quickSlotCycle = EnumHandler.AddEntry<GameInput.Button>("TF_quick_slot_cycle")
+            .CreateInput(Language.main.Get("TF_quick_slot_cycle"), Language.main.Get("TF_quick_slot_cycle_desc"))
             .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.Alt)
             .WithControllerBinding(GameInputHandler.Paths.Gamepad.ButtonSouth)
-            .WithCategory("Tweaks and Fixes").AvoidConflicts();
+            .WithCategory(Main.MODNAME).AvoidConflicts();
 
-        public OptionsMenu() : base("Tweaks and Fixes")
+        public OptionsMenu() : base(Main.MODNAME)
         {
             ModSliderOption timeFlowSpeedSlider = ConfigMenu.timeFlowSpeed.ToModSliderOption(.1f, 10f, .1f, "{0:0.#}");
             timeFlowSpeedSlider.OnChanged += UpdateTimeSpeed;
@@ -59,17 +59,17 @@ namespace Tweaks_Fixes
             ModSliderOption knifeRangeSlider = ConfigMenu.knifeRangeMult.ToModSliderOption(1f, 5f, .1f, "{0:0.#}");
             ModSliderOption knifeDamageSlider = ConfigMenu.knifeDamageMult.ToModSliderOption(1f, 5f, .1f, "{0:0.#}");
             ModSliderOption medKitHPslider = ConfigMenu.medKitHP.ToModSliderOption(10, 100, 1);
-            ModSliderOption craftTimeSlider = ConfigMenu.craftTimeMult.ToModSliderOption(0.01f, 3f, .01f, "{0:0.0#}");
-            ModSliderOption buildTimeSlider = ConfigMenu.buildTimeMult.ToModSliderOption(0.01f, 3f, .01f, "{0:0.0#}");
+            ModSliderOption craftTimeSlider = ConfigMenu.craftTimeMult.ToModSliderOption(0.01f, 3f, .01f, "{0:0.#}");
+            ModSliderOption buildTimeSlider = ConfigMenu.buildTimeMult.ToModSliderOption(0.01f, 3f, .01f, "{0:0.#}");
             ModSliderOption cyclopsFireChanceSlider = ConfigMenu.cyclopsFireChance.ToModSliderOption(0, 100, 1);
             ModSliderOption cyclopsAutoHealSlider = ConfigMenu.cyclopsAutoHealHealthPercent.ToModSliderOption(0, 100, 1);
             ModSliderOption crushDepthSlider = ConfigMenu.crushDepth.ToModSliderOption(50, 500, 10);
-            ModSliderOption crushDamageSlider = ConfigMenu.crushDamage.ToModSliderOption(0f, 10f, .1f, "{0:0.0#}");
-            ModSliderOption vehicleCrushDamageSlider = ConfigMenu.vehicleCrushDamageMult.ToModSliderOption(0f, 3f, .1f, "{0:0.0#}");
-            ModSliderOption crushDamageProgressionSlider = ConfigMenu.crushDamageProgression.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
+            ModSliderOption crushDamageSlider = ConfigMenu.crushDamage.ToModSliderOption(0f, 10f, .1f, "{0:0.#}");
+            ModSliderOption vehicleCrushDamageSlider = ConfigMenu.vehicleCrushDamageMult.ToModSliderOption(0f, 3f, .1f, "{0:0.#}");
+            ModSliderOption crushDamageProgressionSlider = ConfigMenu.crushDamageProgression.ToModSliderOption(0f, 1f, .01f, "{0:0.#}");
             //ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
             ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0, 100, 1);
-            ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .01f, "{0:0.0#}");
+            ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .01f, "{0:0.#}");
             //ModSliderOption fruitGrowTimeSlider = ConfigMenu.fruitGrowTime.ToModSliderOption(0, 30, 1);
             ModSliderOption fishSpeedSlider = ConfigMenu.fishSpeedMult.ToModSliderOption(0.1f, 5f, .1f, "{0:0.#}");
             ModSliderOption creatureSpeedSlider = ConfigMenu.creatureSpeedMult.ToModSliderOption(0.1f, 5f, .1f, "{0:0.#}");
@@ -80,15 +80,14 @@ namespace Tweaks_Fixes
             ModSliderOption escapePodMaxPowerSlider = ConfigMenu.escapePodMaxPower.ToModSliderOption(10, 100, 1);
             ModSliderOption batteryChargeSlider = ConfigMenu.batteryChargeMult.ToModSliderOption(0.5f, 3f, .1f, "{0:0.#}");
             ModSliderOption craftedBatteryChargeSlider = ConfigMenu.craftedBatteryCharge.ToModSliderOption(0, 100, 1);
-            ModSliderOption invMultWaterSlider = ConfigMenu.invMultWater.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
-            ModSliderOption invMultLandSlider = ConfigMenu.invMultLand.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
+            ModSliderOption invMultLandSlider = ConfigMenu.invMultLand.ToModSliderOption(0f, 1f, .01f, "{0:0.#}");
+            ModSliderOption invMultWaterSlider = ConfigMenu.invMultWater.ToModSliderOption(0f, 1f, .01f, "{0:0.#}");
             ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
-            ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodWaterHealThreshold.ToModSliderOption(100, 400, 10);
-            ModSliderOption maxFoodSlider = ConfigMenu.maxPlayerFood.ToModSliderOption(100, 300, 10);
-            ModSliderOption maxWaterSlider = ConfigMenu.maxPlayerWater.ToModSliderOption(100, 300, 10);
+            ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodHealThreshold.ToModSliderOption(100, 400, 10);
+            //ModSliderOption maxFoodSlider = ConfigMenu.playerMaxFood.ToModSliderOption(100, 300, 10);
+            //ModSliderOption maxWaterSlider = ConfigMenu.PlayerMaxWater.ToModSliderOption(100, 300, 10);
             ModSliderOption subtitlesDelaySlider = ConfigMenu.subtitlesDelay.ToModSliderOption(0f, 5f, .1f, "{0:0.#}");
-
 
 
             AddItem(timeFlowSpeedSlider);
@@ -106,8 +105,6 @@ namespace Tweaks_Fixes
             AddItem(foodLossSlider);
             AddItem(waterLossSlider);
             AddItem(foodWaterHealThresholdSlider);
-            AddItem(maxFoodSlider);
-            AddItem(maxWaterSlider);
 
             AddItem(toolEnergySlider);
             AddItem(vehicleEnergySlider);
@@ -128,13 +125,11 @@ namespace Tweaks_Fixes
 
             AddItem(baseHullStrengthSlider);
             AddItem(ConfigMenu.emptyVehiclesCanBeAttacked.ToModChoiceOption());
-            AddItem(ConfigMenu.newHungerSystem.ToModToggleOption());
             AddItem(fishFoodWaterRatioSlider);
             AddItem(ConfigMenu.eatRawFish.ToModChoiceOption());
             AddItem(ConfigMenu.cantEatUnderwater.ToModToggleOption());
             AddItem(ConfigMenu.cantUseMedkitUnderwater.ToModToggleOption());
             AddItem(foodDecayRateSlider);
-            //AddItem(fruitGrowTimeSlider);
             AddItem(fishSpeedSlider);
             AddItem(creatureSpeedSlider);
             AddItem(CreatureFleeChanceSlider);

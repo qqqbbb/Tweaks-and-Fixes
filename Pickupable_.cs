@@ -172,7 +172,7 @@ namespace Tweaks_Fixes
                     //AddDebug(__instance.name + " Pickupable AllowedToPickUp " + __result);
                     return;
                 }
-                if (ConfigMenu.noFishCatching.Value && Player.main._currentWaterPark == null && Util.IsEatableFish(__instance.gameObject) && Util.IsDead(__instance.gameObject) == false)
+                if (ConfigMenu.noFishCatching.Value && Player.main._currentWaterPark == null && Util.IsRawFish(__instance.gameObject) && Util.IsDead(__instance.gameObject) == false)
                 {
                     __result = false;
                 }
@@ -213,6 +213,8 @@ namespace Tweaks_Fixes
                     //AddDebug(" Pickupable Drop " + __instance.name);
                     BoxCollider boxCollider = __instance.GetComponentInChildren<BoxCollider>();
                     boxCollider.isTrigger = false;
+                    if (Player.main.currentSub && Player.main.currentSub.isCyclops)
+                        Cyclops_Constructable_Collision.AddCyclopsCollisionExclusion(__instance.gameObject);
                 }
             }
             [HarmonyPostfix, HarmonyPatch("Pickup")]
@@ -223,6 +225,8 @@ namespace Tweaks_Fixes
                     //AddDebug(" Pickupable Pickup " + __instance.name);
                     BoxCollider boxCollider = __instance.GetComponentInChildren<BoxCollider>();
                     boxCollider.isTrigger = true;
+                    if (Player.main.currentSub && Player.main.currentSub.isCyclops)
+                        Cyclops_Constructable_Collision.RemoveCyclopsCollisionExclusion(__instance.gameObject);
                 }
             }
         }

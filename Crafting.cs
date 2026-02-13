@@ -89,7 +89,7 @@ namespace Tweaks_Fixes
                         if (battery)
                             batteriesUsedForCrafting.Add(battery);
                     }
-                    if (Util.IsEatableFish(item.item.gameObject))
+                    if (Util.IsRawFish(item.item.gameObject))
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
                         //AddDebug(" OnRemoveItem timeDecayStart " + eatable.timeDecayStart);

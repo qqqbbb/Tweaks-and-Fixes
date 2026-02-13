@@ -6,6 +6,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using static ErrorMessage;
+using static RootMotion.FinalIK.GrounderQuadruped;
 
 namespace Tweaks_Fixes
 {
@@ -252,7 +253,7 @@ namespace Tweaks_Fixes
                             cl.signInput.Select(true);
                     }
 
-                    if (Util.IsEatableFish(tool.gameObject))
+                    if (Util.IsRawFish(tool.gameObject))
                     {
                         StringBuilder sb = new StringBuilder();
                         bool canDrop = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
@@ -464,70 +465,9 @@ namespace Tweaks_Fixes
                 else if (techType == TechType.PrecursorIonPowerCell)
                     TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonPowerCell"));
 
-                if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.Default && Creatures.fishTechTypes.Contains(techType) && GameModeUtils.RequiresSurvival())
+                if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmless && Creatures.fishTechTypes.Contains(techType) && GameModeUtils.RequiresSurvival())
                 {
-                    Eatable eatable = obj.GetComponent<Eatable>();
-                    if (eatable)
-                    {
-                        sb.Clear();
-                        string name = Language.main.Get(techType);
-                        string secondaryTooltip = eatable.GetSecondaryTooltip();
-                        if (!string.IsNullOrEmpty(secondaryTooltip))
-                            name = Language.main.GetFormat<string, string>("DecomposingFormat", secondaryTooltip, name);
-                        TooltipFactory.WriteTitle(sb, name);
-                        //TooltipFactory.WriteDebug(sb, techType);
-                        int foodValue = Mathf.CeilToInt(eatable.GetFoodValue());
-                        if (foodValue != 0)
-                        {
-                            string food = Language.main.GetFormat<int>("FoodFormat", foodValue);
-                            int index = -1;
-                            if (foodValue < 0)
-                                index = food.LastIndexOf('-');
-                            else
-                                index = food.LastIndexOf('+');
-
-                            if (index != -1)
-                            {
-                                if (foodValue > 0)
-                                {
-                                    if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Risky)
-                                        food = food.Substring(0, index) + "≈ 0";
-                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmless)
-                                        food = food.Substring(0, index) + "≈ " + Mathf.CeilToInt(foodValue * .5f);
-                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmful)
-                                        food = food.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(foodValue * .5f));
-                                }
-                                //AddDebug("food  " + food);
-                            }
-                            TooltipFactory.WriteDescription(sb, food);
-                        }
-                        int waterValue = Mathf.CeilToInt(eatable.GetWaterValue());
-                        if (waterValue != 0)
-                        {
-                            string water = Language.main.GetFormat<int>("WaterFormat", waterValue);
-                            int index = -1;
-                            if (waterValue < 0)
-                                index = water.LastIndexOf('-');
-                            else
-                                index = water.LastIndexOf('+');
-
-                            if (index != -1)
-                            {
-                                if (waterValue > 0)
-                                {
-                                    if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Risky)
-                                        water = water.Substring(0, index) + "≈ 0";
-                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmless)
-                                        water = water.Substring(0, index) + "≈ " + Mathf.CeilToInt(waterValue * .5f);
-                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmful)
-                                        water = water.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(waterValue * .5f));
-                                }
-                                //AddDebug("water  " + water);
-                            }
-                            TooltipFactory.WriteDescription(sb, water);
-                        }
-                        TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
-                    }
+                    GetFishFoodDesc(sb, techType, obj.GetComponent<Eatable>());
                 }
                 if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
                 {
@@ -562,6 +502,58 @@ namespace Tweaks_Fixes
                     }
                 }
 
+            }
+
+            private static void GetFishFoodDesc(StringBuilder sb, TechType techType, Eatable eatable)
+            {
+                if (eatable == null)
+                    return;
+                sb.Clear();
+                string name = Language.main.Get(techType);
+                string secondaryTooltip = eatable.GetSecondaryTooltip();
+                if (!string.IsNullOrEmpty(secondaryTooltip))
+                    name = Language.main.GetFormat<string, string>("DecomposingFormat", secondaryTooltip, name);
+
+                TooltipFactory.WriteTitle(sb, name);
+                //TooltipFactory.WriteDebug(sb, techType);
+                int foodValue = Mathf.CeilToInt(eatable.GetFoodValue());
+                if (foodValue != 0)
+                {
+                    string food = Language.main.GetFormat<int>("FoodFormat", foodValue);
+                    food = GetRawFishDesc(foodValue, food);
+                    TooltipFactory.WriteDescription(sb, food);
+                }
+                int waterValue = Mathf.CeilToInt(eatable.GetWaterValue());
+                if (waterValue != 0)
+                {
+                    string water = Language.main.GetFormat<int>("WaterFormat", waterValue);
+                    water = GetRawFishDesc(waterValue, water);
+                    TooltipFactory.WriteDescription(sb, water);
+                }
+                TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
+            }
+
+            private static string GetRawFishDesc(int foodValue, string food)
+            {
+                int index = -1;
+                if (foodValue < 0)
+                    index = food.LastIndexOf('-');
+                else
+                    index = food.LastIndexOf('+');
+
+                if (index != -1)
+                {
+                    if (foodValue > 0)
+                    {
+                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_risky)
+                            food = food.Substring(0, index) + "≈ 0";
+                        else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmless)
+                            food = food.Substring(0, index) + "≈ " + Mathf.CeilToInt(foodValue * .5f);
+                        else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmful)
+                            food = food.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(foodValue * .5f));
+                    }
+                }
+                return food;
             }
         }
 

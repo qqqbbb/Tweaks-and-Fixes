@@ -109,6 +109,9 @@ namespace Tweaks_Fixes
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 //AddDebug("SlotNext");
+                if (Builder.isPlacing)
+                    return true;
+
                 if (GameInput.GetButtonHeld(OptionsMenu.quickSlotCycle))
                 {
                     //AddDebug("quickslotButton");
@@ -125,6 +128,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
+                if (Builder.isPlacing)
+                    return true;
+
                 if (GameInput.GetButtonHeld(OptionsMenu.quickSlotCycle))
                 {
                     Pickupable pickupable = Inventory.main.GetHeld();

@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.10.2";
+            VERSION = "4.10.3";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -56,7 +56,6 @@ namespace Tweaks_Fixes
             //logger.LogInfo("CleanUp");
             gameLoaded = false;
             QuickSlot_Cycle.invChanged = true;
-            Databox_Light.databoxLights.Clear();
             Crush_Damage.extraCrushDepth = 0;
             Crush_Damage.crushDamageResistance = 0;
             Cyclops_Constructable_Collision.CleanUp();
@@ -204,14 +203,10 @@ namespace Tweaks_Fixes
             configMain.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
             configMain.activeSlot = Inventory.main.quickSlots.activeSlot;
             InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
-            if (heldItem != null)
+            if (heldItem != null && heldItem.item.TryGetComponent<PlaceTool>(out _))
             {
-                PlaceTool pt = heldItem.item.GetComponent<PlaceTool>();
-                if (pt)
-                {
-                    //AddDebug(" heldItem PlaceTool");
-                    configMain.activeSlot = -1;
-                }
+                //AddDebug(" heldItem PlaceTool");
+                configMain.activeSlot = -1;
             }
             Decoy_Patch.DestroyDecoys();
             configMain.Save();
@@ -220,32 +215,29 @@ namespace Tweaks_Fixes
 
         public void Setup()
         {
+            LanguageHandler.RegisterLocalizationFolder();
             configMenu = new ConfigFile(configMenuPath, false);
             ConfigMenu.Bind();
             logger = Logger;
+            configMain.Load();
             configToEdit = new ConfigFile(configToEditPath, false);
-            ConfigToEdit.Bind();
             Harmony harmony = new Harmony(GUID);
-            harmony.PatchAll();
+            ConfigToEdit.Bind();
             options = new OptionsMenu();
+            ConfigToEdit.ParseConfig();
+            harmony.PatchAll();
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
             WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => AddTechTypesToClassIDtable());
-            //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => StartCoroutine(BeforeLoading(TechType.Seaglide)));
-
             OptionsPanelHandler.RegisterModOptions(options);
-            //SaveUtils.RegisterOnSaveEvent(TestSave);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
-            LanguageHandler.RegisterLocalizationFolder();
             GetLoadedMods();
-            ConfigToEdit.ParseConfig();
-            configMain.Load();
-            if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
-            {
-                CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
-            }
+            //if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
+            //{
+            //    CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
+            //}
             //CustomSpawns();
-            Logger.LogInfo($"Plugin {GUID} {VERSION} is loaded ");
+            Logger.LogInfo($"Plugin {MODNAME} {VERSION} is loaded ");
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
             //WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LateLoad());
             //WaitScreenHandler.RegisterLoadTask(MODNAME, task => Load());

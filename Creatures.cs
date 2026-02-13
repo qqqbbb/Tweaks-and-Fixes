@@ -206,7 +206,7 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(SwimBehaviour __instance, ref float velocity, ref Vector3 targetPosition)
             {
-                if (fishSBs.TryGetValue(__instance, out string s) || Util.IsEatableFish(__instance.gameObject))
+                if (fishSBs.TryGetValue(__instance, out string s) || Util.IsRawFish(__instance.gameObject))
                 {
                     if (ConfigMenu.fishSpeedMult.Value != 1)
                         velocity *= ConfigMenu.fishSpeedMult.Value;
