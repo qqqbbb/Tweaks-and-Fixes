@@ -379,6 +379,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
                     return false;
+
                 return !__instance._dockedVehicle;
             }
             [HarmonyPrefix, HarmonyPatch(nameof(VehicleDockingBay.LaunchbayAreaExit))]
@@ -386,6 +387,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
                     return false;
+
                 return !__instance._dockedVehicle;
             }
             //[HarmonyPatch(nameof(VehicleDockingBay.UpdateDockedPosition))]
@@ -641,17 +643,13 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CyclopsExternalDamageManager), "UpdateOvershield")]
         class CyclopsExternalDamageManager_UpdateOvershield_Patch
         {
-            static bool Prefix(CyclopsExternalDamageManager __instance)
+            static void Prefix(CyclopsExternalDamageManager __instance)
             {
-                if (ConfigMenu.cyclopsAutoHealHealthPercent.Value == 90)
-                    return true;
+                if (Main.gameLoaded == false || ConfigMenu.cyclopsAutoHealHealthPercent.Value == 90)
+                    return;
 
                 //AddDebug(__instance.name + " CyclopsExternalDamageManager UpdateOvershield " + __instance.overshieldPercentage);
-                if (__instance.subFire.GetFireCount() > 0 || __instance.subLiveMixin.GetHealthFraction() <= ConfigMenu.cyclopsAutoHealHealthPercent.Value * .01f)
-                    return false;
-
-                __instance.subLiveMixin.AddHealth(3f);
-                return false;
+                __instance.overshieldPercentage = 100 - ConfigMenu.cyclopsAutoHealHealthPercent.Value;
             }
         }
 

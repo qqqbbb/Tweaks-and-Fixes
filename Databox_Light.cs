@@ -2,66 +2,34 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static ErrorMessage;
-     
+
 namespace Tweaks_Fixes
 {
     class Databox_Light
     {
-        public static HashSet<GameObject> databoxLights = new HashSet<GameObject>();
-        
-        public static GameObject GetClosestToPlayer()
+        [HarmonyPatch(typeof(BlueprintHandTarget), "OnTargetUsed")]
+        class BlueprintHandTarget_OnTargetUsed_Patch
         {
-            GameObject closest = null;
-            //float shortestDist = float.PositiveInfinity;
-            //Main.Log("GetClosetToPlayer " + databoxLights.Count);
-            foreach (GameObject go in databoxLights)
+            public static void Postfix(BlueprintHandTarget __instance)
             {
-                if (go && go.activeSelf)
+                Transform light = __instance.transform.Find("DataboxLightContainer");
+                if (light)
                 {
-                    float distance = (go.transform.position - Player.main.transform.position).magnitude;
-                    //Main.Log("distance " + distance);
-                    if (distance < 5f)
+                    LargeWorldEntity lwe = light.GetComponentInChildren<LargeWorldEntity>();
+                    if (lwe)
                     {
-                        closest = go;
-                        break;
+                        LargeWorldStreamer lws = LargeWorldStreamer.main;
+                        if (lws && lws.IsReady())
+                        {
+                            //AddDebug("UnregisterEntity");
+                            lws.cellManager.UnregisterEntity(lwe);
+                        }
                     }
-                }
-            }
-            return closest;
-        }
-
-        [HarmonyPatch(typeof(GenericHandTarget), "OnHandClick")]
-        class GenericHandTarget_OnHandClick_Patch
-        {
-            public static void Postfix(GenericHandTarget __instance)
-            {
-                if (__instance.GetComponent<BlueprintHandTarget>())
-                {
-                    GameObject closestLight = GetClosestToPlayer();
-                    if (closestLight != null)
-                    {
-                        //AddDebug("remove light");
-                        closestLight.SetActive(false);
-                        databoxLights.Remove(closestLight);
-                    }
-
+                    UnityEngine.Object.Destroy(light.gameObject);
                 }
             }
         }
 
-        [HarmonyPatch(typeof(VFXVolumetricLight), "Awake")]
-        class VFXVolumetricLight_Awake_Patch
-        {
-            public static void Postfix(VFXVolumetricLight __instance)
-            {
-                if (__instance.transform.parent.name.StartsWith("DataboxLight"))
-                {
-                    //Main.Log("VFXVolumetricLight Awake parent " + __instance.transform.parent.name);
-                    databoxLights.Add(__instance.transform.parent.gameObject);
-                }
-            }
-        }
 
-        
     }
 }

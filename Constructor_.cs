@@ -54,8 +54,6 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(CinematicModeTrigger))]
     class CinematicModeTrigger_Patch
     {
-        public static HashSet<CinematicModeTrigger> cmtSet = new HashSet<CinematicModeTrigger>();
-
         [HarmonyPostfix]
         [HarmonyPatch("OnHandHover")]
         static void OnHandHoverPostfix(CinematicModeTrigger __instance, GUIHand hand)
@@ -64,7 +62,7 @@ namespace Tweaks_Fixes
             if (parent == null || parent.parent == null || parent.parent.parent == null)
                 return;
 
-            if (cmtSet.Contains(__instance))
+            if (parent.parent.parent.name == "Constructor(Clone)")
             {
                 //AddDebug("CinematicModeTrigger OnHandHover");
                 HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
@@ -76,10 +74,6 @@ namespace Tweaks_Fixes
                     if (constructor && constructor.pickupable)
                         constructor.pickupable.OnHandClick(hand);
                 }
-            }
-            else if (parent.parent.parent.name == "Constructor(Clone)")
-            {
-                cmtSet.Add(__instance);
             }
         }
     }

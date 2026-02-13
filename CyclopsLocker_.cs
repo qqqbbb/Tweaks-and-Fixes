@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UWE;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -16,14 +14,9 @@ namespace Tweaks_Fixes
         static Vector3 defaultRotation;
         static Vector3 openAngles = new Vector3(0, 0, 170);
 
-        static void PlayCloseSound()
-        {
-            //FMODUWE.PlayOneShot(__instance.closeSound, __instance.transform.position)
-        }
-
         [HarmonyPostfix, HarmonyPatch("Start")]
         static void StartPostfix(CyclopsLocker __instance)
-        { // submarine_locker
+        {
             if (defaultRotation == default)
                 defaultRotation = __instance.rotateTarget.transform.localEulerAngles;
 

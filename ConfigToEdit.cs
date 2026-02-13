@@ -21,10 +21,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> cyclopsSunlight;
         public static ConfigEntry<bool> alwaysShowHealthFoodNunbers;
         public static ConfigEntry<bool> pdaClock;
-        //public static ConfigEntry<Button> transferAllItemsButton;
-        //public static ConfigEntry<Button> transferSameItemsButton;
-        //public static ConfigEntry<Button> quickslotButton;
-        //public static ConfigEntry<Button> lightButton;
         public static ConfigEntry<string> gameStartWarningText;
         public static ConfigEntry<string> newGameLoot;
         public static ConfigEntry<string> crushDepthEquipment;
@@ -177,23 +173,28 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> armorModuleProtectsSeamothFromBrine;
         public static ConfigEntry<bool> armorModuleProtectsExosuitFromBrine;
         public static ConfigEntry<bool> armorModuleProtectsOtherVehiclesFromBrine;
+        public static ConfigEntry<bool> silentBlueprintUnlockNotification;
+        public static ConfigEntry<bool> disablePingsInSub;
+        public static ConfigEntry<float> foodLossMultSprint;
+        public static ConfigEntry<int> starvationThreshold;
+        public static ConfigEntry<int> dehydrationThreshold;
+        public static ConfigEntry<int> starveDamage;
+        public static ConfigEntry<int> playerMaxFood;
+        public static ConfigEntry<int> PlayerMaxWater;
+        public static ConfigEntry<int> playerFullFood;
+        public static ConfigEntry<int> playerFullWater;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
-
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
         public static AcceptableValueRange<int> freeTorpedosRange = new AcceptableValueRange<int>(0, 6);
 
-        public static void Bind_()
-        {
-
-        }
         public static void Bind()
         {  // “ ” ‛
-            Bind_();
+            //BindNEW();
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
@@ -251,16 +252,6 @@ namespace Tweaks_Fixes
             crushDamageScreenEffect = Main.configToEdit.Bind("PLAYER", "Crush damage screen effect", true, "There will be no screen effects when player takes crush damage if this is false.");
             removeCookedFishOnReload = Main.configToEdit.Bind("CREATURES", "Remove cooked fish when loading saved game", false, "Cooked fish will be removed from the world (not from containers) when loading saved game if this is true.");
             disableGravityForExosuit = Main.configToEdit.Bind("VEHICLES", "Disable gravity for prawn suit", false, "Prawn suit will ignore gravity when you are not piloting it if this is true. Use this if your prawn suit falls through the ground.");
-            //replaceDealDamageOnImpactScript = Main.configToEdit.Bind("VEHICLES", "Replace DealDamageOnImpact script", false, "The game will use vanilla script when vehicles collide with objects if this is false.");
-            //cyclopsDealDamageMinSpeed = Main.configToEdit.Bind("CYCLOPS", "Cyclops min speed to deal damage", 2f, "Min speed in meters per second at which cyclops deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            //cyclopsTakeDamageMinSpeed = Main.configToEdit.Bind("CYCLOPS", "Cyclops min speed to take damage", 2f, "Min speed in meters per second at which cyclops takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            //cyclopsTakeDamageMinMass = Main.configToEdit.Bind("CYCLOPS", "Min mass that can damage cyclops", 200f, "Min mass in kg for objects that can damage cyclops when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            //exosuitDealDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Prawn suit min speed to deal damage", 7f, "Min speed in meters per second at which prawn suit deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            //exosuitTakeDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Prawn suit min speed to take damage", 7f, "Min speed in meters per second at which prawn suit takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            //exosuitTakeDamageMinMass = Main.configToEdit.Bind("VEHICLES", "Min mass that can damage prawn suit", 5f, "Min mass in kg for objects that can damage prawn suit when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            //seamothDealDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Seamoth min speed to deal damage", 7f, "Min speed in meters per second at which seamoth deals damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            //seamothTakeDamageMinSpeed = Main.configToEdit.Bind("VEHICLES", "Seamoth min speed to take damage", 7f, "Min speed in meters per second at which seamoth takes damage when colliding with objects. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
-            //seamothTakeDamageMinMass = Main.configToEdit.Bind("VEHICLES", "Min mass that can damage seamoth", 5f, "Min mass in kg for objects that can damage seamoth when colliding with it. Works only if ‛Replace DealDamageOnImpact script‛ setting is true.");
             vehiclesHurtCreatures = Main.configToEdit.Bind("VEHICLES", "Vehicles hurt creatures", true, "Vehicles will not hurt creatures when colliding with them if this is false.");
             fixSeamothMove = Main.configToEdit.Bind("VEHICLES", "Fix seamoth movement", true, "Seamoth will not exceed its max speed when moving diagonally. It will use analog values from controller stick.");
             seamothSidewardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seamoth sideward speed modifier", 0, "Seamoth speed will be reduced by this percent when moving sideward.");
@@ -271,11 +262,7 @@ namespace Tweaks_Fixes
 
             cyclopsVerticalSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops vertical speed modifier", 0, "Cyclops speed will be reduced by this percent when moving up or down.");
             cyclopsBackwardSpeedMod = Main.configToEdit.Bind("CYCLOPS", "Cyclops backward speed modifier", 0, "Cyclops speed will be reduced by this percent when moving backward.");
-            //fixCyclopsMove = Main.configToEdit.Bind("CYCLOPS", "Fix cyclops diagonal movement", true, "Cyclops will not exceed its max speed and will not consume more power when moving diagonally.");
             cyclopsFireMusic = Main.configToEdit.Bind("CYCLOPS", "Play dubsteppy music when cyclops engine is on fire", true);
-
-
-
             lavaGeyserEruptionForce = Main.configToEdit.Bind("MISC", "Lava geyser eruption force", 20f, "Force applied to objects by lava geysers.");
             lavaGeyserEruptionInterval = Main.configToEdit.Bind("MISC", "Lava geyser eruption interval", 12f, "Time in seconds between lava geyser eruptions including 5.5 seconds of eruption.");
             removeLavaGeyserRockParticles = Main.configToEdit.Bind("MISC", "Remove rock particles from lava geysers", false, "Rock particles will be removed from lava geyser eruptions if this is true.");
@@ -298,7 +285,6 @@ namespace Tweaks_Fixes
             stalkerPlayThings = Main.configToEdit.Bind("CREATURES", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
             stalkersGrabShinyTool = Main.configToEdit.Bind("CREATURES", "Stalkers grab tools from player hands", false, "Stalkers can grab only things that are in the ‛Items stalkers can grab‛ list.");
             dropHeldTool = Main.configToEdit.Bind("PLAYER", "Drop tool in your hands when taking damage", false, "Chance percent to drop your tool is equal to amount of damage taken.");
-            //newPoisonSystem = Main.configToEdit.Bind("PLAYER", "New poison damage system", false, "Every 2 seconds poison will deal 1 point of permanent damage and decrease your food and water values by 1. Using first aid kit will remove poison from your system.");
             freeTorpedos = Main.configToEdit.Bind("VEHICLES", "Free torpedos", 2, new ConfigDescription("Number of torpedos you get when installing Torpedo System or Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo System.", freeTorpedosRange));
             lowOxygenWarning = Main.configToEdit.Bind("PLAYER", "Low oxygen onscreen warning", true);
             lowOxygenAudioWarning = Main.configToEdit.Bind("PLAYER", "Low oxygen audio warning", true);
@@ -314,8 +300,6 @@ namespace Tweaks_Fixes
             dropItemsAnywhere = Main.configToEdit.Bind("PLAYER", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except cyclops and grab items in your base with propulsion cannon.");
             //disableIonCubeFabricator = Main.configToEdit.Bind("", "Disable ion cube fabricator at the Primary containment facility", false);
             showTempFahrenhiet = Main.configToEdit.Bind("UI", "Show temperature in Fahrenhiet instead of Celcius", false, "");
-
-
             fixScreenResolution = Main.configToEdit.Bind("MISC", "Fix screen resolution", false, "The game sometimes resets screen resolution to desktop one. Set this to true to fix it.");
             removeCreditsButton = Main.configToEdit.Bind("MENU BUTTONS", "Remove credits button from main menu", false);
             removeRedeemButton = Main.configToEdit.Bind("MENU BUTTONS", "Remove redeem key button from options menu", false);
@@ -329,7 +313,6 @@ namespace Tweaks_Fixes
             playerBreathBubblesSoundFX = Main.configToEdit.Bind("PLAYER", "Player breath bubbles sound effect", true);
             medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
             consistentHungerUpdateTime = Main.configToEdit.Bind("PLAYER", "Consistent hunger update time", false, "In vanilla game your hunger updates every 10 real time seconds. If this is true, hunger update interval will be divided by 'time flow speed multiplier' from the mod options.");
-            //consistantHungerUpdateTime.SettingChanged += ConsistantHungerUpdateTimeChanged;
             removeBigParticlesWhenKnifing = Main.configToEdit.Bind("CREATURES", "Remove big particles when slashing creatures with knife", false, "You will see less blood particles when slashing creatures with knife if this is true.");
             permPoisonDamage = Main.configToEdit.Bind("PLAYER", "Permanent poison damage percent", 0, new ConfigDescription("If this is more than 0 you will take not temporary but permanent health damage when poisoned. For example if this is 90, you will lose 0.9 health permanantly for every point of poison damage.", percentRange));
             poisonFoodDamage = Main.configToEdit.Bind("PLAYER", "Poison food damage percent", 0, new ConfigDescription("If this is more than 0 you will lose food or water instead of taking temporary health damage when poisoned. For example if this is 90, you will lose 0.9 food or water for every point of poison damage.", percentRange));
@@ -342,7 +325,6 @@ namespace Tweaks_Fixes
             disableTimeCapsule = Main.configToEdit.Bind("MISC", "Disable time capsules", false, "");
             spawnResourcesWhenDrilling = Main.configToEdit.Bind("VEHICLES", "Spawn resources instead of adding them to prawn suit container when drilling", false, "");
             canPickUpContainerWithItems = Main.configToEdit.Bind("MISC", "Can pick up containers with items", false, "");
-
             exosuitLightIntensityMult = Main.configToEdit.Bind("VEHICLES", "Prawn suit light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
             seamothLightIntensityMult = Main.configToEdit.Bind("VEHICLES", "Seamoth light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
             cyclopsLightIntensityMult = Main.configToEdit.Bind("CYCLOPS", "Cyclops light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
@@ -353,7 +335,6 @@ namespace Tweaks_Fixes
             flashlightLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Flashlight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
             spotlightLightIntensityMult = Main.configToEdit.Bind("BASE", "Spotlight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
             vehicleDockingBayLightIntensityMult = Main.configToEdit.Bind("BASE", "Moonpool exterior light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
-
             cameraLightColor = Main.configToEdit.Bind("TOOLS", "Camera drone light color", "0.463 0.902 0.902", "Camera drone light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             seaglideLightColor = Main.configToEdit.Bind("TOOLS", "Seaglide light color", "0.016 1 1", "Seaglide light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             seamothLightColor = Main.configToEdit.Bind("VEHICLES", "SeaMoth light color", "0.463 0.902 0.902", "SeaMoth light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
@@ -371,8 +352,18 @@ namespace Tweaks_Fixes
             armorModuleProtectsSeamothFromBrine = Main.configToEdit.Bind("VEHICLES", "Hull reinforcement protects seamoth from brine damage", true, "");
             armorModuleProtectsExosuitFromBrine = Main.configToEdit.Bind("VEHICLES", "Hull reinforcement protects prawn suit from brine damage", false, "Your prawn suit will take damage in brine pools if this is true. To protect it you will have to install hull reinforcement module.");
             armorModuleProtectsOtherVehiclesFromBrine = Main.configToEdit.Bind("VEHICLES", "Hull reinforcement protects other vehicles from brine damage", true, "");
-        }
 
+            silentBlueprintUnlockNotification = Main.configToEdit.Bind("MISC", "Silent notification when unlocking blueprint", false, "");
+            disablePingsInSub = Main.configToEdit.Bind("UI", "Hide beacon icons when you are in your life pod or base", false, "");
+            starvationThreshold = Main.configToEdit.Bind("PLAYER", "Starvation threshold", 0, "You take damage when your food value is equal to or below this. Can be a negative value.");
+            dehydrationThreshold = Main.configToEdit.Bind("PLAYER", "Dehydration threshold", 0, "You take damage when your water value is equal to or below this. Can be a negative value.");
+            foodLossMultSprint = Main.configToEdit.Bind("PLAYER", "Food loss multiplier when sprinting", 1f, "Food and water values you lose when your hunger updates will be multiplied by this if you are sprinting.");
+            starveDamage = Main.configToEdit.Bind("PLAYER", "Starvation damage", (int)SurvivalConstants.kStarveDamage, "");
+            playerMaxFood = Main.configToEdit.Bind("PLAYER", "Player food meter", (int)SurvivalConstants.kMaxOverfillStat, "Your food meter will be capped at this value");
+            playerFullFood = Main.configToEdit.Bind("PLAYER", "Player food effectiveness threshold", (int)SurvivalConstants.kMaxStat, "Food you eat will be less effective if your food meter is above this value. The closer your food meter to 'Player food meter' setting the more food will be lost.");
+            PlayerMaxWater = Main.configToEdit.Bind("PLAYER", "Player water meter", (int)SurvivalConstants.kMaxStat, "Your water meter will be capped at this value");
+            playerFullWater = Main.configToEdit.Bind("PLAYER", "Player water effectiveness threshold", (int)SurvivalConstants.kMaxStat, "Water you drink will be less effective if your water meter is above this value. The closer your water meter to 'Player water meter' setting the more water will be lost.");
+        }
 
         private static Dictionary<TechType, int> ParseIntDicFromString(string input)
         {

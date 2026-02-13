@@ -18,6 +18,7 @@ namespace Tweaks_Fixes
 
         public static void AddCyclopsCollisionExclusion(GameObject go, SubControl subControl = null)
         {
+            //AddDebug("AddCyclopsCollisionExclusion " + go.name);
             if (subControl == null)
             {
                 if (Player.main.currentSub == null || Player.main.currentSub.isCyclops == false)
@@ -42,21 +43,64 @@ namespace Tweaks_Fixes
             {
                 if (c == null)
                     continue;
+
                 foreach (Collider myCol in myCols)
                     Physics.IgnoreCollision(myCol, c);
             }
         }
 
-        [HarmonyPatch(typeof(Constructable), "Start")]
-        class Constructable_Start_Patch
+        public static void RemoveCyclopsCollisionExclusion(GameObject go, SubControl subControl = null)
         {
-            public static void Postfix(Constructable __instance)
+            //AddDebug("RemoveCyclopsCollisionExclusion " + go.name);
+            if (subControl == null)
+            {
+                if (Player.main.currentSub == null || Player.main.currentSub.isCyclops == false)
+                    return;
+
+                subControl = Player.main.currentSub.GetComponent<SubControl>();
+            }
+            if (subColliders.ContainsKey(subControl) == false)
+                return;
+
+            Collider[] myCols = go.GetAllComponentsInChildren<Collider>();
+            if (myCols == null || myCols.Length == 0)
+                return;
+
+            //AddDebug($"RemoveCyclopsCollisionExclusion {go.name} {myCols.Length}");
+            foreach (Collider c in subColliders[subControl])
+            {
+                if (c == null)
+                    continue;
+
+                foreach (Collider myCol in myCols)
+                    Physics.IgnoreCollision(myCol, c, false);
+            }
+        }
+
+        [HarmonyPatch(typeof(Constructable))]
+        class Constructable_Patch
+        {
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(Constructable __instance)
             {
                 SubControl subControl = __instance.GetComponentInParent<SubControl>();
                 if (subControl == null || subControl.name == "__LIGHTMAPPED_PREFAB__")
                     return;
 
                 AddCyclopsCollisionExclusion(__instance.gameObject, subControl);
+            }
+            //[HarmonyPatch(typeof(Constructable), "DeconstructAsync")]
+            public static void DeconstructAsyncPostfix(Constructable __instance)
+            {
+                SubControl subControl = __instance.GetComponentInParent<SubControl>();
+                if (subControl == null || subControl.name == "__LIGHTMAPPED_PREFAB__")
+                    return;
+
+                if (__instance.constructedAmount <= 0f)
+                {
+                    //AddDebug(" deconstructed " + __instance.techType + " " + __instance.constructedAmount);
+                    RemoveCyclopsCollisionExclusion(__instance.gameObject);
+                }
             }
         }
 

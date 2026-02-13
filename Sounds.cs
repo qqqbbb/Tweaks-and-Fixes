@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static ErrorMessage;
+using static KnownTech;
 
 namespace Tweaks_Fixes
 {
@@ -48,6 +49,52 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(uGUI_PopupNotification), "OnAnalyze")]
+        class uGUI_PopupNotification_OnAnalyze_Patch
+        {
+            static bool Prefix(uGUI_PopupNotification __instance, AnalysisTech analysis, bool verbose)
+            {
+                //AddDebug("uGUI_PopupNotification OnAnalyze " + analysis.techType + " " + verbose);
+                if (ConfigToEdit.silentBlueprintUnlockNotification.Value == false)
+                    return true;
+
+                if (verbose)
+                {
+                    uGUI_PopupNotification.Entry entry = new uGUI_PopupNotification.Entry
+                    {
+                        duration = __instance.defaultDuration,
+                        skin = PopupNotificationSkin.Unlock,
+                        title = Language.main.Get(analysis.unlockMessage),
+                        text = Language.main.Get(analysis.techType.AsString()),
+                        sprite = analysis.unlockPopup,
+                        //sound = analysis.unlockSound
+                    };
+                    __instance.Enqueue(entry);
+                }
+                return false;
+            }
+        }
+
+
+        //[HarmonyPatch(typeof(uGUI_PopupNotification), "Enqueue")]
+        class uGUI_PopupNotification_Enqueue_Patch
+        {
+            static void Prefix(uGUI_PopupNotification __instance, ref uGUI_PopupNotification.Entry entry)
+            {
+                AddDebug("uGUI_PopupNotification Enqueue " + entry.id);
+                if (ConfigToEdit.silentBlueprintUnlockNotification.Value)
+                    entry.sound = null;
+            }
+        }
+
+        //[HarmonyPatch(typeof(uGUI_PopupNotification), "OnResourceDiscovered")]
+        class uGUI_PopupNotification_OnResourceDiscovered_Patch
+        {
+            static void Prefix(uGUI_PopupNotification __instance, TechType techType)
+            {
+                AddDebug("uGUI_PopupNotification OnResourceDiscovered " + techType);
+            }
+        }
 
 
     }

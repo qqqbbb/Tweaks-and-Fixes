@@ -136,7 +136,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(IntroFireExtinguisherHandTarget))]
         class IntroFireExtinguisherHandTarget_Patch
         {
-            [HarmonyPrefix,HarmonyPatch("Start")]
+            [HarmonyPrefix, HarmonyPatch("Start")]
             static bool StartPrefix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget Start");
@@ -147,7 +147,7 @@ namespace Tweaks_Fixes
                 }
                 return false;
             }
-            [HarmonyPostfix,HarmonyPatch("UseVolume")]
+            [HarmonyPostfix, HarmonyPatch("UseVolume")]
             static void StartPostfix(IntroFireExtinguisherHandTarget __instance)
             {
                 //AddDebug("IntroFireExtinguisherHandTarget UseVolume");
