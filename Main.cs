@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.11.0";
+            VERSION = "4.10.3";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -108,6 +108,7 @@ namespace Tweaks_Fixes
                 Inventory.main.quickSlots.SelectImmediate(configMain.activeSlot);
 
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip"));
+            //LanguageHandle r.SetTechTypeTooltip(TechType.SeamothElectricalDefense, Language.main.Get("TF_bladderfish_tooltip"));
 
             Survival_.RemoveCookedFish();
             Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_.OnPlayerUnderwaterChanged));
@@ -231,10 +232,10 @@ namespace Tweaks_Fixes
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             GetLoadedMods();
-            if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
-            {
-                CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
-            }
+            //if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
+            //{
+            //    CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
+            //}
             //CustomSpawns();
             Logger.LogInfo($"Plugin {MODNAME} {VERSION} is loaded ");
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
