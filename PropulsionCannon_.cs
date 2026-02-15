@@ -127,7 +127,7 @@ namespace Tweaks_Fixes
                         {
                             __instance.propulsionCannon.ReleaseGrabbedObject();
                             Main.survival.Eat(grabbedEatable.gameObject);
-                            UnityEngine.Object.Destroy(grabbedEatable.gameObject);
+                            Util.DestroyEntity(grabbedEatable.gameObject);
                         }
                     }
                     sb.Append(grabbedObjectPickupText);
@@ -344,12 +344,12 @@ namespace Tweaks_Fixes
                 {
                     SpawnOnKill spawnOnKill = target.GetComponent<SpawnOnKill>();
                     target = UnityEngine.Object.Instantiate(spawnOnKill.prefabToSpawn, spawnOnKill.transform.position, spawnOnKill.transform.rotation);
-                    UnityEngine.Object.Destroy(spawnOnKill.gameObject);
+                    Util.DestroyEntity(spawnOnKill.gameObject);
                 }
                 else if (tt == TechType.CoralShellPlate)
                 {
                     UWE.CoroutineHost.StartCoroutine(SpawnCoralDiskAsync(__instance, target.transform.position));
-                    UnityEngine.Object.Destroy(target);
+                    Util.DestroyEntity(target);
                     return false;
                 }
                 else if (tt == TechType.LimestoneChunk || tt == TechType.SandstoneChunk || tt == TechType.ShaleChunk || target.name == "TreaderShale(Clone)")

@@ -124,7 +124,7 @@ namespace Tweaks_Fixes
                 if (camerasToRemove > 0)
                 {
                     //AddDebug(" Destroy camera ");
-                    UnityEngine.Object.Destroy(__instance.gameObject);
+                    Util.DestroyEntity(__instance.gameObject);
                     camerasToRemove--;
                     return false;
                 }

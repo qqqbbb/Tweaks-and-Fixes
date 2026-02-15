@@ -36,7 +36,7 @@ namespace Tweaks_Fixes
                     }
                 }
                 //AddDebug("RemoveCorpse " + cd.name);
-                UnityEngine.Object.Destroy(cd.gameObject);
+                Util.DestroyEntity(cd.gameObject);
             }
         }
 

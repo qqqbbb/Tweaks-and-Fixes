@@ -242,14 +242,17 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnProtoDeserialize")]
             static void OnProtoDeserializePostfix(Plantable __instance)
             {
-                if (!ConfigToEdit.fixMelons.Value)
-                    return;
-
-                if (__instance.plantTechType == TechType.MelonPlant)
+                if (ConfigToEdit.fixMelons.Value && __instance.plantTechType == TechType.MelonPlant)
                 {
                     //AddDebug("Plantable OnProtoDeserialize " + __instance.plantTechType);
                     //AddDebug("Planter AddItem fix " + p.plantTechType);
                     __instance.size = Plantable.PlantSize.Large;
+                }
+                if (!ConfigToEdit.canReplantMelon.Value)
+                {
+                    TechType tt = __instance.plantTechType;
+                    if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)
+                        UnityEngine.Object.Destroy(__instance);
                 }
             }
 
@@ -266,6 +269,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
+
 
 
     }

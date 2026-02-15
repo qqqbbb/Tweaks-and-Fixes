@@ -14,19 +14,7 @@ namespace Tweaks_Fixes
             {
                 Transform light = __instance.transform.Find("DataboxLightContainer");
                 if (light)
-                {
-                    LargeWorldEntity lwe = light.GetComponentInChildren<LargeWorldEntity>();
-                    if (lwe)
-                    {
-                        LargeWorldStreamer lws = LargeWorldStreamer.main;
-                        if (lws && lws.IsReady())
-                        {
-                            //AddDebug("UnregisterEntity");
-                            lws.cellManager.UnregisterEntity(lwe);
-                        }
-                    }
-                    UnityEngine.Object.Destroy(light.gameObject);
-                }
+                    Util.DestroyEntity(light.gameObject);
             }
         }
 

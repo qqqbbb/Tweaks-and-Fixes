@@ -143,7 +143,7 @@ namespace Tweaks_Fixes
                 if (Utils.GetContinueMode() && Main.configMain.pickedUpFireExt.Contains(SaveLoadManager.main.currentSlot))
                 {
                     __instance.extinguisherModel.SetActive(false);
-                    UnityEngine.Object.Destroy(__instance.gameObject);
+                    Util.DestroyEntity(__instance.gameObject);
                 }
                 return false;
             }

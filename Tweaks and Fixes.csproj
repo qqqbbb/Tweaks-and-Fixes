@@ -138,6 +138,7 @@
     <Compile Include="Base_Light.cs" />
     <Compile Include="Base_Collision.cs" />
     <Compile Include="Base_.cs" />
+    <Compile Include="Eatable_.cs" />
     <Compile Include="CoffeeMaker.cs" />
     <Compile Include="Constructor_.cs" />
     <Compile Include="CoralBlendWhite_.cs" />

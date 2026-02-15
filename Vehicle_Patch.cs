@@ -1343,7 +1343,7 @@ namespace Tweaks_Fixes
                     {
                         pickupable.Pickup(false);
                         if (__instance.container.AddItem(pickupable) == null)
-                            UnityEngine.Object.Destroy(pickupable.gameObject);
+                            Util.DestroyEntity(pickupable.gameObject);
                     }
                 }
             }

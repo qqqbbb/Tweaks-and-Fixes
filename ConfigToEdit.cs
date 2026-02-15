@@ -300,7 +300,7 @@ namespace Tweaks_Fixes
             dropItemsAnywhere = Main.configToEdit.Bind("PLAYER", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except cyclops and grab items in your base with propulsion cannon.");
             //disableIonCubeFabricator = Main.configToEdit.Bind("", "Disable ion cube fabricator at the Primary containment facility", false);
             showTempFahrenhiet = Main.configToEdit.Bind("UI", "Show temperature in Fahrenhiet instead of Celcius", false, "");
-            fixScreenResolution = Main.configToEdit.Bind("MISC", "Fix screen resolution", false, "The game sometimes resets screen resolution to desktop one. Set this to true to fix it.");
+            fixScreenResolution = Main.configToEdit.Bind("MISC", "Fix screen resolution", false, "The game sometimes resets resolution to desktop one. Set this to true to fix it.");
             removeCreditsButton = Main.configToEdit.Bind("MENU BUTTONS", "Remove credits button from main menu", false);
             removeRedeemButton = Main.configToEdit.Bind("MENU BUTTONS", "Remove redeem key button from options menu", false);
             removeTroubleshootButton = Main.configToEdit.Bind("MENU BUTTONS", "Remove troubleshooting button from options menu", false);

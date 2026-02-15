@@ -185,9 +185,7 @@ namespace Tweaks_Fixes
                 else if (food > 0 && __instance.food > foodOkThreshold && __instance.food - food < foodOkThreshold)
                     __instance.vitalsOkNotification.Play();
 
-                if (food > 0 || water > 0)
-                    FMODUWE.PlayOneShot(TechData.GetSoundUse(techType), Player.main.transform.position);
-
+                FMODUWE.PlayOneShot(TechData.GetSoundUse(techType), Player.main.transform.position);
                 __result = true;
                 return false;
             }
@@ -227,66 +225,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Eatable))]
-        class Eatable_patch
-        {
-            [HarmonyPrefix, HarmonyPatch("Awake")]
-            public static void AwakePrefix(Eatable __instance)
-            {
-                if (ConfigMenu.foodDecayRateMult.Value == 0)
-                { // does not work for dead fish
-                    __instance.decomposes = false;
-                }
-            }
-            [HarmonyPostfix, HarmonyPatch("Awake")]
-            public static void AwakePostfix(Eatable __instance)
-            {
-                //if (!Main.loadingDone)
-                //{
-                //    EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
-                //    if (ecoTarget && ecoTarget.type == EcoTargetType.DeadMeat && ecoTarget.transform.parent.name == "CellRoot(Clone)")
-                //    {
-                //AddDebug("DeadMeat " + ecoTarget.name + " PARENT " + ecoTarget.transform.parent.name);
-                //Destroy(__instance.gameObject);
-                if (__instance.decomposes && ConfigMenu.foodDecayRateMult.Value != 1)
-                {
-                    __instance.kDecayRate *= ConfigMenu.foodDecayRateMult.Value;
-                }
-                if (ConfigMenu.fishFoodWaterRatio.Value > 0)
-                {
-                    if (Util.IsRawFish(__instance.gameObject) && __instance.foodValue > 0)
-                        __instance.waterValue = __instance.foodValue * ConfigMenu.fishFoodWaterRatio.Value * .01f;
-                }
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //Main.logger.LogMessage("Eatable awake " + tt + " eatableFoodValue.ContainsKey " + Main.config.eatableFoodValue.ContainsKey(tt));
-                //if (Main.config.eatableFoodValue.ContainsKey(tt))
-                //    __instance.foodValue = Main.config.eatableFoodValue[tt];
-                //if (Main.config.eatableWaterValue.ContainsKey(tt))
-                //    __instance.waterValue = Main.config.eatableWaterValue[tt];
-            }
-            [HarmonyPrefix, HarmonyPatch("SetDecomposes")]
-            public static void SetDecomposesPrefix(Eatable __instance, ref bool value)
-            { // SetDecomposes runs when fish killed
-                if (value && ConfigMenu.foodDecayRateMult.Value == 0)
-                    value = false;
-            }
-            [HarmonyPrefix, HarmonyPatch("IterateDespawn")]
-            public static bool IterateDespawnPrefix(Eatable __instance)
-            {// fix bug: dead fish in player hand despawns
-                if (__instance.gameObject.activeSelf && __instance.IsRotten() && DayNightCycle.main.timePassedAsFloat - __instance.timeDespawnStart > __instance.despawnDelay)
-                {
-                    PlayerTool tool = Inventory.main.GetHeldTool();
-                    if (tool)
-                    {
-                        Eatable eatable = tool.GetComponent<Eatable>();
-                        if (eatable && eatable == __instance)
-                            return false;
-                    }
-                }
-                return true;
-            }
-        }
-
         [HarmonyPatch(typeof(EcoTarget), "OnEnable")]
         class EcoTarget_OnEnable_patch
         {
@@ -303,79 +241,11 @@ namespace Tweaks_Fixes
         {
             foreach (GameObject go in cookedFish)
             {
-                UnityEngine.Object.Destroy(go);
+                Util.DestroyEntity(go);
             }
             cookedFish.Clear();
         }
 
-        [HarmonyPatch(typeof(Plantable), "OnProtoDeserialize")]
-        class Inventory_OnProtoDeserialize_patch
-        {
-            public static void Postfix(Plantable __instance)
-            {
-                //AddDebug(" OnProtoDeserialize " + __instance.plantTechType);
-                if (!ConfigToEdit.canReplantMelon.Value)
-                {
-                    TechType tt = __instance.plantTechType;
-                    if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)
-                        UnityEngine.Object.Destroy(__instance);
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(ItemsContainer), "NotifyRemoveItem")]
-        class ItemsContainer_NotifyRemoveItem_patch
-        {
-            public static void Postfix(ItemsContainer __instance, InventoryItem item)
-            {
-                //if (crafterOpem && Inventory.main._container == __instance)
-                //if (Main.config.foodTweaks && Main.crafterOpen)
-                { // cooking fish
-                  //TechType tt = item.item.GetTechType();
-
-                    if (Util.IsRawFish(item.item.gameObject))
-                    {
-                        Eatable eatable = item.item.GetComponent<Eatable>();
-                        //AddDebug(" NotifyRemoveItem timeDecayStart " + eatable.timeDecayStart);
-                        //AddDebug(" NotifyRemoveItem waterValue " + eatable.GetWaterValue() + " " + eatable.GetFoodValue());
-                        //waterValueMult = eatable.GetWaterValue() / eatable.waterValue;
-                        //foodValueMult = eatable.GetFoodValue() / eatable.foodValue;
-                        //timeDecayStart = eatable.timeDecayStart;
-                    }
-                    //else
-                    //    timeDecayStart = 0f;
-                    //{
-                    //    waterValueMult = 1f;
-                    //    foodValueMult = 1f;
-                    //}
-                }
-            }
-        }
-
-
-        //[HarmonyPatch(typeof(YourTargetClass))] // Replace with the class containing UpdateHunger
-        //[HarmonyPatch("UpdateHunger")]
-        //public static class UpdateHungerPatch
-        //{
-        //}
-
-        //[HarmonyPatch(typeof(Crafter), "OnCraftingBegin")]
-        class Crafter_OnCraftingBegin_patch
-        {
-            public static void Prefix(Crafter __instance, TechType techType)
-            {
-                //TechType tt = item.item.GetTechType();
-            }
-        }
-
-        //[HarmonyPatch(typeof(Crafter), "Craft")]
-        class Crafter_Craft_patch
-        {
-            public static void Prefix(Crafter __instance, TechType techType)
-            {
-                //TechType tt = item.item.GetTechType();
-            }
-        }
 
 
 

@@ -99,7 +99,7 @@ namespace Tweaks_Fixes
             cookedRB.velocity = rb_.velocity;
             cookedRB.angularDrag = 1;
             cookedRB.drag = 1; // WorldForces.Start overwrites drag 
-            UnityEngine.Object.Destroy(go);
+            DestroyEntity(go);
         }
 
         public static Component CopyComponent(Component original, GameObject destination)
@@ -749,6 +749,14 @@ namespace Tweaks_Fixes
             return UnityEngine.Random.Range(min, max);
         }
 
+        public static void DestroyEntity(GameObject go)
+        {
+            LargeWorldEntity lwe = go.GetComponentInChildren<LargeWorldEntity>();
+            if (lwe)
+                lwe.enabled = false;
+
+            UnityEngine.Object.Destroy(go);
+        }
 
 
     }

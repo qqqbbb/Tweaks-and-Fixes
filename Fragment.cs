@@ -29,10 +29,10 @@ namespace Tweaks_Fixes
                         __instance.Unregister();
                         if (IsFragmentCrate(__instance.transform.parent))
                         { // destroy fragment and crate
-                            UnityEngine.Object.Destroy(__instance.transform.parent.gameObject);
+                            Util.DestroyEntity(__instance.transform.parent.gameObject);
                         }
                         else
-                            UnityEngine.Object.Destroy(__instance.gameObject);
+                            Util.DestroyEntity(__instance.gameObject);
                     }
                 }
             }

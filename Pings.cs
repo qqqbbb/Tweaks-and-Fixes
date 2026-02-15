@@ -20,11 +20,7 @@ namespace Tweaks_Fixes
                 if (Player.main == null || ConfigToEdit.disablePingsInSub.Value == false)
                     return;
 
-                if (Player.main.currentSub && Player.main.currentSub.isCyclops == false)
-                {
-                    __result = false;
-                }
-                else if (Player.main.currentEscapePod)
+                if (Player.main.currentEscapePod || Player.main.currentSub && Player.main.currentSub.isCyclops == false)
                 {
                     __result = false;
                 }

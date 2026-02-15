@@ -383,10 +383,7 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded)
                     return;
 
-                //if (__instance._radiationAmount > 0)
-                //{
-                //    AddDebug("rad " + __instance._radiationAmount);
-                //}
+                //AddDebug("IntroLifepodDirector.IsActive " + IntroLifepodDirector.IsActive);
                 //PrintRawBiomeNames();
                 //AddDebug("Grounded " + __instance.ground
                 //Motor.IsGrounded());

@@ -18,7 +18,7 @@ namespace Tweaks_Fixes
         public static void DestroyDecoys()
         {
             for (int i = decoysToDestroy.Count - 1; i >= 0; i--)
-                UnityEngine.Object.Destroy(decoysToDestroy[i]);
+                Util.DestroyEntity(decoysToDestroy[i]);
         }
 
         public class DestroyOnDisable : MonoBehaviour
