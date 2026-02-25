@@ -727,7 +727,7 @@ namespace Tweaks_Fixes
 
         static public float GetFishFoodValue(float food)
         {
-            if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmless || food <= 0)
+            if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_default_setting || food <= 0)
                 return food;
 
             float min = 0, max = 0;

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -11,6 +12,22 @@ namespace Tweaks_Fixes
     {
         static CyclopsEntryHatch cyclopsEntryHatch;
         public static Color cyclopsLightColor;
+        private static readonly Type[] componentsToRemoveFromDestroyedCyclops = new Type[]
+     {
+            typeof(SubControl),
+            typeof(OxygenManager),
+            typeof(ConditionRules),
+            typeof(DepthAlarms),
+            typeof(DealDamageOnImpact),
+            typeof(Stabilizer),
+            typeof(CrushDamage),
+            typeof(VoiceNotificationManager),
+            typeof(CreatureUtils),
+            typeof(CyclopsMotorMode),
+            typeof(CyclopsNoiseManager),
+            typeof(SubFire),
+            typeof(CyclopsDecoyManager),
+     };
 
         static int GetFireCountInEngineRoom(SubFire subFire)
         {
@@ -39,6 +56,67 @@ namespace Tweaks_Fixes
 
             //AddDebug("GetEngineOverheatMinValue " + overheatValue);
             return overheatValue;
+        }
+
+        private static void RemoveStuffFromDestroyedCyclops(GameObject go)
+        {
+            //AddDebug("RemoveStuffFromDestroyedCyclops");
+            WorldForces wf = go.GetComponent<WorldForces>();
+            if (wf)
+                wf.underwaterGravity *= .5f;
+
+            foreach (Type componentType in componentsToRemoveFromDestroyedCyclops)
+            {
+                Component component = go.GetComponent(componentType);
+                if (component != null)
+                    UnityEngine.Object.Destroy(component);
+            }
+            VoiceNotification[] vns = go.GetComponents<VoiceNotification>();
+            foreach (VoiceNotification vn in vns)
+                UnityEngine.Object.Destroy(vn);
+
+            UnityEngine.Object.Destroy(go.transform.Find("depthMeter")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("SubHorn")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("directControlAudio")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("CreatureSonarDetector")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("Compass")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("HelmHUD")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("SonarMap_Small")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("FloodAlarm")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("MoonpoolTrigger")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("cyclops_builtbot_paths")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("cyclops_beam_points")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("EntryHatch")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("ProximitySensors")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("ProximityWarning")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("Floodlights")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("ExternalCams")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("DecoyLauncher")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("DecoyLoadingTube")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("DecoyScreenHUD")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("RespawnPoint")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("EngineRpmSFX")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("WaterClipProxy")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("HolographicDisplay")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("__disabled")?.gameObject);
+            UnityEngine.Object.Destroy(go.transform.Find("CyclopsLightStatics")?.gameObject);
+
+            Transform tr = go.transform.Find("CyclopsVehicleStorageTerminal");
+            if (tr)
+            {
+                for (int i = 2; i < tr.childCount; i++)
+                    tr.GetChild(i).gameObject.SetActive(false);
+            }
+            tr = go.transform.Find("CyclopsFabricator(Clone)");
+            if (tr)
+            {
+                UnityEngine.Object.Destroy(tr.GetComponent<Fabricator>());
+                UnityEngine.Object.Destroy(tr.GetComponent<CrafterLogic>());
+                UnityEngine.Object.Destroy(tr.GetComponent<CrafterGhostModel>());
+
+                for (int i = 0; i < tr.childCount - 1; i++)
+                    tr.GetChild(i).gameObject.SetActive(false);
+            }
         }
 
         [HarmonyPatch(typeof(VehicleDockingBay))]
@@ -281,8 +359,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SubControl))]
         class SubControl_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(SubControl __instance)
             {
                 if (__instance.name == "__LIGHTMAPPED_PREFAB__")
@@ -299,21 +376,12 @@ namespace Tweaks_Fixes
                 if (wf) // prevent it from jumping out of water when surfacing
                     wf.aboveWaterGravity = 20f;
 
+                LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                if (lm && lm.IsAlive() == false)
+                    RemoveStuffFromDestroyedCyclops(__instance.gameObject);
+
+
                 //AddDebug("Start numBallastWeight " + numBallastWeight);
-                //tr = __instance.transform.Find("Headlights");
-                //if (tr) // not used
-                //    UnityEngine.Object.Destroy(tr.gameObject);
-
-                //Light_Control.lightOrigIntensity[TechType.Cyclops] = 2f;
-                //Light_Control.lightIntensityStep[TechType.Cyclops] = .2f;
-
-                //if (Light_Control.IsLightSaved(TechType.Cyclops))
-                //{
-                //    float intensity = Light_Control.GetLightIntensity(TechType.Cyclops);
-                //    foreach (Light l in __instance.transform.Find("Floodlights").GetComponentsInChildren<Light>(true))
-                //        l.intensity = intensity;
-                //}
-
             }
 
         }
@@ -417,9 +485,6 @@ namespace Tweaks_Fixes
                 //AddDebug("DockVehicle");
             }
         }
-
-
-
 
         [HarmonyPatch(typeof(CyclopsLightingPanel))]
         public class CyclopsLightingPanel_Patch
@@ -525,6 +590,12 @@ namespace Tweaks_Fixes
             { // fix bug: player respawns in destroyed cyclops
                 __instance.subLiveMixin.Kill();
                 //AddDebug("CyclopsDestructionEvent DestroyCyclops IsAlive " + __instance.subLiveMixin.IsAlive());
+            }
+            [HarmonyPostfix, HarmonyPatch("SwapToDamagedModels")]
+            static void SwapToDamagedModelsPostfix(CyclopsDestructionEvent __instance)
+            {
+                RemoveStuffFromDestroyedCyclops(__instance.gameObject);
+
             }
         }
 

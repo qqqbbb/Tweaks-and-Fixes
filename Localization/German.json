@@ -36,6 +36,7 @@
 
 "TF_time_flow": "Zeitfluss-Geschwindigkeitsmultiplikator",
 "TF_time_flow_desc": "Je höher der Wert, desto kürzer die Tage. Beeinflusst auch Fertigungszeit, Bauzeit und Ladezeit von Akkus",
+"TF_night_duration": "Nachtdauer in Stunden",
 "TF_food_loss_mult": "Nahrungsverlust-Multiplikator",
 "TF_water_loss_mult": "Wasserverlust-Multiplikator",
 "TF_food_loss_mult_desc": "Der Nahrungswert, den du bei jeder Hungersaktualisierung verlierst, wird hiermit multipliziert",

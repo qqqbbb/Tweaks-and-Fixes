@@ -70,8 +70,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> foodLossMult;
         public static ConfigEntry<float> waterLossMult;
         public static ConfigEntry<int> foodHealThreshold;
-
-        //public static ConfigEntry<bool> toolsUItweaks;
+        public static ConfigEntry<float> nightDuration;
         public static ConfigEntry<float> subtitlesDelay;
 
 
@@ -79,6 +78,7 @@ namespace Tweaks_Fixes
         {
 
             timeFlowSpeed = Main.configMenu.Bind("", "TF_time_flow", 1f, "TF_time_flow_desc");
+            nightDuration = Main.configMenu.Bind("", "TF_night_duration", 6f, "");
             foodLossMult = Main.configMenu.Bind("", "TF_food_loss_mult", 1f, "TF_food_loss_mult_desc");
             waterLossMult = Main.configMenu.Bind("", "TF_water_loss_mult", 1f, "TF_water_loss_mult_desc");
             playerWaterSpeedMult = Main.configMenu.Bind("Player_movement", "TF_player_speed_mult_water", 1f);

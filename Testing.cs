@@ -6,6 +6,7 @@ using Nautilus.Handlers;
 using Nautilus.Options;
 using Nautilus.Options.Attributes;
 using Nautilus.Utility;
+using Story;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -155,16 +156,12 @@ namespace Tweaks_Fixes
             //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
         }
 
-        //[HarmonyPatch(typeof(VFXSurfaceTypeManager), "Play", new Type[] { typeof(VFXSurface), typeof(VFXEventTypes), typeof(Vector3), typeof(Quaternion), typeof(Transform) })]
-        class VFXSurfaceTypeManager_Play_patch
+        //[HarmonyPatch(typeof(StoryGoal), "Trigger")]
+        class StoryGoal_Trigger_patch
         {
-            public static void Postfix(VFXSurfaceTypeManager __instance, VFXSurface surface, VFXEventTypes eventType)
-            //public static void Postfix(VFXSurfaceTypeManager __instance, VFXSurfaceTypes surfaceType, VFXEventTypes eventType)
+            public static void Postfix(StoryGoal __instance)
             {
-                if (surface == null)
-                    AddDebug($"VFXSurfaceTypeManager Play surface == nul");
-                else
-                    AddDebug($"VFXSurfaceTypeManager Play {surface.surfaceType} {eventType}");
+                AddDebug("StoryGoal Trigger " + __instance.key + " delay " + __instance.delay);
             }
         }
 
@@ -364,14 +361,38 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(KnownTech), "NotifyAnalyze")]
-        class KnownTech_NotifyAnalyze_Patch
+        //[HarmonyPatch(typeof(AuroraWarnings), "Update")]
+        class AuroraWarnings_Update_Patch
         {
-            static bool Prefix(AnalysisTech analysis, bool verbose)
+            static bool Prefix(AuroraWarnings __instance)
             {
-                AddDebug("KnownTech NotifyAnalyze " + analysis.techType + " " + verbose);
-                verbose = false;
-                return true;
+                if (Main.gameLoaded == false)
+                    return false;
+
+                __instance.timeMonitor.Update(DayNightCycle.main.timePassedAsFloat);
+                float timeToStartWarning = CrashedShipExploder.main.GetTimeToStartWarning();
+                float timeToStartCountdown = CrashedShipExploder.main.GetTimeToStartCountdown();
+                if (__instance.timeMonitor.JustWentAbove(timeToStartCountdown))
+                {
+                    AddDebug("AuroraWarnings 4 ");
+                    __instance.auroraWarning4.Trigger();
+                }
+                else if (__instance.timeMonitor.JustWentAbove(Mathf.Lerp(timeToStartWarning, timeToStartCountdown, 0.8f)))
+                {
+                    AddDebug("AuroraWarnings 3 ");
+                    __instance.auroraWarning3.Trigger();
+                }
+                else if (__instance.timeMonitor.JustWentAbove(Mathf.Lerp(timeToStartWarning, timeToStartCountdown, 0.5f)))
+                {
+                    AddDebug("AuroraWarnings 2 ");
+                    __instance.auroraWarning2.Trigger();
+                }
+                else if (__instance.timeMonitor.JustWentAbove(Mathf.Lerp(timeToStartWarning, timeToStartCountdown, 0.2f)))
+                {
+                    AddDebug("AuroraWarnings 1 ");
+                    __instance.auroraWarning1.Trigger();
+                }
+                return false;
             }
         }
 
@@ -388,7 +409,7 @@ namespace Tweaks_Fixes
                 //AddDebug("Grounded " + __instance.ground
                 //Motor.IsGrounded());
                 //AddDebug("mode " + __instance.mode);
-                if (Input.GetKeyDown(KeyCode.B))
+                if (Keyboard.current.bKey.wasPressedThisFrame)
                 {
                     //if (Player.main.IsInBase())
                     //    AddDebug("IsInBase");
@@ -406,6 +427,14 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    if (DayNightCycle.main == null)
+                        AddDebug("DayNightCycle.main == null)");
+                    else
+                    {
+                        //DayNightCycle.main.sunRiseTime = .4f;
+                        //DayNightCycle.main.sunSetTime = .6f;
+                        AddDebug($"sunRiseTime {DayNightCycle.main.sunRiseTime} sunSetTime {DayNightCycle.main.sunSetTime}");
+                    }
                     //string s = ConfigMenu.GetLocString("TF_time_flow_desc");
                     //AddDebug(s);
                     //AddDebug("UsedStorageCount " + Inventory.main.GetUsedStorageCount());
@@ -423,7 +452,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    printTarget(true, false);
+                    //printTarget(true, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
@@ -454,19 +483,21 @@ namespace Tweaks_Fixes
                 }
             }
 
-            private static void DumpEncy()
+
+        }
+
+        private static void DumpEncy()
+        {
+            Main.logger.LogMessage("Dump ency");
+            AddDebug("Dump ency");
+            foreach (var kv in PDAEncyclopedia.mapping)
             {
-                Main.logger.LogMessage("Dump ency");
-                AddDebug("Dump ency");
-                foreach (var kv in PDAEncyclopedia.mapping)
+                PDAEncyclopedia.EntryData data = kv.Value;
+                Main.logger.LogMessage($"{kv.Key}  key: {data.key} path: {data.path} unlocked: {data.unlocked}");
+                if (data.nodes != null && data.nodes.Length > 0)
                 {
-                    PDAEncyclopedia.EntryData data = kv.Value;
-                    Main.logger.LogMessage($"{kv.Key}  key: {data.key} path: {data.path} unlocked: {data.unlocked}");
-                    if (data.nodes != null && data.nodes.Length > 0)
-                    {
-                        for (int i = 0; i < data.nodes.Length; i++)
-                            Main.logger.LogMessage($"{kv.Key}   node {i} {data.nodes[i]}");
-                    }
+                    for (int i = 0; i < data.nodes.Length; i++)
+                        Main.logger.LogMessage($"{kv.Key}   node {i} {data.nodes[i]}");
                 }
             }
         }

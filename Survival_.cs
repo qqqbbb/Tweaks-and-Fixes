@@ -95,7 +95,6 @@ namespace Tweaks_Fixes
                     foodToLose *= ConfigToEdit.foodLossMultSprint.Value;
                     waterToLose *= ConfigToEdit.foodLossMultSprint.Value;
                 }
-                //AddDebug("UpdateStats foodToLose " + foodToLose);
                 survival.food -= foodToLose * ConfigMenu.foodLossMult.Value;
                 survival.water -= waterToLose * ConfigMenu.waterLossMult.Value;
                 float starveDamage = 0;
@@ -110,6 +109,7 @@ namespace Tweaks_Fixes
                     starveDamage = ConfigToEdit.starveDamage.Value;
                     survival.water = minWater;
                 }
+                //AddDebug("UpdateStats foodToLose " + foodToLose + " starveDamage " + starveDamage);
                 float foodLowThreshold = Mathf.Lerp(minFood, ConfigToEdit.playerFullFood.Value, foodLowScalar);
                 float waterLowThreshold = Mathf.Lerp(minWater, ConfigToEdit.playerFullWater.Value, waterLowScalar);
                 float foodCriticalThreshold = Mathf.Lerp(minFood, ConfigToEdit.playerFullFood.Value, foodCriticalScalar);
@@ -139,6 +139,8 @@ namespace Tweaks_Fixes
                 float playerFullWater = ConfigToEdit.playerFullWater.Value;
                 float playerMaxFood = ConfigToEdit.playerMaxFood.Value;
                 float playerFullFood = ConfigToEdit.playerFullFood.Value;
+                float playerHunger = ConfigToEdit.hungerThreshold.Value;
+                float playerThirst = ConfigToEdit.thirstThreshold.Value;
                 //AddDebug($"playerMinFood {playerMinFood} playerMaxFood {playerMaxFood}");
 
                 TechType techType = CraftData.GetTechType(useObj);
@@ -147,20 +149,40 @@ namespace Tweaks_Fixes
                     if (useObj.TryGetComponent(out Pickupable p))
                         techType = p.GetTechType();
                 }
+                //AddDebug($"initial food {food} ");
                 if (Util.IsRawFish(useObj))
                 {
                     food = Util.GetFishFoodValue(food);
                     water = Util.GetFishFoodValue(water);
+                    //AddDebug($"IsRawFish food {food} ");
                 }
-                if (food > 0 && __instance.food > playerFullFood && playerFullFood < playerMaxFood)
+                if (food > 0)
                 {
-                    float mult = (playerMaxFood - __instance.food) * .01f;
-                    food *= mult;
+                    if (__instance.food > playerFullFood && playerFullFood < playerMaxFood)
+                    {
+                        float mult = (playerMaxFood - __instance.food) * .01f;
+                        //AddDebug($"playerMinFood {playerMaxFood} mult {mult}");
+                        food *= mult;
+                    }
+                    if (__instance.food < playerHunger && playerMinFood < playerHunger)
+                    {
+                        float mult = Util.NormalizeToRange(__instance.food, playerMinFood, playerHunger, .5f, 1f);
+                        //AddDebug($"playerMinFood {playerMinFood} playerHunger {playerHunger} mult {mult}");
+                        food *= mult;
+                    }
                 }
-                if (water > 0 && __instance.water > playerFullWater && playerFullWater < playerMaxWater)
+                if (water > 0)
                 {
-                    float mult = (playerMaxWater - __instance.water) * .01f;
-                    water *= mult;
+                    if (__instance.water > playerFullWater && playerFullWater < playerMaxWater)
+                    {
+                        float mult = (playerMaxWater - __instance.water) * .01f;
+                        water *= mult;
+                    }
+                    if (__instance.water < playerThirst && playerMinWater < playerThirst)
+                    {
+                        float mult = Util.NormalizeToRange(__instance.water, playerMinWater, playerThirst, .5f, 1f);
+                        water *= mult;
+                    }
                 }
                 __instance.onEat.Trigger(food);
                 __instance.food += food;

@@ -38,6 +38,7 @@
 
 "TF_time_flow": "时间流速倍率",
 "TF_time_flow_desc": "数值越高，一天时间越短。这也会影响制作时间、建造时间、电池充电时间",
+"TF_night_duration": "夜间时长（小时）",
 "TF_food_loss_mult": "食物消耗倍率",
 "TF_water_loss_mult": "水分消耗倍率",
 "TF_food_loss_mult_desc": "饥饿度更新时损失的食物值将乘以此倍率",

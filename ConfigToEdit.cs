@@ -178,6 +178,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> foodLossMultSprint;
         public static ConfigEntry<int> starvationThreshold;
         public static ConfigEntry<int> dehydrationThreshold;
+        public static ConfigEntry<int> hungerThreshold;
+        public static ConfigEntry<int> thirstThreshold;
         public static ConfigEntry<int> starveDamage;
         public static ConfigEntry<int> playerMaxFood;
         public static ConfigEntry<int> PlayerMaxWater;
@@ -312,7 +314,7 @@ namespace Tweaks_Fixes
             playerBreathBubbles = Main.configToEdit.Bind("PLAYER", "Player breath bubbles particle effect", true);
             playerBreathBubblesSoundFX = Main.configToEdit.Bind("PLAYER", "Player breath bubbles sound effect", true);
             medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
-            consistentHungerUpdateTime = Main.configToEdit.Bind("PLAYER", "Consistent hunger update time", false, "In vanilla game your hunger updates every 10 real time seconds. If this is true, hunger update interval will be divided by 'time flow speed multiplier' from the mod options.");
+            consistentHungerUpdateTime = Main.configToEdit.Bind("PLAYER", "Consistent hunger update time", false, "In vanilla game your hunger updates every 10 real time seconds. If this is true, hunger update interval will be divided by 'time flow speed multiplier' setting.");
             removeBigParticlesWhenKnifing = Main.configToEdit.Bind("CREATURES", "Remove big particles when slashing creatures with knife", false, "You will see less blood particles when slashing creatures with knife if this is true.");
             permPoisonDamage = Main.configToEdit.Bind("PLAYER", "Permanent poison damage percent", 0, new ConfigDescription("If this is more than 0 you will take not temporary but permanent health damage when poisoned. For example if this is 90, you will lose 0.9 health permanantly for every point of poison damage.", percentRange));
             poisonFoodDamage = Main.configToEdit.Bind("PLAYER", "Poison food damage percent", 0, new ConfigDescription("If this is more than 0 you will lose food or water instead of taking temporary health damage when poisoned. For example if this is 90, you will lose 0.9 food or water for every point of poison damage.", percentRange));
@@ -355,14 +357,18 @@ namespace Tweaks_Fixes
 
             silentBlueprintUnlockNotification = Main.configToEdit.Bind("MISC", "Silent notification when unlocking blueprint", false, "");
             disablePingsInSub = Main.configToEdit.Bind("UI", "Hide beacon icons when you are in your life pod or base", false, "");
-            starvationThreshold = Main.configToEdit.Bind("PLAYER", "Starvation threshold", 0, "You take damage when your food value is equal to or below this. Can be a negative value.");
-            dehydrationThreshold = Main.configToEdit.Bind("PLAYER", "Dehydration threshold", 0, "You take damage when your water value is equal to or below this. Can be a negative value.");
+            starvationThreshold = Main.configToEdit.Bind("PLAYER", "Starvation threshold", 0, "You take damage when your food value is equal to or below this.");
+            dehydrationThreshold = Main.configToEdit.Bind("PLAYER", "Dehydration threshold", 0, "You take damage when your water value is equal to or below this.");
             foodLossMultSprint = Main.configToEdit.Bind("PLAYER", "Food loss multiplier when sprinting", 1f, "Food and water values you lose when your hunger updates will be multiplied by this if you are sprinting.");
             starveDamage = Main.configToEdit.Bind("PLAYER", "Starvation damage", (int)SurvivalConstants.kStarveDamage, "");
             playerMaxFood = Main.configToEdit.Bind("PLAYER", "Player food meter", (int)SurvivalConstants.kMaxOverfillStat, "Your food meter will be capped at this value");
-            playerFullFood = Main.configToEdit.Bind("PLAYER", "Player food effectiveness threshold", (int)SurvivalConstants.kMaxStat, "Food you eat will be less effective if your food meter is above this value. The closer your food meter to 'Player food meter' setting the more food will be lost.");
+            playerFullFood = Main.configToEdit.Bind("PLAYER", "Fullness threshold", (int)SurvivalConstants.kMaxStat, "Food you eat will be less effective if your food meter is above this value. The closer your food meter to 'Player food meter' setting the more food will be lost.");
             PlayerMaxWater = Main.configToEdit.Bind("PLAYER", "Player water meter", (int)SurvivalConstants.kMaxStat, "Your water meter will be capped at this value");
-            playerFullWater = Main.configToEdit.Bind("PLAYER", "Player water effectiveness threshold", (int)SurvivalConstants.kMaxStat, "Water you drink will be less effective if your water meter is above this value. The closer your water meter to 'Player water meter' setting the more water will be lost.");
+            playerFullWater = Main.configToEdit.Bind("PLAYER", "Thirst quenching threshold", (int)SurvivalConstants.kMaxStat, "Water you drink will be less effective if your water meter is above this value. The closer your water meter to 'Player water meter' setting the more water will be lost.");
+            thirstThreshold = Main.configToEdit.Bind("PLAYER", "Thirst threshold", 0, "You have to drink more water if your water meter is below this value. The closer your water meter to 'Dehydration threshold' setting the more water you have to drink. When your water meter is at 'Dehydration threshold' only 1 point of water will be counted for every 2 points you drink.");
+            hungerThreshold = Main.configToEdit.Bind("PLAYER", "Hunger threshold", 0, "You have to eat more food if your food meter is below this value. The closer your food meter to 'Starvation threshold' setting the more food you have to eat. When your food meter is at 'Dehydration threshold' only 1 point of food will be counted for every 2 points you eat.");
+
+
         }
 
         private static Dictionary<TechType, int> ParseIntDicFromString(string input)

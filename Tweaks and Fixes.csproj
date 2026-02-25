@@ -157,7 +157,7 @@
     <Compile Include="CyclopsLocker_.cs" />
     <Compile Include="Damage_.cs" />
     <Compile Include="Databox_Light.cs" />
-    <Compile Include="DayNightCycle_.cs" />
+    <Compile Include="Time_flow_speed.cs" />
     <Compile Include="Decoy_Patch.cs" />
     <Compile Include="Drillable_.cs" />
     <Compile Include="Drop_items_anywhere.cs" />

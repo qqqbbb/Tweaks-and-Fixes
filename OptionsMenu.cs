@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
+using static ICSharpCode.SharpZipLib.Zip.ExtendedUnixData;
 
 namespace Tweaks_Fixes
 {
@@ -39,6 +40,8 @@ namespace Tweaks_Fixes
         {
             ModSliderOption timeFlowSpeedSlider = ConfigMenu.timeFlowSpeed.ToModSliderOption(.1f, 10f, .1f, "{0:0.#}");
             timeFlowSpeedSlider.OnChanged += UpdateTimeSpeed;
+            ModSliderOption nightDurationSlider = ConfigMenu.nightDuration.ToModSliderOption(0, 24, .1f, "{0:0.#}");
+            nightDurationSlider.OnChanged += UpdateNightDuration;
             ModSliderOption foodLossSlider = ConfigMenu.foodLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption waterLossSlider = ConfigMenu.waterLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption seaglideSpeedSlider = ConfigMenu.seaglideSpeedMult.ToModSliderOption(.5f, 2f, .1f, "{0:0.#}");
@@ -62,6 +65,7 @@ namespace Tweaks_Fixes
             ModSliderOption craftTimeSlider = ConfigMenu.craftTimeMult.ToModSliderOption(0.01f, 3f, .01f, "{0:0.#}");
             ModSliderOption buildTimeSlider = ConfigMenu.buildTimeMult.ToModSliderOption(0.01f, 3f, .01f, "{0:0.#}");
             ModSliderOption cyclopsFireChanceSlider = ConfigMenu.cyclopsFireChance.ToModSliderOption(0, 100, 1);
+
             ModSliderOption cyclopsAutoHealSlider = ConfigMenu.cyclopsAutoHealHealthPercent.ToModSliderOption(0, 100, 1);
             ModSliderOption crushDepthSlider = ConfigMenu.crushDepth.ToModSliderOption(50, 500, 10);
             ModSliderOption crushDamageSlider = ConfigMenu.crushDamage.ToModSliderOption(0f, 10f, .1f, "{0:0.#}");
@@ -91,6 +95,7 @@ namespace Tweaks_Fixes
 
 
             AddItem(timeFlowSpeedSlider);
+            AddItem(nightDurationSlider);
             AddItem(playerWaterSpeedSlider);
             AddItem(playerGroundSpeedSlider);
             AddItem(seaglideSpeedSlider);
@@ -153,6 +158,11 @@ namespace Tweaks_Fixes
             AddItem(subtitlesDelaySlider);
 
 
+        }
+
+        private void UpdateNightDuration(object sender, SliderChangedEventArgs e)
+        {
+            DayNightCycle_.UpdateNightDuration();
         }
 
         void UpdateTimeSpeed(object sender, SliderChangedEventArgs e)

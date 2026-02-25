@@ -38,6 +38,7 @@
 
 	"TF_time_flow": "Multiplicador de velocidad de flujo del tiempo",
 	"TF_time_flow_desc": "Cuanto mayor sea el valor, más cortos serán los días. Esto también afecta al tiempo de fabricación, construcción y carga de baterías",
+	"TF_night_duration": "Duración de la noche en horas",
 	"TF_food_loss_mult": "Multiplicador de pérdida de comida",
 	"TF_water_loss_mult": "Multiplicador de pérdida de agua",
 	"TF_food_loss_mult_desc": "El valor de comida que pierdes al actualizar tu hambre se multiplicará por esto",

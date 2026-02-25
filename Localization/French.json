@@ -36,6 +36,7 @@
 
 	"TF_time_flow": "Multiplicateur de vitesse d'écoulement du temps",
 	"TF_time_flow_desc": "Plus la valeur est élevée, plus les jours sont courts. Cela affecte aussi le temps de fabrication, de construction et de charge des batteries",
+	"TF_night_duration": "Durée de la nuit en heures",
 	"TF_food_loss_mult": "Multiplicateur de perte de nourriture",
 	"TF_water_loss_mult": "Multiplicateur de perte d'eau",
 	"TF_food_loss_mult_desc": "La valeur de nourriture perdue lors de la mise à jour de votre faim sera multipliée par ceci",

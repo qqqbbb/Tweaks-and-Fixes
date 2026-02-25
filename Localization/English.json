@@ -25,6 +25,8 @@
 	"TF_too_much_weight_message": "You are carrying too much weight",
 
 	"TF_move_all_items": "Transfer all items",
+	"TF_predator_aggr_mult": "Predator aggression multiplier",
+	"TF_predator_aggr_mult_desc":	"The higher it is the more aggressive predators are towards you. When it is 0, you and your vehicles will never be attacked. When it's more than 1 predators attack you from greater distance and more often.",
 	"TF_move_all_items_desc": "Hold down this key when taking an item from a container to take all items",
 	"TF_move_same_items": "Transfer identical items",
 	"TF_move_same_items_desc": "Hold down this key when taking an item from a container to take every identical item",
@@ -36,7 +38,8 @@
 	"TF_quick_slot_cycle_desc": "Hold down this key and press 'Cycle next' or 'Cycle previous' key to cycle tools in your current quickslot",
 
 	"TF_time_flow": "Time flow speed multiplier",
-	"TF_time_flow_desc": "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time",
+	"TF_night_duration": "Night duration in hours",
+	"TF_time_flow_desc": "The higher this value is the shorter days are. This also affects crafting time, building time, battery charging time",
 	"TF_food_loss_mult": "Food loss multiplier",
 	"TF_water_loss_mult": "Water loss multiplier",
 	"TF_food_loss_mult_desc": "Food value you lose when your hunger updates will be multiplied by this",
@@ -50,8 +53,6 @@
 	"TF_player_damage_mult_desc": "Amount of damage player takes will be multiplied by this",
 	"TF_vehicle_damage_mult": "Vehicle damage multiplier",
 	"TF_vehicle_damage_mult_desc": "Amount of damage your vehicles take will be multiplied by this",
-	"TF_predator_aggr_mult": "Predator aggression multiplier",
-	"TF_predator_aggr_mult_desc":	"The higher it is the more aggressive predators are towards you. When it is 0, you and your vehicles will never be attacked. When it's more than 1 predators attack you from greater distance and more often.",
 	"TF_oxygen_per_breath": "Oxygen you consume every breath",
 	"TF_tool_power_mult": "Tool power consumption multiplier",
 	"TF_tool_power_mult_desc": "Amount of power consumed by your tools will be multiplied by this.",
