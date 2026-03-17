@@ -200,7 +200,7 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
-            fixCyclopsCollision = Main.configToEdit.Bind("MISC", "Fix collision inside cyclops", true, "");
+            fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", true, "");
             runInBackground = Main.configToEdit.Bind("MISC", "Run in background", true, "Set this to false to prevent the game from running in background. This setting is ignored when loading a saved game.");
             vegan = Main.configToEdit.Bind("PLAYER", "Vegan diet", false, "You will not be able to eat fish if this is true");
             radioIcon = Main.configToEdit.Bind("UI", "Show icon on the UI when a new radio message is received", true, "");
