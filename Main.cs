@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.12.0";
+            VERSION = "4.13.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -80,7 +80,6 @@ namespace Tweaks_Fixes
             Pickupable_.beacons.Clear();
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
-            Precurcor_Patch.used.Clear();
             InventoryItemIconColorChanger.CleanUp();
             configMain.Load();
         }
@@ -119,6 +118,7 @@ namespace Tweaks_Fixes
             Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
             Player_Movement.UpdateModifiers();
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
+            Application.runInBackground = ConfigToEdit.runInBackground.Value;
             gameLoaded = true;
         }
 
@@ -183,12 +183,11 @@ namespace Tweaks_Fixes
                 //AddDebug("SaveLoadManager CreateSlotAsync ");
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
+            //[HarmonyPostfix,HarmonyPatch("SaveToDeepStorageAsync", new Type[0])]
             public static void SaveToDeepStorageAsyncpostfix(SaveLoadManager __instance)
             { // runs after nautilus SaveEvent
                 //AddDebug("SaveToDeepStorageAsync");
-                SaveData();
+                //SaveData();
             }
             //[HarmonyPostfix]
             //[HarmonyPatch("LoadSlotsAsync", new Type[0])]
@@ -198,8 +197,11 @@ namespace Tweaks_Fixes
             }
         }
 
-        static void SaveData()
+        static void SaveData(bool saving)
         {
+            if (saving == false)
+                return;
+
             configMain.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
             configMain.activeSlot = Inventory.main.quickSlots.activeSlot;
             InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
@@ -227,21 +229,19 @@ namespace Tweaks_Fixes
             ConfigToEdit.ParseConfig();
             harmony.PatchAll();
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
-            WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => AddTechTypesToClassIDtable());
+            WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => StartLoadingSetup());
             OptionsPanelHandler.RegisterModOptions(options);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             GetLoadedMods();
-            //if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
-            //{
-            //    CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
-            //}
-            //CustomSpawns();
+            if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
+            {
+                CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
+            }
+            Application.runInBackground = ConfigToEdit.runInBackground.Value;
+            SaveLoadManager.notificationSaveInProgress += SaveData;
             Logger.LogInfo($"Plugin {MODNAME} {VERSION} is loaded ");
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
-            //WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LateLoad());
-            //WaitScreenHandler.RegisterLoadTask(MODNAME, task => Load());
-            //WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => EarlyLoad());
         }
 
         private static void CustomSpawns()
@@ -281,7 +281,7 @@ namespace Tweaks_Fixes
         public static void GetLoadedMods()
         {
             visibleLockerInteriorLoaded = Chainloader.PluginInfos.ContainsKey("VisibleLockerInterior");
-            baseLightSwitchLoaded = Chainloader.PluginInfos.ContainsKey("com.ahk1221.baselightswitch") || Chainloader.PluginInfos.ContainsKey("Cookie_BaseLightSwitch");
+            baseLightSwitchLoaded = Chainloader.PluginInfos.ContainsKey("com.ahk1221.baselightswitch") || Chainloader.PluginInfos.ContainsKey("Cookie_BaseLightSwitch") || Chainloader.PluginInfos.ContainsKey("RealisticLightSwitch");
             pickupFullCarryallIsLoaded = Chainloader.PluginInfos.ContainsKey("PickupableStorageEnhanced");
             advancedInventoryLoaded = Chainloader.PluginInfos.ContainsKey("sn.advancedinventory.mod");
             flareRepairLoaded = Chainloader.PluginInfos.ContainsKey("com.remodor.rm_flarerepair");
@@ -294,16 +294,19 @@ namespace Tweaks_Fixes
             //    logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.GUID);
         }
 
+        private static void StartLoadingSetup()
+        {
+            AddTechTypesToClassIDtable();
+            Application.runInBackground = true;
+        }
+
         private static void AddTechTypesToClassIDtable()
         {
             CraftData.PreparePrefabIDCache();
             CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
             CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["4f59199f-7049-4e13-9e57-5ee82c8732c5"] = TechType.Cyclops;
-
-
         }
-
 
     }
 }

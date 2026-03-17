@@ -127,16 +127,20 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("GetItemAction")]
             static void GetItemActionPostfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
             {
-                if (__result == ItemAction.Eat)
-                {
-                    if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
-                        __result = ItemAction.None;
-                }
+                //AddDebug("GetItemAction " + __result);
+                if (__result == ItemAction.Eat && Util.CanPlayerEat(item.item.gameObject) == false)
+                    __result = ItemAction.None;
                 else if (__result == ItemAction.Use && ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater() && item.item.GetTechType() == TechType.FirstAidKit)
                 {
                     __result = ItemAction.None;
                     return;
                 }
+            }
+            //[HarmonyPostfix, HarmonyPatch("GetAllItemActions")]
+            static void GetAllItemActionsPostfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
+            {
+                AddDebug("GetAllItemActions " + __result);
+
             }
         }
 

@@ -22,7 +22,9 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UWE;
 using static ErrorMessage;
+using static GameInputSystem;
 using static KnownTech;
+using static WaterClipProxy;
 
 namespace Tweaks_Fixes
 {
@@ -154,6 +156,90 @@ namespace Tweaks_Fixes
             AddDebug("Player biomeString " + Player.main.biomeString);
             //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(Player.main.transform.position));
             //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
+        }
+
+
+        //[HarmonyPatch(typeof(GameInputSystem), "OnAfterUpdate")]
+        class GameInputSystem_OnAfterUpdate_patch
+        {
+            static GameInput.Device lastDevice;
+            static GameInput.Device currentDevice;
+
+            public static bool Prefix(GameInputSystem __instance)
+            {
+                lastDevice = __instance.lastDevice;
+                InputDevice inputDevice = null;
+                string lastLayout = __instance.lastLayout;
+                foreach (KeyValuePair<GameInput.Button, InputAction> action in __instance.actions)
+                {
+                    InputAction value = action.Value;
+                    if (!value.IsInProgress())
+                    {
+                        continue;
+                    }
+                    InputControl activeControl = value.activeControl;
+                    if (activeControl == null)
+                    {
+                        continue;
+                    }
+                    InputDevice device = activeControl.device;
+                    if (device != null)
+                    {
+                        string layout = device.layout;
+                        if (!string.IsNullOrEmpty(layout))
+                        {
+                            inputDevice = device;
+                            lastLayout = layout;
+                        }
+                    }
+                }
+                if (__instance.lastLayout == lastLayout || string.IsNullOrEmpty(lastLayout))
+                {
+                    return false;
+                }
+                __instance.lastLayout = lastLayout;
+                DeviceDefinition deviceDefinitionForLayout = GetDeviceDefinitionForLayout(lastLayout);
+                if (deviceDefinitionForLayout == null)
+                {
+                    return false;
+                }
+                GameInput.Device device2 = deviceDefinitionForLayout.device;
+                if (__instance.lastDevice != device2)
+                {
+                    __instance.lastDevice = device2;
+                    AddDebug($"OnAfterUpdate lastDevice {device2.AsString()}");
+                    GameInput.SetBindingsChanged();
+                }
+                if (__instance.lastDevices[device2].definition != deviceDefinitionForLayout)
+                {
+                    DeviceInfo value2 = new DeviceInfo
+                    {
+                        inputDevice = inputDevice,
+                        definition = deviceDefinitionForLayout
+                    };
+                    if (string.Equals(lastLayout, "Mouse", StringComparison.OrdinalIgnoreCase))
+                    {
+                        value2.inputDevice = __instance.lastDevices[device2].inputDevice;
+                    }
+                    __instance.lastDevices[device2] = value2;
+                    __instance.ChangeBindings(deviceDefinitionForLayout);
+                    __instance.displayNameCache.Clear();
+                    GameInput.SetBindingsChanged();
+                }
+                return false;
+            }
+            public static void Postfix(GameInputSystem __instance)
+            {
+                //if (lastDevice == null || __instance.lastDevice == null)
+                //    return;
+                //Application.runInBackground = false;
+                AddDebug("Application.runInBackground " + Application.runInBackground);
+                //Main.logger.LogDebug("Application.isFocused " + Application.isFocused);
+                if (__instance.lastDevice != lastDevice)
+                {
+
+                }
+            }
         }
 
         //[HarmonyPatch(typeof(StoryGoal), "Trigger")]
@@ -361,41 +447,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(AuroraWarnings), "Update")]
-        class AuroraWarnings_Update_Patch
-        {
-            static bool Prefix(AuroraWarnings __instance)
-            {
-                if (Main.gameLoaded == false)
-                    return false;
-
-                __instance.timeMonitor.Update(DayNightCycle.main.timePassedAsFloat);
-                float timeToStartWarning = CrashedShipExploder.main.GetTimeToStartWarning();
-                float timeToStartCountdown = CrashedShipExploder.main.GetTimeToStartCountdown();
-                if (__instance.timeMonitor.JustWentAbove(timeToStartCountdown))
-                {
-                    AddDebug("AuroraWarnings 4 ");
-                    __instance.auroraWarning4.Trigger();
-                }
-                else if (__instance.timeMonitor.JustWentAbove(Mathf.Lerp(timeToStartWarning, timeToStartCountdown, 0.8f)))
-                {
-                    AddDebug("AuroraWarnings 3 ");
-                    __instance.auroraWarning3.Trigger();
-                }
-                else if (__instance.timeMonitor.JustWentAbove(Mathf.Lerp(timeToStartWarning, timeToStartCountdown, 0.5f)))
-                {
-                    AddDebug("AuroraWarnings 2 ");
-                    __instance.auroraWarning2.Trigger();
-                }
-                else if (__instance.timeMonitor.JustWentAbove(Mathf.Lerp(timeToStartWarning, timeToStartCountdown, 0.2f)))
-                {
-                    AddDebug("AuroraWarnings 1 ");
-                    __instance.auroraWarning1.Trigger();
-                }
-                return false;
-            }
-        }
-
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -403,6 +454,8 @@ namespace Tweaks_Fixes
             {
                 if (!Main.gameLoaded)
                     return;
+                //AddDebug("runInBackground " + Application.runInBackground);
+                //AddDebug("PrimaryDevice " + GameInput.input.PrimaryDevice);
 
                 //AddDebug("IntroLifepodDirector.IsActive " + IntroLifepodDirector.IsActive);
                 //PrintRawBiomeNames();
@@ -427,14 +480,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    if (DayNightCycle.main == null)
-                        AddDebug("DayNightCycle.main == null)");
-                    else
-                    {
-                        //DayNightCycle.main.sunRiseTime = .4f;
-                        //DayNightCycle.main.sunSetTime = .6f;
-                        AddDebug($"sunRiseTime {DayNightCycle.main.sunRiseTime} sunSetTime {DayNightCycle.main.sunSetTime}");
-                    }
+                    ShowColliderName();
                     //string s = ConfigMenu.GetLocString("TF_time_flow_desc");
                     //AddDebug(s);
                     //AddDebug("UsedStorageCount " + Inventory.main.GetUsedStorageCount());
@@ -452,16 +498,11 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    //printTarget(true, false);
+                    ShowTargetInfo(true, true, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
-                    if (Input.GetKey(KeyCode.LeftShift))
-                        //    //survival.water--;
-                        __instance.liveMixin.health--;
-                    else
-                        //    //survival.food--;
-                        __instance.liveMixin.health++;
+
                 }
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
@@ -484,6 +525,54 @@ namespace Tweaks_Fixes
             }
 
 
+        }
+
+        public static void ShowColliderName(bool ignoreTriggers = true, bool show = true)
+        {
+            Transform scanTransform = MainCameraControl.main.transform;
+            if (Physics.Raycast(scanTransform.position + scanTransform.forward, scanTransform.forward, out RaycastHit hit, float.MaxValue, -1, ignoreTriggers ? QueryTriggerInteraction.Ignore : QueryTriggerInteraction.Collide))
+            {
+                var hitGameObject = hit.collider.gameObject;
+                var parent = hitGameObject.transform.parent;
+                var attachedRb = hit.collider.attachedRigidbody;
+                var root = UWE.Utils.GetEntityRoot(hitGameObject);
+                ErrorMessage.AddMessage($"Raycast hit collider of name '{hitGameObject.name}'");
+                if (show && hit.collider.isTrigger == false)
+                {
+                    bool found = false;
+                    foreach (Transform child in hit.collider.transform)
+                    {
+                        if (child.name == "Debug collider")
+                        {
+                            found = true;
+                            //child.gameObject.SetActive(!child.gameObject.activeSelf);
+                            UnityEngine.Object.Destroy(child.gameObject);
+                        }
+                    }
+                    if (found == false)
+                    {
+                        Collider[] colliders = hit.collider.GetComponents<Collider>();
+                        foreach (var collider in colliders)
+                            ShowDebugCollider(collider);
+                    }
+                }
+                if (parent != null)
+                {
+                    ErrorMessage.AddMessage($"Collider is direct child of '{parent.name}'");
+                }
+                if (attachedRb != null)
+                {
+                    ErrorMessage.AddMessage($"Collider is attached to the Rigidbody '{attachedRb.gameObject.name}'");
+                }
+                if (root != null)
+                {
+                    ErrorMessage.AddMessage($"Entity root of this collider is '{root.name}'");
+                }
+            }
+            else
+            {
+                ErrorMessage.AddMessage("Raycast failed.");
+            }
         }
 
         private static void DumpEncy()
@@ -542,7 +631,7 @@ namespace Tweaks_Fixes
             UnityEngine.Object.Destroy(target);
         }
 
-        static void PrintTerrainSurfaceType()
+        static void ShowTerrainSurfaceType()
         {
             VFXSurfaceTypes vfxSurfaceTypes = VFXSurfaceTypes.none;
             int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
@@ -556,7 +645,7 @@ namespace Tweaks_Fixes
                 AddDebug("no terrain ");
         }
 
-        public static void printTarget(bool health = false, bool position = false)
+        public static void ShowTargetInfo(bool health = false, bool position = false, bool showCollider = false)
         {
             GameObject target = Player.main.guiHand.activeTarget;
             RaycastHit hitInfo = new RaycastHit();
@@ -580,6 +669,7 @@ namespace Tweaks_Fixes
                 int y = (int)target.transform.position.y;
                 int z = (int)target.transform.position.z;
                 AddDebug($"position {x} {y} {z}");
+                Main.logger.LogMessage($"{target.name} position {x} {y} {z}");
             }
             EcoTarget ecoTarget = target.GetComponent<EcoTarget>();
             if (ecoTarget != null)
@@ -612,6 +702,16 @@ namespace Tweaks_Fixes
                 if (lm)
                     AddDebug("max HP " + lm.data.maxHealth + " HP " + (int)lm.health);
             }
+            if (showCollider)
+            {
+                var colliders = target.GetComponentsInChildren<Collider>();
+                foreach (Collider collider in colliders)
+                {
+                    if (collider.isTrigger == false)
+                        ShowDebugCollider(collider);
+                }
+                //Debug(target);
+            }
             //LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
             //if (lwe)
             {
@@ -639,12 +739,7 @@ namespace Tweaks_Fixes
             //AddDebug("parent " + target.transform.parent.gameObject.name);
             //if (target.transform.parent.parent)
             //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);
-            MedicalCabinet medicalCabinet = target.GetComponent<MedicalCabinet>();
-            if (medicalCabinet)
-            {
-                medicalCabinet.playSound.evt.getPlaybackState(out PLAYBACK_STATE state);
-                AddDebug(" state " + state + " hasMedKit " + medicalCabinet.hasMedKit);
-            }
+
             TechType techType = CraftData.GetTechType(target);
             FruitPlant fruitPlant = target.GetComponent<FruitPlant>();
             if (fruitPlant != null)
@@ -772,37 +867,25 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(LargeWorldEntity), "Awake")]
-        class LargeWorldEntity_Awake_patch
+        [HarmonyPatch(typeof(FreecamController), "Update")]
+        class FreecamController_Update_patch
         {
-            public static void Postfix(LargeWorldEntity __instance)
+            public static void Prefix(FreecamController __instance)
             {
-                if (__instance.name == "AbandonedBaseJellyShroom1(Clone)")
+                if (__instance.GetActive() == false)
+                    return;
+
+                Vector2 scrollValue = Mouse.current.scroll.ReadValue();
+                if (scrollValue.y != 0)
                 {
-                    Material dirtyGlassMat = null;
-                    //Transform dirtyGlassTr = __instance.transform.Find("Culling/BaseCell/BaseAbandonedObservatory/BaseAbandonedRoomObservatory/BaseRoomObservatory_glass");
-                    Transform dirtyGlassTr = __instance.transform.Find("Culling/BaseCell/BaseAbandonedRoomWindowSide/BaseRoomGenericInteriorWindowSide01Broken01/BaseExteriorRoomGenericWindowSide01Glass");
-                    if (dirtyGlassTr)
-                    {
-                        MeshRenderer mr = dirtyGlassTr.GetComponent<MeshRenderer>();
-                        if (mr)
-                            dirtyGlassMat = mr.material;
-                    }
-                    if (dirtyGlassMat == null)
-                        return;
+                    if (scrollValue.y > 0)
+                        __instance.speed *= 1.5f;
+                    else
+                        __instance.speed *= .375f;
 
-                    Transform glassTr = __instance.transform.Find("Culling/BaseCell/BaseAbandonedCorridorIShapeGlass/models/BaseCorridorhIShapeGlass01Exterior/BaseCorridorhIShapeGlass01ExteriorGlass");
-                    if (glassTr)
-                    {
-                        MeshRenderer mr = glassTr.GetComponent<MeshRenderer>();
-                        mr.material = dirtyGlassMat;
-                        //mr.sharedMaterial = dirtyGlassMat;
-                        //mr.material.mainTextureOffset = new Vector2(.5f, 1.5f);
-                        //AddDebug("color " + mr.material.color);
-                    }
-
+                    if (__instance.speed < 1)
+                        __instance.speed = 1;
                 }
-
             }
         }
 
@@ -873,5 +956,89 @@ namespace Tweaks_Fixes
                 return instructionList;
             }
         }
+
+        public static void ShowDebugCollider(Collider collider)
+        {
+            bool debugCol = false;
+            foreach (Transform child in collider.transform)
+            {
+                if (child.name == "Debug collider")
+                {
+                    //child.gameObject.SetActive(!child.gameObject.activeSelf);
+                    //UnityEngine.Object.Destroy(child.gameObject);
+                    //debugCol = true;
+                }
+            }
+            if (debugCol)
+                return;
+
+            PrimitiveType pt = PrimitiveType.Cube;
+            if (collider is CapsuleCollider)
+                pt = PrimitiveType.Capsule;
+            else if (collider is SphereCollider)
+                pt = PrimitiveType.Sphere;
+
+            GameObject debugCollider = GameObject.CreatePrimitive(pt);
+            debugCollider.name = "Debug collider";
+            UnityEngine.Object.DestroyImmediate(debugCollider.GetComponent<Collider>());
+            //debugCollider.GetComponent<MeshRenderer>().material.color = Color.white;
+            //debugCollider.GetComponent<MeshRenderer>().material.color = new Color(1f, 0f, 0f);
+            Material unlitMaterial = new Material(Shader.Find("Unlit/Color"));
+            unlitMaterial.color = new Color(0f, 0f, 1f);
+            debugCollider.GetComponent<MeshRenderer>().material = unlitMaterial;
+            debugCollider.SetActive(true);
+            debugCollider.transform.SetParent(collider.transform, false);
+            debugCollider.transform.localEulerAngles = Vector3.zero;
+            MatchColliderSize(debugCollider, collider);
+            AddDebug("ShowDebugCollider " + collider.name);
+        }
+
+        internal static void MatchColliderSize(GameObject debugObj, Collider collider)
+        {
+            Transform debugTransform = debugObj.transform;
+            debugTransform.localScale = Vector3.one;
+
+            if (collider is BoxCollider box)
+            {
+                debugTransform.localScale = box.size;
+                debugTransform.localPosition = box.center;
+            }
+            else if (collider is SphereCollider sphere)
+            {
+                float diameter = sphere.radius * 2;
+                debugTransform.localScale = Vector3.one * diameter;
+                debugTransform.localPosition = sphere.center;
+            }
+            else if (collider is CapsuleCollider capsule)
+            {
+                float height = capsule.height;
+                float radius = capsule.radius;
+                Vector3 scale = Vector3.one;
+
+                switch (capsule.direction)
+                {
+                    case 0: // X-axis
+                        scale = new Vector3(height, radius * 2, radius * 2);
+                        break;
+                    case 1: // Y-axis (most common)
+                        scale = new Vector3(radius * 2, height, radius * 2);
+                        break;
+                    case 2: // Z-axis
+                        scale = new Vector3(radius * 2, radius * 2, height);
+                        break;
+                }
+                debugTransform.localScale = scale;
+            }
+            else if (collider is MeshCollider meshCollider)
+            {
+                if (meshCollider.sharedMesh != null)
+                {
+                    Bounds bounds = meshCollider.sharedMesh.bounds;
+                    debugTransform.localScale = bounds.size;
+                }
+            }
+        }
+
+
     }
 }

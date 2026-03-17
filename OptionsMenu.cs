@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
-using static ICSharpCode.SharpZipLib.Zip.ExtendedUnixData;
 
 namespace Tweaks_Fixes
 {
@@ -162,6 +161,7 @@ namespace Tweaks_Fixes
 
         private void UpdateNightDuration(object sender, SliderChangedEventArgs e)
         {
+            //DayNightCycle.main.skipTimeMode = false;
             DayNightCycle_.UpdateNightDuration();
         }
 

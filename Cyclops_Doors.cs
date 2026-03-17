@@ -32,10 +32,15 @@ namespace Tweaks_Fixes
             static void Prefix(Openable __instance)
             {
                 //Main.logger.LogMessage("Openable Start " + __instance.name);
+                //if (Main.configMain == null)
+                //{
+                //    AddDebug("Openable Start configMain == null");
+                //}
                 if (IsDoorSaved(__instance))
                 {
                     CloseDoor(__instance);
                 }
+                //AddDebug($"Door {__instance.name} Saved {IsDoorSaved(__instance)}");
             }
 
             private static void CloseDoor(Openable openable)

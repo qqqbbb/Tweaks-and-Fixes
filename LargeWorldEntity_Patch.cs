@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -56,18 +57,6 @@ namespace Tweaks_Fixes
             lwe.cellLevel = cellLevel;
         }
 
-        static void MakeUnmovable(GameObject go)
-        {
-            //Main.logger.LogMessage("MakeUnmovable " + go.name);
-            Rigidbody rb = go.GetComponent<Rigidbody>();
-            if (rb)
-                UnityEngine.Object.Destroy(rb);
-
-            WorldForces wf = go.GetComponent<WorldForces>();
-            if (wf)
-                UnityEngine.Object.Destroy(wf);
-        }
-
         public static void DisableWavingShader(Component component)
         {
             foreach (MeshRenderer mr in component.GetComponentsInChildren<MeshRenderer>())
@@ -101,7 +90,7 @@ namespace Tweaks_Fixes
                     if (tt != TechType.Creepvine && tt != TechType.Cyclops && tt != TechType.BigCoralTubes && tt != TechType.None && tt != TechType.BloodVine && tt != TechType.Seamoth)
                     {
                         if (Util.IsDecoPlant(__instance.gameObject))
-                            MakeUnmovable(__instance.gameObject);
+                            Util.MakeUnmovable(__instance.gameObject);
                     }
                 }
                 if (ConfigToEdit.fruitGrowTime.Value > 0 && fruitTechTypes.Contains(tt))
@@ -120,7 +109,7 @@ namespace Tweaks_Fixes
                 if (techTypesToMakeUnmovable.Contains(tt))
                 {
                     //AddDebug("techTypesToMakeUnmovable MakeUnmovable " + __instance.name);
-                    MakeUnmovable(__instance.gameObject);
+                    Util.MakeUnmovable(__instance.gameObject);
                 }
                 if (ConfigToEdit.disableWeirdPlantAnimation.Value && techTypesToRemoveWavingShader.Contains(tt))
                 {
@@ -134,7 +123,20 @@ namespace Tweaks_Fixes
                 {
                     Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
                 }
-                if (tt == TechType.BigCoralTubes)
+
+                if (tt == TechType.NarrowBed || tt == TechType.Bed1)
+                { // beds in Aurora
+                    if (__instance.TryGetComponent<Bed>(out _))
+                        return;
+                    //Vector3 pos = __instance.transform.position;
+                    //int x = (int)pos.x;
+                    //int y = (int)pos.y;
+                    //int z = (int)pos.z;
+                    //if ((x == 976 && y == 9 && z == -59) || (x == 952 && y == 10 && z == -35))
+                    //    return;
+                    CoroutineHost.StartCoroutine(MakeSleepable(__instance.gameObject, tt));
+                }
+                else if (tt == TechType.BigCoralTubes)
                 {
                     FixCoralTubesPositions(__instance);
                 }
@@ -190,7 +192,7 @@ namespace Tweaks_Fixes
                 }
                 else if (tt == TechType.FarmingTray && __instance.name == "Base_exterior_Planter_Tray_01_abandoned(Clone)")
                 {
-                    MakeUnmovable(__instance.gameObject);
+                    Util.MakeUnmovable(__instance.gameObject);
                 }
                 else if (tt == TechType.None)
                 {
@@ -259,6 +261,27 @@ namespace Tweaks_Fixes
                 //        l.enabled = false;
                 //}
 
+            }
+
+            public static IEnumerator MakeSleepable(GameObject go, TechType techType)
+            {
+                //AddDebug("MakeSleepable " + go.name);
+                TaskResult<GameObject> result = new TaskResult<GameObject>();
+                yield return CraftData.InstantiateFromPrefabAsync(techType, result);
+                GameObject newBed = result.Get();
+                Rigidbody rb = go.GetComponent<Rigidbody>();
+                UnityEngine.Object.Destroy(rb);
+                newBed.transform.position = go.transform.position;
+                newBed.transform.rotation = go.transform.rotation;
+                newBed.transform.localScale = go.transform.localScale;
+                Constructable c = newBed.GetComponent<Constructable>();
+                UnityEngine.Object.Destroy(c);
+                ConstructableBounds[] cbs = newBed.GetComponents<ConstructableBounds>();
+                foreach (var cb in cbs)
+                    UnityEngine.Object.Destroy(cb);
+
+                foreach (Transform child in go.transform)
+                    child.gameObject.SetActive(false);
             }
 
             private static void TestHarvest(TechType techType)

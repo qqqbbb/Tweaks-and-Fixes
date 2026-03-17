@@ -138,6 +138,7 @@
     <Compile Include="Base_Light.cs" />
     <Compile Include="Base_Collision.cs" />
     <Compile Include="Base_.cs" />
+    <Compile Include="Aurora_terminals.cs" />
     <Compile Include="Eatable_.cs" />
     <Compile Include="CoffeeMaker.cs" />
     <Compile Include="Constructor_.cs" />
@@ -156,7 +157,7 @@
     <Compile Include="Cyclops_unpowered.cs" />
     <Compile Include="CyclopsLocker_.cs" />
     <Compile Include="Damage_.cs" />
-    <Compile Include="Databox_Light.cs" />
+    <Compile Include="Databox_.cs" />
     <Compile Include="Time_flow_speed.cs" />
     <Compile Include="Decoy_Patch.cs" />
     <Compile Include="Drillable_.cs" />
@@ -193,7 +194,7 @@
     <Compile Include="Player_Movement.cs" />
     <Compile Include="Poison_Damage.cs" />
     <Compile Include="PowerConsumption.cs" />
-    <Compile Include="Precurcor_Patch.cs" />
+    <Compile Include="Precurcor.cs" />
     <Compile Include="PropulsionCannon_.cs" />
     <Compile Include="QuickSlot_Cycle.cs" />
     <Compile Include="Scanner_Patch.cs" />

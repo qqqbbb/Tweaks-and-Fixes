@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using FMOD;
+using HarmonyLib;
 using Nautilus.Options;
 using Nautilus.Utility;
 using Story;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -19,10 +21,10 @@ namespace Tweaks_Fixes
 
         public static void UpdateNightDuration()
         {
-            if (DayNightCycle.main == null)
+            DayNightCycle dnc = DayNightCycle.main;
+            if (dnc == null)
                 return;
 
-            DayNightCycle dnc = DayNightCycle.main;
             float nightScalar = Util.NormalizeTo01range(ConfigMenu.nightDuration.Value, 0, 24);
             //AddDebug("nightScalar " + nightScalar);
             dnc.sunRiseTime = nightScalar * .5f;
@@ -85,11 +87,30 @@ namespace Tweaks_Fixes
         {
             if (ConfigMenu.timeFlowSpeed.Value == 1)
                 return;
+            //if (goal.key == "PrecursorGunAimCheck")
+            //    goal.delay = 111f;
 
             goal.delay *= ConfigMenu.timeFlowSpeed.Value;
             //AddDebug("StoryGoalScheduler Schedule " + goal.key + " delay " + goal.delay);
         }
     }
+
+    [HarmonyPatch(typeof(StoryGoalCustomEventHandler), "NotifyGoalComplete")]
+    class StoryGoalCustomEventHandler_NotifyGoalComplete_patch
+    {
+        public static void Postfix(StoryGoalCustomEventHandler __instance, string key)
+        {
+            //AddDebug("StoryGoalCustomEventHandler NotifyGoalComplete " + key);
+            //Main.logger.LogMessage("StoryGoalCustomEventHandler NotifyGoalComplete " + key);
+            if (key == "OnPlayRadioSunbeam4")
+            {
+                //AddDebug("StoryGoalCustomEventHandler NotifyGoalComplete OnPlayRadioSunbeam4");
+                StoryGoalCustomEventHandler.main.countdownStartingTime = DayNightCycle.main.timePassedAsFloat + 2400f * ConfigMenu.timeFlowSpeed.Value;
+                //StoryGoalCustomEventHandler.main.countdownStartingTime = DayNightCycle.main.timePassedAsFloat + 141f * ConfigMenu.timeFlowSpeed.Value;
+            }
+        }
+    }
+
 
     [HarmonyPatch(typeof(CrashedShipExploder))]
     class CrashedShipExploder_
@@ -125,24 +146,149 @@ namespace Tweaks_Fixes
         }
     }
 
-    //[HarmonyPatch(typeof(CrashHome))]
-    class CrashHome_
+
+    [HarmonyPatch(typeof(uGUI_SunbeamCountdown), "UpdateInterface")]
+    public static class uGUI_SunbeamCountdown_UpdateInterface_Patch
     {
-        //[HarmonyPatch("Update"), HarmonyTranspiler]
-        static IEnumerable<CodeInstruction> UpdateTranspiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var codeMatcher = new CodeMatcher(instructions)
-        .MatchForward(false, new CodeMatch(OpCodes.Ldc_R8, CrashHome.respawnDelay))
-         .ThrowIfInvalid("Could not find Ldc_R8 CrashHome.respawnDelay in CrashHome.Update")
-         .SetInstructionAndAdvance(Transpilers.EmitDelegate<Func<double>>(GetRespawnDelay))
-         .InstructionEnumeration();
-            return codeMatcher;
-        }
-        public static double GetRespawnDelay()
-        {
-            return CrashHome.respawnDelay / ConfigMenu.timeFlowSpeed.Value;
+        public static bool Prefix(uGUI_SunbeamCountdown __instance)
+        { // runs in main menu
+            if (Main.gameLoaded == false)
+                return false;
+
+            StoryGoalCustomEventHandler sgceh = StoryGoalCustomEventHandler.main;
+            if (sgceh == null)
+                return false;
+
+            //AddDebug($"countdownActive {sgceh.countdownActive} countdownStartingTime {sgceh.countdownStartingTime}");
+            if (sgceh.countdownActive == false)
+            {
+                __instance.HideInterface();
+                if (sgceh.countdownStartingTime > 0)
+                    __instance.CancelInvoke();
+
+                return false;
+            }
+            DateTime eventDT = DayNightCycle.ToGameDateTime(sgceh.countdownStartingTime);
+            DateTime now = DayNightCycle.ToGameDateTime(DayNightCycle.main.timePassedAsFloat);
+            TimeSpan timeLeft = eventDT - now;
+            if (timeLeft.Days > 1 || now > eventDT)
+            {
+                //AddDebug($"Days {timeLeft.Days}");
+                __instance.HideInterface();
+                return false;
+            }
+            string text = $"{timeLeft.Hours:D2}:{timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}";
+            __instance.countdownText.text = text;
+            __instance.ShowInterface();
+            return false;
         }
     }
 
+    //[HarmonyPatch(typeof(StoryGoal), "Execute")]
+    class StoryGoal_Execute_patch
+    {
+        public static void Prefix(StoryGoal __instance, string key, GoalType goalType)
+        {
+            AddDebug("StoryGoal Execute " + key + " Type " + goalType);
+            //if (key == "PrecursorGunAimCheck")
+            //    Main.logger.LogMessage("Execute PrecursorGunAimCheck " + DayNightCycle.main.timePassedAsFloat);
+        }
+    }
+
+    //[HarmonyPatch(typeof(StoryGoalManager), "OnGoalComplete")]
+    class StoryGoalManager_OnGoalComplete_patch
+    {
+        public static void Prefix(StoryGoalManager __instance, string key)
+        {
+            AddDebug("StoryGoalManager OnGoalComplete " + key);
+        }
+    }
+
+    //[HarmonyPatch(typeof(VFXSunbeam), "Update")]
+    class VFXSunbeam_Update_patch
+    {
+        public static bool Prefix(VFXSunbeam __instance)
+        {
+            if (Keyboard.current.spaceKey.IsPressed())
+            {
+                AddDebug("return");
+                return false;
+            }
+            return true;
+        }
+    }
+
+    //[HarmonyPatch(typeof(VFXSunbeam), "UpdateSequence")]
+    class VFXSunbeam_UpdateSequence_patch
+    {
+        public static bool Prefix(VFXSunbeam __instance)
+        {
+
+            AddDebug($"VFXSunbeam isPlaying {__instance.isPlaying} animTime {__instance.animTime}");
+            float num = __instance.shipApproachDuration + __instance.warmupDuration;
+            float num2 = num + __instance.explosionDelay;
+            if (__instance.shipTransform != null)
+            {
+                __instance.targetInitPos = __instance.shipTransform.position;
+                if (__instance.shipAnimeTime < 1f)
+                {
+                    __instance.shipAnimeTime += Time.deltaTime / num;
+                    if (__instance.shipAnimeTime >= 1f)
+                    {
+                        //__instance.StartCoroutine(DestroySunbeam(__instance.shipTransform.gameObject));
+                        //__instance.Invoke(DestroySunbeam(__instance.shipTransform.gameObject ),5f);
+                        UnityEngine.Object.Destroy(__instance.shipTransform.gameObject, 5f);
+                    }
+                }
+            }
+            if (!__instance.warmedUp && __instance.animTime >= num)
+            {
+                if (__instance.warmupTransform != null)
+                {
+                    __instance.warmupTransform.GetComponent<ParticleSystem>().Stop();
+                }
+                __instance.gunSpawnPoint.transform.localScale = Vector3.one;
+                __instance.Invoke("CreateBeam", __instance.beamDelay);
+                if (PrecursorGunStoryEvents.main != null)
+                {
+                    __instance.muzzleTransform = __instance.SpawnFXAndPlay(__instance.muzzlePrefab, __instance.gunSpawnPoint.transform);
+                }
+                __instance.warmedUp = true;
+            }
+            else if (!__instance.exploded && __instance.animTime >= num2)
+            {
+                if (__instance.beamMats != null)
+                {
+                    if (__instance.beamMats.Length > 1)
+                    {
+                        float t = Mathf.Clamp01((__instance.animTime - num2) * 3f);
+                        __instance.beamMats[1].SetColor(ShaderPropertyID._Color, Color.Lerp(Color.clear, __instance.beamMatColor, t));
+                    }
+                    //else
+                    //{
+                    //    Debug.Log("VFXSunbeam.beamMats[1] is null");
+                    //}
+                }
+                __instance.rectifiedTarget.transform.localScale = Vector3.one;
+                __instance.explosionTransform = __instance.SpawnFXAndPlay(__instance.explosionPrefab, __instance.rectifiedTarget.transform);
+                __instance.explosionTransform.eulerAngles = new Vector3(-90f, 0f, 0f);
+                if (PrecursorGunStoryEvents.main != null)
+                {
+                    __instance.SpawnFXAndPlay(__instance.groundShockwavePrefab, PrecursorGunStoryEvents.main.transform);
+                }
+                for (int i = 0; i < __instance.chunksAmount; i++)
+                {
+                    __instance.Invoke("SpawnBurningChunks", __instance.chunksSpawnDelay * (float)i + 2f);
+                }
+                __instance.exploded = true;
+            }
+            if (__instance.exploded)
+            {
+                __instance.cloudsAnimTime += Time.deltaTime / __instance.cloudsColorDuration;
+            }
+            __instance.animTime += Time.deltaTime;
+            return false;
+        }
+    }
 
 }

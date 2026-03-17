@@ -5,7 +5,6 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 
 namespace Tweaks_Fixes
@@ -155,6 +154,9 @@ namespace Tweaks_Fixes
         static void HandleSeaglide(Seaglide seaglide)
         {
             //AddDebug("HandleSeaglide " + seaglide.activeState);
+            if (ConfigMenu.seaglideSpeedMult.Value == 1)
+                return;
+
             PlayerController pc = Player.main.playerController;
             if (seaglide.activeState)
             {
@@ -404,7 +406,7 @@ namespace Tweaks_Fixes
             static void Prefix(Player __instance, Player.MotorMode newMotorMode)
             {// 
                 AddDebug("Player SetMotorMode " + newMotorMode);
-                AddDebug("Player SetMotorMode " + __instance.IsUnderwaterForSwimming());
+                //AddDebug("Player SetMotorMode " + __instance.IsUnderwaterForSwimming());
                 //if (swimming != __instance.IsUnderwaterForSwimming())
                 //{
                 //    AddDebug("UpdateMotorMode update swimming");

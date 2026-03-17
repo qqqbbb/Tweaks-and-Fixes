@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -139,15 +140,6 @@ namespace Tweaks_Fixes
                 //AddDebug("Drop  " + p.GetTechName());
                 p.Drop();
             }
-        }
-
-        public static bool CanPlayerEat()
-        {
-            if (GameModeUtils.IsOptionActive(GameModeOption.NoSurvival))
-                return false;
-
-            bool cantEat = ConfigMenu.cantEatUnderwater.Value && Player.main.isUnderwater.value;
-            return !cantEat;
         }
 
         public static bool IsEquipped(TechType tt)
@@ -757,6 +749,58 @@ namespace Tweaks_Fixes
 
             UnityEngine.Object.Destroy(go);
         }
+
+        public static bool IsCloseToPosition(Vector3 position, Vector3 target, float range)
+        {
+            return (position - target).sqrMagnitude < range * range;
+        }
+
+        public static bool CanPlayerEat()
+        {
+            if (GameModeUtils.IsOptionActive(GameModeOption.NoSurvival))
+                return false;
+
+            bool cantEat = ConfigMenu.cantEatUnderwater.Value && Player.main.isUnderwater.value;
+            return !cantEat;
+        }
+
+        public static bool CanPlayerEat(GameObject go)
+        {
+            if (go.TryGetComponent<Eatable>(out _) == false)
+                return false;
+
+            if (ConfigToEdit.vegan.Value)
+            {
+                if (go.TryGetComponent<Creature>(out _))
+                    return false;
+
+                EcoTarget[] ets = go.GetComponents<EcoTarget>();
+                foreach (EcoTarget et in ets)
+                {
+                    if (et.type == EcoTargetType.DeadMeat) // cooked fish
+                        return false;
+                }
+            }
+            return CanPlayerEat();
+        }
+
+        public static void MakeUnmovable(GameObject go)
+        {
+            //Main.logger.LogMessage("MakeUnmovable " + go.name);
+            Rigidbody rb = go.GetComponent<Rigidbody>();
+            if (rb)
+                UnityEngine.Object.Destroy(rb);
+
+            WorldForces wf = go.GetComponent<WorldForces>();
+            if (wf)
+                UnityEngine.Object.Destroy(wf);
+
+            ImmuneToPropulsioncannon itpc = go.GetComponent<ImmuneToPropulsioncannon>();
+            if (itpc)
+                UnityEngine.Object.Destroy(itpc);
+        }
+
+
 
 
     }

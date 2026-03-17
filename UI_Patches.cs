@@ -261,7 +261,7 @@ namespace Tweaks_Fixes
                             sb.Append(dropString);
 
                         //Main.Log("GameInput.Button.RightHand) " + uGUI.FormatButton(GameInput.Button.RightHand));
-                        if (Util.CanPlayerEat())
+                        if (Util.CanPlayerEat() && ConfigToEdit.vegan.Value == false)
                         {
                             if (canDrop)
                                 sb.Append(",  ");
@@ -269,7 +269,7 @@ namespace Tweaks_Fixes
                             sb.Append(eatString);
                             if (GameInput.GetButtonDown(GameInput.Button.AltTool))
                             {
-                                //Inventory playerInv = Inventory.main;
+                                //AddDebug("eat ");
                                 //playerInv.UseItem(playerInv.quickSlots.heldItem);
                                 Inventory.main.ExecuteItemAction(ItemAction.Eat, heldItem);
                             }
@@ -776,6 +776,15 @@ namespace Tweaks_Fixes
                 HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
                 //HandReticle.main.SetIcon(HandReticle.IconType.Interact);
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(uGUI_RadioMessageIndicator), "NewRadioMessage")]
+        public static class uGUI_RadioMessageIndicator_NewRadioMessage_Patch
+        {
+            public static bool Prefix(uGUI_RadioMessageIndicator __instance)
+            {
+                return ConfigToEdit.radioIcon.Value;
             }
         }
 

@@ -18,7 +18,7 @@ namespace Tweaks_Fixes
 
         public static void AddCyclopsCollisionExclusion(GameObject go, SubControl subControl = null)
         {
-            //AddDebug("AddCyclopsCollisionExclusion " + go.name);
+            AddDebug("AddCyclopsCollisionExclusion " + go.name);
             if (subControl == null)
             {
                 if (Player.main.currentSub == null || Player.main.currentSub.isCyclops == false)
@@ -130,7 +130,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(PlaceTool))]
+        [HarmonyPatch(typeof(PlaceTool))]
         public class PlaceTool_Patch_
         {
             //[HarmonyPostfix, HarmonyPatch("CreateGhostModel")]
@@ -140,10 +140,11 @@ namespace Tweaks_Fixes
                 //AddCyclopsCollisionExclusion(__instance.gameObject);
 
             }
-            //[HarmonyPostfix, HarmonyPatch("OnPlace")]
+            [HarmonyPostfix, HarmonyPatch("OnPlace")]
             static void DestroyGhostModelPostfix(PlaceTool __instance)
             {
                 //AddDebug("PlaceTool OnPlace " + __instance.name);
+                AddCyclopsCollisionExclusion(__instance.gameObject);
                 //pickupable.droppedEvent.AddHandler(base.gameObject, OnDropped);
             }
         }

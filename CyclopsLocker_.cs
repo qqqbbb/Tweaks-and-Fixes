@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UWE;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -17,6 +18,11 @@ namespace Tweaks_Fixes
         [HarmonyPostfix, HarmonyPatch("Start")]
         static void StartPostfix(CyclopsLocker __instance)
         {
+            SubRoot subRoot = __instance.GetComponentInParent<SubRoot>();
+            if (subRoot == null || subRoot.name != "Cyclops-MainPrefab(Clone)")
+                return;
+
+            //AddDebug("CyclopsLocker Start " + subRoot.name);
             if (defaultRotation == default)
                 defaultRotation = __instance.rotateTarget.transform.localEulerAngles;
 

@@ -207,7 +207,7 @@ namespace Tweaks_Fixes
                 else if (food > 0 && __instance.food > foodOkThreshold && __instance.food - food < foodOkThreshold)
                     __instance.vitalsOkNotification.Play();
 
-                FMODUWE.PlayOneShot(TechData.GetSoundUse(techType), Player.main.transform.position);
+                FMODUWE.PlayOneShot(TechData.GetSoundUse(techType), Player.main.head.transform.position);
                 __result = true;
                 return false;
             }

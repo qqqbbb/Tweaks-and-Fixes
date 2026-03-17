@@ -185,6 +185,10 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> PlayerMaxWater;
         public static ConfigEntry<int> playerFullFood;
         public static ConfigEntry<int> playerFullWater;
+        public static ConfigEntry<bool> radioIcon;
+        public static ConfigEntry<bool> vegan;
+        public static ConfigEntry<bool> runInBackground;
+        public static ConfigEntry<bool> fixCyclopsCollision;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -196,7 +200,10 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
-            //BindNEW();
+            fixCyclopsCollision = Main.configToEdit.Bind("MISC", "Fix collision inside cyclops", true, "");
+            runInBackground = Main.configToEdit.Bind("MISC", "Run in background", true, "Set this to false to prevent the game from running in background. This setting is ignored when loading a saved game.");
+            vegan = Main.configToEdit.Bind("PLAYER", "Vegan diet", false, "You will not be able to eat fish if this is true");
+            radioIcon = Main.configToEdit.Bind("UI", "Show icon on the UI when a new radio message is received", true, "");
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);

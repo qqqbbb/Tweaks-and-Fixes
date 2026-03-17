@@ -10,17 +10,26 @@ namespace Tweaks_Fixes
     {
         public static HashSet<PowerRelay> subPowerRelays = new HashSet<PowerRelay>();
         static EnergyMixin playerToolEM;
+        static HashSet<EnergyMixin> mapRoomCameras = new HashSet<EnergyMixin>();
         static EnergyInterface propCannonEI;
 
+        [HarmonyPatch(typeof(MapRoomCamera), "Start")]
+        class MapRoomCamera_Start_Patch
+        {
+            static void Postfix(MapRoomCamera __instance)
+            {
+                mapRoomCameras.Add(__instance.energyMixin);
+            }
+        }
 
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
-        class EnergyMixin_OnAfterDeserialize_Patch
+        class EnergyMixin_ConsumeEnergy_Patch
         {
             static void Prefix(EnergyMixin __instance, ref float amount)
             {
-                if (playerToolEM != null && playerToolEM == __instance)
+                if (playerToolEM == __instance || mapRoomCameras.Contains(__instance))
                 {
-                    //AddDebug("tool Consume Energy");
+                    //AddDebug(__instance.name + " tool Consume Energy");
                     amount *= ConfigMenu.toolEnergyConsMult.Value;
                 }
             }

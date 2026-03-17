@@ -8,30 +8,18 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class Precurcor_Patch
+    internal class Precurcor
     {
-        public static Dictionary<StoryHandTarget, PrecursorComputerTerminal> used = new Dictionary<StoryHandTarget, PrecursorComputerTerminal>();
-
         [HarmonyPatch(typeof(StoryHandTarget), "OnHandHover")]
         class StoryHandTarget_OnHandHover_Patch
         {
             static bool Prefix(StoryHandTarget __instance)
-            {// do not prompt player if used terminal
-                if (used.ContainsKey(__instance))
+            {// do not prompt player if terminal was used
+                //AddDebug(" isValidHandTarget " + __instance.isValidHandTarget);
+                PrecursorComputerTerminal pct = __instance.GetComponent<PrecursorComputerTerminal>();
+                if (pct)
                 {
-                    PrecursorComputerTerminal pct = used[__instance];
-                    if (pct && pct.used)
-                        return false;
-                }
-                else
-                {
-                    PrecursorComputerTerminal pct = __instance.GetComponent<PrecursorComputerTerminal>();
-                    if (pct)
-                    {
-                        used[__instance] = pct;
-                        if (pct.used)
-                            return false;
-                    }
+                    return pct.used == false;
                 }
                 return true;
             }
