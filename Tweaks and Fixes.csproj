@@ -152,7 +152,7 @@
     <Compile Include="Cyclops_.cs" />
     <Compile Include="Cyclops_Constructable_Collision.cs" />
     <Compile Include="Cyclops_Doors.cs" />
-    <Compile Include="Cyclops_Hull_Collision.cs" />
+    <Compile Include="Cyclops_Collision.cs" />
     <Compile Include="Cyclops_Movement.cs" />
     <Compile Include="Cyclops_unpowered.cs" />
     <Compile Include="CyclopsLocker_.cs" />

@@ -11,7 +11,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Cyclops_Hull_Collision
+    class Cyclops_Collision
     {
         static string[] hatches = { "submarine_hatch_02", "submarine_hatch_02 1", "submarine_hatch_02 3", "submarine_hatch_02 4", "submarine_hatch_02 7" };
 

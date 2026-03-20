@@ -24,6 +24,7 @@ using UWE;
 using static ErrorMessage;
 using static GameInputSystem;
 using static KnownTech;
+using static VFXParticlesPool;
 using static WaterClipProxy;
 
 namespace Tweaks_Fixes
@@ -149,15 +150,38 @@ namespace Tweaks_Fixes
             return flag;
         }
 
-        static void PrintRawBiomeNames()
+        static void PrintBiomeNames()
         {
 
             AddDebug("RawBiomeName " + Util.GetRawBiomeName());
             AddDebug("Player biomeString " + Player.main.biomeString);
             //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(Player.main.transform.position));
             //AddDebug("GetRichPresence " + PlatformUtils.main.GetServices().GetRichPresence());
+            string name = WaterBiomeManager.main.GetBiome(Player.main.transform.position);
+            AddDebug($"WaterBiomeManager {name} ");
         }
 
+
+        //[HarmonyPatch(typeof(WaterBiomeManager), "GetSettings", new Type[] { typeof(string), typeof(WaterscapeVolume.Settings) }, new[] { ArgumentType.Normal, ArgumentType.Out })]
+        class WaterBiomeManager_GetSettings_patch
+        {
+            static void Prefix(WaterBiomeManager __instance, string biomeName, ref WaterscapeVolume.Settings settings)
+            {
+                AddDebug($"WaterscapeVolume GetSettings {biomeName} ");
+            }
+        }
+
+        //[HarmonyPatch(typeof(WaterBiomeManager), "GetSettings", new Type[] { typeof(Vector3), typeof(bool), typeof(WaterscapeVolume.Settings) }, new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out })]
+        class WaterBiomeManager_GetSettings__patch
+        {
+            static void Prefix(WaterBiomeManager __instance, Vector3 wsPosition, bool onlyAffectsVisuals, ref WaterscapeVolume.Settings settings)
+            {
+                string name = __instance.GetBiome(wsPosition, onlyAffectsVisuals);
+                AddDebug($"WaterscapeVolume GetSettings {name} ");
+                //settings.murkiness = 110;
+                //settings.absorption = Vector3.zero;
+            }
+        }
 
         //[HarmonyPatch(typeof(GameInputSystem), "OnAfterUpdate")]
         class GameInputSystem_OnAfterUpdate_patch
@@ -421,6 +445,7 @@ namespace Tweaks_Fixes
         }
 
         //[HarmonyPatch(typeof(NotificationManager), "Add")]
+
         class NotificationManager_Add_Patch
         {
             static bool Prefix(NotificationManager __instance, NotificationManager.Group group, string key, float duration, float timeLeft)
@@ -444,6 +469,17 @@ namespace Tweaks_Fixes
                 //AddDebug("KnownTech Add " + techType + " " + verbose);
                 //verbose = false;
                 return true;
+            }
+        }
+
+        //[HarmonyPatch(typeof(WaterscapeVolume.Settings), "GetExtinctionAndScatteringCoefficients")]
+        class WaterscapeVolume_Settings_GetExtinctionAndScatteringCoefficients_Patch
+        {
+            static void Prefix(WaterscapeVolume.Settings __instance, ref Vector4 __result)
+            {
+                AddDebug($"GetExtinctionAndScatteringCoefficients murkiness {__instance.murkiness} scattering {__instance.scattering}");
+                //verbose = false;
+                //return true;
             }
         }
 
@@ -480,7 +516,8 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    ShowColliderName();
+                    //ShowColliderName();
+
                     //string s = ConfigMenu.GetLocString("TF_time_flow_desc");
                     //AddDebug(s);
                     //AddDebug("UsedStorageCount " + Inventory.main.GetUsedStorageCount());

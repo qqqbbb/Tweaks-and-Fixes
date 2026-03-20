@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.13.1";
+            VERSION = "4.13.2";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -81,14 +81,21 @@ namespace Tweaks_Fixes
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
             InventoryItemIconColorChanger.CleanUp();
+            configToEdit.Reload();
             configMain.Load();
+        }
+
+        public static void Test()
+        {
+            AddDebug("Test");
+            throw new Exception();
         }
 
         public static void LoadedGameSetup()
         {
             //AddDebug("LoadedGameSetup ");
             FixCoralShellPlateHarvestType();
-
+            //SaveUtils.RegisterOnSaveEvent(Test);
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_.DisableExosuitClawArmScan();
 
@@ -166,7 +173,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SaveLoadManager))]
+        //[HarmonyPatch(typeof(SaveLoadManager))]
         class SaveLoadManager_Patch
         {
             //[HarmonyPostfix]
@@ -217,10 +224,10 @@ namespace Tweaks_Fixes
 
         public void Setup()
         {
+            logger = Logger;
             LanguageHandler.RegisterLocalizationFolder();
             configMenu = new ConfigFile(configMenuPath, false);
             ConfigMenu.Bind();
-            logger = Logger;
             configMain.Load();
             configToEdit = new ConfigFile(configToEditPath, false);
             Harmony harmony = new Harmony(GUID);

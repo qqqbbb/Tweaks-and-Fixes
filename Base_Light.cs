@@ -12,7 +12,9 @@ namespace Tweaks_Fixes
 {
     public class Base_Light
     {
-        public static Color spotlightLightColor;
+        public static Color spotlightColor;
+        public static Color spotlightWrongColor = new Color(0.779f, 0.89f, 1f, 1f);
+        public static Color spotlightDefaultColor = new Color(0.373f, 0.463f, 0.502f, 1f);
         public static Color vehicleDockingBayLightColor;
         static Vector3[] vehicleDockingBayLightBeamPos = new Vector3[] { new Vector3(0, 0, -0.95f), new Vector3(0, 0, -1.25f), new Vector3(0, 0, -1.17f), new Vector3(0, 0, -0.93f) };
         static Vector3 vehicleDockingBayLightScale = new Vector3(40f, 40f, 40f);
@@ -26,15 +28,24 @@ namespace Tweaks_Fixes
                 //Main.logger.LogError("BaseSpotLight light.intensity " + light.intensity);
                 //Main.logger.LogError("BaseSpotLight light.a " + light.color.a);
 
-                if (ConfigToEdit.spotlightLightIntensityMult.Value < 1)
-                    light.intensity *= ConfigToEdit.spotlightLightIntensityMult.Value;
+                if (ConfigToEdit.spotlightIntensityMult.Value < 1)
+                    light.intensity *= ConfigToEdit.spotlightIntensityMult.Value;
 
-                if (spotlightLightColor != default)
-                { // no VFXVolumetricLight
-                    light.color = spotlightLightColor;
-                    MeshRenderer mr = light.GetComponentInChildren<MeshRenderer>();
-                    mr.material.color = new Color(spotlightLightColor.r, spotlightLightColor.g, spotlightLightColor.b, mr.material.color.a);
+                //Main.logger.LogError("BaseSpotLight MeshRenderer material " + mr.material.color);
+                if (spotlightColor == spotlightWrongColor)
+                {
+                    //AddDebug("spotlightLightWrongColor == spotlightLightColor)");
                 }
+                else if (spotlightColor != default && spotlightColor != spotlightDefaultColor)
+                { // no VFXVolumetricLight
+                    MeshRenderer mr = light.GetComponentInChildren<MeshRenderer>();
+                    light.color = spotlightColor;
+                    mr.material.color = new Color(spotlightColor.r, spotlightColor.g, spotlightColor.b, mr.material.color.a);
+                }
+                //Main.logger.LogError("spotlightLightColor " + spotlightColor);
+                //Main.logger.LogError("BaseSpotLight light.intensity ! " + light.intensity);
+                //Main.logger.LogError("BaseSpotLight light.a ! " + light.color.a);
+                //Main.logger.LogError("BaseSpotLight MeshRenderer material ! " + mr.material.color);
             }
         }
 
