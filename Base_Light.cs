@@ -32,11 +32,11 @@ namespace Tweaks_Fixes
                     light.intensity *= ConfigToEdit.spotlightIntensityMult.Value;
 
                 //Main.logger.LogError("BaseSpotLight MeshRenderer material " + mr.material.color);
-                if (spotlightColor == spotlightWrongColor)
+                if (spotlightColor == spotlightWrongColor || spotlightColor == spotlightDefaultColor)
                 {
                     //AddDebug("spotlightLightWrongColor == spotlightLightColor)");
                 }
-                else if (spotlightColor != default && spotlightColor != spotlightDefaultColor)
+                else if (spotlightColor != default)
                 { // no VFXVolumetricLight
                     MeshRenderer mr = light.GetComponentInChildren<MeshRenderer>();
                     light.color = spotlightColor;

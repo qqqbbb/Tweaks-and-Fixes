@@ -3,16 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static DamageFX;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class Damage_
     {
-        public static float healTempDamageTime = 0;
-        static float poisonDamageInterval = .8f;
-        static float poisonDamage = .5f;
         static bool clawArmHit;
         public static Dictionary<TechType, float> damageModifiers = new Dictionary<TechType, float>();
 
@@ -23,6 +19,7 @@ namespace Tweaks_Fixes
             public static void StartPostfix(DealDamageOnImpact __instance)
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //AddDebug($"{__instance.name} DealDamageOnImpact minDamageInterval {__instance.minDamageInterval}");
                 __instance.minDamageInterval = 1f;
                 if (__instance.name == "Gasopod(Clone)")
                 {
@@ -254,7 +251,7 @@ namespace Tweaks_Fixes
 
                     //AddDebug($"TakeDamage or {d} mod {damageModifiers[tt]} d {originalDamage}");
                 }
-                if (ConfigToEdit.removeBigParticlesWhenKnifing.Value && Main.gameLoaded && hitByPlayer && originalDamage > 0 && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter)
+                if (ConfigToEdit.removeBigParticlesWhenKnifing.Value && hitByPlayer && originalDamage > 0 && type == DamageType.Normal || type == DamageType.Collide || type == DamageType.Explosive || type == DamageType.Puncture || type == DamageType.LaserCutter)
                 { // dont spawn big damage particles if knifed by player
                     if (__instance.damageEffect)
                     {
@@ -269,7 +266,7 @@ namespace Tweaks_Fixes
                 }
                 else if (type == DamageType.Heat && !__instance.shielded && playerDealer)
                 {
-                    if (__instance.GetComponent<LavaLizard>())
+                    if (__instance.TryGetComponent<LavaLizard>(out _))
                     { // can damage LavaLizard with heatblade
                         //AddDebug("LavaLizard");
                         type = DamageType.Normal;
@@ -371,25 +368,13 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("CalculateDamage")]
             public static void CalculateDamagePostfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result)
             {
-                //AddDebug(target.name + " damage " + damage + ' ' + __result);
+                //AddDebug($"CalculateDamage {damage} {target.name} {__result}");
                 if (__result < 0 || Mathf.Approximately(__result, 0))
                     return;
 
                 if (target == Player.mainObject)
                 {
-                    __result *= ConfigMenu.playerDamageMult.Value;
-                    //AddDebug("Player takes damage " + __result.ToString("0.0"));
-                    if (ConfigToEdit.dropHeldTool.Value)
-                    {
-                        if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
-                        {
-                            if (UnityEngine.Random.Range(1, 100) < damage)
-                            {
-                                //AddDebug("DropHeldItem");
-                                Inventory.main.DropHeldItem(true);
-                            }
-                        }
-                    }
+                    __result = ProcessPlayerDamage(damage, type);
                     return;
                 }
                 Vehicle vehicle = target.GetComponent<Vehicle>();
@@ -410,23 +395,17 @@ namespace Tweaks_Fixes
                         __result *= armorMult;
                     }
                     __result *= ConfigMenu.vehicleDamageMult.Value;
+                    __result = RandomizeVehicleDamage(__result);
                 }
-                else if (target.GetComponent<SubControl>())
+                else if (target.TryGetComponent<SubControl>(out _))
                 {
                     //AddDebug("sub takes damage");
                     __result *= ConfigMenu.vehicleDamageMult.Value;
+                    __result = RandomizeVehicleDamage(__result);
                 }
                 else
                 {
                     TechType targetTT = CraftData.GetTechType(target);
-                    if (targetTT == TechType.AcidMushroom || targetTT == TechType.WhiteMushroom)
-                    {
-                        if (type == DamageType.Acid)
-                        {
-                            __result = 0f;
-                            return;
-                        }
-                    }
                     if (dealer && !ConfigToEdit.vehiclesHurtCreatures.Value && Creatures.creatureTT.Contains(targetTT))
                     {
                         TechType dealerTT = CraftData.GetTechType(dealer);
@@ -439,9 +418,56 @@ namespace Tweaks_Fixes
                 }
             }
 
+            private static float ProcessPlayerDamage(float damageOrig, DamageType type)
+            {
+                float damage = damageOrig * ConfigMenu.playerDamageMult.Value;
+                if (damage == 0)
+                    return damage;
+
+                //AddDebug("Player takes damage " + __result.ToString("0.0"));
+                if (ConfigMenu.playerDamageRandomization.Value > 0)
+                {
+                    float mult = ConfigMenu.playerDamageRandomization.Value * .01f;
+                    damage = UnityEngine.Random.Range(damage * (1 - mult), damage * (1 + mult));
+                    //AddDebug("player Damage Randomization " + __result.ToString("0.0"));
+                }
+                if (ConfigToEdit.dropHeldTool.Value)
+                {
+                    if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
+                    {
+                        if (UnityEngine.Random.Range(1, 100) < damage)
+                        {
+                            //AddDebug("DropHeldItem");
+                            Inventory.main.DropHeldItem(true);
+                        }
+                    }
+                }
+                return damage;
+            }
+
+            private static float RandomizeVehicleDamage(float damage)
+            {
+                if (ConfigMenu.vehicleDamageRandomization.Value > 0)
+                {
+                    float mult = ConfigMenu.vehicleDamageRandomization.Value * .01f;
+                    damage = UnityEngine.Random.Range(damage * (1 - mult), damage * (1 + mult));
+                }
+                return damage;
+            }
+
             [HarmonyPostfix, HarmonyPatch("IsAcidImmune")]
             static void IsAcidImmunePostfix(DamageSystem __instance, GameObject go, ref bool __result)
             {
+                //AddDebug("DamageOnPickup IsAcidImmune " + go.name);
+                if (go.TryGetComponent(out Plantable plantable))
+                { // area damage from DamageOnPickup
+                    if (plantable && plantable.plantTechType == TechType.WhiteMushroom || plantable.plantTechType == TechType.AcidMushroom)
+                    {
+                        //AddDebug("AcidMushroom IsAcidImmune");
+                        __result = true;
+                        return;
+                    }
+                }
                 Vehicle vehicle = go.GetComponent<Vehicle>();
                 if (vehicle == null)
                     return;
@@ -467,64 +493,18 @@ namespace Tweaks_Fixes
                 [HarmonyPostfix, HarmonyPatch("OnEnable")]
                 static void OnEnablePostfix(DamageOnPickup __instance)
                 {
-                    Plantable plantable = __instance.GetComponent<Plantable>();
-                    if (plantable)
-                    {
-                        if (plantable.plantTechType == TechType.WhiteMushroom)
-                            __instance.damageAmount += __instance.damageAmount * .5f;
-                    }
-                }
-                [HarmonyPrefix, HarmonyPatch("OnPickedUp")]
-                static bool OnPickedUpPrefix(DamageOnPickup __instance, Pickupable pickupable)
-                {
-                    Plantable plantable = __instance.GetComponent<Plantable>();
-                    if (plantable)
-                    {
-                        if (plantable.plantTechType == TechType.AcidMushroom || plantable.plantTechType == TechType.WhiteMushroom)
-                        {
-                            if (ConfigToEdit.shroomDamageChance.Value == 0)
-                                return false;
+                    if (ConfigToEdit.shroomDamageChance.Value == 0 || ConfigToEdit.shroomDamage.Value == 0)
+                        return;
 
-                            int rnd = UnityEngine.Random.Range(0, 100);
-                            if (ConfigToEdit.shroomDamageChance.Value > rnd)
-                            {
-                                if (!Player.main.currentMountedVehicle)
-                                    Player.main.gameObject.GetComponent<LiveMixin>().TakeDamage(GetDamageAmount(__instance), pickupable.gameObject.transform.position, DamageType.Acid);
-                            }
-                            //AddDebug("DamageOnPickup OnPickedUp " + __instance.damageChance + " damageAmount " + __instance.damageAmount);
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-                [HarmonyPrefix]
-                [HarmonyPatch("OnKill")]
-                static bool OnKillPrefix(DamageOnPickup __instance)
-                {
                     Plantable plantable = __instance.GetComponent<Plantable>();
-                    if (plantable)
-                    {
-                        if (plantable.plantTechType == TechType.AcidMushroom || plantable.plantTechType == TechType.WhiteMushroom)
-                        {
-                            if (ConfigToEdit.shroomDamageChance.Value == 0)
-                                return false;
-                            //AddDebug("DamageOnPickup OnKill damageAmount " + __instance.damageAmount);
-                            int rnd = UnityEngine.Random.Range(0, 100);
-                            if (ConfigToEdit.shroomDamageChance.Value > rnd)
-                            {
-                                DamageSystem.RadiusDamage(GetDamageAmount(__instance), __instance.transform.position, 3f, __instance.damageType);
-                            }
-                            return false;
-                        }
-                    }
-                    return true;
-                }
+                    if (plantable == null || plantable.plantTechType != TechType.WhiteMushroom && plantable.plantTechType != TechType.AcidMushroom)
+                        return;
 
-                private static float GetDamageAmount(DamageOnPickup damageOnPickup)
-                {
-                    float damageMin = damageOnPickup.damageAmount * .5f;
-                    float damageMax = damageOnPickup.damageAmount * 1.5f;
-                    return UnityEngine.Random.Range(damageMin, damageMax);
+                    //AddDebug($"DamageOnPickup OnEnable {__instance.name} {__instance.damageType}");
+                    __instance.damageOnPickup = true;
+                    __instance.damageOnKill = true;
+                    __instance.damageAmount = ConfigToEdit.shroomDamage.Value;
+                    __instance.damageChance = ConfigToEdit.shroomDamageChance.Value * .01f;
                 }
             }
 

@@ -41,6 +41,7 @@ namespace Tweaks_Fixes
             timeFlowSpeedSlider.OnChanged += UpdateTimeSpeed;
             ModSliderOption nightDurationSlider = ConfigMenu.nightDuration.ToModSliderOption(0, 24, .1f, "{0:0.#}");
             nightDurationSlider.OnChanged += UpdateNightDuration;
+            //ModSliderOption waterMurkinessSlider = ConfigMenu.waterMurkinessMult.ToModSliderOption(.5f, 5f, .1f, "{0:0.#}");
             ModSliderOption foodLossSlider = ConfigMenu.foodLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption waterLossSlider = ConfigMenu.waterLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption seaglideSpeedSlider = ConfigMenu.seaglideSpeedMult.ToModSliderOption(.5f, 2f, .1f, "{0:0.#}");
@@ -88,8 +89,8 @@ namespace Tweaks_Fixes
             ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodHealThreshold.ToModSliderOption(100, 400, 10);
-            //ModSliderOption maxFoodSlider = ConfigMenu.playerMaxFood.ToModSliderOption(100, 300, 10);
-            //ModSliderOption maxWaterSlider = ConfigMenu.PlayerMaxWater.ToModSliderOption(100, 300, 10);
+            ModSliderOption playerDamageRandSlider = ConfigMenu.playerDamageRandomization.ToModSliderOption(0, 100, 1);
+            ModSliderOption vehicleDamageRandSlider = ConfigMenu.vehicleDamageRandomization.ToModSliderOption(0, 100, 1);
             ModSliderOption subtitlesDelaySlider = ConfigMenu.subtitlesDelay.ToModSliderOption(0f, 5f, .1f, "{0:0.#}");
 
 
@@ -103,7 +104,9 @@ namespace Tweaks_Fixes
             AddItem(cyclopsSpeedSlider);
 
             AddItem(playerDamageSlider);
+            AddItem(playerDamageRandSlider);
             AddItem(vehicleDamageSlider);
+            AddItem(vehicleDamageRandSlider);
             AddItem(aggrSlider);
             AddItem(oxygenSlider);
             AddItem(foodLossSlider);

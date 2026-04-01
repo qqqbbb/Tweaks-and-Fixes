@@ -10,8 +10,6 @@ namespace Tweaks_Fixes
 {
     static class Wreck_Doors
     {
-        static HashSet<StarshipDoor> cutOpenedDoors = new HashSet<StarshipDoor>();
-
         [HarmonyPatch(typeof(BulkheadDoor))]
         class BulkheadDoor_OnHandClick_Patch
         {
@@ -58,13 +56,9 @@ namespace Tweaks_Fixes
             private static bool Prefix(StarshipDoor __instance)
             {
                 //AddDebug("doorOpenMethod " + __instance.doorOpenMethod);
-                if (cutOpenedDoors.Contains(__instance))
-                    return false;
-
                 LaserCutObject laserCutObject = __instance.GetComponent<LaserCutObject>();
                 if (laserCutObject != null && laserCutObject.isCutOpen)
                 {
-                    cutOpenedDoors.Add(__instance);
                     //if (Input.GetKey(KeyCode.Z))
                     //{ 
                     //	laserCutObject.cutObject.SetActive(true);

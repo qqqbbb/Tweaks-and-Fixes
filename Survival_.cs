@@ -57,6 +57,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("UpdateHunger"), HarmonyTranspiler]
             static IEnumerable<CodeInstruction> UpdateHungerTranspiler(IEnumerable<CodeInstruction> instructions)
             {
+                if (ConfigMenu.foodHealThreshold.Value == SurvivalConstants.kFoodWaterHealThreshold)
+                    return new CodeMatcher(instructions).InstructionEnumeration();
+
                 var codeMatcher = new CodeMatcher(instructions)
              .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, SurvivalConstants.kFoodWaterHealThreshold))
              .ThrowIfInvalid("Could not find Ldc_R4 SurvivalConstants.kFoodWaterHealThreshold in UpdateHunger")

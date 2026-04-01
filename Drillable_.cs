@@ -19,6 +19,9 @@ namespace Tweaks_Fixes
         [HarmonyTranspiler, HarmonyPatch("OnDrill")]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGen)
         {
+            if (ConfigMenu.drillDamageMult.Value == 1)
+                return new CodeMatcher(instructions).InstructionEnumeration();
+
             var codeMatcher = new CodeMatcher(instructions, ilGen);
             codeMatcher.MatchForward(false,
                 new CodeMatch(OpCodes.Ldc_R4, Drillable.drillDamage)

@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.13.2";
+            VERSION = "4.14.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -65,7 +65,6 @@ namespace Tweaks_Fixes
             Decoy_Patch.decoysToDestroy.Clear();
             Vehicle_patch.currentVehicleTT = TechType.None;
             Exosuit_Patch.exosuitStarted = false;
-            Damage_.healTempDamageTime = 0;
             Storage_Patch.savedSigns.Clear();
             Storage_Patch.labelledLockers.Clear();
             PowerConsumption.subPowerRelays.Clear();
@@ -85,17 +84,10 @@ namespace Tweaks_Fixes
             configMain.Load();
         }
 
-        public static void Test()
-        {
-            AddDebug("Test");
-            throw new Exception();
-        }
-
         public static void LoadedGameSetup()
         {
             //AddDebug("LoadedGameSetup ");
             FixCoralShellPlateHarvestType();
-            //SaveUtils.RegisterOnSaveEvent(Test);
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_.DisableExosuitClawArmScan();
 
@@ -104,7 +96,6 @@ namespace Tweaks_Fixes
                 CraftDataHandler.SetItemSize(TechType.MelonPlant, new Vector2int(2, 2));
                 //CraftData.itemSizes[TechType.MelonPlant] = ;
             }
-
             if (PDAScanner.mapping.ContainsKey(TechType.Creepvine))
             { // unlock fibermesh by scanning creepvine
                 PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
@@ -115,7 +106,6 @@ namespace Tweaks_Fixes
 
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip"));
             //LanguageHandle r.SetTechTypeTooltip(TechType.SeamothElectricalDefense, Language.main.Get("TF_bladderfish_tooltip"));
-
             Survival_.RemoveCookedFish();
             Player.main.isUnderwater.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Knife_.OnPlayerUnderwaterChanged));
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
@@ -125,7 +115,7 @@ namespace Tweaks_Fixes
             Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
             Player_Movement.UpdateModifiers();
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
-            Application.runInBackground = ConfigToEdit.runInBackground.Value;
+            Application.runInBackground = false;
             gameLoaded = true;
         }
 
@@ -245,7 +235,7 @@ namespace Tweaks_Fixes
             {
                 CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
             }
-            Application.runInBackground = ConfigToEdit.runInBackground.Value;
+            Application.runInBackground = false; // dont use system resources in background
             SaveLoadManager.notificationSaveInProgress += SaveData;
             Logger.LogInfo($"Plugin {MODNAME} {VERSION} is loaded ");
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);

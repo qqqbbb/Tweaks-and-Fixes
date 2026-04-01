@@ -23,9 +23,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UWE;
 using static ErrorMessage;
 using static GameInputSystem;
-using static KnownTech;
-using static VFXParticlesPool;
-using static WaterClipProxy;
+
 
 namespace Tweaks_Fixes
 {
@@ -161,27 +159,6 @@ namespace Tweaks_Fixes
             AddDebug($"WaterBiomeManager {name} ");
         }
 
-
-        //[HarmonyPatch(typeof(WaterBiomeManager), "GetSettings", new Type[] { typeof(string), typeof(WaterscapeVolume.Settings) }, new[] { ArgumentType.Normal, ArgumentType.Out })]
-        class WaterBiomeManager_GetSettings_patch
-        {
-            static void Prefix(WaterBiomeManager __instance, string biomeName, ref WaterscapeVolume.Settings settings)
-            {
-                AddDebug($"WaterscapeVolume GetSettings {biomeName} ");
-            }
-        }
-
-        //[HarmonyPatch(typeof(WaterBiomeManager), "GetSettings", new Type[] { typeof(Vector3), typeof(bool), typeof(WaterscapeVolume.Settings) }, new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out })]
-        class WaterBiomeManager_GetSettings__patch
-        {
-            static void Prefix(WaterBiomeManager __instance, Vector3 wsPosition, bool onlyAffectsVisuals, ref WaterscapeVolume.Settings settings)
-            {
-                string name = __instance.GetBiome(wsPosition, onlyAffectsVisuals);
-                AddDebug($"WaterscapeVolume GetSettings {name} ");
-                //settings.murkiness = 110;
-                //settings.absorption = Vector3.zero;
-            }
-        }
 
         //[HarmonyPatch(typeof(GameInputSystem), "OnAfterUpdate")]
         class GameInputSystem_OnAfterUpdate_patch
@@ -412,24 +389,15 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(PickupableStorage))]
-        class PickupableStorage_Patch
+        //[HarmonyPatch(typeof(ApplicationFocus))]
+        class ApplicationFocus_Patch
         {
-            //[HarmonyPatch("OnHandHover")]
-            public static bool Prefix(PickupableStorage __instance, GUIHand hand)
+            //[HarmonyPatch("UpdateState")]
+            public static bool Prefix(ApplicationFocus __instance)
             {
-                if (!Main.gameLoaded)
-                    return false;
-                AddDebug("OnHandHover  Prefix ");
-                return true;
-            }
-            //[HarmonyPatch("OnHandHover")]
-            public static void Postfix(PickupableStorage __instance, GUIHand hand)
-            {
-                if (!Main.gameLoaded)
-                    return;
-
-                AddDebug("OnHandHover  Postfix ");
+                //if (!Main.gameLoaded)
+                //AddDebug("ApplicationFocus  UpdateState ");
+                return false;
             }
         }
 
@@ -517,7 +485,7 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     //ShowColliderName();
-
+                    Main.logger.LogMessage(" timePassed " + DayNightCycle.main.timePassedAsFloat);
                     //string s = ConfigMenu.GetLocString("TF_time_flow_desc");
                     //AddDebug(s);
                     //AddDebug("UsedStorageCount " + Inventory.main.GetUsedStorageCount());
@@ -984,7 +952,7 @@ namespace Tweaks_Fixes
             //[HarmonyTranspiler]
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                Main.logger.LogInfo("Start CalculateDamage Instructions dump");
+                Main.logger.LogInfo("CalculateDamage Instructions dump");
                 var instructionList = new List<CodeInstruction>(instructions);
                 for (int i = 0; i < instructionList.Count; i++)
                 {

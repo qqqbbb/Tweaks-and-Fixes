@@ -29,7 +29,8 @@ namespace Tweaks_Fixes
             //AddDebug("nightScalar " + nightScalar);
             dnc.sunRiseTime = nightScalar * .5f;
             dnc.sunSetTime = 1 - dnc.sunRiseTime;
-            dnc.UpdateAtmosphere();
+            //dnc.UpdateAtmosphere();
+            //dnc.UpdateDayNightMessage();
         }
 
         [HarmonyPostfix, HarmonyPatch("Awake")]
@@ -115,9 +116,21 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(CrashedShipExploder))]
     class CrashedShipExploder_
     {
+        //[HarmonyPrefix, HarmonyPatch("SetExplodeTime")]
+        public static bool SetExplodeTimePrefix(CrashedShipExploder __instance)
+        {
+            AddDebug("CrashedShipExploder  SetExplodeTime ");
+            Main.logger.LogMessage("CrashedShipExploder  SetExplodeTime timePassed " + DayNightCycle.main.timePassedAsFloat);
+            __instance.timeToStartWarning = DayNightCycle.main.timePassedAsFloat;
+            __instance.timeToStartCountdown = __instance.timeToStartWarning + 30;
+            return false;
+        }
         [HarmonyPatch("Update"), HarmonyTranspiler]
         static IEnumerable<CodeInstruction> UpdateTranspiler(IEnumerable<CodeInstruction> instructions)
         {
+            if (ConfigMenu.timeFlowSpeed.Value == 1)
+                return new CodeMatcher(instructions).InstructionEnumeration();
+
             var codeMatcher = new CodeMatcher(instructions)
          .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, CrashedShipExploder.delayBeforeSwap))
          .ThrowIfInvalid("Could not find Ldc_R4 CrashedShipExploder.delayBeforeSwap in CrashedShipExploder.Update")
@@ -145,7 +158,6 @@ namespace Tweaks_Fixes
             return CrashedShipExploder.delayBeforeExplosionSound * ConfigMenu.timeFlowSpeed.Value;
         }
     }
-
 
     [HarmonyPatch(typeof(uGUI_SunbeamCountdown), "UpdateInterface")]
     public static class uGUI_SunbeamCountdown_UpdateInterface_Patch

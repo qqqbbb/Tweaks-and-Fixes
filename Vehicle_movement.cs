@@ -29,17 +29,19 @@ namespace Tweaks_Fixes
                 //AddDebug("GetMoveDirection " + __result);
                 if (Player.main.currentMountedVehicle is Exosuit)
                 {
-                    __result *= ConfigMenu.exosuitSpeedMult.Value;
+                    if (ConfigMenu.exosuitSpeedMult.Value != 1)
+                        __result *= ConfigMenu.exosuitSpeedMult.Value;
+
                     if (ConfigToEdit.disableExosuitSidestep.Value)
                         __result.x = 0;
                 }
-                else if (Player.main.currentMountedVehicle is SeaMoth)
+                else if (Player.main.currentMountedVehicle is SeaMoth && ConfigMenu.seamothSpeedMult.Value != 1)
                 {
                     __result *= ConfigMenu.seamothSpeedMult.Value;
                     //if (ConfigToEdit.fixSeamothMove.Value)
                     //{
                     //    __result = __result.normalized;
-                    //    AddDebug("!!!");
+                    //AddDebug("!!!");
                     //}
                 }
                 //else if (Player.main.currentMountedVehicle != null)
@@ -153,12 +155,12 @@ namespace Tweaks_Fixes
             public static void StartPostfix(SeaMoth __instance)
             {
                 //AddDebug("SeaMoth Start seamothSidewardSpeedMod " + ConfigToEdit.seamothSidewardSpeedMod.Value);
-                if (ConfigToEdit.fixSeamothMove.Value)
-                {
-                    WorldForces worldForces = __instance.GetComponent<WorldForces>();
-                    if (worldForces)
-                        worldForces.aboveWaterDrag = 2;
-                }
+                //if (ConfigToEdit.fixSeamothMove.Value)
+                //{
+                //    WorldForces worldForces = __instance.GetComponent<WorldForces>();
+                //    if (worldForces)
+                //        worldForces.aboveWaterDrag = 2;
+                //}
                 if (ConfigToEdit.seamothSidewardSpeedMod.Value > 0)
                 {
                     float mod = 1 - Mathf.Clamp(ConfigToEdit.seamothSidewardSpeedMod.Value, 1, 100) * .01f;

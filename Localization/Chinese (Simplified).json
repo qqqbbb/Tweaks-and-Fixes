@@ -147,5 +147,9 @@
 	"TF_drop_items_death_setting_everything": "丢弃所有物品",
 	"TF_drop_items_death_setting_nothing": "不要丢弃任何物品",
 	
+	"TF_player_damage_rand": "玩家伤害随机化",
+	"TF_vehicle_damage_rand": "载具伤害随机化",
+	"TF_player_damage_rand_desc": "玩家所受伤害将按此百分比随机浮动",
+	"TF_vehicle_damage_rand_desc": "载具所受伤害将按此百分比随机浮动",
 
 }

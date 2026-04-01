@@ -96,10 +96,11 @@ namespace Tweaks_Fixes
         {
             static void Prefix(ref float amount, IPowerInterface powerInterface)
             {
-                if (ConfigMenu.vehicleEnergyConsMult.Value == 1f)
+                if (ConfigMenu.vehicleEnergyConsMult.Value == 1 && ConfigMenu.baseEnergyConsMult.Value == 1)
                     return;
 
                 PowerRelay pr = powerInterface as PowerRelay;
+                //AddDebug("PowerSystem ConsumeEnergy " + pr.name);
                 if (pr && subPowerRelays.Contains(pr))
                 {
                     //AddDebug("Sub Consume Energy ");

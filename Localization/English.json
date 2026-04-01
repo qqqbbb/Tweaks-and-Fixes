@@ -138,7 +138,6 @@
 	"TF_subtitles_delay": "Subtitles delay",
 	"TF_subtitles_delay_desc": "Delay for subtitles in seconds",
 
-
 	"TF_default_setting": "Default",
 	"TF_eat_raw_fish_setting_harmless": "Harmless",
 	"TF_eat_raw_fish_setting_risky": "Risky",
@@ -146,6 +145,10 @@
 	"TF_empty_vehicle_can_be_attacked_setting_light": "Only if lights on",
 	"TF_drop_items_death_setting_everything": "Drop everything",
 	"TF_drop_items_death_setting_nothing": "Do not drop anything",
+	"TF_player_damage_rand": "Player damage randomization",
+	"TF_vehicle_damage_rand": "Vehicle damage randomization",
+	"TF_player_damage_rand_desc": "This percent of damage taken by player will be randomized",
+	"TF_vehicle_damage_rand_desc": "This percent of damage taken by your vehicles will be randomized",
 	
 
 

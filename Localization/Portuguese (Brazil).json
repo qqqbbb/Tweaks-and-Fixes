@@ -143,7 +143,11 @@
 	"TF_eat_raw_fish_setting_harmful": "Prejudicial",
 	"TF_empty_vehicle_can_be_attacked_setting_light": "Apenas com luzes acesas",
 	"TF_drop_items_death_setting_everything": "Soltar tudo",
-	"TF_drop_items_death_setting_nothing": "Não soltar nada"
+	"TF_drop_items_death_setting_nothing": "Não soltar nada",
 
+	"TF_player_damage_rand": "Randomização de dano do jogador",
+	"TF_vehicle_damage_rand": "Randomização de dano de veículos",
+	"TF_player_damage_rand_desc": "Esta porcentagem de dano sofrido pelo jogador será randomizada",
+	"TF_vehicle_damage_rand_desc": "Esta porcentagem de dano sofrido pelos seus veículos será randomizada",
 								
 }

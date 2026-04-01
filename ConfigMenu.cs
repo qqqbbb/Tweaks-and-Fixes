@@ -72,6 +72,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> foodHealThreshold;
         public static ConfigEntry<float> nightDuration;
         public static ConfigEntry<float> subtitlesDelay;
+        public static ConfigEntry<int> playerDamageRandomization;
+        public static ConfigEntry<int> vehicleDamageRandomization;
+
 
 
         public static void Bind()
@@ -79,6 +82,8 @@ namespace Tweaks_Fixes
 
             timeFlowSpeed = Main.configMenu.Bind("", "TF_time_flow", 1f, "TF_time_flow_desc");
             nightDuration = Main.configMenu.Bind("", "TF_night_duration", 6f, "");
+            //waterMurkinessMult = Main.configMenu.Bind("", "TF_water_murkiness", 1f, "TF_reload_game");
+
             foodLossMult = Main.configMenu.Bind("", "TF_food_loss_mult", 1f, "TF_food_loss_mult_desc");
             waterLossMult = Main.configMenu.Bind("", "TF_water_loss_mult", 1f, "TF_water_loss_mult_desc");
             playerWaterSpeedMult = Main.configMenu.Bind("Player_movement", "TF_player_speed_mult_water", 1f);
@@ -88,6 +93,8 @@ namespace Tweaks_Fixes
             cyclopsSpeedMult = Main.configMenu.Bind("", "TF_cyclops_speed_mult", 1f, "");
             playerDamageMult = Main.configMenu.Bind("", "TF_player_damage_mult", 1f, "TF_player_damage_mult_desc");
             vehicleDamageMult = Main.configMenu.Bind("", "TF_vehicle_damage_mult", 1f, "TF_vehicle_damage_mult_desc");
+            playerDamageRandomization = Main.configMenu.Bind("", "TF_player_damage_rand", 0, "TF_player_damage_rand_desc");
+            vehicleDamageRandomization = Main.configMenu.Bind("", "TF_vehicle_damage_rand", 0, "TF_vehicle_damage_rand_desc");
             aggrMult = Main.configMenu.Bind("", "TF_predator_aggr_mult", 1f, "TF_predator_aggr_mult_desc");
             oxygenPerBreath = Main.configMenu.Bind("", "TF_oxygen_per_breath", 3f);
             toolEnergyConsMult = Main.configMenu.Bind("", "TF_tool_power_mult", 1f, "TF_tool_power_mult_desc");
@@ -133,10 +140,10 @@ namespace Tweaks_Fixes
             craftedBatteryCharge = Main.configMenu.Bind("", "TF_crafted_battery_charge_percent", 100, "TF_crafted_battery_charge_percent_desc");
             dropItemsOnDeath = Main.configMenu.Bind("", "TF_drop_items_when_you_die", DropItemsOnDeath.TF_default_setting);
             invMultLand = Main.configMenu.Bind("", "TF_inventory_weight_mult_ground", 0f, "TF_inventory_weight_mult_ground_desc");
-            string invWater = "TF_inventory_weight_mult_water";
-            if (Language.main.currentLanguage == "English")
-                invWater = "Inventory weight multiplier in water";
-            invMultWater = Main.configMenu.Bind("", invWater, 0f, "TF_inventory_weight_mult_water_desc");
+            //string invWater = "TF_inventory_weight_mult_water";
+            //if (Language.main.currentLanguage == "English")
+            //    invWater = "Inventory weight multiplier in water";
+            invMultWater = Main.configMenu.Bind("", "TF_inventory_weight_mult_water", 0f, "TF_inventory_weight_mult_water_desc");
             drillDamageMult = Main.configMenu.Bind("", "TF_prawn_suit_drill_arm_damage_mult", 1f, "TF_reload_game");
             foodHealThreshold = Main.configMenu.Bind("", "TF_food_heal_threshold", 150, "TF_food_heal_threshold_desc");
             subtitlesDelay = Main.configMenu.Bind("", "TF_subtitles_delay", 0f, "TF_subtitles_delay_desc");

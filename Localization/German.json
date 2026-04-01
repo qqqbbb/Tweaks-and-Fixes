@@ -143,6 +143,11 @@
 "TF_eat_raw_fish_setting_harmful": "Schädlich",
 "TF_empty_vehicle_can_be_attacked_setting_light": "Nur wenn Licht an",
 "TF_drop_items_death_setting_everything": "Alles fallen lassen",
-"TF_drop_items_death_setting_nothing": "Nichts fallen lassen"
-											 
+"TF_drop_items_death_setting_nothing": "Nichts fallen lassen",
+			
+"TF_player_damage_rand": "Spielerschadens-Randomisierung",
+"TF_vehicle_damage_rand": "Fahrzeugschadens-Randomisierung",
+"TF_player_damage_rand_desc": "Dieser Prozentsatz des vom Spieler erlittenen Schadens wird randomisiert",
+"TF_vehicle_damage_rand_desc": "Dieser Prozentsatz des von deinen Fahrzeugen erlittenen Schadens wird randomisiert",
+
 }

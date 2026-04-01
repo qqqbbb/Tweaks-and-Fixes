@@ -149,4 +149,9 @@
 	"TF_drop_items_death_setting_everything": "Терять всё",
 	"TF_drop_items_death_setting_nothing": "Не терять ничего",
 
+	"TF_player_damage_rand": "Рандомизация урона игрока",
+	"TF_vehicle_damage_rand": "Рандомизация урона транспорта",
+	"TF_player_damage_rand_desc": "Этот процент урона, получаемого игроком, будет рандомизирован",
+	"TF_vehicle_damage_rand_desc": "Этот процент урона, получаемого вашим транспортным средством, будет рандомизирован",
+	
 }

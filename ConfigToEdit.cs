@@ -187,7 +187,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> playerFullWater;
         public static ConfigEntry<bool> radioIcon;
         public static ConfigEntry<bool> vegan;
-        public static ConfigEntry<bool> runInBackground;
+        public static ConfigEntry<int> shroomDamage;
         public static ConfigEntry<bool> fixCyclopsCollision;
 
 
@@ -200,8 +200,8 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
+
             fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", true, "");
-            runInBackground = Main.configToEdit.Bind("MISC", "Run in background", true, "Set this to false to prevent the game from running in background. This setting is ignored when loading a saved game.");
             vegan = Main.configToEdit.Bind("PLAYER", "Vegan diet", false, "You will not be able to eat fish if this is true");
             radioIcon = Main.configToEdit.Bind("UI", "Show icon on the UI when a new radio message is received", true, "");
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
@@ -274,7 +274,7 @@ namespace Tweaks_Fixes
             cyclopsFireMusic = Main.configToEdit.Bind("CYCLOPS", "Play dubsteppy music when cyclops engine is on fire", true);
             lavaGeyserEruptionForce = Main.configToEdit.Bind("MISC", "Lava geyser eruption force", 20f, "Force applied to objects by lava geysers.");
             lavaGeyserEruptionInterval = Main.configToEdit.Bind("MISC", "Lava geyser eruption interval", 12f, "Time in seconds between lava geyser eruptions including 5.5 seconds of eruption.");
-            removeLavaGeyserRockParticles = Main.configToEdit.Bind("MISC", "Remove rock particles from lava geysers", false, "Rock particles will be removed from lava geyser eruptions if this is true.");
+            removeLavaGeyserRockParticles = Main.configToEdit.Bind("MISC", "Remove rock particles from lava geysers", false);
             solarPanelMaxDepth = Main.configToEdit.Bind("BASE", "Solar panel max depth", 250f, "Depth in meters below which solar panel does not produce power.");
             stalkerLooseToothSound = Main.configToEdit.Bind("CREATURES", "Stalker losing tooth sound", true, "There will be no sound effect when a stalker loses its tooth if this false.");
             canReplantMelon = Main.configToEdit.Bind("PLANTS", "Can replant melon", true, "Gel sack and melon can not be replanted if this is false.");
@@ -289,7 +289,8 @@ namespace Tweaks_Fixes
             fixCuteFish = Main.configToEdit.Bind("CREATURES", "Fix cuddlefish", false, "You will be able to interact with cuddlefish only when swimming if this is true.");
             seaTreaderOutcropMult = Main.configToEdit.Bind("CREATURES", "Outcrop from seatreader step", 100, "Chance percent to unearth outcrop when seatreader steps");
             seaTreaderAttackOutcropMult = Main.configToEdit.Bind("CREATURES", "Outcrop from seatreader attack", 100, "Chance percent to unearth outcrop when seatreader attacks player");
-            shroomDamageChance = Main.configToEdit.Bind("PLANTS", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed. The script to do it was always in the game but was disabled.", percentRange));
+            shroomDamageChance = Main.configToEdit.Bind("PLANTS", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed. The script to do it was always in the game but was disabled. Works only if 'Mushroom damage' setting is above 0.", percentRange));
+            shroomDamage = Main.configToEdit.Bind("PLANTS", "Mushroom damage", 0, "Mushrooms will deal this damage to player when picked up or destroyed. Works only if 'Mushroom damage chance percent' setting is above 0.");
             escapePodPowerTweak = Main.configToEdit.Bind("LIFE POD", "Life pod power tweaks", false, "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod power cells are not charged.");
             stalkerPlayThings = Main.configToEdit.Bind("CREATURES", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
             stalkersGrabShinyTool = Main.configToEdit.Bind("CREATURES", "Stalkers grab tools from player hands", false, "Stalkers can grab only things that are in the ‛Items stalkers can grab‛ list.");
