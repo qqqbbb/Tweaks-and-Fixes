@@ -49,6 +49,19 @@ namespace Tweaks_Fixes
             UnityEngine.Object.Destroy(t.gameObject);
         }
 
+        public static void AddRampToHatch(GameObject go)
+        {
+            //AddDebug("AddRampToHatch");
+            GameObject ramp = new GameObject("Ramp");
+            Transform t = go.transform.GetChild(0);
+            ramp.transform.SetParent(t);
+            ramp.transform.localPosition = new Vector3(0.325f, -4.025f, 0);
+            ramp.transform.localEulerAngles = new Vector3(0, 0, 325f);
+            BoxCollider collider = ramp.AddComponent<BoxCollider>();
+            collider.center = new Vector3(-6.38f, -1.1f, 0);
+            collider.size = new Vector3(0.6f, 0.08f, 2.5f);
+            //Testing.CreateDebugCollider(collider);
+        }
 
         [HarmonyPatch(typeof(BaseDeconstructable), "Init")]
         class BaseDeconstructable_Init_Patch
@@ -63,6 +76,10 @@ namespace Tweaks_Fixes
                 else if (__instance.name == "BaseWaterParkHatch(Clone)")
                 {
                     FixWaterParkHatch(__instance.gameObject);
+                }
+                else if (__instance.name == "BaseLargeRoomHatch(Clone)")
+                {
+                    AddRampToHatch(__instance.gameObject);
                 }
             }
         }

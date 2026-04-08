@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -493,7 +492,7 @@ namespace Tweaks_Fixes
             yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
             prefab = result.Get();
             if (!fadeIn)
-                LargeWorldEntity_Patch.spawning = true;
+                LargeWorldEntity_.spawning = true;
 
             GameObject go = prefab == null ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
             if (go != null)
@@ -509,7 +508,7 @@ namespace Tweaks_Fixes
                 //AttachPing(go);
                 CrafterLogic.NotifyCraftEnd(go, techType);
             }
-            LargeWorldEntity_Patch.spawning = false;
+            LargeWorldEntity_.spawning = false;
         }
 
         public static IEnumerator AddToContainerAsync(TechType techType, ItemsContainer container, bool pickupSound)

@@ -183,9 +183,9 @@ namespace Tweaks_Fixes
             DateTime eventDT = DayNightCycle.ToGameDateTime(sgceh.countdownStartingTime);
             DateTime now = DayNightCycle.ToGameDateTime(DayNightCycle.main.timePassedAsFloat);
             TimeSpan timeLeft = eventDT - now;
-            if (timeLeft.Days > 1 || now > eventDT)
+            //AddDebug($"Days {timeLeft.Days} Hours {timeLeft.Hours}");
+            if (timeLeft.Days > 0 || now > eventDT)
             {
-                //AddDebug($"Days {timeLeft.Days}");
                 __instance.HideInterface();
                 return false;
             }

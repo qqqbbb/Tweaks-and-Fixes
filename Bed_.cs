@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Bed;
 using static ErrorMessage;
 
 
@@ -15,6 +14,17 @@ namespace Tweaks_Fixes
         static bool space;
         static Vector3 playerPos;
 
+        [HarmonyPostfix, HarmonyPatch("Start")]
+        public static void StartPostfix(Bed __instance)
+        {
+            Transform col = __instance.transform.Find("collisions");
+            if (col)
+            { // this collider makes player bounce
+                col = col.GetChild(0);
+                UnityEngine.Object.Destroy(col.gameObject);
+                //AddDebug("Destroy bed col");
+            }
+        }
         //[HarmonyPostfix, HarmonyPatch("GetCanSleep")]
         public static void GetCanSleepPostfix(Bed __instance, Player player, bool notify, ref bool __result)
         {

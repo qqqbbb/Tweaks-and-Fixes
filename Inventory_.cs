@@ -117,9 +117,9 @@ namespace Tweaks_Fixes
                 if (Main.advancedInventoryLoaded || action != ItemAction.Switch || item.container is Equipment)
                     return true;
 
-                if (GameInput.GetButtonHeld(OptionsMenu.moveAllItemsButton))
+                if (GameInput.GetButtonHeld(KeyBinds.moveAllItemsButton))
                     return !MoveAllItems(item);
-                else if (GameInput.GetButtonHeld(OptionsMenu.moveSameItemsButton))
+                else if (GameInput.GetButtonHeld(KeyBinds.moveSameItemsButton))
                     return !MoveSameItems(item);
 
                 return true;
@@ -153,9 +153,9 @@ namespace Tweaks_Fixes
                 if (selectedItem == null || Inventory.main.GetUsedStorageCount() == 0)
                     return;
 
-                if (GameInput.GetButtonDown(OptionsMenu.moveAllItemsButton))
+                if (GameInput.GetButtonDown(KeyBinds.moveAllItemsButton))
                     MoveAllItems(selectedItem);
-                else if (GameInput.GetButtonDown(OptionsMenu.moveSameItemsButton))
+                else if (GameInput.GetButtonDown(KeyBinds.moveSameItemsButton))
                     MoveSameItems(selectedItem);
             }
         }

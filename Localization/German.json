@@ -147,7 +147,7 @@
 			
 "TF_player_damage_rand": "Spielerschadens-Randomisierung",
 "TF_vehicle_damage_rand": "Fahrzeugschadens-Randomisierung",
-"TF_player_damage_rand_desc": "Dieser Prozentsatz des vom Spieler erlittenen Schadens wird randomisiert",
-"TF_vehicle_damage_rand_desc": "Dieser Prozentsatz des von deinen Fahrzeugen erlittenen Schadens wird randomisiert",
+"TF_player_damage_rand_desc": "Dieser Prozentsatz des vom Spieler erlittenen Schadens wird randomisiert. Der zufällige Schaden ist eine Zufallszahl zwischen 0 und Schaden × 2.",
+"TF_vehicle_damage_rand_desc": "Dieser Prozentsatz des von deinen Fahrzeugen erlittenen Schadens wird randomisiert. Der zufällige Schaden ist eine Zufallszahl zwischen 0 und Schaden × 2.",
 
 }

@@ -20,6 +20,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.Profiling;
 using UWE;
 using static ErrorMessage;
 using static GameInputSystem;
@@ -389,17 +390,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(ApplicationFocus))]
-        class ApplicationFocus_Patch
-        {
-            //[HarmonyPatch("UpdateState")]
-            public static bool Prefix(ApplicationFocus __instance)
-            {
-                //if (!Main.gameLoaded)
-                //AddDebug("ApplicationFocus  UpdateState ");
-                return false;
-            }
-        }
+
 
         public static void SimulateKeyPress(Key k)
         {
@@ -458,7 +449,14 @@ namespace Tweaks_Fixes
             {
                 if (!Main.gameLoaded)
                     return;
-                //AddDebug("runInBackground " + Application.runInBackground);
+
+                if (__instance.currentSub)
+                {
+                    //SubControl subControl = __instance.currentSub.GetComponent<SubControl>();
+                    //if (subControl)
+                    //    AddDebug("subControl controlMode " + subControl.controlMode);
+                    //AddDebug("GameInput.AutoMove " + GameInput.AutoMove);
+                }
                 //AddDebug("PrimaryDevice " + GameInput.input.PrimaryDevice);
 
                 //AddDebug("IntroLifepodDirector.IsActive " + IntroLifepodDirector.IsActive);
@@ -484,22 +482,14 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    //ShowColliderName();
-                    Main.logger.LogMessage(" timePassed " + DayNightCycle.main.timePassedAsFloat);
-                    //string s = ConfigMenu.GetLocString("TF_time_flow_desc");
-                    //AddDebug(s);
-                    //AddDebug("UsedStorageCount " + Inventory.main.GetUsedStorageCount());
+                    //ShowColliderName(true, false);
+                    AddDebug("GameModeUtils.RequiresPower " + GameModeUtils.RequiresPower());
                     //DumpEncy();
                     //DestroyTarget();
-                    //PlayerTool tool = Inventory.main.GetHeldTool();
-                    //AddDebug("GetContinueMode " + Utils.GetContinueMode());
-                    //PrintTerrainSurfaceType();
-                    //FindObjectClosestToPlayer(3);
-
-                    //if (Input.GetKey(KeyCode.LeftShift))
-                    //    Time.timeScale = 0;
-                    //else
-                    //    Time.timeScale = 1;
+                    if (Input.GetKey(KeyCode.LeftShift))
+                        Time.timeScale = 0;
+                    else
+                        Time.timeScale = 1;
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
@@ -567,7 +557,7 @@ namespace Tweaks_Fixes
                 }
                 if (attachedRb != null)
                 {
-                    ErrorMessage.AddMessage($"Collider is attached to the Rigidbody '{attachedRb.gameObject.name}'");
+                    ErrorMessage.AddMessage($"Collider is attached to the Rigidbody '{attachedRb.gameObject.name} tag {attachedRb.gameObject.tag}'");
                 }
                 if (root != null)
                 {
@@ -962,6 +952,66 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(MainGameController), "Update")]
+        class MainGameController_Update_Patch
+        {
+            static bool Prefix(MainGameController __instance)
+            {
+                if (uGUI.main == null || GameApplication.isQuitting)
+                {
+                    return false;
+                }
+                if (GC.CollectionCount(0) != __instance.lastFrameGCCount)
+                    __instance.NotifyGarbageCollected();
+
+                __instance.UpdateAutoGarbageCollection();
+                AddressablesUtility.Update();
+                __instance.lastFrameGCCount = GC.CollectionCount(0);
+                if (UnityEngine.Debug.isDebugBuild && Input.GetKeyDown(KeyCode.F5) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
+                {
+                    if (!Profiler.enabled)
+                    {
+                        Profiler.logFile = "profiling-" + Time.frameCount + ".log";
+                        Profiler.enableBinaryLog = true;
+                        Profiler.enabled = true;
+                        UnityEngine.Debug.Log("Started profiling, writing to " + Profiler.logFile);
+                    }
+                    else
+                    {
+                        Profiler.enabled = false;
+                        Profiler.enableBinaryLog = false;
+                        Profiler.logFile = null;
+                        UnityEngine.Debug.Log("Stopped profiling");
+                    }
+                }
+                if (Input.GetKeyDown(KeyCode.F1))
+                {
+                    TerrainDebugGUI[] array = UnityEngine.Object.FindObjectsOfType<TerrainDebugGUI>();
+                    foreach (TerrainDebugGUI obj in array)
+                    {
+                        obj.enabled = !obj.enabled;
+                    }
+                }
+                if (Input.GetKeyDown(KeyCode.F3))
+                {
+                    GraphicsDebugGUI[] array2 = UnityEngine.Object.FindObjectsOfType<GraphicsDebugGUI>();
+                    foreach (GraphicsDebugGUI graphicsDebugGUI in array2)
+                    {
+                        if (graphicsDebugGUI != null)
+                        {
+                            graphicsDebugGUI.enabled = !graphicsDebugGUI.enabled;
+                        }
+                    }
+                }
+                if (!Cursor.visible && Cursor.lockState == CursorLockMode.None)
+                {
+                    Cursor.visible = true;
+                }
+                MiscSettings.Update();
+                return false;
+            }
+        }
+
         public static void ShowDebugCollider(Collider collider)
         {
             bool debugCol = false;
@@ -977,6 +1027,12 @@ namespace Tweaks_Fixes
             if (debugCol)
                 return;
 
+            CreateDebugCollider(collider);
+            AddDebug("ShowDebugCollider " + collider.name);
+        }
+
+        public static void CreateDebugCollider(Collider collider)
+        {
             PrimitiveType pt = PrimitiveType.Cube;
             if (collider is CapsuleCollider)
                 pt = PrimitiveType.Capsule;
@@ -995,7 +1051,7 @@ namespace Tweaks_Fixes
             debugCollider.transform.SetParent(collider.transform, false);
             debugCollider.transform.localEulerAngles = Vector3.zero;
             MatchColliderSize(debugCollider, collider);
-            AddDebug("ShowDebugCollider " + collider.name);
+            //AddDebug("ShowDebugCollider " + collider.name);
         }
 
         internal static void MatchColliderSize(GameObject debugObj, Collider collider)
@@ -1043,6 +1099,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
+
 
 
     }

@@ -188,19 +188,6 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPostfix, HarmonyPatch("StartPiloting")]
-            public static void StartPilotingPostfix(CyclopsHelmHUDManager __instance)
-            {
-                Vehicle_patch.currentVehicleTT = TechType.Cyclops;
-                Transform lightsTransform = __instance.transform.parent.Find("Floodlights");
-                if (lightsTransform)
-                {
-                    //Light_Control.currentLights = lightsTransform.GetComponentsInChildren<Light>(true);
-                }
-                //AddDebug("StartPiloting  " + rb.mass);
-                //AddDebug(" " + __instance.transform.parent.name); 
-            }
-
             private static void FixLight(Transform lightsTransform)
             {
                 Transform topLightTransform = lightsTransform.Find("x_FakeVolumletricLight");
@@ -373,6 +360,7 @@ namespace Tweaks_Fixes
                     Util.AddVFXsurfaceComponent(tr.gameObject, VFXSurfaceTypes.glass);
 
                 WorldForces wf = __instance.GetComponent<WorldForces>();
+                //AddDebug("Sub WorldForces aboveWaterGravity " + wf.aboveWaterGravity);
                 if (wf) // prevent it from jumping out of water when surfacing
                     wf.aboveWaterGravity = 20f;
 
@@ -380,7 +368,15 @@ namespace Tweaks_Fixes
                 if (lm && lm.IsAlive() == false)
                     RemoveStuffFromDestroyedCyclops(__instance.gameObject);
 
-
+                Transform screen = __instance.transform.Find("CyclopsMeshStatic/undamaged/cyclops_LOD0/cyclops_engine_room/cyclops_engine_console/Submarine_engine_GEO/submarine_engine_console_01");
+                if (screen)
+                {
+                    screen = screen.GetChild(6);
+                    screen.localPosition = new Vector3(screen.localPosition.x, -0.0605f, screen.localPosition.z);
+                    screen = __instance.transform.Find("DecoyScreenHUD");
+                    screen.localPosition = new Vector3(screen.localPosition.x, screen.localPosition.y, 1.039f);
+                }
+                //Cyclops-MainPrefab(Clone)/CyclopsMeshStatic/undamaged/cyclops_LOD0/cyclops_engine_room/cyclops_engine_console/Submarine_engine_GEO/submarine_engine_console_01/console_screen
                 //AddDebug("Start numBallastWeight " + numBallastWeight);
             }
 
@@ -723,6 +719,8 @@ namespace Tweaks_Fixes
                 __instance.overshieldPercentage = 100 - ConfigMenu.cyclopsAutoHealHealthPercent.Value;
             }
         }
+
+
 
     }
 }

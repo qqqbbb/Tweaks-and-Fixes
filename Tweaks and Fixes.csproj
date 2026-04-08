@@ -139,6 +139,8 @@
     <Compile Include="Base_Collision.cs" />
     <Compile Include="Base_.cs" />
     <Compile Include="Aurora_terminals.cs" />
+    <Compile Include="Telemetry_.cs" />
+    <Compile Include="KeyBinds.cs" />
     <Compile Include="Eatable_.cs" />
     <Compile Include="CoffeeMaker.cs" />
     <Compile Include="Constructor_.cs" />
@@ -176,7 +178,7 @@
     <Compile Include="Inventory_.cs" />
     <Compile Include="InventoryItemIconColorChanger.cs" />
     <Compile Include="Knife_.cs" />
-    <Compile Include="LargeWorldEntity_Patch.cs" />
+    <Compile Include="LargeWorldEntity_.cs" />
     <Compile Include="Locker_Door_Anim.cs" />
     <Compile Include="Main_Menu.cs" />
     <Compile Include="MapRoomCamera_.cs" />

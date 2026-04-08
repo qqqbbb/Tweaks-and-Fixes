@@ -16,8 +16,6 @@ namespace Tweaks_Fixes
         public static HashSet<GameObject> pickupShinies = new HashSet<GameObject>();
         public static ConditionalWeakTable<GameObject, Rigidbody> objectsRBs = new ConditionalWeakTable<GameObject, Rigidbody>();
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
-        public static ConditionalWeakTable<SwimBehaviour, string> reefbackSBs = new ConditionalWeakTable<SwimBehaviour, string>();
-        public static ConditionalWeakTable<SwimBehaviour, string> gasopodSBs = new ConditionalWeakTable<SwimBehaviour, string>();
         public static Color bloodColor;
         static public HashSet<TechType> fishTechTypes = new HashSet<TechType> { };
 
@@ -195,9 +193,6 @@ namespace Tweaks_Fixes
                 aep.swimVelocity = ao.swimVelocity;
                 aep.swimInterval = ao.swimInterval;
                 aep.maxDistanceToPod = 100f;
-                SwimBehaviour sb = __instance.GetComponent<SwimBehaviour>();
-                if (sb)
-                    reefbackSBs.Add(sb, "");
             }
         }
 
@@ -220,12 +215,12 @@ namespace Tweaks_Fixes
                     if (ConfigMenu.creatureSpeedMult.Value != 1)
                         velocity *= ConfigMenu.creatureSpeedMult.Value;
 
-                    if (gasopodSBs.TryGetValue(__instance, out string ss) && targetPosition.y > -1f)
+                    if (__instance.TryGetComponent<GasoPod>(out _) && targetPosition.y > -1f)
                     {
                         targetPosition.y = -2;
                         return;
                     }
-                    else if (reefbackSBs.TryGetValue(__instance, out string sss) && targetPosition.y > -15f)
+                    else if (__instance.TryGetComponent<Reefback>(out _) && targetPosition.y > -15f)
                     {
                         targetPosition.y = -15f;
                         return;

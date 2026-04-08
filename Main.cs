@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.14.0";
+            VERSION = "4.15.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -115,7 +115,7 @@ namespace Tweaks_Fixes
             Player.main.groundMotor.forwardMaxSpeed = Player.main.groundMotor.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value;
             Player_Movement.UpdateModifiers();
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
-            Application.runInBackground = false;
+            Application.runInBackground = MiscSettings.runInBackground;
             gameLoaded = true;
         }
 
@@ -235,7 +235,7 @@ namespace Tweaks_Fixes
             {
                 CraftDataHandler.SetHarvestOutput(TechType.CoralShellPlate, TechType.JeweledDiskPiece);
             }
-            Application.runInBackground = false; // dont use system resources in background
+            Application.runInBackground = MiscSettings.runInBackground;
             SaveLoadManager.notificationSaveInProgress += SaveData;
             Logger.LogInfo($"Plugin {MODNAME} {VERSION} is loaded ");
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
@@ -248,14 +248,6 @@ namespace Tweaks_Fixes
             //CustomPrefab stone = new CustomPrefab("TF_Stone", "TF_Stone", "");
             //stone.SetSpawns(new SpawnLocation(new Vector3(0.67f, -14.11f, -323.3f), new Vector3(0f, 310f, 329f)));
             //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
-        }
-
-        public static IEnumerator BeforeLoading(TechType techType)
-        {
-            logger.LogDebug("BeforeLoading " + techType);
-            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
-            yield return request;
-            logger.LogDebug("BeforeLoading !!! " + techType);
         }
 
         static void FixCoralShellPlateHarvestType()
@@ -304,6 +296,18 @@ namespace Tweaks_Fixes
             CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["4f59199f-7049-4e13-9e57-5ee82c8732c5"] = TechType.Cyclops;
         }
+
+
+        [HarmonyPatch(typeof(ApplicationFocus), "OnRunInBackgroundChanged")]
+        class ApplicationFocus_OnRunInBackgroundChanged_Patch
+        {
+            public static void Postfix(ApplicationFocus __instance)
+            {
+                //AddDebug("OnRunInBackgroundChanged " + Application.runInBackground);
+                Application.runInBackground = MiscSettings.runInBackground;
+            }
+        }
+
 
     }
 }

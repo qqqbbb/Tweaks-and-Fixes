@@ -112,7 +112,7 @@ namespace Tweaks_Fixes
                 if (Builder.isPlacing)
                     return true;
 
-                if (GameInput.GetButtonHeld(OptionsMenu.quickSlotCycle))
+                if (GameInput.GetButtonHeld(KeyBinds.quickSlotCycle))
                 {
                     //AddDebug("quickslotButton");
                     Pickupable pickupable = Inventory.main.GetHeld();
@@ -131,7 +131,7 @@ namespace Tweaks_Fixes
                 if (Builder.isPlacing)
                     return true;
 
-                if (GameInput.GetButtonHeld(OptionsMenu.quickSlotCycle))
+                if (GameInput.GetButtonHeld(KeyBinds.quickSlotCycle))
                 {
                     Pickupable pickupable = Inventory.main.GetHeld();
                     if (pickupable != null)

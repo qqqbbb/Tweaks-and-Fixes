@@ -346,7 +346,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
             static bool DropPrefix(Pickupable __instance, Vector3 dropPosition, Vector3 pushVelocity = default, bool checkPosition = true)
             {
-                LargeWorldEntity_Patch.droppedObject = __instance.gameObject;
+                LargeWorldEntity_.droppedObject = __instance.gameObject;
                 if (!ConfigToEdit.dropItemsAnywhere.Value)
                     return true;
 

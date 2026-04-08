@@ -147,8 +147,8 @@
 	"TF_drop_items_death_setting_nothing": "Do not drop anything",
 	"TF_player_damage_rand": "Player damage randomization",
 	"TF_vehicle_damage_rand": "Vehicle damage randomization",
-	"TF_player_damage_rand_desc": "This percent of damage taken by player will be randomized",
-	"TF_vehicle_damage_rand_desc": "This percent of damage taken by your vehicles will be randomized",
+	"TF_player_damage_rand_desc": "This percent of damage taken by player will be randomized. Randomized damage will be a random number between 0 and damage*2.",
+	"TF_vehicle_damage_rand_desc": "This percent of damage taken by your vehicles will be randomized. Randomized damage will be a random number between 0 and damage*2.",
 	
 
 

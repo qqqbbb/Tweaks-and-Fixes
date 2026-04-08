@@ -147,7 +147,7 @@
 
 	"TF_player_damage_rand": "Randomização de dano do jogador",
 	"TF_vehicle_damage_rand": "Randomização de dano de veículos",
-	"TF_player_damage_rand_desc": "Esta porcentagem de dano sofrido pelo jogador será randomizada",
-	"TF_vehicle_damage_rand_desc": "Esta porcentagem de dano sofrido pelos seus veículos será randomizada",
+	"TF_player_damage_rand_desc": "Esta porcentagem de dano sofrido pelo jogador será randomizada. O dano aleatório será um número aleatório entre 0 e dano × 2.",
+	"TF_vehicle_damage_rand_desc": "Esta porcentagem de dano sofrido pelos seus veículos será randomizada. O dano aleatório será um número aleatório entre 0 e dano × 2.",
 								
 }

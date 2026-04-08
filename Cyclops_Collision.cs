@@ -75,32 +75,9 @@ namespace Tweaks_Fixes
                 if (collisionTr)
                 {
                     Collider[] colliders = collisionTr.GetComponentsInChildren<Collider>();
-                    foreach (Collider collider in colliders)
-                        CreateDebugCollider(collider);
+                    //foreach (Collider collider in colliders)
+                    //    CreateDebugCollider(collider);
                 }
-            }
-
-            public static void CreateDebugCollider(Collider collider)
-            {
-                PrimitiveType pt = PrimitiveType.Cube;
-                if (collider is CapsuleCollider)
-                    pt = PrimitiveType.Capsule;
-                else if (collider is SphereCollider)
-                    pt = PrimitiveType.Sphere;
-
-                GameObject debugCollider = GameObject.CreatePrimitive(pt);
-                debugCollider.name = "Debug collider";
-                UnityEngine.Object.DestroyImmediate(debugCollider.GetComponent<Collider>());
-                //debugCollider.GetComponent<MeshRenderer>().material.color = Color.white;
-                //debugCollider.GetComponent<MeshRenderer>().material.color = new Color(1f, 0f, 0f);
-                Material unlitMaterial = new Material(Shader.Find("Unlit/Color"));
-                unlitMaterial.color = new Color(0f, 0f, 1f);
-                debugCollider.GetComponent<MeshRenderer>().material = unlitMaterial;
-                debugCollider.SetActive(true);
-                debugCollider.transform.SetParent(collider.transform, false);
-                debugCollider.transform.localEulerAngles = Vector3.zero;
-                Testing.MatchColliderSize(debugCollider, collider);
-                //AddDebug("ShowDebugCollider " + collider.name);
             }
 
             private static void FixCollision(SubRoot subRoot)
@@ -113,7 +90,9 @@ namespace Tweaks_Fixes
                 //Rigidbody rb = subRoot.GetComponent<Rigidbody>();
                 //rb.freezeRotation = true;
                 //Util.FreezeObject(subRoot.gameObject, true);
-
+                //Main.logger.LogMessage("subRoot child");
+                //foreach (Transform child in subRoot.transform)
+                //    Main.logger.LogMessage("" + child.name);
                 Transform animMeshes = subRoot.transform.Find("CyclopsMeshAnimated");
                 foreach (string hatchName in hatches)
                 {
@@ -143,16 +122,11 @@ namespace Tweaks_Fixes
                     collider.size = new Vector3(0.7f, 0.7f, 0.2f);
                     collider.center = new Vector3(-0.05f, 0, 0);
                 }
-                Transform cyclopsFabricator = subRoot.transform.Find("CyclopsFabricator(Clone)");
-                if (cyclopsFabricator)
-                {
-                    BoxCollider collider = cyclopsFabricator.GetComponent<BoxCollider>();
-                    UnityEngine.Object.Destroy(collider);
-                    Transform mesh = cyclopsFabricator.transform.Find("submarine_fabricator_03");
-                    collider = mesh.GetComponent<BoxCollider>();
-                    collider.center = new Vector3(collider.center.x, collider.center.y, 0);
-                    collider.size = new Vector3(collider.size.x, collider.size.y, .20f);
-                }
+                //Transform cyclopsFabricator = subRoot.transform.Find("CyclopsFabricator");
+                //if (cyclopsFabricator)
+                //{
+                //    DoCyclopsFabricator(cyclopsFabricator);
+                //}
                 Transform cyclopsCollision = subRoot.transform.Find("CyclopsCollision");
                 Transform generator = subRoot.transform.Find("cyclopspower/generator");
                 if (generator != null)
@@ -432,9 +406,31 @@ namespace Tweaks_Fixes
                 }
             }
 
-
         }
 
+        [HarmonyPatch(typeof(Fabricator))]
+        class Fabricator_Patch
+        {
+            [HarmonyPatch("Start")]
+            public static void Postfix(Fabricator __instance)
+            {
+                if (__instance.name == "CyclopsFabricator(Clone)")
+                {
+                    DoCyclopsFabricator(__instance.transform);
+                }
+            }
+        }
+
+        private static void DoCyclopsFabricator(Transform cyclopsFabricator)
+        { // it is not in prefab
+            //AddDebug("CyclopsFabricator");
+            BoxCollider collider = cyclopsFabricator.GetComponent<BoxCollider>();
+            UnityEngine.Object.Destroy(collider);
+            Transform mesh = cyclopsFabricator.Find("submarine_fabricator_03");
+            collider = mesh.GetComponent<BoxCollider>();
+            collider.center = new Vector3(collider.center.x, collider.center.y, 0);
+            collider.size = new Vector3(collider.size.x, collider.size.y, .20f);
+        }
 
     }
 }

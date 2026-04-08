@@ -189,6 +189,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> vegan;
         public static ConfigEntry<int> shroomDamage;
         public static ConfigEntry<bool> fixCyclopsCollision;
+        //public static ConfigEntry<bool> strafingStopsAutoMove;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -204,6 +205,7 @@ namespace Tweaks_Fixes
             fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", true, "");
             vegan = Main.configToEdit.Bind("PLAYER", "Vegan diet", false, "You will not be able to eat fish if this is true");
             radioIcon = Main.configToEdit.Bind("UI", "Show icon on the UI when a new radio message is received", true, "");
+            //strafingStopsAutoMove = Main.configToEdit.Bind("PLAYER MOVEMENT", "Moving sideways stops automove", true, "");
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
@@ -289,7 +291,7 @@ namespace Tweaks_Fixes
             fixCuteFish = Main.configToEdit.Bind("CREATURES", "Fix cuddlefish", false, "You will be able to interact with cuddlefish only when swimming if this is true.");
             seaTreaderOutcropMult = Main.configToEdit.Bind("CREATURES", "Outcrop from seatreader step", 100, "Chance percent to unearth outcrop when seatreader steps");
             seaTreaderAttackOutcropMult = Main.configToEdit.Bind("CREATURES", "Outcrop from seatreader attack", 100, "Chance percent to unearth outcrop when seatreader attacks player");
-            shroomDamageChance = Main.configToEdit.Bind("PLANTS", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed. The script to do it was always in the game but was disabled. Works only if 'Mushroom damage' setting is above 0.", percentRange));
+            shroomDamageChance = Main.configToEdit.Bind("PLANTS", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed. The script to do it was always in the game but was disabled.", percentRange));
             shroomDamage = Main.configToEdit.Bind("PLANTS", "Mushroom damage", 0, "Mushrooms will deal this damage to player when picked up or destroyed. Works only if 'Mushroom damage chance percent' setting is above 0.");
             escapePodPowerTweak = Main.configToEdit.Bind("LIFE POD", "Life pod power tweaks", false, "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod power cells are not charged.");
             stalkerPlayThings = Main.configToEdit.Bind("CREATURES", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
@@ -604,8 +606,8 @@ namespace Tweaks_Fixes
             Gravsphere_.gravTrappable = ParseSetFromString(gravTrappable.Value);
             Silent_Creatures.silentCreatures = ParseSetFromString(silentCreatures.Value);
             Pickupable_.shinies = ParseSetFromString(stalkerPlayThings.Value);
-            LargeWorldEntity_Patch.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
-            LargeWorldEntity_Patch.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
+            LargeWorldEntity_.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
+            LargeWorldEntity_.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
             Escape_Pod.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
             CreatureDeath_.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
             CreatureDeath_.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);

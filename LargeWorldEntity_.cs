@@ -10,7 +10,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class LargeWorldEntity_Patch
+    class LargeWorldEntity_
     {
         public static HashSet<string> harvest = new HashSet<string>();
 
@@ -18,8 +18,6 @@ namespace Tweaks_Fixes
         public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> techTypesToDespawn = new Dictionary<TechType, int> { };
         static HashSet<TechType> drillables = new HashSet<TechType> { TechType.DrillableAluminiumOxide, TechType.DrillableCopper, TechType.DrillableDiamond, TechType.DrillableGold, TechType.DrillableKyanite, TechType.DrillableLead, TechType.DrillableLithium, TechType.DrillableMagnetite, TechType.DrillableMercury, TechType.DrillableNickel, TechType.DrillableQuartz, TechType.DrillableSalt, TechType.DrillableSilver, TechType.DrillableSulphur, TechType.DrillableTitanium, TechType.DrillableUranium };
-
-
 
         static HashSet<TechType> plantSurfaces = new HashSet<TechType> {TechType.BloodRoot, TechType.BloodOil, TechType.BloodVine, TechType.BluePalm, TechType.KooshChunk, TechType.HugeKoosh, TechType.LargeKoosh, TechType.MediumKoosh, TechType.SmallKoosh, TechType.BulboTreePiece, TechType.BulboTree, TechType.PurpleBranches, TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.AcidMushroom, TechType.WhiteMushroom, TechType.EyesPlant, TechType.FernPalm, TechType.RedRollPlant, TechType.GabeSFeather, TechType.RedGreenTentacle, TechType.JellyPlant, TechType.OrangeMushroom, TechType.SnakeMushroom, TechType.OrangePetalsPlant, TechType.SpikePlant, TechType.MembrainTree, TechType.Melon, TechType.SmallMelon, TechType.MelonPlant, TechType
         .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
@@ -82,9 +80,10 @@ namespace Tweaks_Fixes
             private static void HandleLWE(LargeWorldEntity __instance)
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //Main.logger.LogMessage("HandleLWE " + __instance.name + " " + tt);
                 //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
                 //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
-                //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                //Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
                 if (!ConfigToEdit.propCannonGrabsAnyPlant.Value)
                 {
                     if (tt != TechType.Creepvine && tt != TechType.Cyclops && tt != TechType.BigCoralTubes && tt != TechType.None && tt != TechType.BloodVine && tt != TechType.Seamoth)

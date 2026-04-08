@@ -364,12 +364,12 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded || GameInput.lastPrimaryDevice != GameInput.Device.Keyboard || IngameMenu.main.isActiveAndEnabled || !Player.main.pda.isOpen)
                     return;
 
-                if (GameInput.GetButtonDown(OptionsMenu.nextPDAtab))
+                if (GameInput.GetButtonDown(KeyBinds.nextPDAtab))
                 {
                     //if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     __instance.OpenTab(__instance.GetNextTab());
                 }
-                else if (GameInput.GetButtonDown(OptionsMenu.previousPDAtab))
+                else if (GameInput.GetButtonDown(KeyBinds.previousPDAtab))
                 {
                     __instance.OpenTab(__instance.GetPreviousTab());
                 }
