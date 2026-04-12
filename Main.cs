@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.15.0";
+            VERSION = "4.16.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -49,7 +49,6 @@ namespace Tweaks_Fixes
         internal static OptionsMenu options;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
-        public static Survival survival;
 
         public static void CleanUp()
         {
@@ -80,6 +79,7 @@ namespace Tweaks_Fixes
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
             InventoryItemIconColorChanger.CleanUp();
+            Radiation.auroraRadiation = null;
             configToEdit.Reload();
             configMain.Load();
         }
@@ -87,6 +87,7 @@ namespace Tweaks_Fixes
         public static void LoadedGameSetup()
         {
             //AddDebug("LoadedGameSetup ");
+
             FixCoralShellPlateHarvestType();
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_.DisableExosuitClawArmScan();

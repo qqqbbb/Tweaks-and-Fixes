@@ -27,6 +27,38 @@ namespace Tweaks_Fixes
         static HashSet<TechType> techTypesToRemoveWavingShader = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleVasePlant, TechType.OrangePetalsPlant, TechType.PinkMushroom, TechType.PurpleRattle, TechType.PinkFlower };
         static HashSet<TechType> fruitTechTypes = new HashSet<TechType> { TechType.BloodRoot, TechType.BloodVine, TechType.Creepvine };
         static HashSet<TechType> techTypesToAddWorldForces = new HashSet<TechType> { TechType.CoralChunk };
+        static HashSet<string> hotMetalDebrisNames = new HashSet<string> {
+            "Starship_exploded_debris_02(Clone)",
+            "Starship_exploded_debris_13(Clone)",
+            "Starship_exploded_debris_14(Clone)",
+            "Starship_exploded_debris_15(Clone)",
+            "Starship_exploded_debris_16(Clone)",
+            "Starship_exploded_debris_22(Clone)",
+            "Starship_exploded_debris_30(Clone)",
+            "Starship_exploded_debris_31(Clone)",
+            "Starship_exploded_debris_33(Clone)",
+            "Starship_exploded_debris_34(Clone)",
+            "Starship_exploded_debris_35(Clone)",
+            "Starship_exploded_debris_36(Clone)",
+            "explorable_wreckage_modular_wall_details_01(Clone)",
+            "explorable_wreckage_modular_room_details_06(Clone)",
+            "explorable_wreckage_modular_room_details_07(Clone)",
+            "explorable_wreckage_modular_room_details_08(Clone)",
+            "explorable_wreckage_modular_room_details_10(Clone)",
+            "explorable_wreckage_modular_room_details_11(Clone)",
+            "explorable_wreckage_modular_room_details_14(Clone)",
+            "life_pod_exploded_2(Clone)",
+            "life_pod_exploded_3(Clone)",
+            "life_pod_exploded_4(Clone)",
+            "life_pod_exploded_6(Clone)",
+            "life_pod_exploded_7(Clone)",
+            "life_pod_exploded_12(Clone)",
+            "life_pod_exploded_13(Clone)",
+            "life_pod_exploded_17(Clone)",
+            "life_pod_exploded_19(Clone)",
+
+            "CrashedShip_pipes_room(Clone)",
+        };
         public static GameObject droppedObject;
         public static bool spawning;
 
@@ -68,64 +100,69 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(LargeWorldEntity))]
-        class LargeWorldEntity_Awake_Patch
+        class LargeWorldEntity_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             public static void AwakePostfix(LargeWorldEntity __instance)
             {
                 HandleLWE(__instance);
             }
 
-            private static void HandleLWE(LargeWorldEntity __instance)
+            private static void HandleLWE(LargeWorldEntity entity)
             {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                TechType tt = CraftData.GetTechType(entity.gameObject);
                 //Main.logger.LogMessage("HandleLWE " + __instance.name + " " + tt);
                 //Main.logger.LogMessage("LargeWorldEntity Awake " + __instance.name + " " + tt);
-                //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 3f)
-                //Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
+                //if (Vector3.Distance(__instance.transform.position, Player.main.transform.position) < 2f)
+                //    Main.logger.LogMessage("Closest LargeWorldEntity " + __instance.name + " " + tt);
+
+                if (ConfigToEdit.disableHotMetalGlow.Value && hotMetalDebrisNames.Contains(entity.name) && entity.transform.position.y < Ocean.GetOceanLevel() + .5)
+                {
+                    //AddDebug(__instance.name + " hot metal " + __instance.transform.position.y);
+                    RemoveHotMetalGlow(entity.gameObject);
+                }
                 if (!ConfigToEdit.propCannonGrabsAnyPlant.Value)
                 {
                     if (tt != TechType.Creepvine && tt != TechType.Cyclops && tt != TechType.BigCoralTubes && tt != TechType.None && tt != TechType.BloodVine && tt != TechType.Seamoth)
                     {
-                        if (Util.IsDecoPlant(__instance.gameObject))
-                            Util.MakeUnmovable(__instance.gameObject);
+                        if (Util.IsDecoPlant(entity.gameObject))
+                            Util.MakeUnmovable(entity.gameObject);
                     }
                 }
                 if (ConfigToEdit.fruitGrowTime.Value > 0 && fruitTechTypes.Contains(tt))
                 {
-                    Util.EnsureFruits(__instance.gameObject);
+                    Util.EnsureFruits(entity.gameObject);
                 }
                 if (drillables.Contains(tt))
                 {
                     if (Util.IsGraphicsPresetHighDetail())
-                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Medium);
+                        SetCellLevel(entity, LargeWorldEntity.CellLevel.Medium);
                 }
                 if (techTypesToAddWorldForces.Contains(tt))
                 {
-                    AddWorldForces(__instance.gameObject);
+                    AddWorldForces(entity.gameObject);
                 }
                 if (techTypesToMakeUnmovable.Contains(tt))
                 {
                     //AddDebug("techTypesToMakeUnmovable MakeUnmovable " + __instance.name);
-                    Util.MakeUnmovable(__instance.gameObject);
+                    Util.MakeUnmovable(entity.gameObject);
                 }
                 if (ConfigToEdit.disableWeirdPlantAnimation.Value && techTypesToRemoveWavingShader.Contains(tt))
                 {
-                    DisableWavingShader(__instance);
+                    DisableWavingShader(entity);
                 }
                 if (plantSurfaces.Contains(tt))
                 {
-                    Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+                    Util.AddVFXsurfaceComponent(entity.gameObject, VFXSurfaceTypes.vegetation);
                 }
                 else if (coralSurfaces.Contains(tt))
                 {
-                    Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
+                    Util.AddVFXsurfaceComponent(entity.gameObject, VFXSurfaceTypes.coral);
                 }
 
                 if (tt == TechType.NarrowBed || tt == TechType.Bed1)
                 { // beds in Aurora
-                    if (__instance.TryGetComponent<Bed>(out _))
+                    if (entity.TryGetComponent<Bed>(out _))
                         return;
                     //Vector3 pos = __instance.transform.position;
                     //int x = (int)pos.x;
@@ -133,20 +170,20 @@ namespace Tweaks_Fixes
                     //int z = (int)pos.z;
                     //if ((x == 976 && y == 9 && z == -59) || (x == 952 && y == 10 && z == -35))
                     //    return;
-                    CoroutineHost.StartCoroutine(MakeSleepable(__instance.gameObject, tt));
+                    CoroutineHost.StartCoroutine(MakeSleepable(entity.gameObject, tt));
                 }
                 else if (tt == TechType.BigCoralTubes)
                 {
-                    FixCoralTubesPositions(__instance);
+                    FixCoralTubesPositions(entity);
                 }
                 else if (tt == TechType.Creepvine)
                 {
-                    Vector3 pos = __instance.transform.position;
+                    Vector3 pos = entity.transform.position;
                     int x = (int)pos.x;
                     int y = (int)pos.y;
                     int z = (int)pos.z;
                     if (x == 29 && y == -51 && z == -472) // not attached to ground
-                        __instance.transform.position = new Vector3(pos.x, -55f, pos.z);
+                        entity.transform.position = new Vector3(pos.x, -55f, pos.z);
                 }
                 //else if (tt == TechType.PurpleTentacle && __instance.name == "Coral_reef_purple_tentacle_plant_01_02(Clone)")
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
@@ -160,38 +197,38 @@ namespace Tweaks_Fixes
                 //    AlwaysUseHiPolyMesh(__instance.gameObject);
                 else if (tt == TechType.BloodVine)
                 {
-                    LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                    LiveMixin lm = entity.GetComponent<LiveMixin>();
                     if (lm)
                         UnityEngine.Object.Destroy(lm);
                 }
                 else if (tt == TechType.CrashHome || tt == TechType.CrashPowder)
                 {
-                    int x = (int)__instance.transform.position.x;
-                    int y = (int)__instance.transform.position.y;
-                    int z = (int)__instance.transform.position.z;
+                    int x = (int)entity.transform.position.x;
+                    int y = (int)entity.transform.position.y;
+                    int z = (int)entity.transform.position.z;
                     if ((x == 280 && y == -40 && z == -195) || (x == 272 && y == -41 && z == -199))
-                        __instance.transform.Rotate(90, 0, 0);
+                        entity.transform.Rotate(90, 0, 0);
                 }
                 else if (tt == TechType.PurpleBranches || tt == TechType.SnakeMushroom || tt == TechType.PurpleStalk)
                 { // things in shroom cave
                     if (Util.IsGraphicsPresetHighDetail())
-                        SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                        SetCellLevel(entity, LargeWorldEntity.CellLevel.Far);
                 }
                 else if (tt == TechType.Floater)
                 {
-                    Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.organic);
+                    Util.AddVFXsurfaceComponent(entity.gameObject, VFXSurfaceTypes.organic);
                 }
                 else if (tt == TechType.PurpleFan) // veined nettle
                 { // disable collision, allow scanning
-                    DisableCollision(__instance);
+                    DisableCollision(entity);
                 }
                 else if (tt == TechType.PurpleTentacle) // writhing weed
                 { // disable collision, allow scanning
-                    DisableCollision(__instance, new Vector3(1, 1, 3));
+                    DisableCollision(entity, new Vector3(1, 1, 3));
                 }
-                else if (tt == TechType.FarmingTray && __instance.name == "Base_exterior_Planter_Tray_01_abandoned(Clone)")
+                else if (tt == TechType.FarmingTray && entity.name == "Base_exterior_Planter_Tray_01_abandoned(Clone)")
                 {
-                    Util.MakeUnmovable(__instance.gameObject);
+                    Util.MakeUnmovable(entity.gameObject);
                 }
                 else if (tt == TechType.None)
                 {
@@ -201,44 +238,44 @@ namespace Tweaks_Fixes
                     //    if (light && light.enabled && __instance.transform.childCount == 0)
                     //        light.enabled = false;
                     //}
-                    if (__instance.name == "Land_tree_01(Clone)")
+                    if (entity.name == "Land_tree_01(Clone)")
                     { // remove stupid light
                       //ForceBestLODmesh(__instance.gameObject);
-                        foreach (MeshRenderer mr in __instance.GetComponentsInChildren<MeshRenderer>())
+                        foreach (MeshRenderer mr in entity.GetComponentsInChildren<MeshRenderer>())
                         {
                             foreach (Material m in mr.materials)
                                 m.DisableKeyword("MARMO_EMISSION");
                         }
                     }
-                    else if (__instance.name.StartsWith("Crab_snake_mushrooms"))
+                    else if (entity.name.StartsWith("Crab_snake_mushrooms"))
                     { // small shrooms have no techtype
                         if (Util.IsGraphicsPresetHighDetail())
-                            SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                            SetCellLevel(entity, LargeWorldEntity.CellLevel.Far);
                     }
-                    else if (__instance.name.StartsWith("coral_reef_Stalactite"))
+                    else if (entity.name.StartsWith("coral_reef_Stalactite"))
                     { // Stalactites in shroom cave
                       //AddDebug(__instance.name + " cellLevel " + __instance.cellLevel);
                         if (Util.IsGraphicsPresetHighDetail())
-                            SetCellLevel(__instance, LargeWorldEntity.CellLevel.Far);
+                            SetCellLevel(entity, LargeWorldEntity.CellLevel.Far);
                     }
-                    else if (__instance.name.StartsWith("ExplorableWreck_"))
+                    else if (entity.name.StartsWith("ExplorableWreck_"))
                     {
-                        Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
+                        Util.AddVFXsurfaceComponent(entity.gameObject, VFXSurfaceTypes.metal);
                     }
-                    else if (plantsWithNoTechtype.Contains(__instance.name))
+                    else if (plantsWithNoTechtype.Contains(entity.name))
                     {
-                        DisableCollision(__instance);
-                        Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+                        DisableCollision(entity);
+                        Util.AddVFXsurfaceComponent(entity.gameObject, VFXSurfaceTypes.vegetation);
                     }
                     return;
                 }
                 if (eatableFoodValue.ContainsKey(tt))
                 {
-                    Util.MakeEatable(__instance.gameObject, eatableFoodValue[tt]);
+                    Util.MakeEatable(entity.gameObject, eatableFoodValue[tt]);
                 }
                 if (eatableWaterValue.ContainsKey(tt))
                 {
-                    Util.MakeDrinkable(__instance.gameObject, eatableWaterValue[tt]);
+                    Util.MakeDrinkable(entity.gameObject, eatableWaterValue[tt]);
                 }
                 //if (removeLight.Contains(tt))
                 //{
@@ -260,6 +297,18 @@ namespace Tweaks_Fixes
                 //        l.enabled = false;
                 //}
 
+            }
+
+            private static void RemoveHotMetalGlow(GameObject gameObject)
+            {
+                foreach (MeshRenderer mr in gameObject.GetComponentsInChildren<MeshRenderer>())
+                {
+                    foreach (Material m in mr.materials)
+                    {
+                        //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
+                        m.DisableKeyword("MARMO_EMISSION");
+                    }
+                }
             }
 
             public static IEnumerator MakeSleepable(GameObject go, TechType techType)

@@ -211,8 +211,8 @@ namespace Tweaks_Fixes
                 if (s == null)
                     continue;
                 //float dist = Vector3.Distance(s.transform.position, pos);
-                Vector3 dir = s.transform.position - pos;
-                float distSqr = dir.sqrMagnitude;
+                Vector3 dist = s.transform.position - pos;
+                float distSqr = dist.sqrMagnitude;
                 if (distSqr < closestDist)
                 {
                     closestDist = distSqr;

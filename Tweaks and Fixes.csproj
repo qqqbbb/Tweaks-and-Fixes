@@ -139,8 +139,9 @@
     <Compile Include="Base_Collision.cs" />
     <Compile Include="Base_.cs" />
     <Compile Include="Aurora_terminals.cs" />
+    <Compile Include="Radiation.cs" />
+    <Compile Include="Input_.cs" />
     <Compile Include="Telemetry_.cs" />
-    <Compile Include="KeyBinds.cs" />
     <Compile Include="Eatable_.cs" />
     <Compile Include="CoffeeMaker.cs" />
     <Compile Include="Constructor_.cs" />

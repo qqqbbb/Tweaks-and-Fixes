@@ -189,7 +189,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> vegan;
         public static ConfigEntry<int> shroomDamage;
         public static ConfigEntry<bool> fixCyclopsCollision;
-        //public static ConfigEntry<bool> strafingStopsAutoMove;
+        public static ConfigEntry<bool> sunbeamTimerShowsGameTime;
+        public static ConfigEntry<bool> disableHotMetalGlow;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -202,8 +203,10 @@ namespace Tweaks_Fixes
         public static void Bind()
         {  // “ ” ‛
 
+            disableHotMetalGlow = Main.configToEdit.Bind("MISC", "Remove hot metal glow from Aurora debris that is underwater", false, "");
             fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", true, "");
             vegan = Main.configToEdit.Bind("PLAYER", "Vegan diet", false, "You will not be able to eat fish if this is true");
+            sunbeamTimerShowsGameTime = Main.configToEdit.Bind("UI", "Sunbeam arrival timer shows game time instread of real time", false, "");
             radioIcon = Main.configToEdit.Bind("UI", "Show icon on the UI when a new radio message is received", true, "");
             //strafingStopsAutoMove = Main.configToEdit.Bind("PLAYER MOVEMENT", "Moving sideways stops automove", true, "");
             seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");

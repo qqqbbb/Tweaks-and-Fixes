@@ -46,7 +46,6 @@ namespace Tweaks_Fixes
             { // using finalizer bc some mod throws exception in prefix
                 //__instance.StartCoroutine(Test());
                 crushTime = 0;
-                Main.survival = __instance.GetComponent<Survival>();
             }
 
             [HarmonyPostfix]

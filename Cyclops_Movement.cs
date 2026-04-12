@@ -21,67 +21,6 @@ namespace Tweaks_Fixes
         static bool autoMove = false;
         static int collisionLayerMask = Voxeland.GetTerrainLayerMask();
 
-        [HarmonyPatch(typeof(GameInput))]
-        internal class GameInput_
-        {
-            [HarmonyPatch("UpdateMove"), HarmonyPrefix]
-            static bool UpdateMovePrefix()
-            {
-                Vector2 moveVector2 = GetVector2(Button.Move);
-                float y = 0f;
-                y += (GetButtonHeld(Button.MoveUp) ? 1f : 0f);
-                y -= (GetButtonHeld(Button.MoveDown) ? 1f : 0f);
-                if (GameInput.autoMove && moveVector2.y != 0)
-                {
-                    GameInput.autoMove = false;
-                }
-                if (GameInput.autoMove)
-                    moveDirection.Set(moveVector2.x, y, 1f);
-                else
-                    moveDirection.Set(moveVector2.x, y, moveVector2.y);
-
-                if (IsPrimaryDeviceGamepad())
-                {
-                    if (GameInput.autoMove)
-                        isRunningMoveThreshold = false;
-                    else
-                    {
-                        isRunningMoveThreshold = moveDirection.sqrMagnitude > 0.8f;
-                        if (!isRunningMoveThreshold)
-                            moveDirection /= 0.9f;
-                    }
-                }
-                if (runMode == RunModeOption.PressToToggle && GetButtonDown(Button.Sprint))
-                    isRunning = !isRunning;
-
-                return false;
-            }
-            //[HarmonyPatch("UpdateMove"), HarmonyTranspiler]
-            static IEnumerable<CodeInstruction> UpdateMoveTranspiler(IEnumerable<CodeInstruction> instructions)
-            {
-                var codeMatcher = new CodeMatcher(instructions);
-
-                // Try to find stsfld for autoMove regardless of what's being stored
-                codeMatcher.MatchForward(false,
-                    new CodeMatch(OpCodes.Stsfld, AccessTools.Field(typeof(GameInput), "autoMove"))
-                )
-                .ThrowIfInvalid("Could not find autoMove field store in UpdateMove");
-                // Go back one instruction to find what's being stored
-                codeMatcher.Advance(-1);
-                // Replace the loading instruction (ldc.i4.0 or whatever) with your delegate
-                codeMatcher.SetInstructionAndAdvance(Transpilers.EmitDelegate<Func<bool>>(GetAutoMove));
-
-                return codeMatcher.InstructionEnumeration();
-            }
-
-            static bool GetAutoMove()
-            {
-                //AddDebug("GetAutoMove");
-                return true;
-            }
-        }
-
-
         static IEnumerator DetectCollision(CyclopsProximitySensors sensors)
         { // detects only terrain
             while (autoMove)
@@ -184,7 +123,11 @@ namespace Tweaks_Fixes
                 //    else
                 //        AddDebug("AutoMove Off ");
                 //}
-                if (autoMove)
+                if (__instance.canAccel == false)
+                {
+                    autoMove = false;
+                }
+                else if (autoMove)
                 {
                     MoveCyclopsForward(__instance);
                 }
@@ -193,11 +136,6 @@ namespace Tweaks_Fixes
             private static void MoveCyclopsForward(SubControl __instance)
             {
                 //AddDebug("MoveCyclopsForward useThrottleIndex " + __instance.useThrottleIndex);
-                if (__instance.canAccel == false)
-                {
-                    autoMove = false;
-                    return;
-                }
                 __instance.throttle = Vector3.forward;
                 float amountConsumed = 0f;
                 float amount = __instance.throttle.magnitude * __instance.cyclopsMotorMode.GetPowerConsumption() * Time.deltaTime / __instance.sub.GetPowerRating();

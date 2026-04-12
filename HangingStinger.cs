@@ -75,7 +75,13 @@ namespace Tweaks_Fixes
                 if (ConfigToEdit.permPoisonDamage.Value > 0)
                     CoroutineHost.StartCoroutine(Poison_Damage.DealPoisonDamage(liveMixin, HangingStinger.damage));
                 if (ConfigToEdit.poisonFoodDamage.Value > 0)
-                    CoroutineHost.StartCoroutine(Poison_Damage.DealFoodDamage(HangingStinger.damage, Main.survival, liveMixin));
+                {
+                    Survival survival = Player.main.GetComponent<Survival>();
+                    if (survival)
+                    {
+                        CoroutineHost.StartCoroutine(Poison_Damage.DealFoodDamage(HangingStinger.damage, survival, liveMixin));
+                    }
+                }
             }
             else
             {

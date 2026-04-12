@@ -103,7 +103,7 @@ namespace Tweaks_Fixes
         {
             //AddDebug("StoryGoalCustomEventHandler NotifyGoalComplete " + key);
             //Main.logger.LogMessage("StoryGoalCustomEventHandler NotifyGoalComplete " + key);
-            if (key == "OnPlayRadioSunbeam4")
+            if (ConfigToEdit.sunbeamTimerShowsGameTime.Value && key == "OnPlayRadioSunbeam4")
             {
                 //AddDebug("StoryGoalCustomEventHandler NotifyGoalComplete OnPlayRadioSunbeam4");
                 StoryGoalCustomEventHandler.main.countdownStartingTime = DayNightCycle.main.timePassedAsFloat + 2400f * ConfigMenu.timeFlowSpeed.Value;
@@ -166,6 +166,9 @@ namespace Tweaks_Fixes
         { // runs in main menu
             if (Main.gameLoaded == false)
                 return false;
+
+            if (ConfigToEdit.sunbeamTimerShowsGameTime.Value == false)
+                return true;
 
             StoryGoalCustomEventHandler sgceh = StoryGoalCustomEventHandler.main;
             if (sgceh == null)

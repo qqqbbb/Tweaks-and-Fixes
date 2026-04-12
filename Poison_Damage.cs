@@ -112,8 +112,12 @@ namespace Tweaks_Fixes
                 {
                     if (dealer != Player.mainObject)
                     {
-                        CoroutineHost.StartCoroutine(DealFoodDamage(originalDamage, Main.survival, __instance));
-                        startedCoroutine = true;
+                        Survival survival = Player.main.GetComponent<Survival>();
+                        if (survival)
+                        {
+                            CoroutineHost.StartCoroutine(DealFoodDamage(originalDamage, survival, __instance));
+                            startedCoroutine = true;
+                        }
                     }
                 }
                 if (startedCoroutine)

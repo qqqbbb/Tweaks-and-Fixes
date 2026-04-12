@@ -482,9 +482,14 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    //ShowColliderName(true, false);
-                    AddDebug("GameModeUtils.RequiresPower " + GameModeUtils.RequiresPower());
-                    //DumpEncy();
+                    float radius = 2;
+                    AddDebug($" Objects in radius of {radius}");
+                    Main.logger.LogInfo($"Objects in radius of {radius}");
+                    foreach (var go in Util.FindObjectsInRadius(__instance.transform.position, radius))
+                    {
+                        AddDebug($"{go.name} ");
+                        Main.logger.LogInfo($"{go.name} ");
+                    }
                     //DestroyTarget();
                     if (Input.GetKey(KeyCode.LeftShift))
                         Time.timeScale = 0;
@@ -640,6 +645,18 @@ namespace Tweaks_Fixes
                 AddDebug("no terrain ");
         }
 
+        private static void RemoveHotMetalGlow(GameObject gameObject)
+        {
+            foreach (MeshRenderer mr in gameObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                foreach (Material m in mr.materials)
+                {
+                    //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
+                    m.DisableKeyword("MARMO_EMISSION");
+                }
+            }
+        }
+
         public static void ShowTargetInfo(bool health = false, bool position = false, bool showCollider = false)
         {
             GameObject target = Player.main.guiHand.activeTarget;
@@ -657,6 +674,7 @@ namespace Tweaks_Fixes
             if (root)
                 target = root;
 
+            RemoveHotMetalGlow(target);
             AddDebug(target.name);
             if (position)
             {
@@ -952,66 +970,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(MainGameController), "Update")]
-        class MainGameController_Update_Patch
-        {
-            static bool Prefix(MainGameController __instance)
-            {
-                if (uGUI.main == null || GameApplication.isQuitting)
-                {
-                    return false;
-                }
-                if (GC.CollectionCount(0) != __instance.lastFrameGCCount)
-                    __instance.NotifyGarbageCollected();
-
-                __instance.UpdateAutoGarbageCollection();
-                AddressablesUtility.Update();
-                __instance.lastFrameGCCount = GC.CollectionCount(0);
-                if (UnityEngine.Debug.isDebugBuild && Input.GetKeyDown(KeyCode.F5) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-                {
-                    if (!Profiler.enabled)
-                    {
-                        Profiler.logFile = "profiling-" + Time.frameCount + ".log";
-                        Profiler.enableBinaryLog = true;
-                        Profiler.enabled = true;
-                        UnityEngine.Debug.Log("Started profiling, writing to " + Profiler.logFile);
-                    }
-                    else
-                    {
-                        Profiler.enabled = false;
-                        Profiler.enableBinaryLog = false;
-                        Profiler.logFile = null;
-                        UnityEngine.Debug.Log("Stopped profiling");
-                    }
-                }
-                if (Input.GetKeyDown(KeyCode.F1))
-                {
-                    TerrainDebugGUI[] array = UnityEngine.Object.FindObjectsOfType<TerrainDebugGUI>();
-                    foreach (TerrainDebugGUI obj in array)
-                    {
-                        obj.enabled = !obj.enabled;
-                    }
-                }
-                if (Input.GetKeyDown(KeyCode.F3))
-                {
-                    GraphicsDebugGUI[] array2 = UnityEngine.Object.FindObjectsOfType<GraphicsDebugGUI>();
-                    foreach (GraphicsDebugGUI graphicsDebugGUI in array2)
-                    {
-                        if (graphicsDebugGUI != null)
-                        {
-                            graphicsDebugGUI.enabled = !graphicsDebugGUI.enabled;
-                        }
-                    }
-                }
-                if (!Cursor.visible && Cursor.lockState == CursorLockMode.None)
-                {
-                    Cursor.visible = true;
-                }
-                MiscSettings.Update();
-                return false;
-            }
-        }
-
         public static void ShowDebugCollider(Collider collider)
         {
             bool debugCol = false;
@@ -1101,6 +1059,29 @@ namespace Tweaks_Fixes
         }
 
 
+        //[HarmonyPatch(typeof(GotoConsoleCommand))]
+        class GotoConsoleCommand_Patch
+        {
+            //[HarmonyPostfix, HarmonyPatch("Awake")]
+            public static void AwakePostfix(GotoConsoleCommand __instance)
+            {
+                List<TeleportPosition> tps = new List<TeleportPosition>();
+                foreach (TeleportPosition tp in __instance.data.locations)
+                {
+                    if (tp.name.StartsWith("escapepod"))
+                    {
+                        //Main.logger.LogMessage("scatter TeleportPosition: " + tp.name);
+                        //AddDebug("GotoConsoleCommand TeleportPosition: " + tp.name);
+                        tps.Add(tp);
+                    }
+                }
+                __instance.data.locations = tps.ToArray();
+            }
+            //[HarmonyPostfix, HarmonyPatch("GotoLocation")]
+            public static void GotoLocationPostfix(GotoConsoleCommand __instance)
+            {
 
+            }
+        }
     }
 }

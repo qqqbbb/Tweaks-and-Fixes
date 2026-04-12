@@ -74,12 +74,13 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> subtitlesDelay;
         public static ConfigEntry<int> playerDamageRandomization;
         public static ConfigEntry<int> vehicleDamageRandomization;
+        public static ConfigEntry<float> auroraRadRadiusMult;
 
 
 
         public static void Bind()
         {
-
+            auroraRadRadiusMult = Main.configMenu.Bind("", "TF_aurora_rad_radius", 1f);
             timeFlowSpeed = Main.configMenu.Bind("", "TF_time_flow", 1f, "TF_time_flow_desc");
             nightDuration = Main.configMenu.Bind("", "TF_night_duration", 6f, "");
             //waterMurkinessMult = Main.configMenu.Bind("", "TF_water_murkiness", 1f, "TF_reload_game");

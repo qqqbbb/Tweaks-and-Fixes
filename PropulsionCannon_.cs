@@ -125,9 +125,13 @@ namespace Tweaks_Fixes
                         sb.Append(UI_Patches.propCannonEatString + ", ");
                         if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                         {
-                            __instance.propulsionCannon.ReleaseGrabbedObject();
-                            Main.survival.Eat(grabbedEatable.gameObject);
-                            Util.DestroyEntity(grabbedEatable.gameObject);
+                            Survival survival = Player.main.GetComponent<Survival>();
+                            if (survival)
+                            {
+                                __instance.propulsionCannon.ReleaseGrabbedObject();
+                                survival.Eat(grabbedEatable.gameObject);
+                                Util.DestroyEntity(grabbedEatable.gameObject);
+                            }
                         }
                     }
                     sb.Append(grabbedObjectPickupText);

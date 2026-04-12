@@ -148,5 +148,6 @@
 	"TF_vehicle_damage_rand": "Randomisation des dégâts des véhicules",
 	"TF_player_damage_rand_desc": "Ce pourcentage de dégâts subis par le joueur sera randomisé. Les dégâts aléatoires seront un nombre aléatoire compris entre 0 et dégâts × 2.",
 	"TF_vehicle_damage_rand_desc": "Ce pourcentage de dégâts subis par vos véhicules sera randomisé.Les dégâts aléatoires seront un nombre aléatoire compris entre 0 et dégâts × 2.",
+	"TF_aurora_rad_radius": "Multiplicateur du rayon de radiation d'Aurora",
 
 }

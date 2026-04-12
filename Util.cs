@@ -799,7 +799,35 @@ namespace Tweaks_Fixes
                 UnityEngine.Object.Destroy(itpc);
         }
 
+        public static List<GameObject> FindObjectsInRadius(Vector3 center, float radius, GameObject[] exclusions = null)
+        {
+            GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+            List<GameObject> objectsInRange = new List<GameObject>();
+            //HashSet<GameObject> exclusions_ = new HashSet<GameObject>(exclusions);
+            foreach (GameObject obj in allObjects)
+            {
+                //if (exclusions != null && exclusions_.Contains(obj))
+                //    continue;
 
+                //if (targetTags != null && targetTags.Length > 0)
+                //{
+                //    bool hasValidTag = false;
+                //    foreach (string tag in targetTags)
+                //    {
+                //        if (obj.CompareTag(tag))
+                //        {
+                //            hasValidTag = true;
+                //            break;
+                //        }
+                //    }
+                //    if (!hasValidTag) continue;
+                //}
+                float distance = Vector3.Distance(center, obj.transform.position);
+                if (distance <= radius)
+                    objectsInRange.Add(obj);
+            }
+            return objectsInRange;
+        }
 
 
     }

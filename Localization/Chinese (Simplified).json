@@ -149,5 +149,6 @@
 	"TF_vehicle_damage_rand": "载具受伤害量随机",
 	"TF_player_damage_rand_desc": "玩家受的伤害量以百分比随机。随机化的伤害将是介于0和伤害值乘以2之间的一个随机数。",
 	"TF_vehicle_damage_rand_desc": "载具受的伤害量以百分比随机。随机化的伤害将是介于0和伤害值乘以2之间的一个随机数。",
+	"TF_aurora_rad_radius": "极光号辐射半径倍率",
 					
 }
