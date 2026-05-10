@@ -307,7 +307,7 @@ namespace Tweaks_Fixes
             cameraBobbing = Main.configToEdit.Bind("PLAYER", "Screen bobbing when swimming", true);
             disableHints = Main.configToEdit.Bind("MISC", "Disable tutorial messages", true, "This disables messages that tell you to 'eat something', 'break limestone', etc.");
             cyclopsHUDalwaysOn = Main.configToEdit.Bind("CYCLOPS", "Cyclops HUD always on", false);
-            cameraShake = Main.configToEdit.Bind("CYCLOPS", "Screen shakes when cyclops takes damage", true);
+            cameraShake = Main.configToEdit.Bind("CYCLOPS", "Screen shakes when exploring Aurora or when taking damage", true);
             removeDeadCreaturesOnLoad = Main.configToEdit.Bind("CREATURES", "Remove dead creatures when loading saved game", true, "");
             sunlightAffectsEscapePodLighting = Main.configToEdit.Bind("LIFE POD", "Sunlight affects lighting in your life pod", false, "");
             scannerFX = Main.configToEdit.Bind("TOOLS", "Wierd visual effect on objects being scanned", true, "");

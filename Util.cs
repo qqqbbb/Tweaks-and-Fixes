@@ -127,10 +127,9 @@ namespace Tweaks_Fixes
         public static void DropItems(ItemsContainer container)
         {
             List<Pickupable> pickList = new List<Pickupable>();
-            Dictionary<TechType, ItemsContainer.ItemGroup>.Enumerator enumerator = container._items.GetEnumerator();
-            while (enumerator.MoveNext())
+            foreach (var pair in container._items)
             {
-                List<InventoryItem> items = enumerator.Current.Value.items;
+                List<InventoryItem> items = pair.Value.items;
                 for (int index = 0; index < items.Count; ++index)
                     pickList.Add(items[index].item);
             }
@@ -245,18 +244,6 @@ namespace Tweaks_Fixes
                 path = "/" + obj.name + path;
             }
             return path;
-        }
-
-        public static ItemsContainer GetOpenContainer()
-        {
-            int storageCount = Inventory.main.usedStorage.Count;
-            if (storageCount > 0)
-            {
-                IItemsContainer itemsContainer = Inventory.main.usedStorage[storageCount - 1];
-                if (itemsContainer is ItemsContainer)
-                    return itemsContainer as ItemsContainer;
-            }
-            return null;
         }
 
         public static bool IsDead(GameObject go)
@@ -478,7 +465,7 @@ namespace Tweaks_Fixes
                 .Select(x => x.gameObject);
         }
 
-        public static void AddVFXsurfaceComponent(GameObject go, VFXSurfaceTypes type)
+        public static void AddVFXsurfaceComponent(this GameObject go, VFXSurfaceTypes type)
         {
             VFXSurface vFXSurface = go.EnsureComponent<VFXSurface>();
             vFXSurface.surfaceType = type;
@@ -486,14 +473,12 @@ namespace Tweaks_Fixes
 
         public static IEnumerator SpawnAsync(TechType techType, Vector3 pos = default, bool fadeIn = false)
         {
-            //AddDebug("Spawn " + techType + " " + pos);
+            //AddDebug("SpawnAsync " + techType + " " + pos);
             GameObject prefab;
             TaskResult<GameObject> result = new TaskResult<GameObject>();
             yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
             prefab = result.Get();
-            if (!fadeIn)
-                LargeWorldEntity_.spawning = true;
-
+            LargeWorldEntity_.spawning = true;
             GameObject go = prefab == null ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
             if (go != null)
             {
@@ -783,9 +768,10 @@ namespace Tweaks_Fixes
             return CanPlayerEat();
         }
 
-        public static void MakeUnmovable(GameObject go)
+        public static void MakeUnmovable(this GameObject go)
         {
             //Main.logger.LogMessage("MakeUnmovable " + go.name);
+            //AddDebug($"MakeUnmovable {go.name}");
             Rigidbody rb = go.GetComponent<Rigidbody>();
             if (rb)
                 UnityEngine.Object.Destroy(rb);
@@ -827,6 +813,137 @@ namespace Tweaks_Fixes
                     objectsInRange.Add(obj);
             }
             return objectsInRange;
+        }
+
+        public static IItemsContainer GetOpenContainer()
+        {
+            IItemsContainer itemsContainer = null;
+            for (int i = 0; i < Inventory.main.usedStorage.Count; i++)
+            {
+                itemsContainer = Inventory.main.GetUsedStorage(i);
+                if (itemsContainer != null)
+                    break;
+            }
+            return itemsContainer;
+        }
+
+        public static List<Transform> FindAllChildren(this Transform parent, string name, bool recursive = false)
+        {
+            List<Transform> results = new List<Transform>();
+            //Main.logger.LogDebug($"{parent.name} FindAllChildren childCount {parent.childCount}");
+            foreach (Transform child in parent)
+            {
+                //Main.logger.LogDebug($"{parent.name} child {child.name}");
+                if (child.name == name)
+                    results.Add(child);
+
+                if (recursive && child.childCount > 0)
+                    results.AddRange(child.FindAllChildren(name, true));
+            }
+            return results;
+        }
+
+        public static HashSet<TechType> CreateFragmentTechTypeHashSet()
+        {
+            var hashSet = new HashSet<TechType>();
+            foreach (TechType techType in Enum.GetValues(typeof(TechType)))
+            {
+                if (techType.ToString().IndexOf("fragment", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    hashSet.Add(techType);
+                }
+            }
+            return hashSet;
+        }
+
+        public static bool ContainsIgnoreCase(this string s, string ss)
+        {
+            return s.IndexOf(ss, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        public static void DisableShadowCasting(this Transform renderer)
+        {
+            //Main.logger.LogDebug("DisableShadowCasting " + t.name);
+            Renderer r = renderer.GetComponent<Renderer>();
+            if (r == null)
+            {
+                //Main.logger.LogError($"DisableShadowCasting {renderer.name} has no renderer");
+                return;
+            }
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
+        public static void DisableShadowCastingInChildren(this Transform transform)
+        {
+            //Main.logger.LogDebug("DisableShadowCastingInChildren " + t.name);
+            Renderer[] rs = transform.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in rs)
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
+        public static void DisableShadowCasting(this Transform parent, string path)
+        {
+            //Main.logger.LogDebug("DisableShadowCasting " + t.name);
+            Transform t = parent.Find(path);
+            if (t == null)
+            {
+                //Main.logger.LogError($"DisableShadowCasting {parent.name} has no child {path}");
+                return;
+            }
+            Renderer r = t.GetComponent<Renderer>();
+            if (r == null)
+            {
+                //Main.logger.LogError($"DisableShadowCasting {parent.name} has no renderer on go {path}");
+                return;
+            }
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
+        public static void DisableShadowCasting(this Transform parent, List<string> paths)
+        {
+            //Main.logger.LogDebug("DisableShadowCasting " + t.name);
+            foreach (string path in paths)
+            {
+                Transform t = parent.Find(path);
+                if (t == null)
+                {
+                    //Main.logger.LogError($"DisableShadowCasting {parent.name} has no child {path}");
+                    return;
+                }
+                Renderer r = t.GetComponent<Renderer>();
+                if (r == null)
+                {
+                    //Main.logger.LogError($"DisableShadowCasting {parent.name} has no renderer on go {path}");
+                    return;
+                }
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+        }
+
+        public static void ForceLODs(this GameObject go, int index = 0)
+        {
+            LODGroup[] lods = go.GetComponentsInChildren<LODGroup>();
+
+            foreach (LODGroup lod in lods)
+                lod.ForceLOD(index);
+        }
+
+        public static void DisableGlowShader(this GameObject gameObject)
+        {
+            foreach (MeshRenderer mr in gameObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                foreach (Material m in mr.materials)
+                {
+                    //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
+                    m.DisableKeyword("MARMO_EMISSION");
+                }
+            }
+        }
+
+        public static IEnumerator ExecuteAfterGameLoaded(Action action)
+        { //UWE.CoroutineHost.StartCoroutine(ExecuteAfterDelay(() => SetupPickupable(__instance)));
+            yield return new WaitUntil(() => Main.gameLoaded);
+            action?.Invoke();
         }
 
 

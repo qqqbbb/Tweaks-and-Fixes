@@ -18,7 +18,7 @@ namespace Tweaks_Fixes
                 return false;
 
             PrefabIdentifier prefabIdentifier = openable.GetComponentInParent<PrefabIdentifier>();
-            if (prefabIdentifier == null || prefabIdentifier.name == "__LIGHTMAPPED_PREFAB__")
+            if (prefabIdentifier == null || prefabIdentifier.name != "Cyclops-MainPrefab(Clone)")
                 return false;
 
             //AddDebug("IsDoorClosed prefabIdentifier " + prefabIdentifier.name);

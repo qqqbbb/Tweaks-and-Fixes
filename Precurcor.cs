@@ -74,18 +74,18 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(AnteChamber __instance)
             {
-                //if (ConfigToEdit.disableIonCubeFabricator.Value)
+                if (ConfigToEdit.disableIonCubeFabricator.Value)
                 {
                     __instance.drillable.deleteWhenDrilled = true;
                     //AddDebug("AnteChamber Start return false");
                     return false;
                 }
-                //return true;
+                return true;
             }
             public static void Postfix(AnteChamber __instance)
             {
                 //return !ConfigToEdit.disableIonCubeFabricator.Value;
-                //if (ConfigToEdit.disableIonCubeFabricator.Value)
+                if (ConfigToEdit.disableIonCubeFabricator.Value)
                 {
                     __instance.drillable.deleteWhenDrilled = true;
                 }

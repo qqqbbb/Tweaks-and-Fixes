@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
@@ -109,7 +108,7 @@ namespace Tweaks_Fixes
             //AddDebug("CleanDecoLocker done");
         }
 
-        static IEnumerator AddLabel(Transform door, DoorType type, Transform locker)
+        static IEnumerator AddLabel(Transform door, DoorType type, Transform lockerTr)
         {
             if (door.GetComponentInChildren<Sign>())
                 yield break;
@@ -143,7 +142,7 @@ namespace Tweaks_Fixes
             UnityEngine.Object.Destroy(tr.gameObject);
             if (type == DoorType.Locker)
             {
-                LiveMixin lm = locker.GetComponent<LiveMixin>();
+                LiveMixin lm = lockerTr.GetComponent<LiveMixin>();
                 UnityEngine.Object.Destroy(lm);
                 sign.transform.localPosition = new Vector3(.32f, -.58f, .26f);
                 sign.transform.localEulerAngles = new Vector3(0f, 90f, 90f);
@@ -161,7 +160,7 @@ namespace Tweaks_Fixes
             {
                 sign.transform.localPosition = new Vector3(-.31f, -.02f, .45f);
                 sign.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
-                locker.gameObject.AddComponent<DecoLockerMyController>();
+                lockerTr.gameObject.AddComponent<DecoLockerMyController>();
             }
             Constructable c = sign.GetComponent<Constructable>();
             //if (c == null)
@@ -198,7 +197,7 @@ namespace Tweaks_Fixes
             if (Main.configMain.lockerNames.ContainsKey(slot))
             {
                 //Main.logger.LogMessage("AddLabel lockerNames.ContainsKey" + door.name);
-                if (locker.parent && locker.parent.GetComponent<SubControl>())
+                if (lockerTr.parent && lockerTr.parent.GetComponent<SubControl>())
                 {
                     //AddDebug("AddLabel  parent is cyclops " + type);
                     type = DoorType.CyclopsLocker;
@@ -237,11 +236,21 @@ namespace Tweaks_Fixes
                 //    AddDebug("StorageContainer Awake parent " + __instance.transform.parent.name);
                 if (__instance.name == "submarine_locker_01_door")
                 {
-                    PrefabIdentifier pi = __instance.GetComponentInParent<PrefabIdentifier>();
-                    //AddDebug("CyclopsLocker  " + pi.name);
-                    if (pi.name == "Cyclops-MainPrefab(Clone)") // dont touch prefab
-                        UWE.CoroutineHost.StartCoroutine(AddLabel(__instance.transform, DoorType.CyclopsLocker, __instance.transform));
+                    UWE.CoroutineHost.StartCoroutine(AddLabelToCyclopsLocker(__instance));
                 }
+            }
+
+            private static IEnumerator AddLabelToCyclopsLocker(StorageContainer __instance)
+            {
+                PrefabIdentifier pi = __instance.GetComponentInParent<PrefabIdentifier>();
+                while (pi == null)
+                {
+                    yield return null;
+                    pi = __instance.GetComponentInParent<PrefabIdentifier>();
+                }
+                //AddDebug("CyclopsLocker  " + pi.name);
+                if (pi.name == "Cyclops-MainPrefab(Clone)") // dont touch prefab
+                    UWE.CoroutineHost.StartCoroutine(AddLabel(__instance.transform, DoorType.CyclopsLocker, __instance.transform));
             }
 
             [HarmonyPostfix, HarmonyPatch("CreateContainer")]
@@ -456,54 +465,74 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Awake")]
             static void AwakePostfix(DeployableStorage __instance)
             {
-                Pickupable p = __instance.GetComponent<Pickupable>();
-                if (p && p.inventoryItem == null)
-                { // fix bug: when game loads 1st_person_model used for containers in world
-                    FPModel fPModel = __instance.GetComponent<FPModel>();
-                    if (fPModel)
-                        fPModel.SetState(false);
-                }
-                if (!ConfigToEdit.newStorageUI.Value || Main.pickupFullCarryallIsLoaded)
-                    return;
-                //AddDebug("DeployableStorage Awake");
-                //PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>(true);
+                if (Main.gameLoaded == false)
+                    UWE.CoroutineHost.StartCoroutine(FixFPModel(__instance));
+                //AddDebug("DeployableStorage Awake " + __instance.transform.parent.name);
                 LiveMixin lm = __instance.GetComponent<LiveMixin>();
                 UnityEngine.Object.Destroy(lm);
-                Transform tr = __instance.transform.Find("collider_main");
-                if (tr)
-                {
-                    //AddDebug("DeployableStorage PickupableStorage");
-                    Collider collider = tr.GetComponent<Collider>();
-                    if (collider)
-                        UnityEngine.Object.Destroy(collider);
-                }
-                //ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>(true);
-                tr = __instance.transform.Find("LidLabel/Label");
-                if (tr)
-                {
-                    Collider collider = tr.GetComponent<Collider>();
-                    if (collider)
-                        UnityEngine.Object.Destroy(collider);
-                }
-
-                //Transform label = __instance.transform.Find("LidLabel");
-                //if (label)
-                {
-                    //FollowTransform ft = label.GetComponent<FollowTransform>();
-                    //if (ft)
-                    //    ft.offsetPosition = new Vector3(0.03f, .04f, -0.04f);
-                    //label.localPosition = new Vector3(0.03f, .04f, -0.04f);
-                    //label.localPosition = new Vector3(0f, .031f, 0f);
-                }
-
+                if (ConfigToEdit.newStorageUI.Value && Main.pickupFullCarryallIsLoaded == false)
+                    UWE.CoroutineHost.StartCoroutine(RemoveCollider(__instance));
             }
+
+            private static IEnumerator FixFPModel(DeployableStorage ds)
+            {
+                yield return new WaitUntil(() => Main.gameLoaded);
+
+                Pickupable p = ds.GetComponent<Pickupable>();
+                if (p && p.inventoryItem == null) // always null on awake
+                { // fix bug: when game loads 1st_person_model used for containers in world
+                    FPModel fPModel = ds.GetComponent<FPModel>();
+                    if (fPModel)
+                    {
+                        //AddDebug("FixFPModel");
+                        fPModel.SetState(false);
+                    }
+                }
+            }
+
+            private static IEnumerator RemoveCollider(DeployableStorage ds)
+            {
+                Transform tr = ds.transform.Find("collider_main");
+                while (tr == null)
+                {
+                    yield return null;
+                    tr = ds.transform.Find("collider_main");
+                }
+                //AddDebug("DeployableStorage PickupableStorage");
+                Collider collider = tr.GetComponent<Collider>();
+                if (collider)
+                    UnityEngine.Object.Destroy(collider);
+
+                tr = ds.transform.Find("LidLabel/Label");
+                while (tr == null)
+                {
+                    yield return null;
+                    tr = ds.transform.Find("LidLabel/Label");
+                }
+                collider = tr.GetComponent<Collider>();
+                if (collider)
+                {
+                    //AddDebug("RemoveCollider");
+                    UnityEngine.Object.Destroy(collider);
+                }
+            }
+
             //[HarmonyPostfix, HarmonyPatch("Throw")]
-            static void OnPickedUpPostfix(DeployableStorage __instance)
+            static void ThrowPostfix(DeployableStorage __instance)
             { // does not run during loading if in inventory
                 AddDebug("DeployableStorage Throw");
             }
-            //[HarmonyPostfix, HarmonyPatch("OnToolUseAnim")]
+            //[HarmonyPostfix, HarmonyPatch("OnProtoDeserialize")]
             static void OnDroppedPostfix(DeployableStorage __instance)
+            {
+                Pickupable p = __instance.GetComponent<Pickupable>();
+                if (p.inventoryItem == null)
+                    AddDebug("DeployableStorage OnProtoDeserialize inventoryItem  null");
+                else
+                    AddDebug("DeployableStorage OnProtoDeserialize inventoryItem ");
+            }
+            //[HarmonyPostfix, HarmonyPatch("OnToolUseAnim")]
+            static void OnToolUseAnimPostfix(DeployableStorage __instance)
             {
                 AddDebug("DeployableStorage OnToolUseAnim");
             }
@@ -649,21 +678,24 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(PickupableStorage))]
+        //[HarmonyPatch(typeof(PickupableStorage))]
         class PickupableStorage_Patch
         {
-            [HarmonyPrefix, HarmonyPatch("OnHandHover")]
+            //[HarmonyPrefix, HarmonyPatch("OnHandHover")]
             static bool OnHandHoverPrefix(PickupableStorage __instance, GUIHand hand)
             {
+                AddDebug("PickupableStorage OnHandHover");
                 if (ConfigToEdit.canPickUpContainerWithItems.Value == false || Main.pickupFullCarryallIsLoaded)
                     return true;
 
                 __instance.pickupable.OnHandHover(hand);
                 return false;
             }
-            [HarmonyPrefix, HarmonyPatch("OnHandClick")]
+            //[HarmonyPrefix, HarmonyPatch("OnHandClick")]
             static bool CreateContainerPrefix(PickupableStorage __instance, GUIHand hand)
             {
+                AddDebug("PickupableStorage OnHandClick");
+
                 if (ConfigToEdit.canPickUpContainerWithItems.Value == false || Main.pickupFullCarryallIsLoaded)
                     return true;
 

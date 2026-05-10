@@ -1,16 +1,13 @@
 ﻿
 using HarmonyLib;
-using System.Reflection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{ 
+{
     class Randomize
     {
         //[HarmonyPatch(typeof(KeypadDoorConsole), "NumberButtonPress")]

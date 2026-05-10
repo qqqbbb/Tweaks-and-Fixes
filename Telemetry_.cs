@@ -102,6 +102,12 @@ namespace Tweaks_Fixes
                 //Main.logger.LogInfo("SentrySdkManager OnEnable");
                 return false;
             }
+            [HarmonyPatch("OnDestroy"), HarmonyPrefix]
+            public static bool OnDestroyPrefix()
+            {
+                //Main.logger.LogInfo("SentrySdkManager OnDestroy");
+                return false;
+            }
         }
 
     }

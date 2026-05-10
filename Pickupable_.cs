@@ -1,9 +1,10 @@
 ﻿using HarmonyLib;
+using Nautilus.Handlers;
 using Nautilus.Utility;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
@@ -20,6 +21,92 @@ namespace Tweaks_Fixes
         public static Dictionary<Pickupable, PickupableStorage> pickupableStorage_ = new Dictionary<Pickupable, PickupableStorage>();
 
 
+        public static void SetupPickupable(Pickupable pickupable)
+        {
+            //AddDebug("SetupPickupable " + pickupable.name);
+            if (ConfigToEdit.beaconTweaks.Value)
+            {
+                Beacon beacon = pickupable.GetComponent<Beacon>();
+                if (beacon)
+                    beacons.Add(pickupable, beacon);
+            }
+            TechType tt = pickupable.GetTechType();
+            if (tt == TechType.SmallStorage || tt == TechType.LuggageBag && Main.pickupFullCarryallIsLoaded == false)
+            {
+                UWE.CoroutineHost.StartCoroutine(SetupPickupableStorage(pickupable));
+            }
+            if (unmovableItems.Contains(tt))
+            { // isKinematic gets saved
+                Rigidbody rb = pickupable.GetComponent<Rigidbody>();
+                if (rb)
+                    rb.constraints = RigidbodyConstraints.FreezeAll;
+            }
+            if (itemMass.ContainsKey(tt))
+            {
+                Rigidbody rb = pickupable.GetComponent<Rigidbody>();
+                if (rb)
+                {
+                    //Main.logger.LogMessage(__instance.name + " itemMass " + rb.mass);
+                    rb.mass = itemMass[tt];
+                }
+            }
+            CheckShinyEcoTarget(pickupable.gameObject, shinies.Contains(tt));
+        }
+
+        private static IEnumerator SetupPickupableStorage(Pickupable pickupable)
+        {
+            StorageContainer sc = pickupable.GetComponentInChildren<StorageContainer>();
+            //AddDebug("SetupPickupableStorage");
+            while (sc == null)
+            {
+                yield return null;
+                sc = pickupable.GetComponentInChildren<StorageContainer>();
+            }
+            pickupableStorage.Add(pickupable, sc);
+
+            PickupableStorage ps = pickupable.GetComponentInChildren<PickupableStorage>();
+            while (ps == null)
+            {
+                yield return null;
+                ps = pickupable.GetComponentInChildren<PickupableStorage>();
+            }
+            pickupableStorage_.Add(pickupable, ps);
+        }
+
+        private static void CheckShinyEcoTarget(GameObject go, bool addShinyEcoTarget)
+        {
+            EcoTarget ecoTarget = null;
+            foreach (EcoTarget et in go.GetComponents<EcoTarget>())
+            {
+                if (et.type == EcoTargetType.Shiny)
+                {
+                    //AddDebug(go.name + " is Shiny");
+                    ecoTarget = et;
+                    break;
+                }
+            }
+            if (addShinyEcoTarget)
+            {
+                HardnessMixin hm = go.EnsureComponent<HardnessMixin>();
+                hm.hardness = 1f;
+                if (ecoTarget == null)
+                {
+                    //AddDebug(go.name + " add Shiny EcoTarget");
+                    EcoTarget ecoTarget1 = go.AddComponent<EcoTarget>();
+                    ecoTarget1.type = EcoTargetType.Shiny;
+                }
+            }
+            else if (ecoTarget)
+            {
+                //AddDebug(go.name + " Destroy Shiny ecotarget");
+                UnityEngine.Object.Destroy(ecoTarget);
+                HardnessMixin hm = go.GetComponent<HardnessMixin>();
+                if (hm)
+                    UnityEngine.Object.Destroy(hm);
+            }
+        }
+
+
         [HarmonyPatch(typeof(Pickupable))]
         public class Pickupable_Patch_
         {
@@ -27,82 +114,18 @@ namespace Tweaks_Fixes
             static void AwakePostfix(Pickupable __instance)
             {
                 //AddDebug(" Pickupable Awake " + __instance.name);
-                //Rigidbody rb = __instance.GetComponent<Rigidbody>();
-                //if (rb)
-                //{
-                //    rb.useGravity = true;
-                //    rb.drag = 1;
-                //    rb.angularDrag = 1;
-                //}
-                if (ConfigToEdit.beaconTweaks.Value)
-                {
-                    Beacon beacon = __instance.GetComponent<Beacon>();
-                    if (beacon)
-                        beacons.Add(__instance, beacon);
-                }
-                TechType tt = __instance.GetTechType();
-                if (tt == TechType.SmallStorage || tt == TechType.LuggageBag)
-                {
-                    if (Main.pickupFullCarryallIsLoaded == false)
-                    {
-                        PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
-                        if (ps)
-                            pickupableStorage_.Add(__instance, ps);
-
-                        StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
-                        if (sc)
-                            pickupableStorage.Add(__instance, sc);
-                    }
-                }
-                if (unmovableItems.Contains(tt))
-                { // isKinematic gets saved
-                    Rigidbody rb = __instance.GetComponent<Rigidbody>();
-                    if (rb)
-                        rb.constraints = RigidbodyConstraints.FreezeAll;
-                }
-                if (itemMass.ContainsKey(tt))
-                {
-                    Rigidbody rb = __instance.GetComponent<Rigidbody>();
-                    if (rb)
-                    {
-                        //Main.logger.LogMessage(__instance.name + " itemMass " + rb.mass);
-                        rb.mass = itemMass[tt];
-                    }
-                }
-                CheckShinyEcoTarget(__instance.gameObject, shinies.Contains(tt));
+                SetupPickupable(__instance);
             }
 
-            private static void CheckShinyEcoTarget(GameObject go, bool addShinyEcoTarget)
+            //[HarmonyPostfix, HarmonyPatch("Activate")]
+            static void ActivatePostfix(Pickupable __instance)
             {
-                EcoTarget ecoTarget = null;
-                foreach (EcoTarget et in go.GetComponents<EcoTarget>())
-                {
-                    if (et.type == EcoTargetType.Shiny)
-                    {
-                        //AddDebug(go.name + " is Shiny");
-                        ecoTarget = et;
-                        break;
-                    }
-                }
-                if (addShinyEcoTarget)
-                {
-                    HardnessMixin hm = go.EnsureComponent<HardnessMixin>();
-                    hm.hardness = 1f;
-                    if (ecoTarget == null)
-                    {
-                        //AddDebug(go.name + " add Shiny EcoTarget");
-                        EcoTarget ecoTarget1 = go.AddComponent<EcoTarget>();
-                        ecoTarget1.type = EcoTargetType.Shiny;
-                    }
-                }
-                else if (ecoTarget)
-                {
-                    //AddDebug(go.name + " Destroy Shiny ecotarget");
-                    UnityEngine.Object.Destroy(ecoTarget);
-                    HardnessMixin hm = go.GetComponent<HardnessMixin>();
-                    if (hm)
-                        UnityEngine.Object.Destroy(hm);
-                }
+                AddDebug("Pickupable Activate " + __instance.GetTechType());
+            }
+            //[HarmonyPostfix, HarmonyPatch("Initialize")]
+            static void InitializePostfix(Pickupable __instance)
+            {
+                AddDebug("Pickupable Initialize " + __instance.GetTechType());
             }
 
             [HarmonyPrefix, HarmonyPatch("OnHandHover")]
@@ -208,6 +231,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
             static void DropPostfix(Pickupable __instance)
             { // collider that is not trigger gets destroyed in Storage_Patch.StorageContainer_Patch.CreateContainerPostfix
+                //AddDebug(" Pickupable Drop " + __instance.GetTechType());
                 if (__instance.GetTechType() == TechType.LuggageBag && Main.pickupFullCarryallIsLoaded == false)
                 {
                     //AddDebug(" Pickupable Drop " + __instance.name);
@@ -255,8 +279,6 @@ namespace Tweaks_Fixes
                 return true;
             }
         }
-
-
 
 
     }

@@ -1,9 +1,11 @@
 ﻿using HarmonyLib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
+
 
 namespace Tweaks_Fixes
 {
@@ -18,7 +20,7 @@ namespace Tweaks_Fixes
 
         public static void AddCyclopsCollisionExclusion(GameObject go, SubControl subControl = null)
         {
-            AddDebug("AddCyclopsCollisionExclusion " + go.name);
+            //AddDebug("AddCyclopsCollisionExclusion " + go.name);
             if (subControl == null)
             {
                 if (Player.main.currentSub == null || Player.main.currentSub.isCyclops == false)
@@ -122,11 +124,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(GrownPlant __instance)
             {
-                SubControl subControl = __instance.GetComponentInParent<SubControl>();
-                if (subControl == null || subControl.name == "__LIGHTMAPPED_PREFAB__")
-                    return;
-
-                AddCyclopsCollisionExclusion(__instance.gameObject, subControl);
+                __instance.gameObject.AddComponent<GrownPlant_Starter>();
             }
         }
 
@@ -151,5 +149,17 @@ namespace Tweaks_Fixes
 
 
 
+    }
+
+    class GrownPlant_Starter : MonoBehaviour
+    {
+        void Start()
+        {
+            SubControl subControl = GetComponentInParent<SubControl>();
+            if (subControl && subControl.name == "Cyclops-MainPrefab(Clone)")
+                Cyclops_Constructable_Collision.AddCyclopsCollisionExclusion(gameObject, subControl);
+
+            Destroy(this);
+        }
     }
 }

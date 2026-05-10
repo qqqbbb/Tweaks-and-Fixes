@@ -109,7 +109,10 @@ namespace Tweaks_Fixes
                 }
                 if (oldController)
                     Destroy(oldController);
+            }
 
+            public void Start()
+            {
                 _storageContainer = gameObject.transform.GetComponentInChildren<StorageContainer>();
             }
 

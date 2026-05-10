@@ -78,16 +78,10 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(EscapePod))]
         class EscapePod_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(EscapePod __instance)
             {
-                //RegeneratePowerSource[] cells = EscapePod.main.gameObject.GetAllComponentsInChildren<RegeneratePowerSource>();
-                //if (cells != null)
-                {
-                    //AddDebug("EscapePod start cells " + cells.Length);
-                    //Player.main.StartCoroutine(SetMaxPower(__instance));
-                }
+                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
             }
 
             [HarmonyPostfix, HarmonyPatch("OnRepair")]

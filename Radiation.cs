@@ -43,6 +43,7 @@ namespace Tweaks_Fixes
 
                     //AddDebug("RadiatePlayerInRange Start " + (int)__instance.radiateRadius);
                     __instance.radiateRadius = radius * ConfigMenu.auroraRadRadiusMult.Value;
+
                     if (maxDistance == 0)
                         maxDistance = __instance.tracker.maxDistance;
 

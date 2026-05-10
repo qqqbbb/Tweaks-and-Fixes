@@ -6,15 +6,14 @@ using Nautilus.Handlers;
 using Nautilus.Options;
 using Nautilus.Options.Attributes;
 using Nautilus.Utility;
+using rail;
 using Story;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -22,6 +21,7 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Profiling;
 using UWE;
+using Valve.VR;
 using static ErrorMessage;
 using static GameInputSystem;
 
@@ -34,6 +34,8 @@ namespace Tweaks_Fixes
         // sealed door 905 -195 613
         // spike plant 360 -106 98
         // databox -489 -500 1328
+        // stones in caves 118 -60 127
+        // repair panel 391 -14 -193
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
@@ -151,7 +153,6 @@ namespace Tweaks_Fixes
 
         static void PrintBiomeNames()
         {
-
             AddDebug("RawBiomeName " + Util.GetRawBiomeName());
             AddDebug("Player biomeString " + Player.main.biomeString);
             //AddDebug("LargeWorld GetBiome " + LargeWorld.main.GetBiome(Player.main.transform.position));
@@ -161,86 +162,12 @@ namespace Tweaks_Fixes
         }
 
 
-        //[HarmonyPatch(typeof(GameInputSystem), "OnAfterUpdate")]
-        class GameInputSystem_OnAfterUpdate_patch
+        //[HarmonyPatch(typeof(DistanceCull), "Start")]
+        class DistanceCull_Start_patch
         {
-            static GameInput.Device lastDevice;
-            static GameInput.Device currentDevice;
-
-            public static bool Prefix(GameInputSystem __instance)
+            public static void Postfix(DistanceCull __instance)
             {
-                lastDevice = __instance.lastDevice;
-                InputDevice inputDevice = null;
-                string lastLayout = __instance.lastLayout;
-                foreach (KeyValuePair<GameInput.Button, InputAction> action in __instance.actions)
-                {
-                    InputAction value = action.Value;
-                    if (!value.IsInProgress())
-                    {
-                        continue;
-                    }
-                    InputControl activeControl = value.activeControl;
-                    if (activeControl == null)
-                    {
-                        continue;
-                    }
-                    InputDevice device = activeControl.device;
-                    if (device != null)
-                    {
-                        string layout = device.layout;
-                        if (!string.IsNullOrEmpty(layout))
-                        {
-                            inputDevice = device;
-                            lastLayout = layout;
-                        }
-                    }
-                }
-                if (__instance.lastLayout == lastLayout || string.IsNullOrEmpty(lastLayout))
-                {
-                    return false;
-                }
-                __instance.lastLayout = lastLayout;
-                DeviceDefinition deviceDefinitionForLayout = GetDeviceDefinitionForLayout(lastLayout);
-                if (deviceDefinitionForLayout == null)
-                {
-                    return false;
-                }
-                GameInput.Device device2 = deviceDefinitionForLayout.device;
-                if (__instance.lastDevice != device2)
-                {
-                    __instance.lastDevice = device2;
-                    AddDebug($"OnAfterUpdate lastDevice {device2.AsString()}");
-                    GameInput.SetBindingsChanged();
-                }
-                if (__instance.lastDevices[device2].definition != deviceDefinitionForLayout)
-                {
-                    DeviceInfo value2 = new DeviceInfo
-                    {
-                        inputDevice = inputDevice,
-                        definition = deviceDefinitionForLayout
-                    };
-                    if (string.Equals(lastLayout, "Mouse", StringComparison.OrdinalIgnoreCase))
-                    {
-                        value2.inputDevice = __instance.lastDevices[device2].inputDevice;
-                    }
-                    __instance.lastDevices[device2] = value2;
-                    __instance.ChangeBindings(deviceDefinitionForLayout);
-                    __instance.displayNameCache.Clear();
-                    GameInput.SetBindingsChanged();
-                }
-                return false;
-            }
-            public static void Postfix(GameInputSystem __instance)
-            {
-                //if (lastDevice == null || __instance.lastDevice == null)
-                //    return;
-                //Application.runInBackground = false;
-                AddDebug("Application.runInBackground " + Application.runInBackground);
-                //Main.logger.LogDebug("Application.isFocused " + Application.isFocused);
-                if (__instance.lastDevice != lastDevice)
-                {
-
-                }
+                AddDebug($"DistanceCull.Start {__instance.name} parent {__instance.transform.parent.name}");
             }
         }
 
@@ -431,17 +358,19 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(WaterscapeVolume.Settings), "GetExtinctionAndScatteringCoefficients")]
-        class WaterscapeVolume_Settings_GetExtinctionAndScatteringCoefficients_Patch
+        //[HarmonyPatch(typeof(PrefabPlaceholder), "Spawn")]
+        class PrefabPlaceholder_Spawn_Patch
         {
-            static void Prefix(WaterscapeVolume.Settings __instance, ref Vector4 __result)
+            static void Prefix(PrefabPlaceholder __instance)
             {
-                AddDebug($"GetExtinctionAndScatteringCoefficients murkiness {__instance.murkiness} scattering {__instance.scattering}");
-                //verbose = false;
-                //return true;
+                if (__instance.name == "Loot_CrashHome(Placeholder)")
+                {
+                    AddDebug("Loot_CrashHome parent " + __instance.transform.parent.name);
+                }
             }
         }
 
+        //static Texture texture = null;
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -461,8 +390,6 @@ namespace Tweaks_Fixes
 
                 //AddDebug("IntroLifepodDirector.IsActive " + IntroLifepodDirector.IsActive);
                 //PrintRawBiomeNames();
-                //AddDebug("Grounded " + __instance.ground
-                //Motor.IsGrounded());
                 //AddDebug("mode " + __instance.mode);
                 if (Keyboard.current.bKey.wasPressedThisFrame)
                 {
@@ -482,23 +409,17 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    float radius = 2;
-                    AddDebug($" Objects in radius of {radius}");
-                    Main.logger.LogInfo($"Objects in radius of {radius}");
-                    foreach (var go in Util.FindObjectsInRadius(__instance.transform.position, radius))
-                    {
-                        AddDebug($"{go.name} ");
-                        Main.logger.LogInfo($"{go.name} ");
-                    }
-                    //DestroyTarget();
-                    if (Input.GetKey(KeyCode.LeftShift))
-                        Time.timeScale = 0;
-                    else
-                        Time.timeScale = 1;
+
+                    //PrintClosestObjects(Player.mainObject.transform.position, 2f);
+                    //ShowColliderName();
+                    //if (Input.GetKey(KeyCode.LeftShift))
+                    //    Time.timeScale = 0;
+                    //else
+                    //    Time.timeScale = 1;
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    ShowTargetInfo(true, true, false);
+                    ShowTargetInfo(false, false, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
@@ -523,8 +444,19 @@ namespace Tweaks_Fixes
                     }
                 }
             }
+        }
+        private static void PrintClosestObjects(Vector3 pos, float radius)
+        {
+            AddDebug($" Objects in radius of {radius}");
+            Main.logger.LogInfo($"Objects in radius of {radius}");
+            foreach (var go in Util.FindObjectsInRadius(pos, radius))
+            {
+                if (go.GetComponentInParent<Player>())
+                    continue;
 
-
+                AddDebug($"{go.name} ");
+                Main.logger.LogInfo($"{go.name} ");
+            }
         }
 
         public static void ShowColliderName(bool ignoreTriggers = true, bool show = true)
@@ -670,12 +602,43 @@ namespace Tweaks_Fixes
             if (!target)
                 return;
 
-            GameObject root = Util.GetEntityRoot(target);
-            if (root)
-                target = root;
+            VFXSurfaceTypes vfxSurfaceType = Util.GetObjectSurfaceType(target);
+            if (vfxSurfaceType != VFXSurfaceTypes.none)
+                AddDebug("vfxSurfaceType  " + vfxSurfaceType);
 
-            RemoveHotMetalGlow(target);
+            //AddDebug("collider  " + target.name);
+            PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
+            if (pi == null)
+                target = GetRootGameobjectWithoutIdentifier(target);
+            else
+                target = pi.gameObject;
+
+            //GameObject root = Util.GetEntityRoot(target);
+            //if (root)
+            //    target = root;
+
+            //Bounds bounds = Util.GetAABB(target);
+            //AddDebug("bounds " + Mathf.RoundToInt(bounds.extents.magnitude));
+            //if (texture == null)
+            //{
+            //    Renderer renderer = target.GetComponentInChildren<Renderer>();
+            //    texture = renderer.material.mainTexture;
+            //    AddDebug("save texture " + texture.name);
+            //}
+            //else
+            //{
+            //    Renderer renderer = target.GetComponentInChildren<Renderer>();
+            //    renderer.material.mainTexture = texture;
+            //    AddDebug("apply texture " + texture.name);
+            //    texture = null;
+            //}
+            if (Keyboard.current.leftShiftKey.isPressed)
+            {
+                AddDebug("RemoveHotMetalGlow");
+                RemoveHotMetalGlow(target);
+            }
             AddDebug(target.name);
+            Main.logger.LogMessage(target.name);
             if (position)
             {
                 int x = (int)target.transform.position.x;
@@ -683,6 +646,11 @@ namespace Tweaks_Fixes
                 int z = (int)target.transform.position.z;
                 AddDebug($"position {x} {y} {z}");
                 Main.logger.LogMessage($"{target.name} position {x} {y} {z}");
+            }
+            LODGroup lODGroup = target.GetComponentInChildren<LODGroup>();
+            if (lODGroup != null)
+            {
+                AddDebug($"LOD count {lODGroup.lodCount} ");
             }
             EcoTarget ecoTarget = target.GetComponent<EcoTarget>();
             if (ecoTarget != null)
@@ -697,7 +665,7 @@ namespace Tweaks_Fixes
             //CoroutineHost.StartCoroutine(Util.SpawnAsync(TechType.BluePalmSeed, endPos));
             //AddDebug("ray hit " + rayHit);
 
-            VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
+
             TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
             if (tcpc)
             {
@@ -705,10 +673,6 @@ namespace Tweaks_Fixes
                 AddDebug("Terrain vfxSurfaceType  " + vfxSurfaceType);
                 return;
             }
-            if (target)
-                vfxSurfaceType = Util.GetObjectSurfaceType(target);
-
-            AddDebug("vfxSurfaceType  " + vfxSurfaceType);
             if (health)
             {
                 LiveMixin lm = target.GetComponent<LiveMixin>();
@@ -725,25 +689,11 @@ namespace Tweaks_Fixes
                 }
                 //Debug(target);
             }
-            //LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
-            //if (lwe)
-            {
-                //goToTest = lwe.gameObject;
-                //target = lwe.gameObject;
-                //Rigidbody rb = lwe.GetComponent<Rigidbody>();
-                //if (rb)
-                //    AddDebug("Rigidbody mass " + rb.mass + " drag " + rb.drag + " ang useGravity " + rb.useGravity);
+            LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+            if (lwe)
+                AddDebug(" cellLevel " + lwe.cellLevel);
 
-                //WorldForces wf = lwe.GetComponent<WorldForces>();
-                //if (wf)
-                //    AddDebug("WorldForces handleGravity " + wf.handleGravity + " underwaterGravity " + wf.underwaterGravity + " underwaterDrag " + wf.underwaterDrag);
-                //AddDebug("PDAScanner isValid " + PDAScanner.scanTarget.isValid);
-                //AddDebug("PDAScanner CanScan " + PDAScanner.CanScan());
-                //AddDebug("PDAScanner scanTarget " + PDAScanner.scanTarget.techType);
-                //AddDebug(" cellLevel " + lwe.cellLevel);
-                //AddDebug("vfxSurfaceType  " + vfxSurfaceType);
-
-            }
+            //lwe.cellLevel = LargeWorldEntity.CellLevel.
             //AddDebug(target.name);
             //AddDebug(target.name + " IsDecoPlant " + Util.IsDecoPlant(target));
             //if (target.transform.parent)
@@ -769,14 +719,26 @@ namespace Tweaks_Fixes
             {
                 AddDebug("TechType  " + techType);
                 TechType harvestOutput = TechData.GetHarvestOutput(techType);
-                if (harvestOutput != TechType.None)
-                {
-                    AddDebug("harvest_Output " + harvestOutput);
-                    HarvestType harvestType = TechData.GetHarvestType(techType);
-                    if (harvestType != HarvestType.None)
-                        AddDebug("harvest_Type " + harvestType);
-                }
+                //if (harvestOutput != TechType.None)
+                //{
+                //    AddDebug("harvest_Output " + harvestOutput);
+                //    HarvestType harvestType = TechData.GetHarvestType(techType);
+                //    if (harvestType != HarvestType.None)
+                //        AddDebug("harvest_Type " + harvestType);
+                //}
             }
+        }
+
+        private static GameObject GetRootGameobjectWithoutIdentifier(GameObject go)
+        {
+            Transform parent = go.transform.parent;
+            if (parent == null)
+                return go.gameObject;
+
+            while (parent.parent != null)
+                parent = parent.parent;
+
+            return parent.gameObject;
         }
 
         private Vector3 ClipWithTerrain(GameObject go)
@@ -1068,7 +1030,8 @@ namespace Tweaks_Fixes
                 List<TeleportPosition> tps = new List<TeleportPosition>();
                 foreach (TeleportPosition tp in __instance.data.locations)
                 {
-                    if (tp.name.StartsWith("escapepod"))
+                    //if (tp.name.StartsWith("escapepod"))
+                    if (tp.name.StartsWith("wreck"))
                     {
                         //Main.logger.LogMessage("scatter TeleportPosition: " + tp.name);
                         //AddDebug("GotoConsoleCommand TeleportPosition: " + tp.name);

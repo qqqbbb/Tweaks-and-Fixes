@@ -12,7 +12,7 @@ namespace Tweaks_Fixes
         public static FMODAsset lightOnSound;
         public static FMODAsset lightOffSound;
 
-        private static void CreateCollisionSounds(Exosuit exosuit)
+        private static void CreateSounds(Exosuit exosuit)
         {
             lightOnSound = ScriptableObject.CreateInstance<FMODAsset>();
             lightOnSound.path = "event:/sub/seamoth/seaglide_light_on";
@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Exosuit __instance)
             {
-                CreateCollisionSounds(__instance);
+                CreateSounds(__instance);
             }
         }
 

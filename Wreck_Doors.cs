@@ -11,7 +11,7 @@ namespace Tweaks_Fixes
     static class Wreck_Doors
     {
         [HarmonyPatch(typeof(BulkheadDoor))]
-        class BulkheadDoor_OnHandClick_Patch
+        class BulkheadDoor_Patch
         {
             //[HarmonyPostfix]
             //[HarmonyPatch("SetState")]
@@ -70,5 +70,33 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(LaserCutObject), "CutOpenDoor")]
+        class LaserCutObject_CutOpenDoor_Patch
+        {
+            private static void Prefix(LaserCutObject __instance)
+            {
+                if (ConfigToEdit.disableHotMetalGlow.Value)
+                {
+                    float delay = 20f;
+                    if (__instance.isCutOpen)
+                        delay = 0;
+
+                    UWE.CoroutineHost.StartCoroutine(DisableGlowShader(__instance.gameObject, delay));
+                }
+            }
+        }
+
+        private static IEnumerator DisableGlowShader(GameObject gameObject, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (gameObject == null)
+                yield break;
+
+            foreach (MeshRenderer mr in gameObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                foreach (Material m in mr.materials)
+                    m.DisableKeyword("MARMO_EMISSION");
+            }
+        }
     }
 }

@@ -116,7 +116,7 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void AwakePostfix(Exosuit __instance)
+            public static void StartPostfix(Exosuit __instance)
             {
                 Util.GetExosuitLightsTransform(__instance).SetParent(__instance.leftArmAttach);
                 FixExosuitLight(__instance);
@@ -207,7 +207,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Awake")]
             public static void AwakePrefix(SeaMoth __instance)
             {
-                GetSeaMothVolLight(__instance);
+                UWE.CoroutineHost.StartCoroutine(GetSeaMothVolLight(__instance));
             }
 
             [HarmonyPrefix, HarmonyPatch("Start")]
@@ -239,16 +239,25 @@ namespace Tweaks_Fixes
                 }
             }
 
-            private static void GetSeaMothVolLight(SeaMoth seaMoth)
+            private static IEnumerator GetSeaMothVolLight(SeaMoth seaMoth)
             {
                 if (seamothLightCone != null)
-                    return;
+                    yield break;
 
-                Transform lightParentTransform = seaMoth.transform.Find("lights_parent");
-                Light light = lightParentTransform.GetComponentInChildren<Light>(true);
-                Transform fakeLightTransform = light.transform.Find("x_FakeVolumletricLight");
-                seamothLightCone = fakeLightTransform.gameObject;
-                seamothVFXVolumetricLight = light.GetComponent<VFXVolumetricLight>();
+                Transform lightTr = seaMoth.transform.Find("lights_parent/light_left");
+                while (lightTr == null)
+                {
+                    yield return null;
+                    lightTr = seaMoth.transform.Find("lights_parent/light_left");
+                }
+                Transform fakeLightTr = lightTr.Find("x_FakeVolumletricLight");
+                while (fakeLightTr == null)
+                {
+                    yield return null;
+                    fakeLightTr = lightTr.Find("x_FakeVolumletricLight");
+                }
+                seamothLightCone = fakeLightTr.gameObject;
+                seamothVFXVolumetricLight = lightTr.GetComponent<VFXVolumetricLight>();
             }
 
         }

@@ -10,10 +10,53 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
+
     internal class Drop_items_anywhere
     {
         public static Dictionary<GameObject, SubRoot> droppedInBase = new Dictionary<GameObject, SubRoot>();
         public static Dictionary<GameObject, EscapePod> droppedInEscapePod = new Dictionary<GameObject, EscapePod>();
+
+        public static IEnumerator SetupPickupable(Pickupable pickupable)
+        {
+            yield return new WaitUntil(() => Main.gameLoaded); // wait for parents to load
+            if (pickupable == null || pickupable.inventoryItem != null)
+                yield break;
+
+            //AddDebug("SetupPickupable " + pickupable.name);
+
+            if (droppedInBase.ContainsKey(pickupable.gameObject) || droppedInEscapePod.ContainsKey(pickupable.gameObject))
+                yield break;
+
+            if (pickupable.GetComponentInParent<WaterPark>())
+                yield break;
+
+            SubRoot subRoot = pickupable.GetComponentInParent<SubRoot>();
+            PlaceTool placeTool = pickupable.GetComponent<PlaceTool>();
+            if (subRoot)
+            {
+                //AddDebug(__instance.name + " SetupPickupable subRoot");
+                if (subRoot.isBase && placeTool == null)
+                {
+                    //AddDebug(__instance.name + " SetupPickupable in base ");
+                    droppedInBase.Add(pickupable.gameObject, subRoot);
+                    DropInSub(pickupable, subRoot);
+                }
+                else if (subRoot.isCyclops)
+                {
+                    //AddDebug(__instance.name + " SetupPickupable in Cyclops ");
+                    if (placeTool)
+                        pickupable.Place();
+                }
+                yield break;
+            }
+            EscapePod escapePod = pickupable.GetComponentInParent<EscapePod>();
+            if (escapePod)
+            {
+                //AddDebug(__instance.name + " SetupPickupable in escapePod ");
+                droppedInEscapePod.Add(pickupable.gameObject, escapePod);
+                DropInEscapePod(pickupable, escapePod);
+            }
+        }
 
         private static void DropInSub(Pickupable pickupable)
         {
@@ -251,50 +294,13 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Pickupable))]
         class Pickupable_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             static void AwakePostfix(Pickupable __instance)
             {
                 if (!ConfigToEdit.dropItemsAnywhere.Value || Main.gameLoaded)
                     return;
 
-                if (__instance.inventoryItem != null)
-                    return;
-
-                if (droppedInBase.ContainsKey(__instance.gameObject) || droppedInEscapePod.ContainsKey(__instance.gameObject))
-                    return;
-
-                if (__instance.GetComponentInParent<WaterPark>())
-                {
-                    //AddDebug(__instance.name + " Pickupable Awake WaterPark");
-                    return;
-                }
-                SubRoot subRoot = __instance.GetComponentInParent<SubRoot>();
-                PlaceTool placeTool = __instance.GetComponent<PlaceTool>();
-                if (subRoot)
-                {
-                    //AddDebug(__instance.name + " Pickupable Awake subRoot");
-                    if (subRoot.isBase && placeTool == null)
-                    {
-                        //AddDebug(__instance.name + " Pickupable Awake in base ");
-                        droppedInBase.Add(__instance.gameObject, subRoot);
-                        DropInSub(__instance, subRoot);
-                    }
-                    else if (subRoot.isCyclops)
-                    {
-                        //AddDebug(__instance.name + " Pickupable Awake in Cyclops ");
-                        if (placeTool)
-                            __instance.Place();
-                    }
-                    return;
-                }
-                EscapePod escapePod = __instance.GetComponentInParent<EscapePod>();
-                if (escapePod)
-                {
-                    //AddDebug(__instance.name + " Pickupable Awake in escapePod ");
-                    droppedInEscapePod.Add(__instance.gameObject, escapePod);
-                    DropInEscapePod(__instance, escapePod);
-                }
+                UWE.CoroutineHost.StartCoroutine(SetupPickupable(__instance));
             }
 
             [HarmonyPrefix]

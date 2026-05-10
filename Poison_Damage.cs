@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Messaging;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -35,6 +34,9 @@ namespace Tweaks_Fixes
         public static IEnumerator DealPoisonDamage(LiveMixin liveMixin, float damage)
         {
             damage *= ConfigToEdit.permPoisonDamage.Value * .01f;
+            if (liveMixin.TryGetComponent<Player>(out _))
+                damage *= ConfigMenu.playerDamageMult.Value;
+
             poisonDamageTotal += damage;
             //AddDebug($"DealPoisonDamage {poisonDamageTotal}");
             while (poisonDamageTotal > 0)
@@ -49,7 +51,7 @@ namespace Tweaks_Fixes
 
         public static IEnumerator DealFoodDamage(float damage, Survival survival, LiveMixin liveMixin)
         {
-            damage *= ConfigToEdit.poisonFoodDamage.Value * .01f;
+            damage *= ConfigToEdit.poisonFoodDamage.Value * .01f * ConfigMenu.playerDamageMult.Value;
             foodDamageTotal += damage;
             //AddDebug($"foodDamageToDeal {foodDamageTotal}");
             while (foodDamageTotal > 0)

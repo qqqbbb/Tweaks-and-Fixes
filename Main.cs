@@ -14,6 +14,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UWE;
@@ -27,7 +28,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.16.0";
+            VERSION = "4.17.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -78,7 +79,7 @@ namespace Tweaks_Fixes
             Pickupable_.beacons.Clear();
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
-            InventoryItemIconColorChanger.CleanUp();
+            //InventoryItemIconColorChanger.CleanUp();
             Radiation.auroraRadiation = null;
             configToEdit.Reload();
             configMain.Load();
@@ -87,7 +88,7 @@ namespace Tweaks_Fixes
         public static void LoadedGameSetup()
         {
             //AddDebug("LoadedGameSetup ");
-
+            //LargeWorldEntity_.Reparent();
             FixCoralShellPlateHarvestType();
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_.DisableExosuitClawArmScan();
@@ -129,6 +130,8 @@ namespace Tweaks_Fixes
             }
             foreach (GameObject go in Util.FindAllRootGameObjects())
             {
+                //if (go.name.Contains("stone"))
+                //    logger.LogInfo("prefab " + go.name);
                 if (go.name == "xKnifeHit_Organic" || go.name == "GenericCreatureHit" || go.name == "xExoDrill_Organic")
                 {
                     Util.SetBloodColor(go);
@@ -141,16 +144,6 @@ namespace Tweaks_Fixes
         {
             static void Postfix(uGUI_MainMenu __instance)
             {
-            }
-        }
-
-        //[HarmonyPatch(typeof(GameInput), "Initialize")]
-        class GameInput_Initialize_Patch
-        {
-            static void Postfix()
-            { // Gameinput.PrimaryDevice is null when this runs in Start 
-                //logger.LogDebug("GameInput Initialize");
-
             }
         }
 
@@ -288,6 +281,10 @@ namespace Tweaks_Fixes
         {
             AddTechTypesToClassIDtable();
             Application.runInBackground = true;
+            LargeWorldEntity_.fragments = Util.CreateFragmentTechTypeHashSet();
+            //logger.LogDebug("fragments ");
+            //foreach (var tt in LargeWorldEntity_.fragments)
+            //    logger.LogDebug("  " + tt);
         }
 
         private static void AddTechTypesToClassIDtable()

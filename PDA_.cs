@@ -1,9 +1,7 @@
 ﻿using FMOD.Studio;
 using HarmonyLib;
-using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;

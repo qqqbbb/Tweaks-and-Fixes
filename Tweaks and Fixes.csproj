@@ -139,6 +139,10 @@
     <Compile Include="Base_Collision.cs" />
     <Compile Include="Base_.cs" />
     <Compile Include="Aurora_terminals.cs" />
+    <Compile Include="AuroraDecalFix.cs" />
+    <Compile Include="AbandonedBaseFixer.cs" />
+    <Compile Include="GlassFixer.cs" />
+    <Compile Include="Escape_pod_wrecks.cs" />
     <Compile Include="Radiation.cs" />
     <Compile Include="Input_.cs" />
     <Compile Include="Telemetry_.cs" />

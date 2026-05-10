@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -10,9 +9,47 @@ namespace Tweaks_Fixes
 {
     class Fragment
     {
+        static readonly int zOffset = Shader.PropertyToID("_ZOffset");
+        //SeamothFragment ExosuitFragment WorkbenchFragment BaseFiltrationMachineFragment CyclopsHullFragment CyclopsBridgeFragment CyclopsEngineFragment ConstructorFragment BaseUpgradeConsoleFragment BaseWaterParkFragment BaseBulkheadFragment BatteryChargerFragment PictureFrameFragment BeaconFragment GravsphereFragment LaserCutterFragment ConstructorFragment PrecursorDroid
+
         static bool IsFragmentCrate(Transform transform)
         {
             return transform.name.EndsWith("InCrate(Clone)") || transform.name.EndsWith("Fragment(Clone)");
+        }
+
+        private static void FixDecals(GameObject go)
+        {// fix: they cast shadow on themselves
+            //AddDebug("FixDecals " + go.name);
+            foreach (Renderer renderer in go.GetAllComponentsInChildren<Renderer>())
+            {
+                foreach (var m in renderer.materials)
+                {
+                    if (m.GetFloat(zOffset) < 0)
+                    {
+                        //Main.logger.LogDebug($"FixDecals {go.name} {renderer.name} {m.name}");
+                        m.EnableKeyword("MARMO_ALPHA_CLIP");
+                        m.SetFloat(zOffset, 0);
+                    }
+                }
+            }
+        }
+
+        private static void TestDecals(GameObject go)
+        {
+            foreach (Renderer renderer in go.GetAllComponentsInChildren<Renderer>())
+            {
+                foreach (var m in renderer.materials)
+                {
+                    if (m.GetFloat(zOffset) < 0)
+                    {
+                        TechType tt = CraftData.GetTechType(go);
+                        AddDebug("TestDecals " + tt);
+                        Main.logger.LogDebug($"TestDecals {tt} {go.name} {renderer.name} {m.name}");
+                        //m.EnableKeyword("MARMO_ALPHA_CLIP");
+                        //m.SetFloat(zOffset, 0);
+                    }
+                }
+            }
         }
 
         [HarmonyPatch(typeof(ResourceTracker), "Start")]
@@ -20,7 +57,11 @@ namespace Tweaks_Fixes
         {
             static void Postfix(ResourceTracker __instance)
             {
-                if (ConfigToEdit.dontSpawnKnownFragments.Value && __instance.techType == TechType.Fragment)
+                if (__instance.techType != TechType.Fragment)
+                    return;
+
+                FixDecals(__instance.gameObject);
+                if (ConfigToEdit.dontSpawnKnownFragments.Value)
                 {
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
                     if (PDAScanner.complete.Contains(tt))

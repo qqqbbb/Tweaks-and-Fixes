@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using FMOD;
+using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -227,7 +228,33 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(BaseDeconstructable))]
+        class BaseDeconstructable_Patch
+        {
+            [HarmonyPostfix, HarmonyPatch("Init")]
+            static void InitPostfix(BaseDeconstructable __instance)
+            {
+                //AddDebug("BaseDeconstructable Init " + __instance.recipe);
+                if (__instance.recipe == TechType.BaseHatch && __instance.transform.position.y > Ocean.GetOceanLevel())
+                    FixHatchTextureZfighting(__instance.gameObject);
+            }
 
+            private static void FixHatchTextureZfighting(GameObject hatch)
+            {
+                string[] names = new string[] { "BaseCorridorHatch/aboveWater", "aboveWater" };
+
+                foreach (string name in names)
+                {
+                    Transform child = hatch.transform.Find(name);
+                    if (child == null || child.gameObject.activeSelf == false)
+                        continue;
+
+                    child = child.transform.Find("model/BaseCorridorBulkhead(Clone) (6)/models/BaseCorridorInteriorWallHatch_Split/BaseCorridorInteriorWallHatch_Front");
+                    if (child)
+                        child.localPosition = new Vector3(0, -0.002f, 0);
+                }
+            }
+        }
     }
 
 
