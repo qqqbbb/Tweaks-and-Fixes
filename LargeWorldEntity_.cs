@@ -141,8 +141,15 @@ namespace Tweaks_Fixes
                 new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, -28.62f, float.NaN), default) }},
             {new Vector3Int(86, -33, -334),new List<PosRotData>{
                 new PosRotData("Coral_reef_shell_tunnel_01(Clone)", new Vector3(float.NaN, -33.4f, float.NaN), new Vector3(350, 100, 90)) }},
-            {new Vector3Int(448, -77, -8),new List<PosRotData>{
+            {new Vector3Int(448, -77, -8), new List<PosRotData>{
                 new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, float.NaN, -6.5f), default) }},
+
+            {new Vector3Int(1256, -220, 634), new List<PosRotData>{
+                new PosRotData("Coral_reef_koosh_bush_small(Clone)", new Vector3(float.NaN, -220.5f,  float.NaN), default) }},
+            {new Vector3Int(1257, -220, 635), new List<PosRotData>{
+                new PosRotData("Coral_reef_koosh_bush_medium(Clone)", new Vector3(float.NaN, -220.1f,  float.NaN), default) }},
+            {new Vector3Int(1249, -219, 622), new List<PosRotData>{
+                new PosRotData("Coral_reef_koosh_bush_small(Clone)", new Vector3(float.NaN, -220.1f,  float.NaN), default) }},
 
          };
 
@@ -289,8 +296,8 @@ namespace Tweaks_Fixes
             float zRot = float.IsNaN(data.newRot.z) ? currentRot.z : data.newRot.z;
             Vector3 newRot = new Vector3(xRot, yRot, zRot);
 
-            AddDebug($"SetNewPosRot {go.name} currentPos {currentPos} currentRot {currentRot} newRot {newRot} newPos {newPos}");
-            Main.logger.LogDebug($"SetNewPosRot {go.name} currentPos {currentPos} currentRot {currentRot} newRot {newRot} newPos {newPos}");
+            //AddDebug($"SetNewPosRot {go.name} currentPos {currentPos} currentRot {currentRot} newRot {newRot} newPos {newPos}");
+            //Main.logger.LogDebug($"SetNewPosRot {go.name} currentPos {currentPos} currentRot {currentRot} newRot {newRot} newPos {newPos}");
 
             if (data.newPos != default && data.newRot != default && currentPos != newPos && currentRot != data.newRot)
             {

@@ -36,6 +36,7 @@ namespace Tweaks_Fixes
         // databox -489 -500 1328
         // stones in caves 118 -60 127
         // repair panel 391 -14 -193
+        // wreck 1325 -223 567 
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
@@ -371,6 +372,7 @@ namespace Tweaks_Fixes
         }
 
         //static Texture texture = null;
+
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -409,7 +411,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-
+                    PrintBiomeNames();
                     //PrintClosestObjects(Player.mainObject.transform.position, 2f);
                     //ShowColliderName();
                     //if (Input.GetKey(KeyCode.LeftShift))
@@ -419,7 +421,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    ShowTargetInfo(false, false, false);
+                    ShowTargetInfo(false, true, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
@@ -645,7 +647,7 @@ namespace Tweaks_Fixes
                 int y = (int)target.transform.position.y;
                 int z = (int)target.transform.position.z;
                 AddDebug($"position {x} {y} {z}");
-                Main.logger.LogMessage($"{target.name} position {x} {y} {z}");
+                Main.logger.LogMessage($"{target.name} position {target.transform.position}");
             }
             LODGroup lODGroup = target.GetComponentInChildren<LODGroup>();
             if (lODGroup != null)

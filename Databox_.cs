@@ -23,8 +23,11 @@ namespace Tweaks_Fixes
                 //AddDebug("primaryTooltip " + Language.main.Get(__instance.primaryTooltip));
                 //AddDebug("secondaryTooltip " + Language.main.Get(__instance.secondaryTooltip));
                 //AddDebug("alreadyUnlockedTooltip " + Language.main.Get(__instance.alreadyUnlockedTooltip));
-                __instance.secondaryTooltip = null;
-                __instance.alreadyUnlockedTooltip = null;
+                if (ConfigToEdit.disableHints.Value)
+                {
+                    __instance.secondaryTooltip = null;
+                    __instance.alreadyUnlockedTooltip = null;
+                }
             }
         }
 

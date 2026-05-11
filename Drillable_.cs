@@ -93,5 +93,11 @@ namespace Tweaks_Fixes
             return false;
         }
 
+        [HarmonyPostfix, HarmonyPatch("HoverDrillable")]
+        public static void HoverDrillablePostfix(Drillable __instance)
+        {
+            if (ConfigToEdit.disableHints.Value)
+                HandReticle.main.SetText(HandReticle.TextType.HandSubscript, null, false);
+        }
     }
 }
