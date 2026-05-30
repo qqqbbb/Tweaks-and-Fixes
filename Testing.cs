@@ -19,9 +19,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.Profiling;
 using UWE;
-using Valve.VR;
 using static ErrorMessage;
 using static GameInputSystem;
 
@@ -34,9 +32,9 @@ namespace Tweaks_Fixes
         // sealed door 905 -195 613
         // spike plant 360 -106 98
         // databox -489 -500 1328
-        // stones in caves 118 -60 127
+        // stones in caves 118 -60 127    -6 0 -13
         // repair panel 391 -14 -193
-        // wreck 1325 -223 567 
+
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
@@ -371,27 +369,19 @@ namespace Tweaks_Fixes
             }
         }
 
-        //static Texture texture = null;
-
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
+            static float deltaTime = 0.0f;
             static void Postfix(Player __instance)
             {
                 if (!Main.gameLoaded)
                     return;
 
-                if (__instance.currentSub)
-                {
-                    //SubControl subControl = __instance.currentSub.GetComponent<SubControl>();
-                    //if (subControl)
-                    //    AddDebug("subControl controlMode " + subControl.controlMode);
-                    //AddDebug("GameInput.AutoMove " + GameInput.AutoMove);
-                }
-                //AddDebug("PrimaryDevice " + GameInput.input.PrimaryDevice);
-
-                //AddDebug("IntroLifepodDirector.IsActive " + IntroLifepodDirector.IsActive);
-                //PrintRawBiomeNames();
+                //deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+                //float fps = 1.0f / deltaTime;
+                //Util.Message("FPS " + Mathf.RoundToInt(fps));
+                //AddDebug("IsInvisible " + GameModeUtils.IsInvisible());
                 //AddDebug("mode " + __instance.mode);
                 if (Keyboard.current.bKey.wasPressedThisFrame)
                 {
@@ -411,9 +401,8 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    PrintBiomeNames();
-                    //PrintClosestObjects(Player.mainObject.transform.position, 2f);
-                    //ShowColliderName();
+                    //PrintBiomeNames();
+                    ShowColliderName();
                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    Time.timeScale = 0;
                     //else
@@ -421,14 +410,20 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    ShowTargetInfo(false, true, false);
+                    ShowTargetInfo(false, false, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
-
+                    PrintClosestObjects(Player.mainObject.transform.position, 2f);
                 }
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
+                    Main.logger.LogDebug("creepvines " + LargeWorldEntity_.creepvines.Count);
+                    AddDebug("creepvines " + LargeWorldEntity_.creepvines.Count);
+                    foreach (var s in LargeWorldEntity_.creepvines)
+                    {
+                        Main.logger.LogDebug(" " + s);
+                    }
                     //GameObject goToTest = Player.main.guiHand.activeTarget;
                     //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
                     //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
@@ -445,8 +440,13 @@ namespace Tweaks_Fixes
                     {
                     }
                 }
+                else if (Input.GetKeyDown(KeyCode.F7))
+                {
+                    __instance.cinematicModeActive = !__instance.cinematicModeActive;
+                }
             }
         }
+
         private static void PrintClosestObjects(Vector3 pos, float radius)
         {
             AddDebug($" Objects in radius of {radius}");
@@ -610,37 +610,27 @@ namespace Tweaks_Fixes
 
             //AddDebug("collider  " + target.name);
             PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
+            TechType techType = TechType.None;
+
             if (pi == null)
+            {
+                AddDebug("No PrefabIdentifier");
+                Main.logger.LogMessage(target.name);
                 target = GetRootGameobjectWithoutIdentifier(target);
+            }
             else
+            {
                 target = pi.gameObject;
-
-            //GameObject root = Util.GetEntityRoot(target);
-            //if (root)
-            //    target = root;
-
-            //Bounds bounds = Util.GetAABB(target);
-            //AddDebug("bounds " + Mathf.RoundToInt(bounds.extents.magnitude));
-            //if (texture == null)
-            //{
-            //    Renderer renderer = target.GetComponentInChildren<Renderer>();
-            //    texture = renderer.material.mainTexture;
-            //    AddDebug("save texture " + texture.name);
-            //}
-            //else
-            //{
-            //    Renderer renderer = target.GetComponentInChildren<Renderer>();
-            //    renderer.material.mainTexture = texture;
-            //    AddDebug("apply texture " + texture.name);
-            //    texture = null;
-            //}
+                techType = CraftData.GetTechType(target);
+                Main.logger.LogDebug($"{pi.name} {techType} {pi.classId}");
+            }
             if (Keyboard.current.leftShiftKey.isPressed)
             {
                 AddDebug("RemoveHotMetalGlow");
                 RemoveHotMetalGlow(target);
             }
             AddDebug(target.name);
-            Main.logger.LogMessage(target.name);
+
             if (position)
             {
                 int x = (int)target.transform.position.x;
@@ -659,15 +649,6 @@ namespace Tweaks_Fixes
             {
                 AddDebug("EcoTarget " + ecoTarget.type);
             }
-            //Vector3 startPos = target.transform.position;
-            //Vector3 dir = -target.transform.up;
-            //float rayLength = .5f;
-            //bool rayHit = Physics.Raycast(startPos, dir, out RaycastHit hitInfo_, rayLength);
-            //Vector3 endPos = startPos + dir.normalized * rayLength;
-            //CoroutineHost.StartCoroutine(Util.SpawnAsync(TechType.BluePalmSeed, endPos));
-            //AddDebug("ray hit " + rayHit);
-
-
             TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
             if (tcpc)
             {
@@ -695,27 +676,17 @@ namespace Tweaks_Fixes
             if (lwe)
                 AddDebug(" cellLevel " + lwe.cellLevel);
 
-            //lwe.cellLevel = LargeWorldEntity.CellLevel.
-            //AddDebug(target.name);
             //AddDebug(target.name + " IsDecoPlant " + Util.IsDecoPlant(target));
             //if (target.transform.parent)
             //    AddDebug(target.transform.parent.name);
-
-            //AddDebug("parent " + target.transform.parent.gameObject.name);
-            //if (target.transform.parent.parent)
-            //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);
-
-            TechType techType = CraftData.GetTechType(target);
             FruitPlant fruitPlant = target.GetComponent<FruitPlant>();
             if (fruitPlant != null)
             {
                 if (!fruitPlant.fruitSpawnEnabled)
                     AddDebug("fruitPlant fruit Spawn disabled ");
 
-                AddDebug("fruitPlant SpawnInterval " + fruitPlant.fruitSpawnInterval);
                 PickPrefab[] pickPrefabs = target.GetComponentsInChildren<PickPrefab>(true);
-                AddDebug("fruitPlant pickPrefabs " + pickPrefabs.Length);
-
+                AddDebug($"fruitPlant SpawnInterval {fruitPlant.fruitSpawnInterval} pickPrefabs {pickPrefabs.Length}");
             }
             if (techType != TechType.None)
             {
@@ -733,6 +704,10 @@ namespace Tweaks_Fixes
 
         private static GameObject GetRootGameobjectWithoutIdentifier(GameObject go)
         {
+            PrefabSpawn prefabSpawn = go.GetComponentInParent<PrefabSpawn>();
+            if (prefabSpawn != null)
+                return prefabSpawn.gameObject;
+
             Transform parent = go.transform.parent;
             if (parent == null)
                 return go.gameObject;
@@ -1022,7 +997,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         //[HarmonyPatch(typeof(GotoConsoleCommand))]
         class GotoConsoleCommand_Patch
         {
@@ -1032,8 +1006,8 @@ namespace Tweaks_Fixes
                 List<TeleportPosition> tps = new List<TeleportPosition>();
                 foreach (TeleportPosition tp in __instance.data.locations)
                 {
-                    //if (tp.name.StartsWith("escapepod"))
-                    if (tp.name.StartsWith("wreck"))
+                    if (tp.name.StartsWith("escapepod"))
+                    //if (tp.name.StartsWith("wreck"))
                     {
                         //Main.logger.LogMessage("scatter TeleportPosition: " + tp.name);
                         //AddDebug("GotoConsoleCommand TeleportPosition: " + tp.name);
@@ -1048,5 +1022,22 @@ namespace Tweaks_Fixes
 
             }
         }
+
+        //[HarmonyPatch(typeof(PDA), "Open")]
+        class PDA_Open_Patch
+        {
+            public static bool Prefix(PDA __instance, ref bool __result)
+            {
+                if (Keyboard.current.leftAltKey.IsPressed())
+                {
+                    AddDebug("leftAltKey IsPressed " + __result);
+                    __result = false;
+                    return false;
+                }
+                AddDebug("leftAltKey not IsPressed " + __result);
+                return true;
+            }
+        }
+
     }
 }

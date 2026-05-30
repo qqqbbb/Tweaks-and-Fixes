@@ -9,20 +9,40 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Plants_Patch
+    class Plants_
     {
         public static float creepVineSeedLightInt = 2f;
+        HashSet<TechType> wavingTechTypes = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleVasePlant, TechType.OrangePetalsPlant, TechType.PinkMushroom, TechType.PurpleRattle, TechType.PinkFlower };
+
+        [HarmonyPatch(typeof(GrownPlant))]
+        class GrownPlant_Patch
+        {
+            [HarmonyPostfix, HarmonyPatch("Awake")]
+            public static void AwakePostfix(GrownPlant __instance)
+            {
+                //AddDebug($"{__instance.name} GrownPlant Awake");
+                if (ConfigToEdit.disablePlantAnimationInsideBase.Value)
+                    __instance.gameObject.AddComponent<GrownPlantFixer>();
+            }
+        }
 
         [HarmonyPatch(typeof(GrowingPlant))]
         class GrowingPlant_Patch
         {
-            static int growUpdateTime = 0;
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            public static void StartPostfix(GrowingPlant __instance)
+            {
+                //AddDebug($"{__instance.name} GrowingPlant Start isIndoor {__instance.isIndoor}");
+                if (__instance.isIndoor && ConfigToEdit.disablePlantAnimationInsideBase.Value)
+                {
+                    __instance.gameObject.DisableWavingShader();
+                }
+            }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("SpawnGrownModel")]
+            //[HarmonyPostfix, HarmonyPatch("SpawnGrownModel")]
             public static void SpawnGrownModelPostfix(GrowingPlant __instance)
             {
-                AddDebug("SpawnGrownModel");
+                AddDebug("SpawnGrownModel ");
             }
 
             [HarmonyPrefix]
@@ -143,7 +163,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(VFXScaleWaving), "Start")]
+        //[HarmonyPatch(typeof(VFXScaleWaving), "Start")]
         class VFXScaleWaving_Patch
         {
             public static bool Prefix(VFXScaleWaving __instance)
@@ -270,7 +290,20 @@ namespace Tweaks_Fixes
             }
         }
 
-
-
     }
+
+    class GrownPlantFixer : MonoBehaviour
+    {
+        void Start()
+        {
+            Planter planter = this.GetComponentInParent<Planter>();
+            if (planter && planter.isIndoor)
+            {
+                //AddDebug($"{this.name} GrownPlantFixer Start Indoor");
+                this.gameObject.DisableWavingShader();
+                UnityEngine.Object.Destroy(this);
+            }
+        }
+    }
+
 }

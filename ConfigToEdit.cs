@@ -34,6 +34,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<string> stalkerPlayThings;
         public static ConfigEntry<string> eatableFoodValue;
         public static ConfigEntry<string> eatableWaterValue;
+        public static ConfigEntry<string> eatableHealthValue;
         public static ConfigEntry<bool> fixMelons;
         public static ConfigEntry<bool> randomPlantRotation;
         public static ConfigEntry<bool> silentReactor;
@@ -136,7 +137,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> beaconTweaks;
         public static ConfigEntry<bool> flareTweaks;
         public static ConfigEntry<bool> stasisRifleTweaks;
-        public static ConfigEntry<bool> disableWeirdPlantAnimation;
+        public static ConfigEntry<bool> disablePlantAnimationInsideBase;
         public static ConfigEntry<bool> coralShellPlateGivesTableCoral;
         public static ConfigEntry<bool> disableTimeCapsule;
         public static ConfigEntry<bool> spawnResourcesWhenDrilling;
@@ -191,6 +192,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> fixCyclopsCollision;
         public static ConfigEntry<bool> sunbeamTimerShowsGameTime;
         public static ConfigEntry<bool> disableHotMetalGlow;
+        public static ConfigEntry<bool> grassCastShadow;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -203,6 +205,7 @@ namespace Tweaks_Fixes
         public static void Bind()
         {  // “ ” ‛
 
+            grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "");
             disableHotMetalGlow = Main.configToEdit.Bind("MISC", "Remove hot metal glow from Aurora debris that is underwater", false, "");
             fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", true, "");
             vegan = Main.configToEdit.Bind("PLAYER", "Vegan diet", false, "You will not be able to eat fish if this is true");
@@ -219,7 +222,7 @@ namespace Tweaks_Fixes
             decoyRequiresSub = Main.configToEdit.Bind("ITEMS", "Creature decoy does not work when dropped from inventory", false);
             noKillParticles = Main.configToEdit.Bind("CREATURES", "No yellow cloud particle effect when creature dies", false);
             cyclopsSunlight = Main.configToEdit.Bind("CYCLOPS", "Sunlight affects lighting in cyclops", false);
-            alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show numbers for health, food and temperature meters in UI", false);
+            alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show numbers for health, food and water meters in UI", false);
             pdaClock = Main.configToEdit.Bind("PDA", "PDA clock", true);
 
             gameStartWarningText = Main.configToEdit.Bind("MISC", "Game start warning text", "", "Text shown when the game starts. If this field is empty the warning will be skipped.");
@@ -247,14 +250,15 @@ namespace Tweaks_Fixes
             medKitHPperSecond = Main.configToEdit.Bind("ITEMS", "Amount of HP restored by first aid kit every second", 100f, new ConfigDescription("Set this to a small number to slowly restore HP after using first aid kit.", medKitHPperSecondRange));
             silentCreatures = Main.configToEdit.Bind("CREATURES", "Silent creatures", "", "List of creature IDs separated by comma. Creatures in this list will be silent.");
 
-            eatableFoodValue = Main.configToEdit.Bind("ITEMS", "Eatable component food value", "CreepvineSeedCluster 5", "Items from this list will be made eatable. The format is: item ID, space, food value. Every entry is separated by comma.");
-            eatableWaterValue = Main.configToEdit.Bind("ITEMS", "Eatable component water value", "CreepvineSeedCluster 10", "Items from this list will be made eatable. The format is: item ID, space, water value. Every entry is separated by comma.");
+            eatableFoodValue = Main.configToEdit.Bind("ITEMS", "Eatable food value", "CreepvineSeedCluster 5", "Items from this list will be made eatable. The format is: item ID, space, food value. Values can be negative. Every entry is separated by comma.");
+            eatableWaterValue = Main.configToEdit.Bind("ITEMS", "Eatable water value", "CreepvineSeedCluster 10", "Items from this list will be made eatable. The format is: item ID, space, water value. Values can be negative. Every entry is separated by comma.");
+            eatableHealthValue = Main.configToEdit.Bind("ITEMS", "Eatable health value", "", "Items from this list will be made eatable and will restore player's health. Negative values will damage player. The format is: item ID, space, health value. Every entry is separated by comma.");
             fixMelons = Main.configToEdit.Bind("PLANTS", "Fix melons", false, "You will be able to plant only 1 melon in a pot and only 4 in a planter if this is true.");
             randomPlantRotation = Main.configToEdit.Bind("PLANTS", "Random plant rotation", true, "Plants in planters will have random rotation if this is true.");
             silentReactor = Main.configToEdit.Bind("BASE", "Silent nuclear reactor", false);
             removeFragmentCrate = Main.configToEdit.Bind("FRAGMENTS", "Remove fragment crate", false, "When you scan a blueprint fragment, the crate holding the fragment will be removed if this is true.");
             creepvineLights = Main.configToEdit.Bind("PLANTS", "Real creepvine lights", true, "Creepvine seed cluster light intensity will depend on number of seed clusters on the vine if this is true.");
-            vehicleUItweaks = Main.configToEdit.Bind("UI", "Vehicle UI tweaks", true, "UI Prompts for toggling lights in seamoth and prawn suit. UI Prompts for installed seamoth upgrade modules. UI Prompts for installed prawn suit arms. Ability to change current torpedo for seamoth and prawn suit.");
+            vehicleUItweaks = Main.configToEdit.Bind("UI", "Vehicle UI tweaks", true, "UI prompts for toggling lights in seamoth and prawn suit. UI shows installed seamoth upgrade modules. UI shows installed prawn suit arms. Ability to change current torpedo for seamoth and prawn suit.");
             newStorageUI = Main.configToEdit.Bind("UI", "New storage UI", true, "New UI for storage containers");
 
             disableUseText = Main.configToEdit.Bind("UI", "Disable quickslots text", false, "Text above your quickslots will be disabled if this is true.");
@@ -262,7 +266,7 @@ namespace Tweaks_Fixes
             notRechargableBatteries = Main.configToEdit.Bind("ITEMS", "Not rechargable batteries", "", "Comma separated list of battery IDs. Batteries from this list can not be recharged");
             craftWithoutBattery = Main.configToEdit.Bind("TOOLS", "Craft without battery", false, "Your newly crafted tools and vehicles will not have batteries in them if this is true.");
             disableCyclopsProximitySensor = Main.configToEdit.Bind("CYCLOPS", "Disable cyclops proximity sensor", false);
-            builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("TOOLS", "Builder tool placing mode when finished building", true, "Your builder tool will exit placing mode when you finish building if this is false .");
+            builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("TOOLS", "Builder tool placing mode when finished building", true, "Your builder tool will exit placing mode when you finish building if this is false.");
             crushDamageScreenEffect = Main.configToEdit.Bind("PLAYER", "Crush damage screen effect", true, "There will be no screen effects when player takes crush damage if this is false.");
             removeCookedFishOnReload = Main.configToEdit.Bind("CREATURES", "Remove cooked fish when loading saved game", false, "Cooked fish will be removed from the world (not from containers) when loading saved game if this is true.");
             disableGravityForExosuit = Main.configToEdit.Bind("VEHICLES", "Disable gravity for prawn suit", false, "Prawn suit will ignore gravity when you are not piloting it if this is true. Use this if your prawn suit falls through the ground.");
@@ -292,11 +296,11 @@ namespace Tweaks_Fixes
             //spawnChance = Main.configB.Bind("", "Spawn chance", "", "Chance for a object ID to spawn. The format is: object ID, space, chance to spawn percent. Can be used only to reduce chances to spawn. Every entry is separated by comma.");
             propulsionCannonGrabFX = Main.configToEdit.Bind("TOOLS", "Propulsion cannon sphere effect", true, "Blue sphere visual effect you see when holding an object with propulsion cannon will be disabled if this is false.");
             fixCuteFish = Main.configToEdit.Bind("CREATURES", "Fix cuddlefish", false, "You will be able to interact with cuddlefish only when swimming if this is true.");
-            seaTreaderOutcropMult = Main.configToEdit.Bind("CREATURES", "Outcrop from seatreader step", 100, "Chance percent to unearth outcrop when seatreader steps");
-            seaTreaderAttackOutcropMult = Main.configToEdit.Bind("CREATURES", "Outcrop from seatreader attack", 100, "Chance percent to unearth outcrop when seatreader attacks player");
+            seaTreaderOutcropMult = Main.configToEdit.Bind("CREATURES", "Chance percent to unearth outcrop when seatreader steps", 100);
+            seaTreaderAttackOutcropMult = Main.configToEdit.Bind("CREATURES", "Chance percent to unearth outcrop when seatreader attacks player", 100);
             shroomDamageChance = Main.configToEdit.Bind("PLANTS", "Mushroom damage chance percent", 0, new ConfigDescription("Chance of a mushroom dealing damage to player when picked up and dealing area damage when destroyed. The script to do it was always in the game but was disabled.", percentRange));
             shroomDamage = Main.configToEdit.Bind("PLANTS", "Mushroom damage", 0, "Mushrooms will deal this damage to player when picked up or destroyed. Works only if 'Mushroom damage chance percent' setting is above 0.");
-            escapePodPowerTweak = Main.configToEdit.Bind("LIFE POD", "Life pod power tweaks", false, "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod power cells are not charged.");
+            escapePodPowerTweak = Main.configToEdit.Bind("LIFE POD", "Life pod power tweaks", false, "Your life pod's max power is reduced to 50% when it is damaged. Your life pod's power cells will not be charged When you crash land.");
             stalkerPlayThings = Main.configToEdit.Bind("CREATURES", "Items stalkers can grab", "ScrapMetal, MapRoomCamera, Beacon, Seaglide, CyclopsDecoy, Gravsphere, SmallStorage, FireExtinguisher, DoubleTank, PlasteelTank, PrecursorKey_Blue, PrecursorKey_Orange, PrecursorKey_Purple, PrecursorKey_Red, PrecursorKey_White, Rebreather, Tank, HighCapacityTank, Flare, Flashlight, Builder, LaserCutter, LEDLight, DiveReel, PropulsionCannon, Knife, HeatBlade, Scanner, Welder, RepulsionCannon, StasisRifle", "List of item IDs separated by comma. Only items in this list can be grabbed by stalkers.");
             stalkersGrabShinyTool = Main.configToEdit.Bind("CREATURES", "Stalkers grab tools from player hands", false, "Stalkers can grab only things that are in the ‛Items stalkers can grab‛ list.");
             dropHeldTool = Main.configToEdit.Bind("PLAYER", "Drop tool in your hands when taking damage", false, "Chance percent to drop your tool is equal to amount of damage taken.");
@@ -336,7 +340,7 @@ namespace Tweaks_Fixes
             flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it. This setting will be disabled if 'Flare repair' mod is installed.");
             stasisRifleTweaks = Main.configToEdit.Bind("TOOLS", "Stasis rifle tweaks", true, "UI prompt when stasis rifle is equipped. Gasopods do not drop gas pods when in stasis field. Gas pods do not explode when in stasis field.");
             coralShellPlateGivesTableCoral = Main.configToEdit.Bind("PLANTS", "Coral Shell Plate gives Table Coral Sample", false, "When you destroy Coral Shell Plate you will get Table Coral Sample instead of Coral Tube Sample");
-            disableWeirdPlantAnimation = Main.configToEdit.Bind("PLANTS", "Disable weird plant animation", false, "Disable animation for grub basket, bulbo tree, speckled rattler, pink cap, ming plant");
+            disablePlantAnimationInsideBase = Main.configToEdit.Bind("PLANTS", "Disable animation for plants inside base", false, "Animation for grub basket, bulbo tree, speckled rattler, pink cap, ming plant will be disabled if they are inside.");
             disableTimeCapsule = Main.configToEdit.Bind("MISC", "Disable time capsules", false, "");
             spawnResourcesWhenDrilling = Main.configToEdit.Bind("VEHICLES", "Spawn resources instead of adding them to prawn suit container when drilling", false, "");
             canPickUpContainerWithItems = Main.configToEdit.Bind("MISC", "Can pick up containers with items", false, "");
@@ -386,12 +390,12 @@ namespace Tweaks_Fixes
 
         }
 
-        private static Dictionary<TechType, int> ParseIntDicFromString(string input)
+        private static Dictionary<TechType, int> ParseIntDicFromString(string input, bool allowNegative = false)
         {
-            if (string.IsNullOrEmpty(input))
-                return null;
-
             Dictionary<TechType, int> dic = new Dictionary<TechType, int>();
+            if (string.IsNullOrEmpty(input))
+                return dic;
+
             string[] entries = input.Split(',');
             for (int i = 0; i < entries.Length; i++)
             {
@@ -414,10 +418,12 @@ namespace Tweaks_Fixes
                 }
                 catch (Exception)
                 {
-                    Main.logger.LogWarning("Could not parse: " + input);
+                    Main.logger.LogError("Could not parse: " + input);
                     continue;
                 }
-                if (a < 1)
+                if (a == 0)
+                    continue;
+                else if (allowNegative == false && a < 1)
                     continue;
 
                 dic.Add(tt, a);
@@ -609,15 +615,15 @@ namespace Tweaks_Fixes
             Gravsphere_.gravTrappable = ParseSetFromString(gravTrappable.Value);
             Silent_Creatures.silentCreatures = ParseSetFromString(silentCreatures.Value);
             Pickupable_.shinies = ParseSetFromString(stalkerPlayThings.Value);
-            LargeWorldEntity_.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
-            LargeWorldEntity_.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
+            PrefabFixer.eatables = ParseEatableDic();
+            //PrefabFixer.eatableWater = ParseIntDicFromString(eatableWaterValue.Value);
             Escape_Pod.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
             CreatureDeath_.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
             CreatureDeath_.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
             CreatureDeath_.respawnTime = ParseIntDicFromString(respawnTime.Value);
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
             Charger_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
-            Creatures.bloodColor = ParseColor(bloodColor.Value);
+            LoadedGameObjectFixer.bloodColor = ParseColor(bloodColor.Value);
             MapRoomCamera_.lightColor = ParseColor(cameraLightColor.Value);
             Seaglide_.lightColor = ParseColor(seaglideLightColor.Value);
             VehicleLightFix.seamothLightColor = ParseColor(seamothLightColor.Value);
@@ -630,6 +636,49 @@ namespace Tweaks_Fixes
 
             Damage_.damageModifiers = ParseFloatDicFromPercentString(damageModifiers.Value);
             //Main.logger.LogMessage("ParseConfig done ");
+        }
+
+        private static Dictionary<TechType, EatableData> ParseEatableDic()
+        {
+            Dictionary<TechType, EatableData> eatables = new Dictionary<TechType, EatableData>();
+            Dictionary<TechType, int> foodDic = ParseIntDicFromString(eatableFoodValue.Value, true);
+            Dictionary<TechType, int> waterDic = ParseIntDicFromString(eatableWaterValue.Value, true);
+            Dictionary<TechType, int> healthDic = ParseIntDicFromString(eatableHealthValue.Value, true);
+
+            foreach (var kv in foodDic)
+            {
+                eatables.Add(kv.Key, new EatableData(kv.Value, 0, 0));
+            }
+            foreach (var kv in waterDic)
+            {
+                if (eatables.ContainsKey(kv.Key))
+                {
+                    EatableData data = eatables[kv.Key];
+                    data.water = kv.Value;
+                    eatables[kv.Key] = data;
+                }
+                else
+                {
+                    EatableData data = new EatableData(0, kv.Value, 0);
+                    eatables[kv.Key] = data;
+                }
+            }
+            foreach (var kv in healthDic)
+            {
+                if (eatables.ContainsKey(kv.Key))
+                {
+                    //Main.logger.LogDebug($"ParseEatableDic {kv.Key} health {kv.Value}");
+                    EatableData data = eatables[kv.Key];
+                    data.health = kv.Value;
+                    eatables[kv.Key] = data;
+                }
+                else
+                {
+                    EatableData data = new EatableData(0, 0, kv.Value);
+                    eatables[kv.Key] = data;
+                }
+            }
+            return eatables;
         }
 
         public enum EscapePodMedicalCabinetWorks { Always, After_repairing_life_pod, Never }

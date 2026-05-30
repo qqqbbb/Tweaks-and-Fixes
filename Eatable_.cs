@@ -63,6 +63,30 @@ namespace Tweaks_Fixes
             }
             return true;
         }
+        [HarmonyPostfix, HarmonyPatch("GetWaterValue")]
+        static void GetWaterValuePostfix(Eatable __instance, ref float __result)
+        {
+            TechType tt = CraftData.GetTechType(__instance.gameObject);
+            if (PrefabFixer.eatables.ContainsKey(tt))
+            {
+                EatableData data = PrefabFixer.eatables[tt];
+                int value = data.water;
+                if (value < 0 && value < __result)
+                    __result = value;
+            }
+        }
 
+        [HarmonyPostfix, HarmonyPatch("GetFoodValue")]
+        static void GetFoodValuePostfix(Eatable __instance, ref float __result)
+        {
+            TechType tt = CraftData.GetTechType(__instance.gameObject);
+            if (PrefabFixer.eatables.ContainsKey(tt))
+            {
+                EatableData data = PrefabFixer.eatables[tt];
+                int value = data.food;
+                if (value < 0 && value < __result)
+                    __result = value;
+            }
+        }
     }
 }

@@ -66,21 +66,6 @@ namespace Tweaks_Fixes
             return true;
         }
 
-        public static void SetBloodColor(GameObject go)
-        {
-            if (Creatures.bloodColor == default)
-                return;
-
-            ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
-            //Main.logger.LogMessage("SetBloodColor " + go.name + " to " + Creature_Tweaks.bloodColor);
-            foreach (ParticleSystem ps in pss)
-            {
-                ParticleSystem.MainModule psMain = ps.main;
-                //Main.logger.LogMessage("startColor " + psMain.startColor.color);
-                psMain.startColor = new ParticleSystem.MinMaxGradient(Creatures.bloodColor);
-            }
-        }
-
         public static IEnumerator Cook(GameObject go)
         {
             TechType cookedTT = TechData.GetProcessed(CraftData.GetTechType(go.gameObject));
@@ -296,6 +281,14 @@ namespace Tweaks_Fixes
             eatable.despawns = IsRawFish(go);
         }
 
+        public static void MakeEatable(GameObject go, EatableData data)
+        {
+            Eatable eatable = go.EnsureComponent<Eatable>();
+            eatable.waterValue = data.water;
+            eatable.foodValue = data.food;
+            eatable.despawns = IsRawFish(go);
+        }
+
         public static void Message(string str)
         {
             int count = main.messages.Count;
@@ -398,7 +391,6 @@ namespace Tweaks_Fixes
 
         public static void EnsureFruits(GameObject go)
         {
-            //AddDebug("EnsureFruits " + go.name);
             PickPrefab[] pickPrefabs = go.GetComponentsInChildren<PickPrefab>(true);
             if (pickPrefabs.Length == 0)
                 return;
@@ -421,13 +413,11 @@ namespace Tweaks_Fixes
                 VFXSurface vfxSurface = obj.GetComponent<VFXSurface>();
                 if (vfxSurface)
                 {
-                    result = vfxSurface.surfaceType;
-                    //AddDebug(" VFXSurface " + component.name);
-                    //AddDebug(" VFXSurface parent " + component.transform.parent.name);
-                    //AddDebug(" VFXSurface parent parent " + component.transform.parent.parent.name);
+                    return vfxSurface.surfaceType;
                 }
-                else
-                    vfxSurface = obj.FindAncestor<VFXSurface>();
+                vfxSurface = obj.FindAncestor<VFXSurface>();
+                if (vfxSurface == null)
+                    vfxSurface = obj.GetComponentInChildren<VFXSurface>();
 
                 if (vfxSurface)
                     result = vfxSurface.surfaceType;
@@ -467,7 +457,10 @@ namespace Tweaks_Fixes
 
         public static void AddVFXsurfaceComponent(this GameObject go, VFXSurfaceTypes type)
         {
-            VFXSurface vFXSurface = go.EnsureComponent<VFXSurface>();
+            VFXSurface vFXSurface = go.GetComponentInChildren<VFXSurface>();
+            if (vFXSurface == null)
+                vFXSurface = go.AddComponent<VFXSurface>();
+
             vFXSurface.surfaceType = type;
         }
 
@@ -478,7 +471,7 @@ namespace Tweaks_Fixes
             TaskResult<GameObject> result = new TaskResult<GameObject>();
             yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
             prefab = result.Get();
-            LargeWorldEntity_.spawning = true;
+            LargeWorldEntity_.spawningNearPlayer = true;
             GameObject go = prefab == null ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
             if (go != null)
             {
@@ -493,7 +486,7 @@ namespace Tweaks_Fixes
                 //AttachPing(go);
                 CrafterLogic.NotifyCraftEnd(go, techType);
             }
-            LargeWorldEntity_.spawning = false;
+            LargeWorldEntity_.spawningNearPlayer = false;
         }
 
         public static IEnumerator AddToContainerAsync(TechType techType, ItemsContainer container, bool pickupSound)
@@ -867,23 +860,148 @@ namespace Tweaks_Fixes
             Renderer r = renderer.GetComponent<Renderer>();
             if (r == null)
             {
-                //Main.logger.LogError($"DisableShadowCasting {renderer.name} has no renderer");
+                Main.logger.LogError($"DisableShadowCasting {renderer.name} has no renderer");
                 return;
             }
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
+        public static void DisableShadowCasting(this Transform root, List<RendererData> rendererDatas)
+        {
+            //Main.logger.LogError("DisableShadowCasting " + root.name);
+            foreach (RendererData data in rendererDatas)
+            {
+                //Main.logger.LogError("DisableShadowCasting parentPath " + data.parentPath);
+                Transform parent = root.Find(data.parentPath);
+                if (parent == null)
+                {
+                    Main.logger.LogError("DisableShadowCasting RendererData parent null " + data.parentPath);
+                    continue;
+                }
+                //Main.logger.LogError("DisableShadowCasting parent " + parent.name);
+                foreach (string rendererName in data.renderers)
+                {
+                    //Main.logger.LogError("DisableShadowCasting rendererName " + rendererName);
+                    Transform rendererT = parent.Find(rendererName);
+                    if (rendererT == null)
+                        continue;
+
+                    Renderer r = rendererT.GetComponent<Renderer>();
+                    if (r == null)
+                    {
+                        Main.logger.LogError("DisableShadowCasting RendererData no renderer " + rendererT);
+                        continue;
+                    }
+                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
+            }
+        }
+
+        public static void DisableShadowCasting(this Transform root, RendererData data)
+        {
+            //Main.logger.LogDebug($"DisableShadowCasting {root.name}");
+            if (data == null)
+            {
+                Main.logger.LogError($"DisableShadowCasting {root.name} RendererData  null ");
+                return;
+            }
+            Transform parent = root.Find(data.parentPath);
+            if (parent == null)
+            {
+                Main.logger.LogError($"DisableShadowCasting {root.name} {root.childCount} RendererData parent null " + data.parentPath);
+                return;
+            }
+            if (data.renderers == null)
+            {
+                //Main.logger.LogDebug($"DisableShadowCasting {root.name} renderers null");
+                parent.DisableShadowCasting();
+                return;
+            }
+            foreach (string rendererName in data.renderers)
+            {
+                //Main.logger.LogDebug($"DisableShadowCasting parent {parent.name} rendererName {rendererName}");
+                Transform rendererT = parent.Find(rendererName);
+                if (rendererT == null)
+                    continue;
+
+                rendererT.DisableShadowCasting();
+            }
+        }
+
+        public static void EnableShadowCasting(this Transform root, RendererData data)
+        {
+            //Main.logger.LogDebug($"EnableShadowCasting {root.name}");
+            if (data == null)
+            {
+                Main.logger.LogError($"EnableShadowCasting {root.name} RendererData  null ");
+                return;
+            }
+            Transform parent;
+            if (data.parentPath.IsNullOrWhiteSpace())
+                parent = root;
+            else
+                parent = root.Find(data.parentPath);
+
+            if (parent == null)
+            {
+                Main.logger.LogError($"EnableShadowCasting {root.name} {root.childCount} RendererData parent null " + data.parentPath);
+                return;
+            }
+            if (data.renderers == null)
+            {
+                //Main.logger.LogDebug($"EnableShadowCasting {root.name} renderers null");
+                parent.EnableShadowCasting();
+                return;
+            }
+            foreach (string rendererName in data.renderers)
+            {
+                //Main.logger.LogDebug($"EnableShadowCasting parent {parent.name} rendererName {rendererName}");
+                Transform rendererT = parent.Find(rendererName);
+                if (rendererT == null)
+                    continue;
+
+                //rendererT.EnableShadowCasting();
+                rendererT.EnableShadowCastingInChildren();
+            }
+        }
+
         public static void DisableShadowCastingInChildren(this Transform transform)
         {
-            //Main.logger.LogDebug("DisableShadowCastingInChildren " + t.name);
+            //Main.logger.LogDebug("DisableShadowCastingInChildren " + transform.name);
             Renderer[] rs = transform.GetComponentsInChildren<Renderer>();
             foreach (Renderer r in rs)
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
+        public static void EnableShadowCasting(this Transform transform)
+        {
+            //Main.logger.LogDebug("EnableShadowCasting " + transform.name);
+            Renderer r = transform.GetComponent<Renderer>();
+            if (r == null)
+            {
+                Main.logger.LogDebug("EnableShadowCasting no Renderer " + transform.name);
+                return;
+            }
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        }
+
+        public static void EnableShadowCastingInChildren(this Transform transform)
+        {
+            Renderer[] rs = transform.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in rs)
+            {
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+            }
+        }
+
         public static void DisableShadowCasting(this Transform parent, string path)
         {
-            //Main.logger.LogDebug("DisableShadowCasting " + t.name);
+            //Main.logger.LogDebug($"DisableShadowCasting {parent.name}  {path}");
+            if (path == null)
+            {
+                parent.DisableShadowCastingInChildren();
+                return;
+            }
             Transform t = parent.Find(path);
             if (t == null)
             {
@@ -899,29 +1017,10 @@ namespace Tweaks_Fixes
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
-        public static void DisableShadowCasting(this Transform parent, List<string> paths)
+        public static void ForceLOD(this GameObject go, int index = 0)
         {
-            //Main.logger.LogDebug("DisableShadowCasting " + t.name);
-            foreach (string path in paths)
-            {
-                Transform t = parent.Find(path);
-                if (t == null)
-                {
-                    //Main.logger.LogError($"DisableShadowCasting {parent.name} has no child {path}");
-                    return;
-                }
-                Renderer r = t.GetComponent<Renderer>();
-                if (r == null)
-                {
-                    //Main.logger.LogError($"DisableShadowCasting {parent.name} has no renderer on go {path}");
-                    return;
-                }
-                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            }
-        }
-
-        public static void ForceLODs(this GameObject go, int index = 0)
-        {
+            //AddDebug("ForceLODs " + go.name);
+            //Main.logger.LogDebug("ForceLODs " + go.name);
             LODGroup[] lods = go.GetComponentsInChildren<LODGroup>();
 
             foreach (LODGroup lod in lods)
@@ -930,12 +1029,43 @@ namespace Tweaks_Fixes
 
         public static void DisableGlowShader(this GameObject gameObject)
         {
-            foreach (MeshRenderer mr in gameObject.GetComponentsInChildren<MeshRenderer>())
+            foreach (Renderer mr in gameObject.GetComponentsInChildren<Renderer>())
             {
                 foreach (Material m in mr.materials)
-                {
-                    //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
                     m.DisableKeyword("MARMO_EMISSION");
+            }
+        }
+
+        public static void DisableGlowShader(this Transform root)
+        {
+            foreach (Renderer mr in root.GetComponentsInChildren<Renderer>())
+            {
+                foreach (Material m in mr.materials)
+                    m.DisableKeyword("MARMO_EMISSION");
+            }
+        }
+
+        public static void DisableGlowShader(this Transform root, RendererData data)
+        {
+            if (data == null)
+            {
+                root.DisableGlowShader();
+                return;
+            }
+            Transform parent = root.Find(data.parentPath);
+            if (parent == null)
+            {
+                Main.logger.LogError($"DisableGlowShader {root.name} has no child {data.parentPath}");
+                return;
+            }
+            if (data.renderers == null)
+                parent.DisableGlowShader();
+            else
+            {
+                foreach (string path in data.renderers)
+                {
+                    Transform t = parent.Find(path);
+                    t.DisableGlowShader();
                 }
             }
         }
@@ -944,6 +1074,85 @@ namespace Tweaks_Fixes
         { //UWE.CoroutineHost.StartCoroutine(ExecuteAfterDelay(() => SetupPickupable(__instance)));
             yield return new WaitUntil(() => Main.gameLoaded);
             action?.Invoke();
+        }
+
+        public static void IncreaseLODdistane(this GameObject go)
+        {
+            LODGroup[] lODGroups = go.GetComponentsInChildren<LODGroup>();
+            foreach (LODGroup lODGroup in lODGroups)
+            {
+                //lODGroup.size *= 22;
+                LOD[] lods = lODGroup.GetLODs();
+                for (int i = 0; i < lods.Length; i++)
+                {
+                    lods[i].screenRelativeTransitionHeight *= .3f;
+                }
+                lODGroup.SetLODs(lods);
+                lODGroup.RecalculateBounds();
+            }
+        }
+
+        public static void DisableLODs(this GameObject go)
+        {
+            //AddDebug("DisableLODs " + go.name);
+            LODGroup[] lods = go.GetComponentsInChildren<LODGroup>();
+            if (lods == null)
+                return;
+
+            foreach (LODGroup lod in lods)
+            {
+                LOD[] lods_ = lod.GetLODs();
+                for (int i = 1; i < lods_.Length; i++)
+                {
+                    Renderer[] renderers = lods_[i].renderers;
+                    foreach (Renderer renderer in renderers)
+                        renderer.enabled = false;
+                }
+                lod.enabled = false;
+            }
+        }
+
+        public static void SetEntityCellLevel(GameObject go, LargeWorldEntity.CellLevel newLevel)
+        {
+            LargeWorldEntity entity = go.GetComponent<LargeWorldEntity>();
+            if (entity == null)
+            {
+                Main.logger.LogError("SetEntityCellLevel No LargeWorldEntity for " + go.name);
+                return;
+            }
+            if (newLevel < entity.cellLevel || IsGraphicsPresetHighDetail())
+                entity.cellLevel = newLevel;
+        }
+
+        public static void DisableCollision(GameObject go)
+        {
+            BoxCollider bc = go.GetComponentInChildren<BoxCollider>();
+            if (bc == null)
+            {
+                Main.logger.LogError("DisableCollision No BoxCollider for " + go.name);
+                return;
+            }
+            Vector3 sizeMult = default;
+            TechType tt = CraftData.GetTechType(go);
+            if (tt == TechType.PurpleTentacle)// writhing weed
+                sizeMult = new Vector3(1, 1, 3);
+
+            bc.gameObject.layer = LayerID.Useable;
+            bc.isTrigger = true;
+            if (sizeMult != default)
+                bc.size = new Vector3(bc.size.x * sizeMult.x, bc.size.y * sizeMult.y, bc.size.z * sizeMult.z);
+        }
+
+        public static void DisableWavingShader(this GameObject go)
+        {
+            foreach (MeshRenderer mr in go.GetComponentsInChildren<MeshRenderer>())
+            {
+                foreach (Material m in mr.materials)
+                {
+                    //AddDebug(m.shader.name + " DisableKeyword UWE_WAVING");
+                    m.DisableKeyword("UWE_WAVING");
+                }
+            }
         }
 
 

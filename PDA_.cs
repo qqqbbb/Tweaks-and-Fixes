@@ -3,6 +3,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UWE;
 using static ErrorMessage;
 
@@ -21,6 +22,12 @@ namespace Tweaks_Fixes
             static bool OpenPrefix(PDA __instance, PDATab tab, Transform target, PDA.OnClose onCloseCallback, ref bool __result)
             {// remove delay
                 if (__instance.isInUse || __instance.ignorePDAInput || Main.gameLoaded == false)
+                {
+                    __result = false;
+                    return false;
+                }
+                string pdaKey = GameInput.GetBinding(GameInput.PrimaryDevice, GameInput.Button.PDA, GameInput.BindingSet.Primary);
+                if (Keyboard.current.leftAltKey.IsPressed() && pdaKey == "<Keyboard>/tab")
                 {
                     __result = false;
                     return false;

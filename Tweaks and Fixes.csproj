@@ -141,8 +141,10 @@
     <Compile Include="Aurora_terminals.cs" />
     <Compile Include="AuroraDecalFix.cs" />
     <Compile Include="AbandonedBaseFixer.cs" />
-    <Compile Include="GlassFixer.cs" />
+    <Compile Include="BasePrefabFixer.cs" />
+    <Compile Include="LoadedGameObjectFixer.cs" />
     <Compile Include="Escape_pod_wrecks.cs" />
+    <Compile Include="PrefabFixer.cs" />
     <Compile Include="Radiation.cs" />
     <Compile Include="Input_.cs" />
     <Compile Include="Telemetry_.cs" />
@@ -195,7 +197,7 @@
     <Compile Include="PDA_Clock_.cs" />
     <Compile Include="Pickupable_.cs" />
     <Compile Include="Pings.cs" />
-    <Compile Include="Plants_Patch.cs" />
+    <Compile Include="Plants_.cs" />
     <Compile Include="Planter_Patch.cs" />
     <Compile Include="Player_.cs" />
     <Compile Include="Player_Movement.cs" />

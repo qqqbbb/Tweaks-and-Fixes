@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
         public static HashSet<GameObject> pickupShinies = new HashSet<GameObject>();
         public static ConditionalWeakTable<GameObject, Rigidbody> objectsRBs = new ConditionalWeakTable<GameObject, Rigidbody>();
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
-        public static Color bloodColor;
+
         static public HashSet<TechType> fishTechTypes = new HashSet<TechType> { };
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
@@ -316,7 +316,7 @@ namespace Tweaks_Fixes
 
             [HarmonyPostfix]
             [HarmonyPatch("DropShinyTarget", new Type[] { typeof(GameObject) })]
-            public static void DropShinyTargetPrefix(CollectShiny __instance, GameObject target)
+            public static void DropShinyTargetPostfix(CollectShiny __instance, GameObject target)
             {
                 if (__instance.shinyTarget && __instance.targetPickedUp)
                 {

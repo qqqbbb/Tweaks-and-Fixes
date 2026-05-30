@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
             //AddDebug("MoveAllItems ");
             ItemsContainer container = (ItemsContainer)item.container;
             IItemsContainer oppositeContainer = Inventory.main.GetOppositeContainer(item);
-            if (container == null || oppositeContainer == null || oppositeContainer is Equipment)
+            if (container == null || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
                 return false;
 
             List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
@@ -70,6 +70,9 @@ namespace Tweaks_Fixes
 
             ItemsContainer container = (ItemsContainer)item.container;
             IItemsContainer oppositeContainer = Inventory.main.GetOppositeContainer(item);
+            if (container == null || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
+                return false;
+
             List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
             container.GetItems(item.techType, itemsToTransfer);
             bool swapped = false;

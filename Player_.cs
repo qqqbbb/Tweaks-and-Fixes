@@ -105,10 +105,10 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("CanBeAttacked")]
             public static void CanBeAttackedPostfix(Player __instance, ref bool __result)
             {
-                if (ConfigMenu.aggrMult.Value == 0)
+                bool aggrOff = Main.aggressiveFaunaLoaded == false && ConfigMenu.aggrMult.Value == 0;
+                if (__instance.cinematicModeActive || aggrOff)
                     __result = false;
             }
-
         }
 
         [HarmonyPatch(typeof(Inventory), "LoseItems")]

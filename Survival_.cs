@@ -187,6 +187,14 @@ namespace Tweaks_Fixes
                         water *= mult;
                     }
                 }
+                if (PrefabFixer.eatables.ContainsKey(techType))
+                {
+                    EatableData data = PrefabFixer.eatables[techType];
+                    if (data.health > 0)
+                        Player.main.liveMixin.AddHealth(data.health);
+                    else if (data.health < 0)
+                        Player.main.liveMixin.TakeDamage(Mathf.Abs(data.health), __instance.transform.position, DamageType.Starve);
+                }
                 __instance.onEat.Trigger(food);
                 __instance.food += food;
                 __instance.onDrink.Trigger(water);

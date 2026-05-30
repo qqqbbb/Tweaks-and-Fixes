@@ -9,16 +9,34 @@ namespace Tweaks_Fixes
 {
     internal class Floater_
     {
-        static Dictionary<Pickupable, Floater> pickupableFloaters = new Dictionary<Pickupable, Floater>();
+        public static Dictionary<Pickupable, Floater> pickupableFloaters = new Dictionary<Pickupable, Floater>();
 
-        [HarmonyPatch(typeof(Floater), "Start")]
-        class Floater_Start_Patch
+        [HarmonyPatch(typeof(Floater))]
+        class Floater_Patch
         {
-            public static void Postfix(Floater __instance)
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            public static void StartPostfix(Floater __instance)
             {
                 Pickupable pickupable = __instance.GetComponent<Pickupable>();
                 if (pickupable)
                     pickupableFloaters.Add(pickupable, __instance);
+            }
+            [HarmonyPostfix, HarmonyPatch("GetCanConnectTo")]
+            public static void GetCanConnectToPostfix(Floater __instance, Rigidbody rb, ref bool __result)
+            {
+                //AddDebug($"Floater GetCanConnectTo {rb.name} {__result}");
+                if (__result == true)
+                {
+                    TechType tt = CraftData.GetTechType(rb.gameObject);
+                    if (tt == TechType.HoopfishSchool)
+                        __result = false;
+                }
+            }
+            //[HarmonyPostfix, HarmonyPatch("BuoyancyEnabled")]
+            public static void BuoyancyEnabledPostfix(Floater __instance, ref bool __result)
+            {
+                //AddDebug($"Floater GetCanConnectTo {rb.name} {__result}");
+                __result = false;
             }
         }
 
@@ -63,6 +81,37 @@ namespace Tweaks_Fixes
                         floater.Disconnect();
                     }
                 }
+            }
+        }
+
+        //[HarmonyPatch(typeof(FloatersTarget))]
+        class FloatersTarget_Patch
+        {
+            //[HarmonyPostfix, HarmonyPatch("OnFloaterDetached")]
+            public static void OnFloaterDetachedPostfix(FloatersTarget __instance)
+            {
+                CheckStone(__instance);
+            }
+
+            private static void CheckStone(FloatersTarget __instance)
+            {
+                if (__instance.attachedFloaters.Count == 0)
+                {
+                    Drillable drillable = __instance.GetComponent<Drillable>();
+                    if (drillable && drillable.resources.Length == 0)
+                    {
+                        AddDebug("Floater Stone");
+                        LargeWorldEntity entity = __instance.GetComponent<LargeWorldEntity>();
+                        if (entity)
+                            entity.cellLevel = LargeWorldEntity.CellLevel.Near;
+                    }
+                }
+            }
+
+            //[HarmonyPostfix, HarmonyPatch("DetachAll")]
+            public static void DetachAllPostfix(FloatersTarget __instance)
+            {
+                CheckStone(__instance);
             }
         }
 

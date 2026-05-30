@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -663,6 +662,15 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(EMPAttack))]
+        class EMPAttack_Patch
+        {
+            [HarmonyPrefix, HarmonyPatch("Evaluate")]
+            public static bool EvaluatePrefix(EMPAttack __instance)
+            {
+                return Player.main.CanBeAttacked();
+            }
+        }
 
         //[HarmonyPatch(typeof(AggressiveWhenSeePlayer))]
         class AggressiveWhenSeePlayer_Patch

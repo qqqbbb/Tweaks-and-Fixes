@@ -4,6 +4,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using HarmonyLib.Tools;
 using Nautilus.Assets;
 using Nautilus.Assets.Gadgets;
 using Nautilus.Assets.PrefabTemplates;
@@ -14,8 +15,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -28,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.17.1";
+            VERSION = "4.18.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -50,6 +49,7 @@ namespace Tweaks_Fixes
         internal static OptionsMenu options;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
+        public static readonly int zOffset = Shader.PropertyToID("_ZOffset");
 
         public static void CleanUp()
         {
@@ -81,6 +81,7 @@ namespace Tweaks_Fixes
             Pickupable_.pickupableStorage_.Clear();
             //InventoryItemIconColorChanger.CleanUp();
             Radiation.auroraRadiation = null;
+            Floater_.pickupableFloaters.Clear();
             configToEdit.Reload();
             configMain.Load();
         }
@@ -88,7 +89,6 @@ namespace Tweaks_Fixes
         public static void LoadedGameSetup()
         {
             //AddDebug("LoadedGameSetup ");
-            //LargeWorldEntity_.Reparent();
             FixCoralShellPlateHarvestType();
             if (ConfigToEdit.cantScanExosuitClawArm.Value)
                 Player_.DisableExosuitClawArmScan();
@@ -102,7 +102,9 @@ namespace Tweaks_Fixes
             { // unlock fibermesh by scanning creepvine
                 PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
             }
-            IteratePrefabs();
+            LoadedGameObjectFixer loadedGameObjectFixer = new LoadedGameObjectFixer();
+            loadedGameObjectFixer.IterateRootGameObjects();
+
             if (configMain.activeSlot != -1 && Player.main.mode == Player.Mode.Normal)
                 Inventory.main.quickSlots.SelectImmediate(configMain.activeSlot);
 
@@ -119,24 +121,6 @@ namespace Tweaks_Fixes
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
             Application.runInBackground = MiscSettings.runInBackground;
             gameLoaded = true;
-        }
-
-        private static void IteratePrefabs()
-        {
-            if (ConfigToEdit.bloodColor.Value == "0.784 1.0 0.157")
-            {
-                //logger.LogDebug("bloodColor is default ");
-                return;
-            }
-            foreach (GameObject go in Util.FindAllRootGameObjects())
-            {
-                //if (go.name.Contains("stone"))
-                //    logger.LogInfo("prefab " + go.name);
-                if (go.name == "xKnifeHit_Organic" || go.name == "GenericCreatureHit" || go.name == "xExoDrill_Organic")
-                {
-                    Util.SetBloodColor(go);
-                }
-            }
         }
 
         //[HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
@@ -279,20 +263,31 @@ namespace Tweaks_Fixes
 
         private static void StartLoadingSetup()
         {
-            AddTechTypesToClassIDtable();
             Application.runInBackground = true;
-            LargeWorldEntity_.fragments = Util.CreateFragmentTechTypeHashSet();
-            //logger.LogDebug("fragments ");
-            //foreach (var tt in LargeWorldEntity_.fragments)
-            //    logger.LogDebug("  " + tt);
+            FixCraftDataTables();
+            if (PrefabFixer.prefabsFixed == false)
+            {
+                PrefabFixer prefabFixer = new PrefabFixer();
+                prefabFixer.FixPrefabs();
+            }
+            if (BasePrefabFixer.basePrefabsFixed == false)
+            {
+                BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
+                UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
+            }
         }
 
-        private static void AddTechTypesToClassIDtable()
+        private static void FixCraftDataTables()
         {
             CraftData.PreparePrefabIDCache();
-            CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
-            CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
-            CraftData.entClassTechTable["4f59199f-7049-4e13-9e57-5ee82c8732c5"] = TechType.Cyclops;
+            // Adding to entClassTechTable fixes CraftData.GetTechType 5ee82c8732c5
+            CraftData.entClassTechTable["853a9c5b-aba3-4d6b-a547-34553aa73fa9"] = TechType.DrillableKyanite;
+            CraftData.entClassTechTable["4f441e53-7a9a-44dc-83a4-b1791dc88ffd"] = TechType.DrillableKyanite;
+            //CraftData.entClassTechTable["18229b4b-3ed3-4b35-ae30-43b1c31a6d8d"] = TechType.BloodOil;
+
+            // Adding to techMapping fixes CraftData.GetPrefabForTechTypeAsync
+            CraftData.techMapping[TechType.DrillableKyanite] = "853a9c5b-aba3-4d6b-a547-34553aa73fa9";
+            CraftData.techMapping[TechType.Cyclops] = "4f59199f-7049-4e13-9e57-5ee82c8732c5";
         }
 
 

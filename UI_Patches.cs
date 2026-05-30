@@ -113,20 +113,6 @@ namespace Tweaks_Fixes
                 Base_.ToggleBaseLight(subRoot);
         }
 
-
-        [HarmonyPatch(typeof(Trashcan), "OnEnable")]
-        class Trashcan_OnEnable_Patch
-        {
-            static void Postfix(Trashcan __instance)
-            {
-                //AddDebug("Trashcan " + __instance.biohazard + " " + __instance.storageContainer.hoverText);
-                if (__instance.biohazard)
-                {
-                    __instance.storageContainer.hoverText = Language.main.Get("LabTrashcan");
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
         {
@@ -459,9 +445,39 @@ namespace Tweaks_Fixes
                 else if (techType == TechType.PrecursorIonPowerCell)
                     TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonPowerCell"));
 
-                if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmless && Creatures.fishTechTypes.Contains(techType) && GameModeUtils.RequiresSurvival())
+                if (GameModeUtils.RequiresSurvival())
                 {
-                    GetFishFoodDesc(sb, techType, obj.GetComponent<Eatable>());
+                    if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmless && Creatures.fishTechTypes.Contains(techType))
+                    {
+                        GetFishFoodDesc(sb, techType, obj.GetComponent<Eatable>());
+                    }
+                    if (PrefabFixer.eatables.ContainsKey(techType))
+                    {
+                        EatableData data = PrefabFixer.eatables[techType];
+                        if (data.health == 0)
+                            return;
+
+                        //AddDebug($"eatables {techType} food {data.food} water {data.water} health {data.health}");
+                        Eatable eatable = obj.GetComponent<Eatable>();
+                        if (eatable == null)
+                            return;
+
+                        sb.Clear();
+                        TooltipFactory.WriteTitle(sb, Language.main.Get(techType));
+                        int fppd = Mathf.CeilToInt(eatable.GetFoodValue());
+                        if (fppd != 0)
+                        {
+                            TooltipFactory.WriteDescription(sb, Language.main.GetFormat("FoodFormat", fppd));
+                        }
+                        int water = Mathf.CeilToInt(eatable.GetWaterValue());
+                        if (water != 0)
+                        {
+                            TooltipFactory.WriteDescription(sb, Language.main.GetFormat("WaterFormat", water));
+                        }
+                        string f = Language.main.GetFormat<float>("HealthFormat", data.health);
+                        TooltipFactory.WriteDescription(sb, f);
+                        TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
+                    }
                 }
                 if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
                 {
@@ -495,13 +511,39 @@ namespace Tweaks_Fixes
                         TooltipFactory.WriteDescription(sb, sb_.ToString());
                     }
                 }
+            }
 
+
+            public static void InsertBeforeLastLine(StringBuilder sb, string textToInsert)
+            {
+                if (sb == null) throw new ArgumentNullException(nameof(sb));
+                if (textToInsert == null) throw new ArgumentNullException(nameof(textToInsert));
+
+                // Find the last line in the StringBuilder
+                string content = sb.ToString();
+
+                // Find the position of the last newline character
+                int lastNewLineIndex = content.LastIndexOf(Environment.NewLine);
+
+                if (lastNewLineIndex == -1)
+                {
+                    // No newlines found, so the entire content is one line
+                    // Insert at the beginning and add newline after
+                    sb.Insert(0, textToInsert + Environment.NewLine);
+                }
+                else
+                {
+                    // Insert before the last line
+                    // Add a newline after the inserted text
+                    sb.Insert(lastNewLineIndex + Environment.NewLine.Length, textToInsert + Environment.NewLine);
+                }
             }
 
             private static void GetFishFoodDesc(StringBuilder sb, TechType techType, Eatable eatable)
             {
                 if (eatable == null)
                     return;
+
                 sb.Clear();
                 string name = Language.main.Get(techType);
                 string secondaryTooltip = eatable.GetSecondaryTooltip();

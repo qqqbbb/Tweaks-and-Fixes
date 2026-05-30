@@ -234,12 +234,13 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPrefix, HarmonyPatch("TakeDamage")]
+            //static void TakeDamagePrefix_(LiveMixin __instance, ref bool __result, [HarmonyArgument(0, "originalDamage")] float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
             static void TakeDamagePrefix_(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
             {
                 if (Main.gameLoaded == false)
                     return;
 
-                bool playerDealer = dealer != null && dealer == Player.main.gameObject;
+                bool playerDealer = dealer == Player.main.gameObject;
                 bool hitByPlayer = playerDealer || clawArmHit || type == DamageType.Drill;
                 //Main.logger.LogMessage("damageModifiers.Count " + damageModifiers.Count);
                 if (damageModifiers?.Count > 0)
