@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.18.0";
+            VERSION = "4.19.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -49,7 +49,6 @@ namespace Tweaks_Fixes
         internal static OptionsMenu options;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
-        public static readonly int zOffset = Shader.PropertyToID("_ZOffset");
 
         public static void CleanUp()
         {
@@ -69,7 +68,6 @@ namespace Tweaks_Fixes
             Storage_Patch.labelledLockers.Clear();
             PowerConsumption.subPowerRelays.Clear();
             Creatures.pickupShinies.Clear();
-            Base_.CleanUp();
             CreatureDeath_.creatureDeathsToDestroy.Clear();
             Drop_items_anywhere.droppedInBase.Clear();
             Drop_items_anywhere.droppedInEscapePod.Clear();
@@ -275,6 +273,7 @@ namespace Tweaks_Fixes
                 BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
                 UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
             }
+            UWE.CoroutineHost.StartCoroutine(AuroraDecalFix.GetMaterialForDecals());
         }
 
         private static void FixCraftDataTables()

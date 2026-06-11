@@ -19,6 +19,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> decoyRequiresSub;
         public static ConfigEntry<bool> noKillParticles;
         public static ConfigEntry<bool> cyclopsSunlight;
+        public static ConfigEntry<bool> baseSunlight;
         public static ConfigEntry<bool> alwaysShowHealthFoodNunbers;
         public static ConfigEntry<bool> pdaClock;
         public static ConfigEntry<string> gameStartWarningText;
@@ -222,6 +223,7 @@ namespace Tweaks_Fixes
             decoyRequiresSub = Main.configToEdit.Bind("ITEMS", "Creature decoy does not work when dropped from inventory", false);
             noKillParticles = Main.configToEdit.Bind("CREATURES", "No yellow cloud particle effect when creature dies", false);
             cyclopsSunlight = Main.configToEdit.Bind("CYCLOPS", "Sunlight affects lighting in cyclops", false);
+            baseSunlight = Main.configToEdit.Bind("BASE", "Sunlight affects lighting in your base", false);
             alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show numbers for health, food and water meters in UI", false);
             pdaClock = Main.configToEdit.Bind("PDA", "PDA clock", true);
 

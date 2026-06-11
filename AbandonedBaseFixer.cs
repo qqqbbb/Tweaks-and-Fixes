@@ -11,7 +11,7 @@ namespace Tweaks_Fixes
 {
     internal class AbandonedBaseFixer
     {
-        static Material materialForDecals;
+        //static Material materialForDecals;
 
         [HarmonyPatch(typeof(LargeWorldEntity))]
         class LargeWorldEntity_Patch
@@ -59,7 +59,8 @@ namespace Tweaks_Fixes
             FixJellyShroomBaseCollision(base_);
             Transform culling = base_.transform.GetChild(1);
             FixAbandonedBaseGlass(culling.gameObject);
-            UWE.CoroutineHost.StartCoroutine(FixDecals(culling));
+            //UWE.CoroutineHost.StartCoroutine(FixDecals(culling));
+            FixDecals(culling);
 
             if (ConfigToEdit.disableHotMetalGlow.Value)
             {
@@ -86,23 +87,24 @@ namespace Tweaks_Fixes
         {// -393 -230 -110
             FixBaseLODs(base_);
             FixAbandonedBaseGlass(base_);
-            UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
+            //UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
+            FixDecals(base_.transform);
         }
 
         private static void FixJellyShroomBase4(GameObject base_)
         {//  -540 -250 -86
-            UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
+            FixDecals(base_.transform);
             FixJellyShroomBase4Decals(base_);
         }
 
         private static void FixJellyShroomBase3(GameObject base_)
         { // -265 -240 -231
-            UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
+            FixDecals(base_.transform);
         }
 
         private static void FixDeepGrandReefBase(GameObject base_)
         {// DeepGrandReefAbandonedBase -642 -509 -943
-            UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
+            FixDecals(base_.transform);
             FixDeepGrandReefBaseDecals(base_);
             FixDeepGrandReefBasePillars(base_);
             FixDeepGrandReefBaseColliders(base_);
@@ -116,7 +118,7 @@ namespace Tweaks_Fixes
         {// AbandonedBaseFloatingIsland1 -754 16 -1118
             FixAbandonedBaseGlass(base_);
             FixFloatingIslandBase1Decals(base_);
-            UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
+            FixDecals(base_.transform);
             FixFloatingIslandBase1Collision(base_);
             if (Util.IsGraphicsPresetHighDetail())
                 FixBaseLODs(base_);
@@ -150,7 +152,7 @@ namespace Tweaks_Fixes
 
         private static void FixFloatingIslandBase3(GameObject base_)
         {// AbandonedBaseFloatingIsland3  -705 76 -1163
-            UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
+            FixDecals(base_.transform);
             FixAbandonedBaseGlass(base_);
             FixFloatingIslandBase3Collision(base_);
             FixFloatingIslandBase3Decals(base_);
@@ -162,7 +164,7 @@ namespace Tweaks_Fixes
         {// AbandonedBaseFloatingIsland2  -800 78 -1055
             FixAbandonedBaseGlass(base_);
             FixFloatingIslandBase2Collision(base_);
-            UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
+            FixDecals(base_.transform);
             FixFloatingIslandBase2Decals(base_);
 
             if (Util.IsGraphicsPresetHighDetail())
@@ -204,16 +206,8 @@ namespace Tweaks_Fixes
             t.position = new Vector3(-714.21f, t.position.y, t.position.z);
         }
 
-        public static IEnumerator FixDecals(Transform base_)
+        public static void FixDecals(Transform base_)
         {
-            if (materialForDecals == null)
-            {
-                GameObject starfishPrefab = null;
-                IPrefabRequest prefabTask = PrefabDatabase.GetPrefabAsync("4605151e-dea4-4ba7-96bf-2f88b3b41bdb"); // starfish_02
-                yield return prefabTask;
-                prefabTask.TryGetPrefab(out starfishPrefab);
-                materialForDecals = starfishPrefab.GetComponentInChildren<Renderer>().material;
-            }
             List<Transform> baseCells;
             Transform decals = base_.Find("Decals");
             if (decals == null)
@@ -230,10 +224,8 @@ namespace Tweaks_Fixes
                 foreach (Renderer renderer in decals.GetComponentsInChildren<Renderer>())
                 {
                     Texture decalTexture = renderer.material.mainTexture;
-                    renderer.material = materialForDecals;
+                    renderer.material = AuroraDecalFix.materialForDecals;
                     renderer.material.mainTexture = decalTexture;
-                    renderer.material.DisableKeyword("MARMO_EMISSION");
-                    renderer.material.DisableKeyword("MARMO_SPECMAP");
                     renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 }
             }

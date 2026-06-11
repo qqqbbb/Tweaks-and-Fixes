@@ -10,10 +10,10 @@ using CellLevel = LargeWorldEntity.CellLevel;
 
 namespace Tweaks_Fixes
 {
-    // lifepod 28    -39 -20 413
     internal class PrefabFixer
     {
         public static bool prefabsFixed;
+        public static readonly int zOffset = Shader.PropertyToID("_ZOffset");
 
         HashSet<TechType> techTypesToAddWorldForces = new HashSet<TechType> { TechType.CoralChunk, 
         //TechType.CreepvineSeedCluster, TechType.HangingFruit,TechType.KooshChunk
@@ -32,17 +32,70 @@ namespace Tweaks_Fixes
 
         readonly Dictionary<string, MaterialZoffsetData> materialZoffsets = new Dictionary<string, MaterialZoffsetData>
         {
-            { "66cc5a83-142b-4d8d-8d16-2d6e960f59c3", new MaterialZoffsetData("life_pod_exploded_02/life_pod_pontoons _damaged", 0, 0) },// life_pod_exploded_2
-            { "3894aeaf-e1f9-426a-9249-6a4968ac2d8b", new MaterialZoffsetData("life_pod_exploded_02_01/exterior/Life_pod_no_pontoons", 1, 0) },// life_pod_exploded_19
-            { "56b5ed17-2bff-4f7e-aba0-275b6a2398f9", new MaterialZoffsetData("life_pod_exploded_02_03/exterior/life_pod_damaged", -1, 0) },// life_pod_exploded_17
-            { "00037e80-3037-48cf-b769-dc97c761e5f6", new MaterialZoffsetData("life_pod_exploded_02_02/exterior", -1, 0) },// life_pod_exploded_13
-            { "85ae70e0-176c-4de6-8c4d-48c4f504cc79", new MaterialZoffsetData("life_pod_exploded_02_02/exterior", -1, 0) },// life_pod_exploded_6
-            { "00891fdf-7264-4c55-b569-732cdcded701", new MaterialZoffsetData("life_pod_exploded_02_03/exterior/life_pod_damaged", -1, 0) },// life_pod_exploded_12
+            { "66cc5a83-142b-4d8d-8d16-2d6e960f59c3", new MaterialZoffsetData("life_pod_exploded_02/life_pod_pontoons _damaged", 0) },// life_pod_exploded_2
+            { "3894aeaf-e1f9-426a-9249-6a4968ac2d8b", new MaterialZoffsetData("life_pod_exploded_02_01/exterior/Life_pod_no_pontoons", 1) },// life_pod_exploded_19
+            { "56b5ed17-2bff-4f7e-aba0-275b6a2398f9", new MaterialZoffsetData("life_pod_exploded_02_03/exterior/life_pod_damaged", -1) },// life_pod_exploded_17
+            { "00037e80-3037-48cf-b769-dc97c761e5f6", new MaterialZoffsetData("life_pod_exploded_02_02/exterior", -1) },// life_pod_exploded_13
+            { "85ae70e0-176c-4de6-8c4d-48c4f504cc79", new MaterialZoffsetData("life_pod_exploded_02_02/exterior", -1) },// life_pod_exploded_6
+            { "00891fdf-7264-4c55-b569-732cdcded701", new MaterialZoffsetData("life_pod_exploded_02_03/exterior/life_pod_damaged", -1) },// life_pod_exploded_12
+            { "d88147fb-007c-481f-aa75-ebcbab24e4a8", new MaterialZoffsetData("Starship_exploded_debris_19", 1) },
+            { "b88a2b71-db4c-47e5-807d-c57fdf90f5ce", new MaterialZoffsetData("coridor_02/corridor_02", 9) },// CrashedShip_locker_room_coridor_02
+            { "52175781-b8d5-4956-8d06-650619324934", new MaterialZoffsetData("T_hallway/hallway", 11) },// CrashedShip_T_hallway
+            { "49278e68-fe5f-4576-b0f4-d03c2cd834ff", new MaterialZoffsetData("entrance_01_02", 3) },// CrashedShip_entrance_01_02
+            { "8f5046b4-b727-4359-9d5a-2640ae6bf5d6", new MaterialZoffsetData("entrance_02_01/entrance_02_01_MeshPart0", new int[]{16, 17}) },// CrashedShip_entrance_02_01
+            {"dedee57d-6a84-4bbb-92e3-d9b2249acc15", new MaterialZoffsetData("locker_room/locker_room 2_MeshPart0", 4, 500) },// CrashedShip_locker_room
+
         };
+
+        readonly Dictionary<string, List<MaterialZoffsetData>> materialZoffsets_ = new Dictionary<string, List<MaterialZoffsetData>>
+        {
+            {"42cac266-525a-4a89-9c11-89fd923faf86",// CrashedShip_elevator_room
+            new List<MaterialZoffsetData> {new MaterialZoffsetData("cargo_elevator/cargo_elevator", 2), new MaterialZoffsetData("elevator/big_gate_doors_003", 1)}},
+            {"e60dba6a-80d2-4583-a241-058f9ee823ca",// CrashedShip_entrance_03
+            new List<MaterialZoffsetData> {new MaterialZoffsetData("entrance_03/entrance_03_MeshPart0", 3), new MaterialZoffsetData("entrance_03/entrance_03_MeshPart1", new int[] {19,20,21,22})}},
+        };
+
+        readonly Dictionary<string, string> prefabsToEnableDitherAlpha = new Dictionary<string, string>
+        {
+            {"d21bca5e-6dd2-48d8-bbf0-2f1d5df7fa9c", "Starship_cargo_02" },// Starship_cargo_02
+            {"cc14ee20-80c5-4573-ae1b-68bebc0feadf", "Starship_cargo_02" },// Starship_cargo_large_02
+            //{"cc14ee20-80c5-4573-ae1b-68bebc0feadf", "Starship_cargo_02" },// Starship_cargo_large_02
+        };
+
+        readonly Dictionary<string, MaterialZoffsetData> materialsToEnableDitherAlpha = new Dictionary<string, MaterialZoffsetData>
+        {
+            {"75472574-a336-4c64-94af-f2abe1919316", new MaterialZoffsetData("entrance_01_01", 6) },// CrashedShip_entrance_01_01
+        };
+
+        static MaterialZoffsetData crate1ZoffsetDara = new MaterialZoffsetData("Starship_cargo_damaged_01", 1);
+        static MaterialZoffsetData crateZoffsetDara = new MaterialZoffsetData("Starship_cargo", 1);
+
+        readonly Dictionary<string, MaterialZoffsetData> materialsToEnableAlphaClip = new Dictionary<string, MaterialZoffsetData>
+        {
+            {"3038bbc0-7d62-44a5-8cbe-c3fa1cccc55e", new MaterialZoffsetData("explorable_wreckage_modular_room_01/room_01_interior", 2) },// ExplorableWreckRoom01_aurora
+            {"ebc835bd-221a-4722-b1d0-becf08bd2f2c", new MaterialZoffsetData("Starship_cargo_damaged_opened_02", 1) },// Starship_cargo_damaged_opened_02
+            {"7646d66b-01c0-4110-b6bf-305df024c2b1", new MaterialZoffsetData("Starship_cargo_damaged_02", 1) },// Starship_cargo_damaged_02
+            {"65edb6a3-c1e6-4aaf-9747-108bd6a9dcc6", crate1ZoffsetDara },// Starship_cargo_damaged_01
+            {"8ba3be30-d89f-474b-87ca-94d3bfff25a4", crate1ZoffsetDara},// Starship_cargo_damaged_large_01
+            {"a2104a9e-fe84-4c51-8874-69350507ef98", new MaterialZoffsetData("Starship_cargo_damaged_opened_01", 1)},// Starship_cargo_damaged_opened_large_01
+            {"423ab63d-38e0-4dd8-ab8d-fcd6c9ff0759", new MaterialZoffsetData("Starship_cargo_damaged_02", 1)},// Starship_cargo_damaged_large_02
+            {"8b43e753-29a6-4365-bc53-822376d1cfa2", crateZoffsetDara},// Starship_cargo_large
+            {"af413920-4fe6-4447-9f62-4f04e605d6be", new MaterialZoffsetData("Starship_cargo_opened", 1)},// Starship_cargo_opened_large
+            {"354ebf4e-def3-48a6-839d-bf0f478ca915", crateZoffsetDara},// Starship_cargo
+            {"75472574-a336-4c64-94af-f2abe1919316", new MaterialZoffsetData("entrance_01_01", 7)},// CrashedShip_entrance_01_01
+            {"49278e68-fe5f-4576-b0f4-d03c2cd834ff", new MaterialZoffsetData("entrance_01_02", new int[]{2, 21})},// CrashedShip_entrance_01_02
+            {"8c3d54c0-4330-4949-91ad-f046cfd67c7c", new MaterialZoffsetData("Starship_cargo_damaged_opened_01", 1)},// Starship_cargo_damaged_opened_01
+            { "8f5046b4-b727-4359-9d5a-2640ae6bf5d6", new MaterialZoffsetData("entrance_02_01/entrance_02_01_MeshPart0", 18) },// CrashedShip_entrance_02_01
+            { "3331fe35-7be9-4f59-87ae-9cc54452b136", new MaterialZoffsetData("entrance_02_02", 8) },// CrashedShip_entrance_02_02
+
+        };
+
+        static string barTableGlassPath = "descent_bar_table_01/descent_bar_table_01_glass";
+        static string crate2GlassPath = "Starship_cargo_damaged_opened_02/dirt_02";
+        static string crate1GlassPath = "Starship_cargo_damaged_opened_01/dirt_01";
 
         readonly Dictionary<TechType, string> glassRenderers = new Dictionary<TechType, string>
         {
-            { TechType.SpineEel, "model/spine_eel_geo" },
             { TechType.GhostLeviathanJuvenile, "model/Ghost_Leviathan_anim/Ghost_Leviathan_geo" },
             { TechType.GhostLeviathan, "model/Ghost_Leviathan_anim/Ghost_Leviathan_geo" },
             { TechType.GhostRayBlue, "model/ghost_ray/ghost_ray_geo/GhostRay_outards_quad" },
@@ -56,7 +109,7 @@ namespace Tweaks_Fixes
             //{TechType.NuclearReactorFragment, "Nuclear_reactor_damaged_02/Nuclear_reactor_damaged_02_glass" },
             {TechType.BaseFiltrationMachine, "model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass" }, // in wreck
             {TechType.BlueAmoeba, "lost_river_plant_04/lost_river_plant_04_membrane" },
-            {TechType.BarTable, "descent_bar_table_01/descent_bar_table_01_glass" },
+            {TechType.BarTable, barTableGlassPath},
             {TechType.Aquarium, "model/Aquarium_animation2/Aquarium_geo/Aquarium_glass" },
         };
 
@@ -74,6 +127,21 @@ namespace Tweaks_Fixes
             {"56b5ed17-2bff-4f7e-aba0-275b6a2398f9", "life_pod_exploded_02_03/exterior/submarine_hatch_06" }, // life_pod_exploded_17
             {"00891fdf-7264-4c55-b569-732cdcded701", "life_pod_exploded_02_03/exterior/submarine_hatch_06"}, // life_pod_exploded_12
             {"2aa237f6-2103-4a78-aaa7-104216551f0a", "life_pod_exploded_02_01/exterior/submarine_hatch_06/submarine_hatch_06_glass"}, // life_pod_exploded_3
+            {"fb2886c4-7e03-4a47-a122-dc7242e7de5b", crate2GlassPath}, // Starship_cargo_damaged_opened_large_02
+            {"ebc835bd-221a-4722-b1d0-becf08bd2f2c", crate2GlassPath}, // Starship_cargo_damaged_opened_02
+            {"8c3d54c0-4330-4949-91ad-f046cfd67c7c", crate1GlassPath}, // Starship_cargo_damaged_opened_01
+            {"a2104a9e-fe84-4c51-8874-69350507ef98", crate1GlassPath}, // Starship_cargo_damaged_opened_large_01
+            {"54a7d6b6-280a-43d5-8bdd-eada3dd5f6c3", "exosuit_damaged_01/Exosuit_01_cabin005/Exosuit_cabin_01_glass005"}, // exosuit_damaged_01
+            {"740258f8-bf36-484b-bdb8-d9e5dc3f1e3e", "exosuit_damaged_02/Exosuit_01_cabin004/Exosuit_cabin_01_glass004"}, // exosuit_damaged_02
+            {"c3d6cad0-1981-4dfd-9a11-62eb0490b130", "exosuit_damaged_03/Exosuit_01_cabin/Exosuit_cabin_01_glass"}, // exosuit_damaged_03
+            {"d70c8458-4b19-4dbc-ba67-afa654af1999", "exosuit_damaged_06/Exosuit_01_cabin008/Exosuit_cabin_01_glass008"}, // exosuit_damaged_06 
+
+            {"90148ef8-fda4-4a95-b2bc-d570543a1ecf", barTableGlassPath},// descent_bar_table_01
+            {"33acd899-72fe-4a98-85f9-b6811974fbeb", "biodome_lab_shelf_01/biodome_lab_shelf_01_thing_glass"},// biodome_lab_shelf_01
+            {"083e02b8-9ea2-40e5-b8d1-22d236f284b9", "starship_exploded_interior_T_room"},// CrashedShip_interior_T_room
+            {"7193a410-ee7b-4bba-85a6-80aa00e2ca68", "entrance_01_03"},// CrashedShip_entrance_01_03
+            {"e7f9c5e7-3906-4efd-b239-28783bce17a5", "biodome_lab_containers_close_01/biodome_lab_containers_close_01_glass"},// biodome_lab_containers_close_01
+
         };
 
         Dictionary<TechType, RendererData> glassRenderers__ = new Dictionary<TechType, RendererData> {
@@ -81,13 +149,18 @@ namespace Tweaks_Fixes
         { TechType.Locker, new RendererData("model/submarine_Storage_locker_big_01", new List<string> { "submarine_Storage_locker_big_01_hinges_R/submarine_Storage_locker_big_01_door_R",
             "submarine_Storage_locker_big_01_hinges_L/submarine_Storage_locker_big_01_door_L" })},
         { TechType.Aquarium, new RendererData("model", new List<string> { "Large_Aquarium_generic_room_glass_01", "Large_Aquarium_02_glass" })},
+        { TechType.SpineEel, new RendererData("model/spine_eel_geo" )},
         };
 
         Dictionary<string, RendererData> glassRenderers___ = new Dictionary<string, RendererData> {
             { "56cdfa77-e7ce-4397-9f8e-fc050e1626d6", new RendererData("pane (1)", new List<string> { "pane", "pane (1)" })}, // Precursor_LostRiverBase_BalconyGlass -252 -803 292
             {"1f5cee66-a02f-4693-a1bd-928c938c7e77", new RendererData("model", new List<string> { "seamoth_fragment_02_glass", "seamoth_fragment_02_interior_glass" })},
-            //{"2aa237f6-2103-4a78-aaa7-104216551f0a", new RendererData("life_pod_exploded_02_01/exterior", new List<string> { "life_pod_damaged", "submarine_hatch_06/submarine_hatch_06_glass" })}, // life_pod_exploded_3
-        
+            {"2086a6af-c8ba-47f6-8e2a-1a4ac88dcd8b", new RendererData("seamoth_room")}, // CrashedShip_seamoth_room
+            {"ba90d6e8-4a8a-4c66-8f1a-2b02f3fc3acd", new RendererData("seamoth_fragment_01", new List<string>{"seamoth_fragment_01_glass", "seamoth_fragment_01_interior_glass" })}, // seamoth_fragment_01_aurora
+            {"98ac710d-5390-49fd-a850-dbea7bc07aef", new RendererData("power_room", new List<string>{ "starship_exploded_interior_power_room_02/starship_exploded_interior_power_room_02_MeshPart2", "starship_exploded_interior_power_room_01/starship_exploded_interior_power_room_01_MeshPart1" })}, // CrashedShip_power_room
+          
+            {"909d56bc-6494-4792-8e11-e2815c59f070", new RendererData("power_corridors/corridors")}, // CrashedShip_power_corridors
+            {"a4d261c3-8b08-41d4-9ab4-c647bdbf2bde", new RendererData("exo_room/exo_room")}, // CrashedShip_exo_room
 
         };
 
@@ -364,7 +437,6 @@ namespace Tweaks_Fixes
             "8409a079-a96c-43d3-a891-af500b04e0af",// Coral_reef_Gabe's_Feather
             "6d9e37de-f808-4621-a762-e0d6340b30dc",// Coral_reef_small_deco_03
             //"",// Coral_reef_purple_fan
-            //"",// Coral_reef_purple_fan
         };
 
         List<string> fruitPlants = new List<string> {
@@ -500,7 +572,11 @@ namespace Tweaks_Fixes
             }
             foreach (var kv in materialZoffsets)
             {
-                UWE.CoroutineHost.StartCoroutine(FixMaterialZoffset(kv.Key, kv.Value));
+                UWE.CoroutineHost.StartCoroutine(SetMaterialZoffset(kv.Key, kv.Value));
+            }
+            foreach (var kv in materialZoffsets_)
+            {
+                UWE.CoroutineHost.StartCoroutine(SetMaterialZoffset(kv.Key, kv.Value));
             }
             foreach (string classID in fragments)
             {
@@ -573,12 +649,140 @@ namespace Tweaks_Fixes
             {
                 UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
             }
+            foreach (var kv in materialsToEnableAlphaClip)
+            {
+                UWE.CoroutineHost.StartCoroutine(EnableAlphaClip(kv.Key, kv.Value));
+            }
+            foreach (var kv in prefabsToEnableDitherAlpha)
+            {
+                UWE.CoroutineHost.StartCoroutine(EnableDitherAlpha(kv.Key, kv.Value));
+            }
+            foreach (var kv in materialsToEnableDitherAlpha)
+            {
+                UWE.CoroutineHost.StartCoroutine(EnableDitherAlpha(kv.Key, kv.Value));
+            }
             UWE.CoroutineHost.StartCoroutine(FixPrisonTeleporterRoom03Shadows());
             UWE.CoroutineHost.StartCoroutine(FixOrangeMushroomCollider());
             UWE.CoroutineHost.StartCoroutine(FixBiohazardTrashCanDesc());
             UWE.CoroutineHost.StartCoroutine(FixPrisonTankGlass());
             UWE.CoroutineHost.StartCoroutine(FixStones());
             prefabsFixed = true;
+        }
+
+        private static IEnumerator EnableDitherAlpha(string classID, string path)
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("EnableDitherAlpha No prefab for " + classID);
+                yield break;
+            }
+            EnableDitherAlpha(prefab, path);
+        }
+
+        private static IEnumerator EnableDitherAlpha(string classID, MaterialZoffsetData data)
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("EnableDitherAlpha No prefab for " + classID);
+                yield break;
+            }
+            EnableDitherAlpha(prefab, data);
+        }
+
+        private static void EnableDitherAlpha(GameObject prefab, string path)
+        {
+            Transform t = prefab.transform.Find(path);
+            if (t == null)
+            {
+                Main.logger.LogError($"EnableDitherAlpha {prefab.name} has no child {path}");
+                return;
+            }
+            Renderer renderer = t.GetComponentInChildren<Renderer>();
+            if (renderer == null)
+            {
+                Main.logger.LogError($"EnableDitherAlpha {prefab.name} has no renderer {path}");
+                return;
+            }
+            renderer.material.SetFloat(zOffset, 0);
+            renderer.material.EnableKeyword("UWE_DITHERALPHA");
+        }
+
+        private static void EnableDitherAlpha(GameObject prefab, MaterialZoffsetData data)
+        {
+            Transform t = prefab.transform.Find(data.rendererPath);
+            if (t == null)
+            {
+                Main.logger.LogError($"EnableDitherAlpha {prefab.name} has no child {data.rendererPath}");
+                return;
+            }
+            Renderer renderer = t.GetComponentInChildren<Renderer>();
+            if (renderer == null)
+            {
+                Main.logger.LogError($"EnableDitherAlpha {prefab.name} has no renderer {data.rendererPath}");
+                return;
+            }
+            Material material = renderer.materials[data.materialIndex];
+            material.SetFloat(zOffset, data.offsetValue);
+            material.EnableKeyword("UWE_DITHERALPHA");
+        }
+
+        private static IEnumerator EnableAlphaClip(string classID, MaterialZoffsetData data)
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("EnableAlphaClip No prefab for " + classID);
+                yield break;
+            }
+            //Main.logger.LogDebug($"EnableAlphaClip classID {classID}");
+            EnableAlphaClip(prefab, data);
+        }
+
+        private static void EnableAlphaClip(GameObject prefab, MaterialZoffsetData data)
+        {
+            //Main.logger.LogDebug($"EnableAlphaClip prefab {prefab.name}");
+            Transform t = prefab.transform.Find(data.rendererPath);
+            if (t == null)
+            {
+                Main.logger.LogError($"EnableAlphaClip {prefab.name} has no child {data.rendererPath}");
+                return;
+            }
+            if (data.materialIndexes != null)
+            {
+                foreach (int i in data.materialIndexes)
+                    EnableAlphaClip(i, t);
+
+                return;
+            }
+            EnableAlphaClip(data.materialIndex, t);
+        }
+
+        private static void EnableAlphaClip(int matIndex, Transform transform)
+        {
+            //Main.logger.LogDebug($"EnableAlphaClip transform {transform.name} matIndex {matIndex}");
+            Renderer renderer = transform.GetComponent<Renderer>();
+            if (renderer == null)
+            {
+                Main.logger.LogError($"EnableAlphaClip {renderer.name} has no renderer");
+                return;
+            }
+            //Main.logger.LogDebug($"EnableAlphaClip renderer {renderer.name} materials  {renderer.materials.Length}matIndex {matIndex}");
+            Material material = renderer.materials[matIndex];
+            if (material == null)
+            {
+                Main.logger.LogError($"EnableAlphaClip renderer {renderer.name} has no material at index {matIndex}");
+                return;
+            }
+            material.SetFloat(zOffset, 0);
+            material.EnableKeyword("MARMO_ALPHA_CLIP");
         }
 
         private IEnumerator AddVFXsurfaceComponent(TechType techType, VFXSurfaceTypes surfaceType)
@@ -594,7 +798,7 @@ namespace Tweaks_Fixes
             prefab.AddVFXsurfaceComponent(surfaceType);
         }
 
-        IEnumerator FixMaterialZoffset(string classID, MaterialZoffsetData data)
+        IEnumerator SetMaterialZoffset(string classID, MaterialZoffsetData data)
         {
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
             yield return request;
@@ -604,31 +808,59 @@ namespace Tweaks_Fixes
                 Main.logger.LogError("FixMaterialZoffset No prefab for " + classID);
                 yield break;
             }
+            SetMaterialZoffset(prefab, data);
+        }
+
+        IEnumerator SetMaterialZoffset(string classID, List<MaterialZoffsetData> dataList)
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("FixMaterialZoffset No prefab for " + classID);
+                yield break;
+            }
+            foreach (MaterialZoffsetData data in dataList)
+                SetMaterialZoffset(prefab, data);
+        }
+
+        private static void SetMaterialZoffset(GameObject prefab, MaterialZoffsetData data)
+        {
             Transform t = prefab.transform.Find(data.rendererPath);
             if (t == null)
             {
-                Main.logger.LogError($"FixMaterialZoffset {prefab.name} has no child {data.rendererPath}");
-                yield break;
+                Main.logger.LogError($"SetMaterialZoffset {prefab.name} has no child {data.rendererPath}");
+                return;
             }
-            Renderer[] renderers = t.GetComponentsInChildren<Renderer>();
-            foreach (Renderer renderer in renderers)
+            Renderer renderer = t.GetComponentInChildren<Renderer>();
+            if (data.materialIndexes != null)
             {
-                if (data.materialIndex < 0)
+                foreach (int i in data.materialIndexes)
                 {
-                    foreach (Material m in renderer.materials)
-                        m.SetFloat("_ZOffset", data.offsetValue);
-
-                    continue;
+                    if (i >= renderer.materials.Length)
+                    {
+                        Main.logger.LogError($"SetMaterialZoffset renderer {renderer.name} has no material at index {i}");
+                        continue;
+                    }
+                    renderer.materials[i].SetFloat(zOffset, data.offsetValue);
                 }
-                Material material = renderer.materials[data.materialIndex];
-                if (material == null)
-                {
-                    Main.logger.LogError($"FixMaterialZoffset renderer {renderer.name} has no material at index {data.materialIndex}");
-                    yield break;
-                }
-                //material.EnableKeyword("MARMO_ALPHA_CLIP");
-                material.SetFloat("_ZOffset", data.offsetValue);
+                return;
             }
+            if (data.materialIndex < 0)
+            {
+                foreach (Material m in renderer.materials)
+                    m.SetFloat(zOffset, data.offsetValue);
+
+                return;
+            }
+            Material material = renderer.materials[data.materialIndex];
+            if (material == null)
+            {
+                Main.logger.LogError($"SetMaterialZoffset renderer {renderer.name} has no material at index {data.materialIndex}");
+                return;
+            }
+            material.SetFloat(zOffset, data.offsetValue);
         }
 
         IEnumerator FixFragment(string classID)
@@ -969,47 +1201,9 @@ namespace Tweaks_Fixes
             prefab.transform.DisableShadowCasting(data);
         }
 
-        IEnumerator ChangeMaterialZoffsetAsync(TechType techType, MaterialZoffsetData data)
-        {
-            //Main.logger.LogDebug("ChangeMaterialZoffsetAsync " + techType);
-
-            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
-            yield return request;
-            GameObject prefab = request.GetResult();
-            if (prefab == null)
-            {
-                Main.logger.LogError($"ChangeMaterialZoffsetAsync {techType} prefab null");
-                yield break;
-            }
-            //else
-            //    Main.logger.LogDebug($"ChangeMaterialZoffsetAsync {techType} {prefab.name}");
-
-            Renderer renderer;
-            if (data.rendererPath == null)
-                renderer = prefab.GetComponentInChildren<Renderer>();
-            else
-            {
-                Transform rendererT = prefab.transform.Find(data.rendererPath);
-                renderer = rendererT.GetComponent<Renderer>();
-            }
-            //Main.logger.LogDebug($"ChangeMaterialZoffset {techType} {renderer.name} materials");
-            if (renderer == null)
-            {
-                Main.logger.LogDebug($"ChangeMaterialZoffsetAsync {techType} {prefab.name} renderer null");
-            }
-            if (data.materialIndex >= renderer.materials.Length)
-            {
-                //Main.logger.LogDebug("ChangeMaterialZoffsetAsync wrong materialIndex");
-                yield break;
-            }
-            Material material = renderer.materials[data.materialIndex];
-            //Main.logger.LogDebug("Set offset " + material.name);
-            material.SetFloat("_ZOffset", data.offsetValue);
-        }
-
         IEnumerator EnableShadowCasting(string classID)
         {
-            Main.logger.LogError("EnableShadowCasting " + classID);
+            //Main.logger.LogDebug("EnableShadowCasting " + classID);
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
             yield return request;
             GameObject prefab;
@@ -1023,7 +1217,7 @@ namespace Tweaks_Fixes
 
         IEnumerator EnableShadowCasting(string classID, RendererData value)
         {
-            Main.logger.LogError("EnableShadowCasting RendererData " + classID);
+            //Main.logger.LogDebug("EnableShadowCasting RendererData " + classID);
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
             yield return request;
             GameObject prefab;
@@ -1108,38 +1302,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        IEnumerator ChangeMaterialZoffsetAsync(string classID, MaterialZoffsetData data)
-        {
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
-            yield return request;
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("ChangeMaterialZoffsetAsync No prefab for " + classID);
-                yield break;
-            }
-            Renderer renderer;
-            if (data.rendererPath == null)
-            {
-                renderer = prefab.transform.GetComponentInChildren<Renderer>();
-            }
-            else
-            {
-                Transform rendererT = prefab.transform.Find(data.rendererPath);
-                renderer = rendererT.GetComponent<Renderer>();
-            }
-            //Main.logger.LogDebug($"ChangeMaterialZoffset {techType} {renderer.name} materials");
-            if (data.materialIndex >= renderer.materials.Length)
-            {
-                //Main.logger.LogDebug("ChangeMaterialZoffsetAsync wrong materialIndex");
-                yield break;
-            }
-            Material material = renderer.materials[data.materialIndex];
-            //Material material = renderer.sharedMaterials[data.materialIndex];
-            //Main.logger.LogDebug("Set offset " + material.name);
-            material.SetFloat(Main.zOffset, data.offsetValue);
-        }
-
         IEnumerator FixOrangeMushroomCollider()
         { // land_plant_middle_05_01    center y 0.54 rad 0.7864308  h 2
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync("35056c71-5da7-4e73-be60-3c22c5c9e75c");
@@ -1161,6 +1323,7 @@ namespace Tweaks_Fixes
     class MaterialZoffsetData
     {
         public string rendererPath;
+        public int[] materialIndexes;
         public int materialIndex;
         public int offsetValue;
 
@@ -1169,6 +1332,17 @@ namespace Tweaks_Fixes
             this.rendererPath = rendererPath;
             this.materialIndex = materialIndex;
             this.offsetValue = offsetValue;
+        }
+
+        public MaterialZoffsetData(string rendererPath, int[] materialIndexes)
+        {
+            this.rendererPath = rendererPath;
+            this.materialIndexes = materialIndexes;
+        }
+        public MaterialZoffsetData(string rendererPath, int materialIndex)
+        {
+            this.rendererPath = rendererPath;
+            this.materialIndex = materialIndex;
         }
     }
 
@@ -1218,19 +1392,6 @@ namespace Tweaks_Fixes
         }
     }
 
-    public class MaterialColorData
-    {
-        public string path;
-        public int materialIndex;
-        public Color materialColor;
-
-        public MaterialColorData(string path, int materialIndex, Color materialColor)
-        {
-            this.path = path;
-            this.materialIndex = materialIndex;
-            this.materialColor = materialColor;
-        }
-    }
 
 }
 

@@ -15,10 +15,10 @@ namespace Tweaks_Fixes
     {
         public static HashSet<GameObject> cookedFish = new HashSet<GameObject> { };
         private static bool usingMedkit;
-        static float foodLowScalar = SurvivalConstants.kLowFoodThreshold / 100f;
-        static float waterLowScalar = SurvivalConstants.kLowWaterThreshold / 100f;
-        static float foodCriticalScalar = SurvivalConstants.kCriticalFoodThreshold / 100f;
-        static float waterCriticalScalar = SurvivalConstants.kCriticalWaterThreshold / 100f;
+        const float foodLowScalar = SurvivalConstants.kLowFoodThreshold / 100f;
+        const float waterLowScalar = SurvivalConstants.kLowWaterThreshold / 100f;
+        const float foodCriticalScalar = SurvivalConstants.kCriticalFoodThreshold / 100f;
+        const float waterCriticalScalar = SurvivalConstants.kCriticalWaterThreshold / 100f;
 
         [HarmonyPatch(typeof(Survival))]
         class Survival_patch

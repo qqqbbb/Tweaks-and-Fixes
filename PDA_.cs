@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UWE;
@@ -11,102 +12,48 @@ namespace Tweaks_Fixes
 {
     class PDA_
     {
-        //static ConditionRules conditionRules;
-        //static int ruleToRemove;
-
         [HarmonyPatch(typeof(PDA))]
         class PDA_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("Open")]
-            static bool OpenPrefix(PDA __instance, PDATab tab, Transform target, PDA.OnClose onCloseCallback, ref bool __result)
-            {// remove delay
-                if (__instance.isInUse || __instance.ignorePDAInput || Main.gameLoaded == false)
-                {
-                    __result = false;
-                    return false;
-                }
-                string pdaKey = GameInput.GetBinding(GameInput.PrimaryDevice, GameInput.Button.PDA, GameInput.BindingSet.Primary);
-                if (Keyboard.current.leftAltKey.IsPressed() && pdaKey == "<Keyboard>/tab")
-                {
-                    __result = false;
-                    return false;
-                }
-                //AddDebug("PDA Open");
-                uGUI.main.quickSlots.SetTarget(null);
-                __instance.prevQuickSlot = Inventory.main.quickSlots.activeSlot;
-                //int num1 = Inventory.main.ReturnHeld() ? 1 : 0;
-                Player player = Player.main;
-                if (!Inventory.main.ReturnHeld() || player.cinematicModeActive)
-                {
-                    __result = false;
-                    return false;
-                }
-                MainCameraControl.main.SaveLockedVRViewModelAngle();
-                Inventory.main.quickSlots.SetSuspendSlotActivation(true);
-                __instance.isInUse = true;
-                player.armsController.SetUsingPda(true);
-                __instance.gameObject.SetActive(true);
-                __instance.ui.OnOpenPDA(tab);
-                //__instance.sequence.Set(.5f, true, new SequenceCallback(__instance.Activated));
-                __instance.sequence.Set(0f, true, new SequenceCallback(__instance.Activated));
-                GoalManager.main.OnCustomGoalEvent("Open_PDA");
-                if (HandReticle.main != null)
-                    HandReticle.main.RequestCrosshairHide();
+            [HarmonyPrefix, HarmonyPatch("Open")]
+            public static bool OpenPrefix(PDA __instance, ref bool __result)
+            {
+                if (Keyboard.current.leftAltKey.IsPressed() == false)
+                    return true;
 
-                Inventory.main.SetViewModelVis(false);
-                __instance.targetWasSet = target != null;
-                __instance.target = target;
-                __instance.onCloseCallback = onCloseCallback;
-                if (__instance.targetWasSet)
-                    __instance.activeSqrDistance = (target.transform.position - player.transform.position).sqrMagnitude + 1f;
-
-                if (__instance.audioSnapshotInstance.isValid())
+                string pdaBinding = GameInput.GetBinding(GameInput.Device.Keyboard, GameInput.Button.PDA, GameInput.BindingSet.Primary);
+                string pdaBindingSec = GameInput.GetBinding(GameInput.Device.Keyboard, GameInput.Button.PDA, GameInput.BindingSet.Secondary);
+                //AddDebug("PDA binding " + pdaBinding);
+                //AddDebug("PDA binding sec " + pdaBindingSec);
+                if (pdaBinding == "<Keyboard>/tab" || pdaBindingSec == "<Keyboard>/tab")
                 {
-                    int num2 = (int)__instance.audioSnapshotInstance.start();
+                    __result = false;
+                    return false;
                 }
-                UwePostProcessingManager.OpenPDA();
-                __result = true;
-                return false;
+                return true;
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("Close")]
-            static bool ClosePrefix(PDA __instance)
-            {// remove delay
-                if (!__instance.isInUse || __instance.ignorePDAInput)
-                    return false;
+            [HarmonyTranspiler, HarmonyPatch("Open")]
+            public static IEnumerable<CodeInstruction> Openranspiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codeMatcher = new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, PDA.timeDraw))
+                .ThrowIfInvalid("Could not find Ldc_R4 timeDraw in PDA.Open")
+                .RemoveInstruction()
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldc_R4, 0f))
+                .InstructionEnumeration();
+                return codeMatcher;
+            }
 
-                Player player = Player.main;
-                QuickSlots quickSlots = Inventory.main.quickSlots;
-                quickSlots.EndAssign();
-                MainCameraControl.main.ResetLockedVRViewModelAngle();
-                Vehicle vehicle = player.GetVehicle();
-                if (vehicle != null)
-                    uGUI.main.quickSlots.SetTarget((IQuickSlots)vehicle);
-
-                __instance.targetWasSet = false;
-                __instance.target = null;
-                player.armsController.SetUsingPda(false);
-                quickSlots.SetSuspendSlotActivation(false);
-                __instance.ui.OnClosePDA();
-                if (HandReticle.main != null)
-                    HandReticle.main.UnrequestCrosshairHide();
-
-                Inventory.main.SetViewModelVis(true);
-                __instance.sequence.Set(0f, false, new SequenceCallback(__instance.Deactivated));
-                if (__instance.audioSnapshotInstance.isValid())
-                {
-                    int num1 = (int)__instance.audioSnapshotInstance.stop(STOP_MODE.ALLOWFADEOUT);
-                    int num2 = (int)__instance.audioSnapshotInstance.release();
-                }
-                UwePostProcessingManager.ClosePDA();
-                if (__instance.onCloseCallback == null)
-                    return false;
-
-                PDA.OnClose onCloseCallback = __instance.onCloseCallback;
-                __instance.onCloseCallback = null;
-                onCloseCallback(__instance);
-                return false;
+            [HarmonyTranspiler, HarmonyPatch("Close")]
+            public static IEnumerable<CodeInstruction> CloseTranspiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codeMatcher = new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, PDA.timeHolster))
+                .ThrowIfInvalid("Could not find Ldc_R4 timeHolster in PDA.Close")
+                .RemoveInstruction()
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldc_R4, 0f))
+                .InstructionEnumeration();
+                return codeMatcher;
             }
         }
 

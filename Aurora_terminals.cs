@@ -1,8 +1,6 @@
 ﻿using HarmonyLib;
-using Story;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -10,7 +8,6 @@ namespace Tweaks_Fixes
 {
     internal class Aurora_terminals
     {
-
         [HarmonyPatch(typeof(StoryHandTarget))]
         class StoryHandTarget_Patch
         {

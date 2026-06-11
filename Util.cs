@@ -866,37 +866,6 @@ namespace Tweaks_Fixes
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
-        public static void DisableShadowCasting(this Transform root, List<RendererData> rendererDatas)
-        {
-            //Main.logger.LogError("DisableShadowCasting " + root.name);
-            foreach (RendererData data in rendererDatas)
-            {
-                //Main.logger.LogError("DisableShadowCasting parentPath " + data.parentPath);
-                Transform parent = root.Find(data.parentPath);
-                if (parent == null)
-                {
-                    Main.logger.LogError("DisableShadowCasting RendererData parent null " + data.parentPath);
-                    continue;
-                }
-                //Main.logger.LogError("DisableShadowCasting parent " + parent.name);
-                foreach (string rendererName in data.renderers)
-                {
-                    //Main.logger.LogError("DisableShadowCasting rendererName " + rendererName);
-                    Transform rendererT = parent.Find(rendererName);
-                    if (rendererT == null)
-                        continue;
-
-                    Renderer r = rendererT.GetComponent<Renderer>();
-                    if (r == null)
-                    {
-                        Main.logger.LogError("DisableShadowCasting RendererData no renderer " + rendererT);
-                        continue;
-                    }
-                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                }
-            }
-        }
-
         public static void DisableShadowCasting(this Transform root, RendererData data)
         {
             //Main.logger.LogDebug($"DisableShadowCasting {root.name}");
@@ -914,7 +883,7 @@ namespace Tweaks_Fixes
             if (data.renderers == null)
             {
                 //Main.logger.LogDebug($"DisableShadowCasting {root.name} renderers null");
-                parent.DisableShadowCasting();
+                parent.DisableShadowCastingInChildren();
                 return;
             }
             foreach (string rendererName in data.renderers)
@@ -1005,13 +974,17 @@ namespace Tweaks_Fixes
             Transform t = parent.Find(path);
             if (t == null)
             {
-                //Main.logger.LogError($"DisableShadowCasting {parent.name} has no child {path}");
+                Main.logger.LogError($"DisableShadowCasting {parent.name} has no child {path}");
                 return;
             }
             Renderer r = t.GetComponent<Renderer>();
             if (r == null)
             {
-                //Main.logger.LogError($"DisableShadowCasting {parent.name} has no renderer on go {path}");
+                Main.logger.LogError($"DisableShadowCasting {parent.name} has no renderer on go {path}");
+                //Component[] components = t.GetComponents<Component>();
+                //Main.logger.LogError($"DisableShadowCasting {parent.name} components {components.Length}");
+                //foreach (Component c in components)
+                //    Main.logger.LogError($"DisableShadowCasting {parent.name} {path} Component {c.GetType().Name}");
                 return;
             }
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;

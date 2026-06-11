@@ -21,7 +21,6 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 using UWE;
 using static ErrorMessage;
-using static GameInputSystem;
 
 
 namespace Tweaks_Fixes
@@ -381,8 +380,16 @@ namespace Tweaks_Fixes
                 //deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
                 //float fps = 1.0f / deltaTime;
                 //Util.Message("FPS " + Mathf.RoundToInt(fps));
-                //AddDebug("IsInvisible " + GameModeUtils.IsInvisible());
                 //AddDebug("mode " + __instance.mode);
+                if (__instance.currentSub && __instance.currentSub is BaseRoot)
+                {
+                    BaseRoot baseRoot = __instance.currentSub as BaseRoot;
+                    //AddDebug("Leak Amount " + baseRoot.GetLeakAmount());
+                    //AddDebug("BaseFloodSim IsLeaking " + baseRoot.flood.tIsLeaking());
+                    //AddDebug("currentSub IsLeaking " + __instance.currentSub.IsLeaking());
+                    //AddDebug("leakers.Count " + baseRoot.flood.leakers.Count);
+                    //AddDebug("IsLeaking " + __instance.currentSub.IsLeaking());
+                }
                 if (Keyboard.current.bKey.wasPressedThisFrame)
                 {
                     //if (Player.main.IsInBase())
@@ -418,12 +425,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
-                    Main.logger.LogDebug("creepvines " + LargeWorldEntity_.creepvines.Count);
-                    AddDebug("creepvines " + LargeWorldEntity_.creepvines.Count);
-                    foreach (var s in LargeWorldEntity_.creepvines)
-                    {
-                        Main.logger.LogDebug(" " + s);
-                    }
+                    //AddDebug("Light Scalar " + DayNightCycle.main.GetLocalLightScalar());
                     //GameObject goToTest = Player.main.guiHand.activeTarget;
                     //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
                     //AddDebug("KnownTech " + KnownTech.Contains(TechType.Seaglide));
@@ -1023,21 +1025,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(PDA), "Open")]
-        class PDA_Open_Patch
-        {
-            public static bool Prefix(PDA __instance, ref bool __result)
-            {
-                if (Keyboard.current.leftAltKey.IsPressed())
-                {
-                    AddDebug("leftAltKey IsPressed " + __result);
-                    __result = false;
-                    return false;
-                }
-                AddDebug("leftAltKey not IsPressed " + __result);
-                return true;
-            }
-        }
 
     }
 }

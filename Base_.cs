@@ -10,20 +10,8 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    // only IsLeaking works to check if base is flooded
     public class Base_
     {
-        static int camerasToRemove = 0;
-        static Dictionary<BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
-        static HashSet<ModularStairs> fixedStairs = new HashSet<ModularStairs>();
-
-        public static void CleanUp()
-        {
-            fixedStairs.Clear();
-            baseHullStrengths.Clear();
-
-        }
-
         public static void ToggleBaseLight(SubRoot subRoot)
         {
             subRoot.subLightsOn = !subRoot.subLightsOn;
@@ -33,9 +21,10 @@ namespace Tweaks_Fixes
                 Main.configMain.SaveBaseLights(subRoot.transform.position);
         }
 
-        [HarmonyPatch(typeof(SubRoot), "Awake")]
-        public static class SubRoot_Awake_Patch
+        [HarmonyPatch(typeof(SubRoot))]
+        public static class SubRoot_Patch
         {
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             static void Postfix(SubRoot __instance)
             {
                 //AddDebug(__instance.name + " SubRoot Awake " + __instance.isBase);
@@ -43,6 +32,16 @@ namespace Tweaks_Fixes
                 {
                     __instance.subLightsOn = Main.configMain.GetBaseLights(__instance.transform.position);
                     //AddDebug("saved BaseLight " + key + " " + __instance.subLightsOn);
+                    __instance.interiorSky.AffectedByDayNightCycle = ConfigToEdit.baseSunlight.Value;
+                }
+            }
+            //[HarmonyPostfix, HarmonyPatch("Start")]
+            public static void StartPostfix(SubRoot __instance)
+            {
+                //AddDebug("SubRoot Start " + __instance.isBase);
+                if (__instance.isBase)
+                {
+                    __instance.interiorSky.AffectedByDayNightCycle = true;
                 }
             }
         }
@@ -83,6 +82,7 @@ namespace Tweaks_Fixes
                 __instance.totalStrength = strength;
                 return false;
             }
+
             [HarmonyPrefix]
             [HarmonyPatch("CrushDamageUpdate")]
             static bool CrushDamageUpdatePrefix(BaseHullStrength __instance)
@@ -98,11 +98,7 @@ namespace Tweaks_Fixes
                 else if (__instance.totalStrength <= -2.0)
                     index = 1;
 
-                if (!baseHullStrengths.ContainsKey(__instance))
-                {
-                    baseHullStrengths[__instance] = __instance.GetComponent<SubRoot>();
-                }
-                else if (baseHullStrengths[__instance] == Player.main.currentSub)
+                if (__instance.GetComponent<SubRoot>() == Player.main.currentSub)
                 {
                     //AddDebug("Player inside");
                     if (__instance.crushSounds[index] != null)
@@ -114,46 +110,24 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(MapRoomCamera), "Start")]
-        class MapRoomCamera_Start_Patch
+        [HarmonyPatch(typeof(MapRoomCameraDocking), "Start")]
+        class MapRoomCameraDocking_Start_Patch
         {
-            static bool Prefix(MapRoomCamera __instance)
+            static bool Prefix(MapRoomCameraDocking __instance)
             {
-                //AddDebug(" MapRoomCamera Start ");
-                //if (__instance.dockingPoint)
-                //    AddDebug(" dockingPoint ");
-                if (camerasToRemove > 0)
-                {
-                    //AddDebug(" Destroy camera ");
-                    Util.DestroyEntity(__instance.gameObject);
-                    camerasToRemove--;
-                    return false;
-                }
-                return true;
+                return ConfigToEdit.mapRoomFreeCameras.Value;
             }
         }
 
-        [HarmonyPatch(typeof(Constructable))]
-        class Constructable_Construct_Patch
+        [HarmonyPatch(typeof(SolarPanel))]
+        class SolarPanel_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("NotifyConstructedChanged")]
-            public static void Postfix(Constructable __instance, bool constructed)
+            [HarmonyPrefix, HarmonyPatch("Start")]
+            static void StartPrefix(SolarPanel __instance)
             {
-                if (!constructed || !Main.gameLoaded)
-                    return;
-
-                //AddDebug(" NotifyConstructedChanged " + __instance.techType);
-                if (!ConfigToEdit.mapRoomFreeCameras.Value && __instance.techType == TechType.BaseMapRoom)
-                    camerasToRemove = 2;
-                else
-                    camerasToRemove = 0;
+                __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
             }
-        }
-
-        [HarmonyPatch(typeof(SolarPanel), "OnHandHover")]
-        public static class SolarPanel_OnHandHover_Patch
-        {
+            [HarmonyPrefix, HarmonyPatch("OnHandHover")]
             static bool Prefix(SolarPanel __instance, GUIHand hand)
             {
                 Constructable c = __instance.gameObject.GetComponent<Constructable>();
@@ -166,6 +140,7 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
+
 
         //[HarmonyPatch(typeof(BaseUpgradeConsoleGeometry), "GetVehicleInfo")] 
         public class BaseUpgradeConsoleGeometry_GetVehicleInfo_Patch
@@ -219,19 +194,11 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SolarPanel), "Start")]
-        class SolarPanel_Patch
-        {
-            static void Prefix(SolarPanel __instance)
-            {
-                __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
-            }
-        }
 
-        [HarmonyPatch(typeof(BaseDeconstructable))]
+        //[HarmonyPatch(typeof(BaseDeconstructable))]
         class BaseDeconstructable_Patch
         {
-            [HarmonyPostfix, HarmonyPatch("Init")]
+            //[HarmonyPostfix, HarmonyPatch("Init")]
             static void InitPostfix(BaseDeconstructable __instance)
             {
                 //AddDebug("BaseDeconstructable Init " + __instance.recipe);

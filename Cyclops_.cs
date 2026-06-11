@@ -268,8 +268,10 @@ namespace Tweaks_Fixes
             public static void ForceLightingStatePostfix(SubRoot __instance, bool lightingOn)
             {
                 if (__instance.isCyclops)
-                    __instance.interiorSky.affectedByDayNightCycle = ConfigToEdit.cyclopsSunlight.Value && !lightingOn;
+                    __instance.interiorSky.AffectedByDayNightCycle = ConfigToEdit.cyclopsSunlight.Value && !lightingOn;
+
                 //AddDebug("SubRoot ForceLightingState " + lightingOn);
+                //__instance.interiorSky.AffectedByDayNightCycle = true;
             }
         }
 
