@@ -13,6 +13,17 @@ namespace Tweaks_Fixes
     {
         public static Material materialForDecals;
 
+        [HarmonyPatch(typeof(WaterPlane), "Start")]
+        internal class WaterPlane_Start_Patch
+        {
+            static void Postfix(WaterPlane __instance)
+            { // water surface in Aurora
+                //GameObject root = Util.GetEntityRoot(__instance.gameObject);
+                //AddDebug("WaterPlane Start " + root.name);
+                __instance.transform.DisableShadowCasting();
+            }
+        }
+
         [HarmonyPatch(typeof(CrashedShipExploder), "Start")]
         class CrashedShipExploder_Start_Patch
         {

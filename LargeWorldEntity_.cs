@@ -27,6 +27,12 @@ namespace Tweaks_Fixes
                 this.newPos = newPos;
                 this.newRot = newRot;
             }
+
+            public PosRotData(string name, Vector3 newPos)
+            {
+                this.name = name;
+                this.newPos = newPos;
+            }
         }
 
         static HashSet<TechType> plantSurfaces = new HashSet<TechType> {  TechType.RedRollPlant, TechType.GabeSFeather, TechType.RedGreenTentacle, TechType.JellyPlant, TechType.OrangeMushroom, TechType.SnakeMushroom, TechType.OrangePetalsPlant, TechType.SpikePlant, TechType.MembrainTree, TechType.Melon, TechType.SmallMelon, TechType.MelonPlant, TechType
@@ -143,10 +149,11 @@ namespace Tweaks_Fixes
             {new Vector3Int(1257, -220, 635), new List<PosRotData>{
                 new PosRotData("Coral_reef_koosh_bush_medium(Clone)", new Vector3(float.NaN, -220.1f,  float.NaN), default) }},
             {new Vector3Int(1249, -219, 622), new List<PosRotData>{
-                new PosRotData("Coral_reef_koosh_bush_small(Clone)", new Vector3(float.NaN, -220.1f,  float.NaN), default) }},
+                new PosRotData("Coral_reef_koosh_bush_small(Clone)", new Vector3(float.NaN, -220.1f,  float.NaN)) }},
             {new Vector3Int(1237, -239, 463), new List<PosRotData>{
-                new PosRotData("SupplyCrate_FirstAidKit(Clone)", new Vector3(float.NaN, -240f,  float.NaN), default) }},
-
+                new PosRotData("SupplyCrate_FirstAidKit(Clone)", new Vector3(float.NaN, -240f,  float.NaN)) }},
+            {new Vector3Int(-73, -9, -47), new List<PosRotData>{
+                new PosRotData("Coral_reef_shell_tunnel_01(Clone)", new Vector3(float.NaN, float.NaN,  -46.85f)) }},// clips with fragment crate
          };
 
         static Dictionary<TechType, VFXSurfaceTypes> surfaceTypes_ = new Dictionary<TechType, VFXSurfaceTypes> { {TechType.SeamothFragment, VFXSurfaceTypes.metal },

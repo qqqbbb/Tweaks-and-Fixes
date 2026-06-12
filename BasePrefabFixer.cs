@@ -95,14 +95,12 @@ namespace Tweaks_Fixes
              };
 
             //AddDebug("pieces " + Base.pieces.Length);
-            for (int i = 0; i < Base.pieces.Length; i++)
+            foreach (Base.PieceDef piece in Base.pieces)
             {
-                Base.PieceDef piece = Base.pieces[i];
                 if (piece.prefab == null)
                     continue;
 
                 string name = piece.prefab.name;
-
                 if (baseGlassRenderers.ContainsKey(name))
                     piece.prefab.DisableShadowCasting(baseGlassRenderers[name]);
             }

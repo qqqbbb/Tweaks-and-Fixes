@@ -18,17 +18,17 @@ namespace Tweaks_Fixes
             [HarmonyPrefix, HarmonyPatch("Open")]
             public static bool OpenPrefix(PDA __instance, ref bool __result)
             {
-                if (Keyboard.current.leftAltKey.IsPressed() == false)
-                    return true;
-
-                string pdaBinding = GameInput.GetBinding(GameInput.Device.Keyboard, GameInput.Button.PDA, GameInput.BindingSet.Primary);
-                string pdaBindingSec = GameInput.GetBinding(GameInput.Device.Keyboard, GameInput.Button.PDA, GameInput.BindingSet.Secondary);
-                //AddDebug("PDA binding " + pdaBinding);
-                //AddDebug("PDA binding sec " + pdaBindingSec);
-                if (pdaBinding == "<Keyboard>/tab" || pdaBindingSec == "<Keyboard>/tab")
+                if (ConfigToEdit.dontOpenPDAwhenAltTabbing.Value && Keyboard.current.leftAltKey.IsPressed())
                 {
-                    __result = false;
-                    return false;
+                    string pdaBinding = GameInput.GetBinding(GameInput.Device.Keyboard, GameInput.Button.PDA, GameInput.BindingSet.Primary);
+                    string pdaBindingSec = GameInput.GetBinding(GameInput.Device.Keyboard, GameInput.Button.PDA, GameInput.BindingSet.Secondary);
+                    //AddDebug("PDA binding " + pdaBinding);
+                    //AddDebug("PDA binding sec " + pdaBindingSec);
+                    if (pdaBinding == "<Keyboard>/tab" || pdaBindingSec == "<Keyboard>/tab")
+                    {
+                        __result = false;
+                        return false;
+                    }
                 }
                 return true;
             }

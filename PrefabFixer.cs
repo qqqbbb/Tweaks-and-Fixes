@@ -65,6 +65,8 @@ namespace Tweaks_Fixes
         readonly Dictionary<string, MaterialZoffsetData> materialsToEnableDitherAlpha = new Dictionary<string, MaterialZoffsetData>
         {
             {"75472574-a336-4c64-94af-f2abe1919316", new MaterialZoffsetData("entrance_01_01", 6) },// CrashedShip_entrance_01_01
+            {"e60dba6a-80d2-4583-a241-058f9ee823ca",// CrashedShip_entrance_03
+            new MaterialZoffsetData("entrance_03/entrance_03_MeshPart1", new int[] {1,3,4,5,6,8})},
         };
 
         static MaterialZoffsetData crate1ZoffsetDara = new MaterialZoffsetData("Starship_cargo_damaged_01", 1);

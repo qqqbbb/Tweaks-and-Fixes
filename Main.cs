@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.19.0";
+            VERSION = "4.19.1";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -263,6 +263,7 @@ namespace Tweaks_Fixes
         {
             Application.runInBackground = true;
             FixCraftDataTables();
+            UWE.CoroutineHost.StartCoroutine(AuroraDecalFix.GetMaterialForDecals());
             if (PrefabFixer.prefabsFixed == false)
             {
                 PrefabFixer prefabFixer = new PrefabFixer();
@@ -273,7 +274,11 @@ namespace Tweaks_Fixes
                 BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
                 UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
             }
-            UWE.CoroutineHost.StartCoroutine(AuroraDecalFix.GetMaterialForDecals());
+            //if (AbandonedBaseFixerNEW.abandonedBasesFixed == false)
+            //{
+            //    AbandonedBaseFixerNEW abandonedBaseFixer = new AbandonedBaseFixerNEW();
+            //    abandonedBaseFixer.FixAbandonedBases();
+            //}
         }
 
         private static void FixCraftDataTables()

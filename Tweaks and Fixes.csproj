@@ -140,8 +140,9 @@
     <Compile Include="Base_.cs" />
     <Compile Include="Aurora_terminals.cs" />
     <Compile Include="AuroraDecalFix.cs" />
-    <Compile Include="AbandonedBaseFixer.cs" />
+    <Compile Include="AbandonedBaseFixerNEW.cs" />
     <Compile Include="BasePrefabFixer.cs" />
+    <Compile Include="AbandonedBaseFixer.cs" />
     <Compile Include="WaterPlane_.cs" />
     <Compile Include="Trashcan_.cs" />
     <Compile Include="LoadedGameObjectFixer.cs" />
