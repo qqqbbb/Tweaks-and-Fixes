@@ -33,7 +33,7 @@ namespace Tweaks_Fixes
         // databox -489 -500 1328
         // stones in caves 118 -60 127    -6 0 -13
         // repair panel 391 -14 -193
-
+        // seaCrown 245 -217 255
         public static GameObject storedGO;
         public static PrefabIdentifier prefabIdentifier;
 
@@ -345,26 +345,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(KnownTech), "Add")]
-        class KnownTech_Add_Patch
-        {
-            static bool Prefix(TechType techType, ref bool verbose)
-            {
-                //AddDebug("KnownTech Add " + techType + " " + verbose);
-                //verbose = false;
-                return true;
-            }
-        }
-
         //[HarmonyPatch(typeof(PrefabPlaceholder), "Spawn")]
         class PrefabPlaceholder_Spawn_Patch
         {
             static void Prefix(PrefabPlaceholder __instance)
             {
-                if (__instance.name == "Loot_CrashHome(Placeholder)")
-                {
-                    AddDebug("Loot_CrashHome parent " + __instance.transform.parent.name);
-                }
+                if (WorldEntityDatabase.TryGetInfo(__instance.prefabClassId, out var info))
+                    AddDebug("PrefabPlaceholder Spawn " + info.techType);
+                //return true;
             }
         }
 
@@ -417,7 +405,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    ShowTargetInfo(false, false, false);
+                    ShowTargetInfo(true, false, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
@@ -593,7 +581,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static void ShowTargetInfo(bool health = false, bool position = false, bool showCollider = false)
+        public static void ShowTargetInfo(bool position = false, bool health = false, bool showCollider = false)
         {
             GameObject target = Player.main.guiHand.activeTarget;
             RaycastHit hitInfo = new RaycastHit();

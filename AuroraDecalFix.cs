@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 
 namespace Tweaks_Fixes
@@ -30,23 +31,26 @@ namespace Tweaks_Fixes
             static void Postfix(CrashedShipExploder __instance)
             {
                 __instance.transform.DisableShadowCasting("starship_expoded/model_LODs/starship_exploded_02/starship_exploded_interior_decals");
-                Transform t = __instance.transform.Find("explodedFX/Ship_Interior_PowerRoomFX(Clone)");
-                FixDecals(t);
+                FixDecals(__instance.transform);
                 __instance.gameObject.AddVFXsurfaceComponent(VFXSurfaceTypes.metal);
-                t = __instance.transform.Find("starship_expoded/model_LODs/starship_exploded_02/starship_exploded_interior_03");
+                Transform t = __instance.transform.Find("starship_expoded/model_LODs/starship_exploded_02/starship_exploded_interior_03");
                 Renderer renderer = t.GetComponent<Renderer>();
                 Material material = renderer.materials[4];
                 material.SetFloat(PrefabFixer.zOffset, 0);
             }
 
-            public static void FixDecals(Transform t)
+            public static void FixDecals(Transform aurora)
             {
+                Transform t = aurora.Find("explodedFX/Ship_Interior_PowerRoomFX(Clone)");
                 Renderer[] renderers = t.GetComponentsInChildren<Renderer>();
                 foreach (Renderer renderer in renderers)
                 {
-                    Texture decalTexture = renderer.material.mainTexture;
-                    renderer.material = materialForDecals;
-                    renderer.material.mainTexture = decalTexture;
+                    if (renderer is MeshRenderer)
+                    {
+                        Texture decalTexture = renderer.material.mainTexture;
+                        renderer.material = materialForDecals;
+                        renderer.material.mainTexture = decalTexture;
+                    }
                     renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 }
             }

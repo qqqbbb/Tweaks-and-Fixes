@@ -9,14 +9,14 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class AbandonedBaseFixerNEW
+    internal class AbandonedBaseFixerOLD
     {
-        public static bool abandonedBasesFixed;
+        //static Material materialForDecals;
 
         //[HarmonyPatch(typeof(LargeWorldEntity))]
         class LargeWorldEntity_Patch
         {
-            //[HarmonyPostfix, HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(LargeWorldEntity __instance)
             {
                 if (__instance.transform.parent && __instance.transform.parent.parent && __instance.transform.parent.name == "Decoration" && __instance.transform.parent.parent.name == "BaseCell" && __instance.name.StartsWith("Starship_cargo"))
@@ -27,8 +27,7 @@ namespace Tweaks_Fixes
                 switch (__instance.name)
                 {
                     case "DeepGrandReefAbandonedBase(Clone)":
-                        //FixDeepGrandReefBase(__instance.gameObject);
-                        FixDeepGrandReefBaseDecals(__instance.gameObject);
+                        FixDeepGrandReefBase(__instance.gameObject);
                         break;
                     case "AbandonedBaseJellyShroom1(Clone)":
                         FixJellyShroomBase1(__instance.gameObject);
@@ -53,13 +52,6 @@ namespace Tweaks_Fixes
                         break;
                 }
             }
-        }
-
-        public void FixAbandonedBases()
-        {
-            UWE.CoroutineHost.StartCoroutine(FixDeepGrandReefBase());
-
-            abandonedBasesFixed = true;
         }
 
         private static void FixJellyShroomBase1(GameObject base_)
@@ -110,24 +102,16 @@ namespace Tweaks_Fixes
             FixDecals(base_.transform);
         }
 
-        private IEnumerator FixDeepGrandReefBase()
+        private static void FixDeepGrandReefBase(GameObject base_)
         {// DeepGrandReefAbandonedBase -642 -509 -943
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("42a80cbc-d9fd-49d2-94b3-b5178024b3cb");
-            yield return request;
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("FixDeepGrandReefBase No prefab");
-                yield break;
-            }
-            FixDecals(prefab.transform);
-            FixDeepGrandReefBaseDecals(prefab);
-            //FixDeepGrandReefBasePillars(base_);
-            //FixDeepGrandReefBaseColliders(base_);
-            FixAbandonedBaseGlass(prefab);
+            FixDecals(base_.transform);
+            FixDeepGrandReefBaseDecals(base_);
+            FixDeepGrandReefBasePillars(base_);
+            FixDeepGrandReefBaseColliders(base_);
+            FixAbandonedBaseGlass(base_);
 
-            //if (Util.IsGraphicsPresetHighDetail())
-            FixBaseLODs(prefab);
+            if (Util.IsGraphicsPresetHighDetail())
+                FixBaseLODs(base_);
         }
 
         private static void FixFloatingIslandBase1(GameObject base_)
@@ -286,7 +270,15 @@ namespace Tweaks_Fixes
             List<Transform> baseCells = base_.transform.FindAllChildren("BaseCell");
             foreach (Transform baseCell in baseCells)
             {
-                baseCell.gameObject.IncreaseLODdistane();
+                LODGroup[] lODGroups = baseCell.GetComponentsInChildren<LODGroup>();
+                foreach (LODGroup lODGroup in lODGroups)
+                {
+                    if (badLODs.Contains(lODGroup.name))
+                    {
+                        //Main.logger.LogDebug("DisableDeepGrandReefBaseLODs " + lODGroup.name);
+                        lODGroup.ForceLOD(0);
+                    }
+                }
             }
         }
 
@@ -436,82 +428,47 @@ namespace Tweaks_Fixes
 
         private static void FixAbandonedBaseGlass(GameObject base_)
         {
-            Dictionary<string, List<RendererData>> glassRenderers = new Dictionary<string, List<RendererData>>{
-                {"BaseRoomWaterParkBottom", new List<RendererData>{ new RendererData("model/Large_Aquarium_generic_room_glass_01" )
-                }},
-                {"BaseAbandonedRoomFiltrationMachine",new List<RendererData>{  new RendererData("model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass" )
-                }},
-                { "BaseAbandonedRoomWindowSideBroken", new List<RendererData>{ new RendererData("BaseRoomGenericInteriorWindowSide01Broken02", new List<string> { "BaseInteriorRoomGenericWindowSide01GlassBroken", "BaseExteriorRoomGenericWindowSide01GlassBroken" })
-                }},
-                {"BaseAbandonedRoomWindowSide", new List<RendererData>{
-                    new RendererData( "BaseRoomGenericInteriorWindowSide01Broken01", new List<string>{ "BaseInteriorRoomGenericWindowSide01Glass", "BaseExteriorRoomGenericWindowSide01Glass" }),
-                    new RendererData("LODs", new List<string>{"BaseRoomGenericInteriorWindowSide01_LOD3/BaseInteriorRoomGenericWindowSide01Glass_LOD3",  "BaseRoomGenericInteriorWindowSide01_LOD2/BaseInteriorRoomGenericWindowSide01Glass_LOD2", "BaseRoomGenericInteriorWindowSide01_LOD1/BaseInteriorRoomGenericWindowSide01Glass_LOD1" })
-                } },
-                {"BaseAbandonedRoomHatch", new List<RendererData>{
-                    new RendererData( "BaseCorridorHatch/models/BaseCorridorExteriorCapHatch/BaseCorridorExteriorCapHatchMovable"),
-                    new RendererData( "LODs", new List<string>{ "BaseCorridorExteriorCapHatch_LOD1/BaseCorridorExteriorCapHatchMovable_LOD1", "BaseCorridorExteriorCapHatch_LOD2/BaseCorridorExteriorCapHatchMovable_LOD2", "BaseCorridorExteriorCapHatch_LOD3/BaseCorridorExteriorCapHatchMovable_LOD3" }),
-                } },
-                {"BaseAbandonedCorridorIShapeGlass", new List<RendererData>{
-                    new RendererData("models/BaseCorridorhIShapeGlass01Exterior/BaseCorridorhIShapeGlass01ExteriorGlass"),
-                    new RendererData("LODs", new List<string>{"BaseCorridorhIShapeGlass01Exterior_LOD1/BaseCorridorhIShapeGlass01ExteriorGlass_LOD1", "BaseCorridorhIShapeGlass01Exterior_LOD2/BaseCorridorhIShapeGlass01ExteriorGlass_LOD2", "BaseCorridorhIShapeGlass01Exterior_LOD3/BaseCorridorhIShapeGlass01ExteriorGlass_LOD3" }),
-                } },
-                {"BaseAbandonedObservatory", new List<RendererData>{
-                    new RendererData("BaseAbandonedRoomObservatory/BaseRoomObservatory_glass"),
-                    new RendererData("LODs", new List<string>{ "BaseAbandonedRoomObservatory_LOD3/BaseRoomObservatory_glass_LOD3", "BaseAbandonedRoomObservatory_LOD2/BaseRoomObservatory_glass_LOD2", "BaseAbandonedRoomObservatory_LOD1/BaseRoomObservatory_glass_LOD1" }),
-                } },
-                {"BaseAbandonedCorridorWindow", new List<RendererData>{
-                    new RendererData("models", new List<string>{ "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCap_01_int", "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCap_01_ext", "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCapWindow_01_int" }),
-                    new RendererData("LODs", new List<string>{ "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCap_01_int_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCap_01_int_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCap_01_int_LOD3", "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCap_01_ext_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCap_01_ext_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCap_01_ext_LOD3", "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCapGlass_01_int_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCapGlass_01_int_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCapWindow_01_int_LOD3" })
-                } },
-                {"BaseAbandonedCorridorIShapeWindowSide", new List<RendererData>{
-                    new RendererData("BaseAbandonedCorridorInteriorWindowSide", new List<string>{ "BaseAbandonedCorridorInteriorWindowSide_ext", "BaseAbandonedCorridorInteriorWindowSideGlass_int" }),
-                    new RendererData("LODs", new List<string>{ "BaseAbandonedCorridorInteriorWindowSide_LOD1/BaseAbandonedCorridorInteriorWindowSide_ext_LOD1", "BaseAbandonedCorridorInteriorWindowSide_LOD2/BaseAbandonedCorridorInteriorWindowSide_ext_LOD2", "BaseAbandonedCorridorInteriorWindowSide_LOD3/BaseAbandonedCorridorInteriorWindowSide_ext_LOD3", "BaseAbandonedCorridorInteriorWindowSide_LOD1/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD1", "BaseAbandonedCorridorInteriorWindowSide_LOD2/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD2", "BaseAbandonedCorridorInteriorWindowSide_LOD3/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD3"}),
-                } },
-                {"BaseAbandonedCorridorTShape", new List<RendererData>{
-                    new RendererData("BaseAbandonedCorridorTShapeWindowTop/models/BaseCorridorTShapeExteriorWindowTop/BaseCorridorTShapeExteriorWindowTop_glass"),
-                    new RendererData("BaseAbandonedCorridorTShapeWindowTop/LODs", new List<string>{ "BaseCorridorTShapeExteriorWindowTop_LOD1/BaseCorridorTShapeExteriorWindowTop_glass_LOD1", "BaseCorridorTShapeExteriorWindowTop_LOD2/BaseCorridorTShapeExteriorWindowTop_glass_LOD2", "BaseCorridorTShapeExteriorWindowTop_LOD3/BaseCorridorTShapeExteriorWindowTop_glass_LOD3" }),
-                } },
-                    {"BaseAbandonedCorridorHatch", new List<RendererData>{
-                    new RendererData("models/BaseCorridorExteriorCapHatch/BaseCorridorExteriorCapHatchMovable"),
-                    new RendererData("LODs", new List<string>{ "BaseCorridorExteriorCapHatch_LOD1/BaseCorridorExteriorCapHatchMovable_LOD1", "BaseCorridorExteriorCapHatch_LOD2/BaseCorridorExteriorCapHatchMovable_LOD2", "BaseCorridorExteriorCapHatch_LOD3/BaseCorridorExteriorCapHatchMovable_LOD3" }),
-                } },
-            };
-
+            Dictionary<string, string[]> glassRenderers = new Dictionary<string, string[]>{
+                {"BaseAbandonedRoomWindowSide", new[] { "BaseRoomGenericInteriorWindowSide01Broken01/BaseInteriorRoomGenericWindowSide01Glass", "BaseRoomGenericInteriorWindowSide01Broken01/BaseExteriorRoomGenericWindowSide01Glass", "LODs/BaseRoomGenericInteriorWindowSide01_LOD3/BaseInteriorRoomGenericWindowSide01Glass_LOD3", "LODs/BaseRoomGenericInteriorWindowSide01_LOD2/BaseInteriorRoomGenericWindowSide01Glass_LOD2", "LODs/BaseRoomGenericInteriorWindowSide01_LOD1/BaseInteriorRoomGenericWindowSide01Glass_LOD1" } },
+                {"BaseAbandonedRoomHatch", new[] { "BaseCorridorHatch/models/BaseCorridorExteriorCapHatch/BaseCorridorExteriorCapHatchMovable", "LODs/BaseCorridorExteriorCapHatch_LOD1/BaseCorridorExteriorCapHatchMovable_LOD1", "LODs/BaseCorridorExteriorCapHatch_LOD2/BaseCorridorExteriorCapHatchMovable_LOD2", "LODs/BaseCorridorExteriorCapHatch_LOD3/BaseCorridorExteriorCapHatchMovable_LOD3" } },
+                {"BaseAbandonedCorridorIShapeGlass", new[] { "models/BaseCorridorhIShapeGlass01Exterior/BaseCorridorhIShapeGlass01ExteriorGlass", "LODs/BaseCorridorhIShapeGlass01Exterior_LOD1/BaseCorridorhIShapeGlass01ExteriorGlass_LOD1", "LODs/BaseCorridorhIShapeGlass01Exterior_LOD2/BaseCorridorhIShapeGlass01ExteriorGlass_LOD2", "LODs/BaseCorridorhIShapeGlass01Exterior_LOD3/BaseCorridorhIShapeGlass01ExteriorGlass_LOD3" } },
+                {"BaseRoomWaterParkBottom", new[] { "model/Large_Aquarium_generic_room_glass_01" } },
+                {"BaseAbandonedRoomWindowSideBroken", new[] { "BaseRoomGenericInteriorWindowSide01Broken02/BaseInteriorRoomGenericWindowSide01GlassBroken", "BaseRoomGenericInteriorWindowSide01Broken02/BaseExteriorRoomGenericWindowSide01GlassBroken" } },
+                {"BaseAbandonedRoomFiltrationMachine", new[] { "model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass" } },
+                {"BaseAbandonedObservatory", new[] { "BaseAbandonedRoomObservatory/BaseRoomObservatory_glass", "LODs/BaseAbandonedRoomObservatory_LOD3/BaseRoomObservatory_glass_LOD3", "LODs/BaseAbandonedRoomObservatory_LOD2/BaseRoomObservatory_glass_LOD2", "LODs/BaseAbandonedRoomObservatory_LOD1/BaseRoomObservatory_glass_LOD1" } },
+                {"BaseAbandonedCorridorWindow", new[] {"models/BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCap_01_int", "models/BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCap_01_ext", "models/BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCapWindow_01_int", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCap_01_int_LOD1", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCap_01_int_LOD2", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCap_01_int_LOD3", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCap_01_ext_LOD1", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCap_01_ext_LOD2", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCap_01_ext_LOD3", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCapGlass_01_int_LOD1", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCapGlass_01_int_LOD2", "LODs/BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCapWindow_01_int_LOD3" } },
+                {"BaseAbandonedCorridorIShapeWindowSide", new[] { "BaseAbandonedCorridorInteriorWindowSide/BaseAbandonedCorridorInteriorWindowSide_ext", "BaseAbandonedCorridorInteriorWindowSide/BaseAbandonedCorridorInteriorWindowSideGlass_int", "LODs/BaseAbandonedCorridorInteriorWindowSide_LOD1/BaseAbandonedCorridorInteriorWindowSide_ext_LOD1", "LODs/BaseAbandonedCorridorInteriorWindowSide_LOD2/BaseAbandonedCorridorInteriorWindowSide_ext_LOD2", "LODs/BaseAbandonedCorridorInteriorWindowSide_LOD3/BaseAbandonedCorridorInteriorWindowSide_ext_LOD3", "LODs/BaseAbandonedCorridorInteriorWindowSide_LOD1/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD1", "LODs/BaseAbandonedCorridorInteriorWindowSide_LOD2/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD2", "LODs/BaseAbandonedCorridorInteriorWindowSide_LOD3/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD3" } },
+                {"BaseAbandonedCorridorTShape", new[] { "BaseAbandonedCorridorTShapeWindowTop/models/BaseCorridorTShapeExteriorWindowTop/BaseCorridorTShapeExteriorWindowTop_glass", "BaseAbandonedCorridorTShapeWindowTop/LODs/BaseCorridorTShapeExteriorWindowTop_LOD1/BaseCorridorTShapeExteriorWindowTop_glass_LOD1", "BaseAbandonedCorridorTShapeWindowTop/LODs/BaseCorridorTShapeExteriorWindowTop_LOD2/BaseCorridorTShapeExteriorWindowTop_glass_LOD2", "BaseAbandonedCorridorTShapeWindowTop/LODs/BaseCorridorTShapeExteriorWindowTop_LOD3/BaseCorridorTShapeExteriorWindowTop_glass_LOD3" } },
+                {"BaseAbandonedCorridorHatch", new[] { "models/BaseCorridorExteriorCapHatch/BaseCorridorExteriorCapHatchMovable", "LODs/BaseCorridorExteriorCapHatch_LOD1/BaseCorridorExteriorCapHatchMovable_LOD1", "LODs/BaseCorridorExteriorCapHatch_LOD2/BaseCorridorExteriorCapHatchMovable_LOD2", "LODs/BaseCorridorExteriorCapHatch_LOD3/BaseCorridorExteriorCapHatchMovable_LOD3" } } };
             List<Transform> baseCells = base_.transform.FindAllChildren("BaseCell");
-
             foreach (Transform baseCell in baseCells)
             {
                 foreach (var windowName in glassRenderers.Keys)
                 {
                     List<Transform> windows = baseCell.FindAllChildren(windowName);
-
                     foreach (Transform window in windows)
                     {
-                        foreach (RendererData data in glassRenderers[windowName])
-                        {
-                            window.DisableShadowCasting(data);
-                        }
-                        //string[] rendererNames = glassRenderers[window.name];
-                        //if (rendererNames == null)
+                        string[] rendererNames = glassRenderers[window.name];
+                        if (rendererNames == null)
                         {
                             //AddDebug($"FixGlass no renderer names for window {window.name}");
                             //Main.logger.LogError($"FixGlass no renderer names for window {window.name}");
                         }
-                        //foreach (string rendererName in rendererNames)
-                        //{
-                        //    Transform renderer = window.Find(rendererName);
-                        //    if (renderer == null)
+                        foreach (string rendererName in rendererNames)
                         {
-                            //AddDebug($"FixGlass window {window.name} has no renderer {rendererName}");
-                            //Main.logger.LogError($"FixGlass window {window.name} has no renderer {rendererName}");
-                            //continue;
+                            Transform renderer = window.Find(rendererName);
+                            if (renderer == null)
+                            {
+                                //AddDebug($"FixGlass window {window.name} has no renderer {rendererName}");
+                                //Main.logger.LogError($"FixGlass window {window.name} has no renderer {rendererName}");
+                                continue;
+                            }
+                            renderer.DisableShadowCasting();
                         }
-                        //renderer.DisableShadowCasting();
                     }
                 }
             }
         }
-        //}
 
         private static void FixDeepGrandReefBasePillars(GameObject base_)
         {
@@ -540,51 +497,31 @@ namespace Tweaks_Fixes
 
         private static void FixDeepGrandReefBaseDecals(GameObject base_)
         {
-            //Main.logger.LogDebug($"FixDeepGrandReefBaseDecals ");
             Transform baseCell = base_.transform.GetChild(3);
             Transform coral = baseCell.GetChild(0);
             Transform t = coral.GetChild(21); // starfish on AC wall. Only 1 side is visible. Place it in AC
-            //Main.logger.LogDebug($"FixDeepGrandReefBaseDecals coral 21 {t.position} {t.localPosition}");
-            //t.SetPositionAndRotation(new Vector3(-641.3f, -503.25f, -945.5f), Quaternion.Euler(0, 120f, 0));
-            t.eulerAngles = new Vector3(0, 120f, 0); // move to -641.3 -503.25 -945.5
-            t.localPosition = new Vector3(.64f, -1.21f, -1.78f);
-
+            t.SetPositionAndRotation(new Vector3(-641.3f, -503.25f, -945.5f), Quaternion.Euler(0, 120f, 0));
             t = coral.GetChild(22); // starfish on AC wall
-            //Main.logger.LogDebug($"FixDeepGrandReefBaseDecals coral 22 {t.position} {t.localPosition}");
-            //t.SetPositionAndRotation(new Vector3(-642f, -506.95f, -943f), Quaternion.Euler(0, 13, 0));
-            t.eulerAngles = new Vector3(0, 13, 0); // move to -642 -506.95 -943
-            t.localPosition = new Vector3(1.216f, -4.95f, 0.13f);
+            t.SetPositionAndRotation(new Vector3(-642f, -506.95f, -943f), Quaternion.Euler(0, 13, 0));
             t = coral.GetChild(23); // starfish on AC wall
-            t.name += "  !!!";
-            Main.logger.LogDebug($"FixDeepGrandReefBaseDecals coral 23 {t.position} {t.localPosition} ");
-            //t.SetPositionAndRotation(new Vector3(-642.6f, -502.4f, -944f), Quaternion.Euler(0, 0, 0));
-            t.eulerAngles = default; // move to -642.6 -502.4 -944
-            t.localPosition = new Vector3(0.1f, -0.35f, 0.7f);
+            t.SetPositionAndRotation(new Vector3(-642.6f, -502.4f, -944f), Quaternion.Euler(0, 0, 0));
             t = coral.GetChild(6); // starfish on roof
-            //Main.logger.LogDebug($"FixDeepGrandReefBaseDecals coral 6 {t.position} {t.localPosition}");
-            //t.position = new Vector3(t.position.x, -497.86f, t.position.z);
-            t.position = new Vector3(t.position.x, 5.784f, t.position.z);
-            //t.localPosition = new Vector3(t.localPosition.x, 4.24f, t.localPosition.z);
+            t.position = new Vector3(t.position.x, -497.86f, t.position.z);
 
-            //Transform decals = baseCell.GetChild(2);
-            //t = decals.GetChild(30); // texture z fighting
-            //Main.logger.LogDebug($"FixDeepGrandReefBaseDecals decals 30 {t.position - new Vector3(-644.8f, t.position.y, t.position.z)}");
-            //t.position = new Vector3(-644.8f, t.position.y, t.position.z);
+            Transform decals = baseCell.GetChild(2);
+            t = decals.GetChild(30); // texture z fighting
+            t.position = new Vector3(-644.8f, t.position.y, t.position.z);
 
             baseCell = base_.transform.GetChild(5);
-            Transform decals = baseCell.GetChild(0);
-
+            decals = baseCell.GetChild(0);
             foreach (int i in new[] { 10, 23, 24 }) // stray decals
                 decals.GetChild(i).gameObject.SetActive(false);
 
             coral = baseCell.GetChild(2);
             t = coral.GetChild(9);// stray starfish near big crate -633 -510 -938
-            //t.SetPositionAndRotation(new Vector3(-633f, -511.1f, -938.1f), Quaternion.Euler(0, 309f, 0));
-            t.SetPositionAndRotation(new Vector3(-139.9f, -7.46f, 140.7f), Quaternion.Euler(0, 309f, 0));
+            t.SetPositionAndRotation(new Vector3(-633f, -511.1f, -938.1f), Quaternion.Euler(0, 309f, 0));
             t = coral.GetChild(0);// stray starfish in big crate -634 -509 -938
-            //Main.logger.LogDebug($"FixDeepGrandReefBaseDecals coral 0 {t.position} {t.eulerAngles}");
-            //t.SetPositionAndRotation(new Vector3(-649f, -511.2f, -946f), Quaternion.Euler(0, 182f, 0));
-            t.SetPositionAndRotation(new Vector3(-155.8f, -7.5f, 132.8f), Quaternion.Euler(0, 182f, 0)); // move to -649 -511 -946
+            t.SetPositionAndRotation(new Vector3(-649f, -511.2f, -946f), Quaternion.Euler(0, 182f, 0));
         }
 
         private static void FixDecals_(GameObject base_)

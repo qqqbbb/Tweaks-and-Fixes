@@ -44,6 +44,7 @@ namespace Tweaks_Fixes
             { "49278e68-fe5f-4576-b0f4-d03c2cd834ff", new MaterialZoffsetData("entrance_01_02", 3) },// CrashedShip_entrance_01_02
             { "8f5046b4-b727-4359-9d5a-2640ae6bf5d6", new MaterialZoffsetData("entrance_02_01/entrance_02_01_MeshPart0", new int[]{16, 17}) },// CrashedShip_entrance_02_01
             {"dedee57d-6a84-4bbb-92e3-d9b2249acc15", new MaterialZoffsetData("locker_room/locker_room 2_MeshPart0", 4, 500) },// CrashedShip_locker_room
+            {"6f9e2e29-9eba-4261-ba7b-ed5eac120b91", new MaterialZoffsetData("Map_Room_fragment_01", 3, 5000) },// Map_Room_fragment_01
 
         };
 
@@ -146,6 +147,21 @@ namespace Tweaks_Fixes
 
         };
 
+        List<string> glassRendererList = new List<string> {
+            "76470f15-8918-4194-8191-4a40f1f3e32c",// starfish_01
+            "4605151e-dea4-4ba7-96bf-2f88b3b41bdb",// starfish_02
+            "89fa1b49-c1dc-4a87-abba-49689f02a60c",// starfish_03
+            "d571d3dc-6229-430e-a513-0dcafc2c41f3",// starfish_04
+            "777c5fe6-98d5-4d58-9790-ff57fea62e7c",// starfish_01_bend
+            "677db3b4-2e53-40bb-a422-1ea80d61cae7",// starfish_02_bend
+            "ff4374cf-2d98-4a0e-b6c8-ded844657323",// starfish_03_bend
+            "04542c2f-db0c-4aad-9cc9-b8b5f6a85438",// starfish_04_bend
+            "2d422d6b-3c1f-484d-84ee-a07b5b8e32a4",// Coral_reef_sea_crown_Light
+            "7935a15e-a9ab-4fc6-90ef-58a65b30a4bd",// coral_reef_Hanging_Stinger_short
+            "46d0473e-d366-4644-8c9c-5fdb65cbacb8",// coral_reef_Hanging_Stinger_middle
+            "8914acde-168e-438f-9b2b-6b9332d8c1a1",// coral_reef_Hanging_Stinger_long
+        };
+
         Dictionary<TechType, RendererData> glassRenderers__ = new Dictionary<TechType, RendererData> {
         { TechType.CrabSquid, new RendererData("models/Crab_Squid/crab_squid_geo", new List<string> { "crab_squid_head_geo1", "crab_squid_head_geo2", "crab_squid_head_geo1_LOD1", "crab_squid_head_geo1_LOD2", "crab_squid_head_geo1_LOD3", "crab_squid_head_geo2_LOD1", "crab_squid_head_geo2_LOD2", "crab_squid_head_geo2_LOD3" })},
         { TechType.Locker, new RendererData("model/submarine_Storage_locker_big_01", new List<string> { "submarine_Storage_locker_big_01_hinges_R/submarine_Storage_locker_big_01_door_R",
@@ -203,7 +219,7 @@ namespace Tweaks_Fixes
         "7444baa0-1416-4cb6-aa9a-162ccd4b98c7",// Coral_reef_floating_stones_mid_02
         "93a9886d-f2d3-4b6c-8e5f-216f569f82b2",// Coral_reef_slanted_coral_plates_01_02
         "fcf04278-bfbb-409d-bada-a6f22564efde",// Coral_reef_koosh_bush_large
-        //"430b36ae-94f3-4289-91ac-25475ad3bf74",// Precursor_Prison_Outpost5
+        "210fdf87-54e0-4c83-9bf3-31bbc06f38a6",// coral_reef_plant_small_01_03 BluePalm
         //"20ad299d-ca52-48ef-ac29-c5ec5479e070",// Precursor_Prison_Outpost4
         //"",// Coral_reef_floating_stones_big_02
         };
@@ -634,6 +650,10 @@ namespace Tweaks_Fixes
             foreach (var kv in eatables)
             {
                 UWE.CoroutineHost.StartCoroutine(MakeEatable(kv.Key));
+            }
+            foreach (string classID in glassRendererList)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(classID));
             }
             foreach (var kv in glassRenderers)
             {

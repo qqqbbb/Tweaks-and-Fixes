@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.19.1";
+            VERSION = "4.19.2";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -274,9 +274,9 @@ namespace Tweaks_Fixes
                 BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
                 UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
             }
-            //if (AbandonedBaseFixerNEW.abandonedBasesFixed == false)
+            //if (AbandonedBaseFixer.abandonedBasesFixed == false)
             //{
-            //    AbandonedBaseFixerNEW abandonedBaseFixer = new AbandonedBaseFixerNEW();
+            //    AbandonedBaseFixer abandonedBaseFixer = new AbandonedBaseFixer();
             //    abandonedBaseFixer.FixAbandonedBases();
             //}
         }
