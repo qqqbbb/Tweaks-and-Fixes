@@ -14,45 +14,57 @@ namespace Tweaks_Fixes
         public static bool abandonedBasesFixed;
         HashSet<string> badLODs = new HashSet<string> { "BaseAbandonedRoomCorridorConnector", "BaseAbandonedRoom", "BaseAbandonedFoundationPiece", "BaseAbandonedCorridorIShape", "BaseAbandonedCorridorTShape", "BaseAbandonedRoomInteriorTop", "BaseAbandonedRoomHatch", "BaseRoomCoverTop", "BaseAbandonedRoomExteriorTop", "BaseAbandonedCorridorXShape", "BaseAbandonedCorridorCoverXShapeTopExtClosed", "BaseAbandonedCorridorIShapeGlass", "BaseRoomCoverBottom", "BaseAbandonedRoomReinforcementSide" };
 
-        //[HarmonyPatch(typeof(LargeWorldEntity))]
+        Dictionary<string, List<RendererData>> glassRenderers = new Dictionary<string, List<RendererData>>{
+            {"BaseRoomWaterParkBottom", new List<RendererData>{ new RendererData("model/Large_Aquarium_generic_room_glass_01" )
+            }},
+            {"BaseAbandonedRoomFiltrationMachine",new List<RendererData>{  new RendererData("model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass" )
+            }},
+            { "BaseAbandonedRoomWindowSideBroken", new List<RendererData>{ new RendererData("BaseRoomGenericInteriorWindowSide01Broken02", new List<string> { "BaseInteriorRoomGenericWindowSide01GlassBroken", "BaseExteriorRoomGenericWindowSide01GlassBroken" })
+            }},
+            {"BaseAbandonedRoomWindowSide", new List<RendererData>{
+                new RendererData( "BaseRoomGenericInteriorWindowSide01Broken01", new List<string>{ "BaseInteriorRoomGenericWindowSide01Glass", "BaseExteriorRoomGenericWindowSide01Glass" }),
+                new RendererData("LODs", new List<string>{"BaseRoomGenericInteriorWindowSide01_LOD3/BaseInteriorRoomGenericWindowSide01Glass_LOD3",  "BaseRoomGenericInteriorWindowSide01_LOD2/BaseInteriorRoomGenericWindowSide01Glass_LOD2", "BaseRoomGenericInteriorWindowSide01_LOD1/BaseInteriorRoomGenericWindowSide01Glass_LOD1" })
+            } },
+            {"BaseAbandonedRoomHatch", new List<RendererData>{
+                new RendererData( "BaseCorridorHatch/models/BaseCorridorExteriorCapHatch/BaseCorridorExteriorCapHatchMovable"),
+                new RendererData( "LODs", new List<string>{ "BaseCorridorExteriorCapHatch_LOD1/BaseCorridorExteriorCapHatchMovable_LOD1", "BaseCorridorExteriorCapHatch_LOD2/BaseCorridorExteriorCapHatchMovable_LOD2", "BaseCorridorExteriorCapHatch_LOD3/BaseCorridorExteriorCapHatchMovable_LOD3" }),
+            } },
+            {"BaseAbandonedCorridorIShapeGlass", new List<RendererData>{
+                new RendererData("models/BaseCorridorhIShapeGlass01Exterior/BaseCorridorhIShapeGlass01ExteriorGlass"),
+                new RendererData("LODs", new List<string>{"BaseCorridorhIShapeGlass01Exterior_LOD1/BaseCorridorhIShapeGlass01ExteriorGlass_LOD1", "BaseCorridorhIShapeGlass01Exterior_LOD2/BaseCorridorhIShapeGlass01ExteriorGlass_LOD2", "BaseCorridorhIShapeGlass01Exterior_LOD3/BaseCorridorhIShapeGlass01ExteriorGlass_LOD3" }),
+            } },
+            {"BaseAbandonedObservatory", new List<RendererData>{
+                new RendererData("BaseAbandonedRoomObservatory/BaseRoomObservatory_glass"),
+                new RendererData("LODs", new List<string>{ "BaseAbandonedRoomObservatory_LOD3/BaseRoomObservatory_glass_LOD3", "BaseAbandonedRoomObservatory_LOD2/BaseRoomObservatory_glass_LOD2", "BaseAbandonedRoomObservatory_LOD1/BaseRoomObservatory_glass_LOD1" }),
+            } },
+            {"BaseAbandonedCorridorWindow", new List<RendererData>{
+                new RendererData("models", new List<string>{ "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCap_01_int", "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCap_01_ext", "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCapWindow_01_int" }),
+                new RendererData("LODs", new List<string>{ "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCap_01_int_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCap_01_int_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCap_01_int_LOD3", "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCap_01_ext_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCap_01_ext_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCap_01_ext_LOD3", "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCapGlass_01_int_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCapGlass_01_int_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCapWindow_01_int_LOD3" })
+            } },
+            {"BaseAbandonedCorridorIShapeWindowSide", new List<RendererData>{
+                new RendererData("BaseAbandonedCorridorInteriorWindowSide", new List<string>{ "BaseAbandonedCorridorInteriorWindowSide_ext", "BaseAbandonedCorridorInteriorWindowSideGlass_int" }),
+                new RendererData("LODs", new List<string>{ "BaseAbandonedCorridorInteriorWindowSide_LOD1/BaseAbandonedCorridorInteriorWindowSide_ext_LOD1", "BaseAbandonedCorridorInteriorWindowSide_LOD2/BaseAbandonedCorridorInteriorWindowSide_ext_LOD2", "BaseAbandonedCorridorInteriorWindowSide_LOD3/BaseAbandonedCorridorInteriorWindowSide_ext_LOD3", "BaseAbandonedCorridorInteriorWindowSide_LOD1/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD1", "BaseAbandonedCorridorInteriorWindowSide_LOD2/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD2", "BaseAbandonedCorridorInteriorWindowSide_LOD3/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD3"}),
+            } },
+            {"BaseAbandonedCorridorTShape", new List<RendererData>{
+                new RendererData("BaseAbandonedCorridorTShapeWindowTop/models/BaseCorridorTShapeExteriorWindowTop/BaseCorridorTShapeExteriorWindowTop_glass"),
+                new RendererData("BaseAbandonedCorridorTShapeWindowTop/LODs", new List<string>{ "BaseCorridorTShapeExteriorWindowTop_LOD1/BaseCorridorTShapeExteriorWindowTop_glass_LOD1", "BaseCorridorTShapeExteriorWindowTop_LOD2/BaseCorridorTShapeExteriorWindowTop_glass_LOD2", "BaseCorridorTShapeExteriorWindowTop_LOD3/BaseCorridorTShapeExteriorWindowTop_glass_LOD3" }),
+            } },
+                {"BaseAbandonedCorridorHatch", new List<RendererData>{
+                new RendererData("models/BaseCorridorExteriorCapHatch/BaseCorridorExteriorCapHatchMovable"),
+                new RendererData("LODs", new List<string>{ "BaseCorridorExteriorCapHatch_LOD1/BaseCorridorExteriorCapHatchMovable_LOD1", "BaseCorridorExteriorCapHatch_LOD2/BaseCorridorExteriorCapHatchMovable_LOD2", "BaseCorridorExteriorCapHatch_LOD3/BaseCorridorExteriorCapHatchMovable_LOD3" }),
+            } },
+        };
+
+        [HarmonyPatch(typeof(LargeWorldEntity))]
         class LargeWorldEntity_Patch
         {
-            //[HarmonyPostfix, HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(LargeWorldEntity __instance)
             {
                 if (__instance.transform.parent && __instance.transform.parent.parent && __instance.transform.parent.name == "Decoration" && __instance.transform.parent.parent.name == "BaseCell" && __instance.name.StartsWith("Starship_cargo"))
                 { // decals on ctares not their children, they stay when crates move
                     //AddDebug("base crate " + __instance.name);
                     __instance.gameObject.MakeUnmovable();
-                }
-                return;
-                switch (__instance.name)
-                {
-                    case "DeepGrandReefAbandonedBase(Clone)":
-                        //FixDeepGrandReefBase(__instance.gameObject);
-                        //FixDeepGrandReefBaseDecals(__instance.gameObject);
-                        break;
-                    case "AbandonedBaseJellyShroom1(Clone)":
-                        //FixJellyShroomBase1(__instance.gameObject);
-                        break;
-                    case "AbandonedBaseJellyShroom3(Clone)":
-                        //FixJellyShroomBase3(__instance.gameObject);
-                        break;
-                    case "AbandonedBaseJellyShroom4(Clone)":
-                        //FixJellyShroomBase4(__instance.gameObject);
-                        break;
-                    case "AbandonedBaseJellyShroom6(Clone)":
-                        //FixJellyShroomBase6(__instance.gameObject);
-                        break;
-                    case "AbandonedBaseFloatingIsland1(Clone)":
-                        //FixFloatingIslandBase1(__instance.gameObject);
-                        break;
-                    case "AbandonedBaseFloatingIsland3(Clone)":
-                        //FixFloatingIslandBase3(__instance.gameObject);
-                        break;
-                    case "AbandonedBaseFloatingIsland2(Clone)":
-                        //FixFloatingIslandBase2(__instance.gameObject);
-                        break;
                 }
             }
         }
@@ -61,7 +73,12 @@ namespace Tweaks_Fixes
         {
             UWE.CoroutineHost.StartCoroutine(FixDeepGrandReefBase());
             UWE.CoroutineHost.StartCoroutine(FixJellyShroomBase1());
-
+            UWE.CoroutineHost.StartCoroutine(FixJellyShroomBase3());
+            UWE.CoroutineHost.StartCoroutine(FixJellyShroomBase4());
+            UWE.CoroutineHost.StartCoroutine(FixJellyShroomBase6());
+            UWE.CoroutineHost.StartCoroutine(FixFloatingIslandBase1());
+            UWE.CoroutineHost.StartCoroutine(FixFloatingIslandBase2());
+            UWE.CoroutineHost.StartCoroutine(FixFloatingIslandBase3());
             abandonedBasesFixed = true;
         }
 
@@ -78,52 +95,66 @@ namespace Tweaks_Fixes
             FixJellyShroomBaseCollision(prefab);
             Transform culling = prefab.transform.GetChild(1);
             FixAbandonedBaseGlass(culling.gameObject);
-            ////UWE.CoroutineHost.StartCoroutine(FixDecals(culling));
-            //FixBlackTextureDecals(culling);
+            FixBlackTextureDecals(culling, true);
 
-            //if (ConfigToEdit.disableHotMetalGlow.Value)
-            //{
-            //    Transform damage = culling.Find("Damage");
-            //    damage.gameObject.DisableGlowShader();
-            //}
-            //if (Util.IsGraphicsPresetHighDetail())
-            //{
-            //    DistanceCull distanceCull = culling.GetComponent<DistanceCull>();
-            //    distanceCull.distanceSqr = 50000;
-            //    FixBaseLODs(culling.gameObject);
-            //    //FixJellyShroomBase1Loot(base_.transform);
-            //}
+            if (ConfigToEdit.disableHotMetalGlow.Value)
+            {
+                Transform damage = culling.Find("Damage");
+                damage.gameObject.DisableGlowShader();
+            }
+            if (Util.IsGraphicsPresetHighDetail())
+            {
+                DistanceCull distanceCull = culling.GetComponent<DistanceCull>();
+                distanceCull.distanceSqr = 50000;
+                FixBaseLODs(culling.gameObject);
+            }
         }
 
-        private static void FixJellyShroomBase1Loot(Transform base_)
-        {
-            Transform slots = base_.GetChild(0);
-            Transform t = slots.GetChild(slots.childCount - 3);
-            t.localPosition = new Vector3(t.localPosition.x, 0, t.localPosition.z);
-        }
-
-        private void FixJellyShroomBase6(GameObject base_)
+        private IEnumerator FixJellyShroomBase6()
         {// -393 -230 -110
-            FixBaseLODs(base_);
-            FixAbandonedBaseGlass(base_);
-            //UWE.CoroutineHost.StartCoroutine(FixDecals(base_.transform));
-            FixBlackTextureDecals(base_.transform);
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("c1139534-b3b9-4750-b60b-a77ca054b3dd");
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("FixJellyShroomBase6 No prefab");
+                yield break;
+            }
+            FixAbandonedBaseGlass(prefab);
+            FixBlackTextureDecals(prefab.transform);
+            if (Util.IsGraphicsPresetHighDetail())
+                FixBaseLODs(prefab);
         }
 
-        private static void FixJellyShroomBase4(GameObject base_)
+        private IEnumerator FixJellyShroomBase4()
         {//  -540 -250 -86
-            FixBlackTextureDecals(base_.transform);
-            FixJellyShroomBase4Decals(base_);
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("256a06d3-b861-487a-b8ac-050daa0d683d");
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("FixJellyShroomBase6 No prefab");
+                yield break;
+            }
+            FixBlackTextureDecals(prefab.transform);
+            FixJellyShroomBase4Decals(prefab);
         }
 
-        private static void FixJellyShroomBase3(GameObject base_)
+        private IEnumerator FixJellyShroomBase3()
         { // -265 -240 -231
-            FixBlackTextureDecals(base_.transform);
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("026c39c1-d0cc-442c-aa42-e574c9c281b2");
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("FixJellyShroomBase3 No prefab");
+                yield break;
+            }
+            FixBlackTextureDecals(prefab.transform);
         }
 
         private IEnumerator FixDeepGrandReefBase()
         {// DeepGrandReefAbandonedBase -642 -509 -943
-            Main.logger.LogDebug("FixDeepGrandReefBase");
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync("42a80cbc-d9fd-49d2-94b3-b5178024b3cb");
             yield return request;
             GameObject prefab;
@@ -142,17 +173,25 @@ namespace Tweaks_Fixes
                 FixBaseLODs(prefab);
         }
 
-        private void FixFloatingIslandBase1(GameObject base_)
+        private IEnumerator FixFloatingIslandBase1()
         {// AbandonedBaseFloatingIsland1 -754 16 -1118
-            FixAbandonedBaseGlass(base_);
-            FixFloatingIslandBase1Decals(base_);
-            FixBlackTextureDecals(base_.transform);
-            FixFloatingIslandBase1Collision(base_);
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("99b164ac-dfb4-4a14-b305-8666fa227717");
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("FixFloatingIslandBase1 No prefab");
+                yield break;
+            }
+            FixAbandonedBaseGlass(prefab);
+            //FixFloatingIslandBase1Decals(prefab);
+            FixBlackTextureDecals(prefab.transform);
+            FixFloatingIslandBase1Collision(prefab);
             if (Util.IsGraphicsPresetHighDetail())
-                FixBaseLODs(base_);
+                FixBaseLODs(prefab);
         }
 
-        private static void FixFloatingIslandBase1Decals(GameObject base_)
+        private void FixFloatingIslandBase1Decals(GameObject base_)
         {
             Transform baseCell = base_.transform.GetChild(4);
             Transform decals = baseCell.GetChild(0);
@@ -173,33 +212,53 @@ namespace Tweaks_Fixes
             t = decals.GetChild(22); // texture z fighting
             t.position = new Vector3(-757.39f, t.position.y, t.position.z);
             t = decals.GetChild(34);
-            //t.SetPositionAndRotation(new Vector3(t.position.x, t.position.y, -6.4f), Quaternion.Euler(0, 40.13f, 350));
-            //t.eulerAngles = new Vector3(t.eulerAngles.x, 40.13f, 335f);
-
         }
 
-        private void FixFloatingIslandBase3(GameObject base_)
+        private IEnumerator FixFloatingIslandBase3()
         {// AbandonedBaseFloatingIsland3  -705 76 -1163
-            FixBlackTextureDecals(base_.transform);
-            FixAbandonedBaseGlass(base_);
-            FixFloatingIslandBase3Collision(base_);
-            FixFloatingIslandBase3Decals(base_);
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("0e394d55-da8c-4b3e-b038-979477ce77c1");
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("FixFloatingIslandBase3 No prefab");
+                yield break;
+            }
+            FixBlackTextureDecals(prefab.transform);
+            FixAbandonedBaseGlass(prefab);
+            FixFloatingIslandBase3Collision(prefab);
+            //FixFloatingIslandBase3Decals(base_);
             if (Util.IsGraphicsPresetHighDetail())
-                FixBaseLODs(base_);
+                FixBaseLODs(prefab);
         }
 
-        private void FixFloatingIslandBase2(GameObject base_)
+        private IEnumerator FixFloatingIslandBase2()
         {// AbandonedBaseFloatingIsland2  -800 78 -1055
-            FixAbandonedBaseGlass(base_);
-            FixFloatingIslandBase2Collision(base_);
-            FixBlackTextureDecals(base_.transform);
-            FixFloatingIslandBase2Decals(base_);
-
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("569f22e0-274d-49b0-ae5e-21ef0ce907ca");
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("FixFloatingIslandBase2 No prefab");
+                yield break;
+            }
+            FixAbandonedBaseGlass(prefab);
+            FixFloatingIslandBase2Collision(prefab);
+            FixBlackTextureDecals(prefab.transform);
+            //FixFloatingIslandBase2Decals(prefab);
+            MoveFloatingIslandBase2LootCrate(prefab);
             if (Util.IsGraphicsPresetHighDetail())
-                FixBaseLODs(base_);
+                FixBaseLODs(prefab);
         }
 
-        private static void FixFloatingIslandBase2Decals(GameObject base_)
+        private void MoveFloatingIslandBase2LootCrate(GameObject base_)
+        {
+            Transform slots = base_.transform.GetChild(3);
+            Transform cratePlaceholder = slots.GetChild(10);
+            cratePlaceholder.position = new Vector3(-804.8f, 76.3f, -1057.4f);
+        }
+
+        private void FixFloatingIslandBase2Decals(GameObject base_)
         {
             Transform baseCell = base_.transform.GetChild(2);
             Transform decals = baseCell.GetChild(0);
@@ -226,7 +285,7 @@ namespace Tweaks_Fixes
             t.position = new Vector3(-803.5f, t.position.y, -1051.05f);
         }
 
-        private static void FixFloatingIslandBase3Decals(GameObject base_)
+        private void FixFloatingIslandBase3Decals(GameObject base_)
         {
             Transform baseCell = base_.transform.GetChild(1);
             Transform decals = baseCell.GetChild(0);
@@ -234,14 +293,14 @@ namespace Tweaks_Fixes
             t.position = new Vector3(-714.21f, t.position.y, t.position.z);
         }
 
-        public static void FixBlackTextureDecals(Transform base_)
+        public void FixBlackTextureDecals(Transform base_, bool decalsInRoot = false)
         {
+            //Main.logger.LogDebug("FixBlackTextureDecals " + base_.name);
             List<Transform> baseCells;
-            //Transform decals = base_.Find("Decals");
-            //if (decals == null)
-            baseCells = base_.transform.FindAllChildren("BaseCell");
-            //else // AbandonedBaseJellyShroom1
-            //    baseCells = new List<Transform> { base_ };
+            if (decalsInRoot)
+                baseCells = new List<Transform> { base_ };
+            else
+                baseCells = base_.FindAllChildren("BaseCell");
 
             foreach (Transform baseCell in baseCells)
             {
@@ -256,15 +315,10 @@ namespace Tweaks_Fixes
                     renderer.material.mainTexture = decalTexture;
                     renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 }
-                //Transform coral = baseCell.Find("Coral");
-                //if (coral == null) // placeholder
-                //    continue;
-
-                //coral.DisableShadowCastingInChildren();
             }
         }
 
-        private static void FixJellyShroomBase4Decals(GameObject base_)
+        private void FixJellyShroomBase4Decals(GameObject base_)
         {
             Transform baseCell = base_.transform.GetChild(0);
             Transform decals = baseCell.transform.GetChild(0);
@@ -276,7 +330,7 @@ namespace Tweaks_Fixes
             decal.localPosition = new Vector3(2.45f, decal.localPosition.y, decal.localPosition.z);
         }
 
-        private static void FixDeepGrandReefBaseColliders(GameObject base_)
+        private void FixDeepGrandReefBaseColliders(GameObject base_)
         {
             for (int i = 1; i < 4; i += 2)
             {
@@ -298,7 +352,7 @@ namespace Tweaks_Fixes
 
         private void FixBaseLODs(GameObject base_)
         {
-            Main.logger.LogDebug("FixBaseLODs " + base_.name);
+            //Main.logger.LogDebug("FixBaseLODs " + base_.name);
             List<Transform> baseCells = base_.transform.FindAllChildren("BaseCell");
             foreach (Transform baseCell in baseCells)
             {
@@ -311,19 +365,19 @@ namespace Tweaks_Fixes
             }
         }
 
-        private static void FixFloatingIslandBase2Collision(GameObject base_)
+        private void FixFloatingIslandBase2Collision(GameObject base_)
         {
-            Transform baseCEll = base_.transform.GetChild(1);
-            Transform col = baseCEll.Find("BaseAbandonedCorridorIShape/collisions/Cube");
+            Transform baseCell = base_.transform.GetChild(1);
+            Transform col = baseCell.Find("BaseAbandonedCorridorIShape/collisions/Cube");
             BoxCollider[] bcs = col.GetComponents<BoxCollider>();
             FixCorridorColliders(bcs);
-            baseCEll = base_.transform.GetChild(2);
-            col = baseCEll.Find("BaseAbandonedCorridorTShape/collisions/Cube");
+            baseCell = base_.transform.GetChild(2);
+            col = baseCell.Find("BaseAbandonedCorridorTShape/collisions/Cube");
             bcs = col.GetComponents<BoxCollider>();
             FixCorridorColliders(bcs);
         }
 
-        private static void FixFloatingIslandBase3Collision(GameObject base_)
+        private void FixFloatingIslandBase3Collision(GameObject base_)
         {
             Transform baseCEll = base_.transform.GetChild(1);
             Transform col = baseCEll.Find("BaseAbandonedCorridorIShape/collisions/Cube");
@@ -345,7 +399,7 @@ namespace Tweaks_Fixes
             col.localPosition = new Vector3(0, 0.4f, 0);
         }
 
-        private static void FixCorridorColliders(BoxCollider[] bcs)
+        private void FixCorridorColliders(BoxCollider[] bcs)
         {
             foreach (BoxCollider c in bcs)
             {
@@ -356,28 +410,28 @@ namespace Tweaks_Fixes
             }
         }
 
-        private static void FixFloatingIslandBase1Collision(GameObject base_)
+        private void FixFloatingIslandBase1Collision(GameObject base_)
         {
-            Transform baseCEll = base_.transform.GetChild(3);
-            Transform col = baseCEll.Find("BaseAbandonedCorridorIShape/BaseAbandonedCorridorCoverIShapeTopExtOpened/collisions/Cube");
+            Transform baseCell = base_.transform.GetChild(3);
+            Transform col = baseCell.Find("BaseAbandonedCorridorIShape/BaseAbandonedCorridorCoverIShapeTopExtOpened/collisions/Cube");
             BoxCollider[] bcs = col.GetComponents<BoxCollider>();
             foreach (BoxCollider c in bcs)
             { // colliders next to ladder you get stuck in
                 c.center = new Vector3(c.center.x, -1f, c.center.z);
             }
-            col = baseCEll.Find("BaseAbandonedCorridorIShape/collisions/Cube");
+            col = baseCell.Find("BaseAbandonedCorridorIShape/collisions/Cube");
             bcs = col.GetComponents<BoxCollider>();
             FixCorridorColliders(bcs);
-            baseCEll = base_.transform.GetChild(2);
+            baseCell = base_.transform.GetChild(2);
             //col = baseCEll.Find("BaseAbandonedCorridorXShape/BaseCorridorCoverXShapeBottomIntClosed/collisions");
             //col.gameObject.SetActive(false);
 
-            col = baseCEll.Find("BaseAbandonedCorridorBulkhead/collisions/Cube");
+            col = baseCell.Find("BaseAbandonedCorridorBulkhead/collisions/Cube");
             bcs = col.GetComponents<BoxCollider>();
             BoxCollider bc = bcs[bcs.Length - 1];
             UnityEngine.Object.Destroy(bc); // make it easy to exit thru door
 
-            col = baseCEll.Find("BaseAbandonedCorridorXShape/collisions/Cube");
+            col = baseCell.Find("BaseAbandonedCorridorXShape/collisions/Cube");
             bcs = col.GetComponents<BoxCollider>();
             foreach (BoxCollider c in bcs)
             {
@@ -394,11 +448,9 @@ namespace Tweaks_Fixes
             bc.size = new Vector3(5.1f, bc.size.y, bc.size.z);
             bc = bcs[bcs.Length - 3];
             UnityEngine.Object.Destroy(bc);
-            //baseCEll = base_.transform.GetChild(5);
-            //col = baseCEll.Find("BaseAbandonedCorridorIShape/BaseAbandonedCorridorCap/collisions/Cube");
         }
 
-        private static void FixJellyShroomBaseCollision(GameObject base_)
+        private void FixJellyShroomBaseCollision(GameObject base_)
         {
             Transform culling = base_.transform.GetChild(1);
             Transform baseCell = culling.transform.GetChild(8);
@@ -456,49 +508,8 @@ namespace Tweaks_Fixes
             bc.size = new Vector3(1, 0.2f, bc.size.z);
         }
 
-        private static void FixAbandonedBaseGlass(GameObject base_)
+        private void FixAbandonedBaseGlass(GameObject base_)
         {
-            Dictionary<string, List<RendererData>> glassRenderers = new Dictionary<string, List<RendererData>>{
-                {"BaseRoomWaterParkBottom", new List<RendererData>{ new RendererData("model/Large_Aquarium_generic_room_glass_01" )
-                }},
-                {"BaseAbandonedRoomFiltrationMachine",new List<RendererData>{  new RendererData("model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass" )
-                }},
-                { "BaseAbandonedRoomWindowSideBroken", new List<RendererData>{ new RendererData("BaseRoomGenericInteriorWindowSide01Broken02", new List<string> { "BaseInteriorRoomGenericWindowSide01GlassBroken", "BaseExteriorRoomGenericWindowSide01GlassBroken" })
-                }},
-                {"BaseAbandonedRoomWindowSide", new List<RendererData>{
-                    new RendererData( "BaseRoomGenericInteriorWindowSide01Broken01", new List<string>{ "BaseInteriorRoomGenericWindowSide01Glass", "BaseExteriorRoomGenericWindowSide01Glass" }),
-                    new RendererData("LODs", new List<string>{"BaseRoomGenericInteriorWindowSide01_LOD3/BaseInteriorRoomGenericWindowSide01Glass_LOD3",  "BaseRoomGenericInteriorWindowSide01_LOD2/BaseInteriorRoomGenericWindowSide01Glass_LOD2", "BaseRoomGenericInteriorWindowSide01_LOD1/BaseInteriorRoomGenericWindowSide01Glass_LOD1" })
-                } },
-                {"BaseAbandonedRoomHatch", new List<RendererData>{
-                    new RendererData( "BaseCorridorHatch/models/BaseCorridorExteriorCapHatch/BaseCorridorExteriorCapHatchMovable"),
-                    new RendererData( "LODs", new List<string>{ "BaseCorridorExteriorCapHatch_LOD1/BaseCorridorExteriorCapHatchMovable_LOD1", "BaseCorridorExteriorCapHatch_LOD2/BaseCorridorExteriorCapHatchMovable_LOD2", "BaseCorridorExteriorCapHatch_LOD3/BaseCorridorExteriorCapHatchMovable_LOD3" }),
-                } },
-                {"BaseAbandonedCorridorIShapeGlass", new List<RendererData>{
-                    new RendererData("models/BaseCorridorhIShapeGlass01Exterior/BaseCorridorhIShapeGlass01ExteriorGlass"),
-                    new RendererData("LODs", new List<string>{"BaseCorridorhIShapeGlass01Exterior_LOD1/BaseCorridorhIShapeGlass01ExteriorGlass_LOD1", "BaseCorridorhIShapeGlass01Exterior_LOD2/BaseCorridorhIShapeGlass01ExteriorGlass_LOD2", "BaseCorridorhIShapeGlass01Exterior_LOD3/BaseCorridorhIShapeGlass01ExteriorGlass_LOD3" }),
-                } },
-                {"BaseAbandonedObservatory", new List<RendererData>{
-                    new RendererData("BaseAbandonedRoomObservatory/BaseRoomObservatory_glass"),
-                    new RendererData("LODs", new List<string>{ "BaseAbandonedRoomObservatory_LOD3/BaseRoomObservatory_glass_LOD3", "BaseAbandonedRoomObservatory_LOD2/BaseRoomObservatory_glass_LOD2", "BaseAbandonedRoomObservatory_LOD1/BaseRoomObservatory_glass_LOD1" }),
-                } },
-                {"BaseAbandonedCorridorWindow", new List<RendererData>{
-                    new RendererData("models", new List<string>{ "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCap_01_int", "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCap_01_ext", "BaseAbandonedCorridorExteriorCap_01/BaseCorridorExteriorCapWindow_01_int" }),
-                    new RendererData("LODs", new List<string>{ "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCap_01_int_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCap_01_int_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCap_01_int_LOD3", "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCap_01_ext_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCap_01_ext_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCap_01_ext_LOD3", "BaseAbandonedCorridorExteriorCap_01_LOD1/BaseCorridorExteriorCapGlass_01_int_LOD1", "BaseAbandonedCorridorExteriorCap_01_LOD2/BaseCorridorExteriorCapGlass_01_int_LOD2", "BaseAbandonedCorridorExteriorCap_01_LOD3/BaseCorridorExteriorCapWindow_01_int_LOD3" })
-                } },
-                {"BaseAbandonedCorridorIShapeWindowSide", new List<RendererData>{
-                    new RendererData("BaseAbandonedCorridorInteriorWindowSide", new List<string>{ "BaseAbandonedCorridorInteriorWindowSide_ext", "BaseAbandonedCorridorInteriorWindowSideGlass_int" }),
-                    new RendererData("LODs", new List<string>{ "BaseAbandonedCorridorInteriorWindowSide_LOD1/BaseAbandonedCorridorInteriorWindowSide_ext_LOD1", "BaseAbandonedCorridorInteriorWindowSide_LOD2/BaseAbandonedCorridorInteriorWindowSide_ext_LOD2", "BaseAbandonedCorridorInteriorWindowSide_LOD3/BaseAbandonedCorridorInteriorWindowSide_ext_LOD3", "BaseAbandonedCorridorInteriorWindowSide_LOD1/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD1", "BaseAbandonedCorridorInteriorWindowSide_LOD2/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD2", "BaseAbandonedCorridorInteriorWindowSide_LOD3/BaseAbandonedCorridorInteriorWindowSideGlass_int_LOD3"}),
-                } },
-                {"BaseAbandonedCorridorTShape", new List<RendererData>{
-                    new RendererData("BaseAbandonedCorridorTShapeWindowTop/models/BaseCorridorTShapeExteriorWindowTop/BaseCorridorTShapeExteriorWindowTop_glass"),
-                    new RendererData("BaseAbandonedCorridorTShapeWindowTop/LODs", new List<string>{ "BaseCorridorTShapeExteriorWindowTop_LOD1/BaseCorridorTShapeExteriorWindowTop_glass_LOD1", "BaseCorridorTShapeExteriorWindowTop_LOD2/BaseCorridorTShapeExteriorWindowTop_glass_LOD2", "BaseCorridorTShapeExteriorWindowTop_LOD3/BaseCorridorTShapeExteriorWindowTop_glass_LOD3" }),
-                } },
-                    {"BaseAbandonedCorridorHatch", new List<RendererData>{
-                    new RendererData("models/BaseCorridorExteriorCapHatch/BaseCorridorExteriorCapHatchMovable"),
-                    new RendererData("LODs", new List<string>{ "BaseCorridorExteriorCapHatch_LOD1/BaseCorridorExteriorCapHatchMovable_LOD1", "BaseCorridorExteriorCapHatch_LOD2/BaseCorridorExteriorCapHatchMovable_LOD2", "BaseCorridorExteriorCapHatch_LOD3/BaseCorridorExteriorCapHatchMovable_LOD3" }),
-                } },
-            };
-
             List<Transform> baseCells = base_.transform.FindAllChildren("BaseCell");
 
             foreach (Transform baseCell in baseCells)
@@ -510,32 +521,13 @@ namespace Tweaks_Fixes
                     foreach (Transform window in windows)
                     {
                         foreach (RendererData data in glassRenderers[windowName])
-                        {
                             window.DisableShadowCasting(data);
-                        }
-                        //string[] rendererNames = glassRenderers[window.name];
-                        //if (rendererNames == null)
-                        {
-                            //AddDebug($"FixGlass no renderer names for window {window.name}");
-                            //Main.logger.LogError($"FixGlass no renderer names for window {window.name}");
-                        }
-                        //foreach (string rendererName in rendererNames)
-                        //{
-                        //    Transform renderer = window.Find(rendererName);
-                        //    if (renderer == null)
-                        {
-                            //AddDebug($"FixGlass window {window.name} has no renderer {rendererName}");
-                            //Main.logger.LogError($"FixGlass window {window.name} has no renderer {rendererName}");
-                            //continue;
-                        }
-                        //renderer.DisableShadowCasting();
                     }
                 }
             }
         }
-        //}
 
-        private static void FixDeepGrandReefBasePillars(GameObject base_)
+        private void FixDeepGrandReefBasePillars(GameObject base_)
         {
             Transform t = base_.transform.GetChild(12);
             t = t.GetChild(1);
@@ -560,7 +552,7 @@ namespace Tweaks_Fixes
             t.localScale = new Vector3(1, 1, 1.5f);
         }
 
-        private static void FixDeepGrandReefBaseDecals(GameObject base_)
+        private void FixDeepGrandReefBaseDecals(GameObject base_)
         {
             Transform baseCell = base_.transform.GetChild(3);
             Transform coral = baseCell.GetChild(0);
@@ -590,103 +582,5 @@ namespace Tweaks_Fixes
             t.SetPositionAndRotation(new Vector3(-155.8f, -7.5f, 132.8f), Quaternion.Euler(0, 182f, 0)); // move to -649 -511 -946
         }
 
-        private static void FixDecals_(GameObject base_)
-        {
-            for (int i = 1; i < 13; i++)
-            {
-                Transform baseCell_ = base_.transform.GetChild(i);
-                Transform decals_ = baseCell_.Find("Decals");
-                if (decals_ == null)
-                    continue;
-
-                foreach (Renderer r in decals_.GetComponentsInChildren<MeshRenderer>())
-                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            }
-            Transform baseCell = base_.transform.GetChild(3);
-            Transform coral = baseCell.GetChild(0);
-            Transform t = coral.GetChild(21); // starfish on AC wall. Only 1 side is visible. Place it in AC
-            bool wasFixedBefore = t.eulerAngles.x == 0;
-            //AddDebug($"FixDecals wasFixedBefore  {wasFixedBefore}");
-            if (wasFixedBefore == false)
-            {
-                t.SetPositionAndRotation(new Vector3(-641.3f, -503.25f, -945.5f), Quaternion.Euler(0, 120f, 0));
-                t = coral.GetChild(22); // starfish on AC wall
-                t.SetPositionAndRotation(new Vector3(-642f, -506.95f, -943f), Quaternion.Euler(0, 13, 0));
-                t = coral.GetChild(23); // starfish on AC wall
-                t.SetPositionAndRotation(new Vector3(-642.6f, -502.4f, -944f), Quaternion.Euler(0, 0, 0));
-                t = coral.GetChild(6); // starfish on roof
-                t.position = new Vector3(-642.2f, -497.86f, -943.1f);
-            }
-
-            baseCell = base_.transform.GetChild(5);
-            Transform decals = baseCell.GetChild(0);
-            List<Transform> toDestroy = new List<Transform>();
-            foreach (int i in new[] { 10, 23, 24 }) // stray decals
-                toDestroy.Add(decals.GetChild(i));
-
-            foreach (var tt in toDestroy)
-                UnityEngine.Object.Destroy(tt.gameObject);
-
-            //List<Transform> onBigCrate = new List<Transform>();
-            //List<Transform> onCrate = new List<Transform>();
-            //List<Transform> onCrate1 = new List<Transform>();
-            //List<Transform> onCrate2 = new List<Transform>();
-            //List<Transform> onCrate3 = new List<Transform>();
-            if (wasFixedBefore)
-                return;
-
-            //Transform deco = baseCell.GetChild(1);
-            coral = baseCell.GetChild(2);
-            //AddDebug($"deco.childCount {deco.childCount}");
-
-            for (int i = 0; i < coral.childCount; i++)
-            {
-                Transform child = coral.GetChild(i);
-                Main.logger.LogDebug($"coral child {i} {child.name} {child.position}");
-            }
-            t = coral.GetChild(9);// stray starfish near big crate -633.074 -510.363 -938.11
-            t.SetPositionAndRotation(new Vector3(-633f, -511.1f, -938.1f), Quaternion.Euler(0, 309f, 0));
-            t = coral.GetChild(0);// stray starfish in big crate -634.105 -509.685 -938.331
-            t.SetPositionAndRotation(new Vector3(-649f, -511.2f, -946f), Quaternion.Euler(0, 182f, 0));
-            return;
-
-            //t = coral.GetChild(15);
-            //onBigCrate.Add(t);
-            //t = coral.GetChild(coral.childCount - 1);
-            //onBigCrate.Add(t);
-
-            //foreach (int i in new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 28, 29, 30 })
-            //    onBigCrate.Add(decals.GetChild(i));
-
-            //t = coral.GetChild(coral.childCount - 2);
-            //onCrate.Add(t);
-            //t = coral.GetChild(coral.childCount - 3);
-            //onCrate.Add(t);
-            //t = coral.GetChild(coral.childCount - 4);
-            //onCrate.Add(t);
-
-            //foreach (int i in new[] { 9, 20, 21 })
-            //    onCrate.Add(decals.GetChild(i));
-
-            //foreach (int i in new[] { 17, 18, 19, 22 })
-            //    onCrate1.Add(decals.GetChild(i));
-
-            //foreach (int i in new[] { 11, 12, 13, 25, 20 })
-            //    onCrate2.Add(decals.GetChild(i));
-
-            //foreach (int i in new[] { 14, 15, 16, 22, 26, 27 })
-            //    onCrate3.Add(decals.GetChild(i));
-
-            //for (int i = onBigCrate.Count; i-- > 0;)
-            //    onBigCrate[i].SetParent(bigCrate);
-            //for (int i = onCrate.Count; i-- > 0;)
-            //    onCrate[i].SetParent(crate);
-            //for (int i = onCrate1.Count; i-- > 0;)
-            //    onCrate1[i].SetParent(crate1);
-            //for (int i = onCrate2.Count; i-- > 0;)
-            //    onCrate2[i].SetParent(crate2);
-            //for (int i = onCrate3.Count; i-- > 0;)
-            //    onCrate3[i].SetParent(crate3);
-        }
     }
 }

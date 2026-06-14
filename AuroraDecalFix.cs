@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 
 namespace Tweaks_Fixes
@@ -45,7 +44,7 @@ namespace Tweaks_Fixes
                 Renderer[] renderers = t.GetComponentsInChildren<Renderer>();
                 foreach (Renderer renderer in renderers)
                 {
-                    if (renderer is MeshRenderer)
+                    if (renderer is MeshRenderer) // dont touch particle renderer
                     {
                         Texture decalTexture = renderer.material.mainTexture;
                         renderer.material = materialForDecals;

@@ -147,6 +147,8 @@ namespace Tweaks_Fixes
 
         };
 
+        List<TechType> glassRendererTechtypeList = new List<TechType> { };
+
         List<string> glassRendererList = new List<string> {
             "76470f15-8918-4194-8191-4a40f1f3e32c",// starfish_01
             "4605151e-dea4-4ba7-96bf-2f88b3b41bdb",// starfish_02
@@ -160,6 +162,7 @@ namespace Tweaks_Fixes
             "7935a15e-a9ab-4fc6-90ef-58a65b30a4bd",// coral_reef_Hanging_Stinger_short
             "46d0473e-d366-4644-8c9c-5fdb65cbacb8",// coral_reef_Hanging_Stinger_middle
             "8914acde-168e-438f-9b2b-6b9332d8c1a1",// coral_reef_Hanging_Stinger_long
+            "d0f7a4be-19e3-42ce-8bd0-e9c220a932f4",// MembraneTree
         };
 
         Dictionary<TechType, RendererData> glassRenderers__ = new Dictionary<TechType, RendererData> {
@@ -179,6 +182,8 @@ namespace Tweaks_Fixes
           
             {"909d56bc-6494-4792-8e11-e2815c59f070", new RendererData("power_corridors/corridors")}, // CrashedShip_power_corridors
             {"a4d261c3-8b08-41d4-9ab4-c647bdbf2bde", new RendererData("exo_room/exo_room")}, // CrashedShip_exo_room
+            {"292ba610-ed40-461f-826b-7b2645b37b5f", new RendererData("model", new List<string>{"seamoth_fragment_01_glass", "seamoth_fragment_01_interior_glass" })}, // seamoth_fragment_01
+            {"b9764db6-1f2a-4cfc-bda0-8a179cb7e155", new RendererData("model", new List<string>{"seamoth_fragment_04_glass", "seamoth_fragment_04_interior_glass" })}, // seamoth_fragment_04
 
         };
 
@@ -220,7 +225,8 @@ namespace Tweaks_Fixes
         "93a9886d-f2d3-4b6c-8e5f-216f569f82b2",// Coral_reef_slanted_coral_plates_01_02
         "fcf04278-bfbb-409d-bada-a6f22564efde",// Coral_reef_koosh_bush_large
         "210fdf87-54e0-4c83-9bf3-31bbc06f38a6",// coral_reef_plant_small_01_03 BluePalm
-        //"20ad299d-ca52-48ef-ac29-c5ec5479e070",// Precursor_Prison_Outpost4
+        "601d2007-f7ea-4bfd-822d-4775ec02bf6f",// coral_reef_brown_coral_tubes_02_04
+        "06c5f749-5e38-4a0c-92a3-28783988f907",// coral_reef_brown_coral_tubes_02_01
         //"",// Coral_reef_floating_stones_big_02
         };
 
@@ -237,6 +243,9 @@ namespace Tweaks_Fixes
             "a5076433-b586-4c4f-adff-b002028e8014",// Coral_reef_koosh_bush_medium
             "1d6d89dd-3e49-48b7-90e4-b521fbc3d36f",// land_plant_middle_03_02 FernPalm 
             "523879d5-3241-4a94-8588-cb3b38945119",// land_plant_middle_03_01 FernPalm
+            "291856e5-9d72-4cc6-b09f-ac09a5a6206e",// coral_reef_brown_coral_tubes_01
+            "73a14237-46a5-4603-a91e-125a4ed04375",// coral_reef_brown_coral_tubes_02_02
+            "361bea51-183b-4eab-998d-fd61d07d6a65",// coral_reef_brown_coral_tubes_02_03
         //"",// 
         };
 
@@ -655,6 +664,10 @@ namespace Tweaks_Fixes
             {
                 UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(classID));
             }
+            foreach (TechType tt in glassRendererTechtypeList)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(tt));
+            }
             foreach (var kv in glassRenderers)
             {
                 UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
@@ -902,6 +915,17 @@ namespace Tweaks_Fixes
                 yield break;
             }
             //Main.logger.LogError($"FixFragment {prefab.name} RT TT {resourceTracker.techType} RT OTT {resourceTracker.overrideTechType}");
+            foreach (Renderer renderer in prefab.GetAllComponentsInChildren<Renderer>())
+            {
+                foreach (var m in renderer.materials)
+                {
+                    if (m.GetFloat(zOffset) < 0)
+                    {
+                        //m.EnableKeyword("MARMO_ALPHA_CLIP");
+                        m.SetFloat(zOffset, 0);
+                    }
+                }
+            }
             resourceTracker.overrideTechType = TechType.Fragment;
             Pickupable pickupable = prefab.GetComponent<Pickupable>();
             if (pickupable)
@@ -1166,6 +1190,19 @@ namespace Tweaks_Fixes
             if (request.TryGetPrefab(out prefab) == false)
             {
                 Main.logger.LogError("DisableShadowCasting No prefab for " + classID);
+                yield break;
+            }
+            prefab.transform.DisableShadowCastingInChildren();
+        }
+
+        IEnumerator DisableShadowCasting(TechType techType)
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            if (prefab == null)
+            {
+                Main.logger.LogError("DisableShadowCasting No prefab for " + techType);
                 yield break;
             }
             prefab.transform.DisableShadowCastingInChildren();

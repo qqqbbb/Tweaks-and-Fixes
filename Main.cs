@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.19.2";
+            VERSION = "4.19.3";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -50,7 +50,7 @@ namespace Tweaks_Fixes
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
 
-        public static void CleanUp()
+        public void CleanUp()
         {
             //logger.LogInfo("CleanUp");
             gameLoaded = false;
@@ -77,14 +77,13 @@ namespace Tweaks_Fixes
             Pickupable_.beacons.Clear();
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
-            //InventoryItemIconColorChanger.CleanUp();
             Radiation.auroraRadiation = null;
             Floater_.pickupableFloaters.Clear();
             configToEdit.Reload();
             configMain.Load();
         }
 
-        public static void LoadedGameSetup()
+        public void LoadedGameSetup()
         {
             //AddDebug("LoadedGameSetup ");
             FixCoralShellPlateHarvestType();
@@ -170,10 +169,11 @@ namespace Tweaks_Fixes
             }
         }
 
-        static void SaveData(bool saving)
+        void SaveData(bool saving)
         {
             if (saving == false)
                 return;
+            //AddDebug(" SaveData");
 
             configMain.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
             configMain.activeSlot = Inventory.main.quickSlots.activeSlot;
@@ -217,7 +217,7 @@ namespace Tweaks_Fixes
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
         }
 
-        private static void CustomSpawns()
+        private void CustomSpawns()
         {
             //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
             //new Spawnables.Stone().Patch();
@@ -226,7 +226,7 @@ namespace Tweaks_Fixes
             //stone.SetGameObject(new CloneTemplate(stone.Info, TechType.SeamothElectricalDefense);
         }
 
-        static void FixCoralShellPlateHarvestType()
+        void FixCoralShellPlateHarvestType()
         {
             if (TechData.Contains(TechType.CoralShellPlate) == false)
                 return;
@@ -243,7 +243,7 @@ namespace Tweaks_Fixes
             Setup();
         }
 
-        public static void GetLoadedMods()
+        public void GetLoadedMods()
         {
             visibleLockerInteriorLoaded = Chainloader.PluginInfos.ContainsKey("VisibleLockerInterior");
             baseLightSwitchLoaded = Chainloader.PluginInfos.ContainsKey("com.ahk1221.baselightswitch") || Chainloader.PluginInfos.ContainsKey("Cookie_BaseLightSwitch") || Chainloader.PluginInfos.ContainsKey("RealisticLightSwitch");
@@ -259,7 +259,7 @@ namespace Tweaks_Fixes
             //    logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.GUID);
         }
 
-        private static void StartLoadingSetup()
+        private void StartLoadingSetup()
         {
             Application.runInBackground = true;
             FixCraftDataTables();
@@ -274,17 +274,17 @@ namespace Tweaks_Fixes
                 BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
                 UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
             }
-            //if (AbandonedBaseFixer.abandonedBasesFixed == false)
-            //{
-            //    AbandonedBaseFixer abandonedBaseFixer = new AbandonedBaseFixer();
-            //    abandonedBaseFixer.FixAbandonedBases();
-            //}
+            if (AbandonedBaseFixer.abandonedBasesFixed == false)
+            {
+                AbandonedBaseFixer abandonedBaseFixer = new AbandonedBaseFixer();
+                abandonedBaseFixer.FixAbandonedBases();
+            }
         }
 
-        private static void FixCraftDataTables()
+        private void FixCraftDataTables()
         {
             CraftData.PreparePrefabIDCache();
-            // Adding to entClassTechTable fixes CraftData.GetTechType 5ee82c8732c5
+            // Adding to entClassTechTable fixes CraftData.GetTechType
             CraftData.entClassTechTable["853a9c5b-aba3-4d6b-a547-34553aa73fa9"] = TechType.DrillableKyanite;
             CraftData.entClassTechTable["4f441e53-7a9a-44dc-83a4-b1791dc88ffd"] = TechType.DrillableKyanite;
             //CraftData.entClassTechTable["18229b4b-3ed3-4b35-ae30-43b1c31a6d8d"] = TechType.BloodOil;

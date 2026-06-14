@@ -106,7 +106,9 @@ namespace Tweaks_Fixes
             public static void CanBeAttackedPostfix(Player __instance, ref bool __result)
             {
                 bool aggrOff = Main.aggressiveFaunaLoaded == false && ConfigMenu.aggrMult.Value == 0;
-                if (__instance.cinematicModeActive || aggrOff)
+                //if (__instance.cinematicModeActive)
+                //    AddDebug("CanBeAttacked cinematicModeActive");
+                if (aggrOff)
                     __result = false;
             }
         }

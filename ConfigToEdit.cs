@@ -207,7 +207,7 @@ namespace Tweaks_Fixes
         public static void Bind()
         {  // “ ” ‛
 
-            dontOpenPDAwhenAltTabbing = Main.configToEdit.Bind("UI", "Do not ppen PDA when alt tabbing out of the game", false, "");
+            dontOpenPDAwhenAltTabbing = Main.configToEdit.Bind("UI", "Do not open PDA when alt tabbing out of the game", false, "");
             grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "");
             disableHotMetalGlow = Main.configToEdit.Bind("MISC", "Remove hot metal glow from Aurora debris that is underwater", false, "");
             fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", true, "");
