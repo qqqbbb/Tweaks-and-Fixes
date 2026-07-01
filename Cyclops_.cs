@@ -1,6 +1,9 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using UWE;
@@ -719,6 +722,29 @@ namespace Tweaks_Fixes
 
                 //AddDebug(__instance.name + " CyclopsExternalDamageManager UpdateOvershield " + __instance.overshieldPercentage);
                 __instance.overshieldPercentage = 100 - ConfigMenu.cyclopsAutoHealHealthPercent.Value;
+            }
+        }
+
+        [HarmonyPatch(typeof(CyclopsVehicleStorageTerminalManager), "UpdateText")]
+        class CyclopsVehicleStorageTerminalManager_UpdateText_patch
+        {
+            public static void Postfix(CyclopsVehicleStorageTerminalManager __instance)
+            {// show correct value if left battery is removed
+                if (__instance.currentVehicleEnergyMixin == null)
+                    return;
+                //AddDebug("CyclopsVehicleStorageTerminalManager currentVehicleEnergyMixin " + __instance.currentVehicleEnergyMixin.GetEnergyScalar());
+                Exosuit exosuit = __instance.currentVehicleEnergyMixin.GetComponentInParent<Exosuit>();
+                if (exosuit)
+                {
+                    float energyScalar = __instance.currentVehicleEnergyMixin.GetEnergyScalar();
+                    if (energyScalar == 0)
+                    {
+                        exosuit.GetEnergyValues(out float charge, out float capacity);
+                        energyScalar = charge / capacity;
+                        //AddDebug("CyclopsVehicleStorageTerminalManager energyScalar " + energyScalar);
+                        __instance.powerText.text = Language.main.GetFormat("CyclopsUpgradesEnergyPercentFormat", energyScalar);
+                    }
+                }
             }
         }
 

@@ -33,13 +33,18 @@ namespace Tweaks_Fixes
                 this.name = name;
                 this.newPos = newPos;
             }
+
+            public PosRotData(string name)
+            {
+                this.name = name;
+            }
         }
 
         static HashSet<TechType> plantSurfaces = new HashSet<TechType> {  TechType.RedRollPlant, TechType.GabeSFeather, TechType.RedGreenTentacle, TechType.JellyPlant, TechType.OrangeMushroom, TechType.SnakeMushroom, TechType.OrangePetalsPlant, TechType.SpikePlant, TechType.MembrainTree, TechType.Melon, TechType.SmallMelon, TechType.MelonPlant, TechType
         .HangingFruitTree, TechType.PurpleVasePlant, TechType.PinkMushroom, TechType.TreeMushroom, TechType.BallClusters, TechType.SmallFanCluster, TechType.SmallFan, TechType.RedConePlant, TechType.RedBush, TechType.SeaCrown, TechType.PurpleRattle, TechType.RedBasketPlant, TechType.ShellGrass, TechType.SpikePlant, TechType.CrashHome, TechType.CrashPowder, TechType.SpottedLeavesPlant, TechType.PurpleFan, TechType.PinkFlower, TechType.PurpleTentacle, TechType.PurpleStalk, TechType.FloatingStone, TechType.BlueLostRiverLilly, TechType.BlueTipLostRiverPlant, TechType.HangingStinger, TechType.CoveTree, TechType.BarnacleSuckers, TechType.BlueCluster};
 
         //static HashSet<TechType> coralSurfaces = new HashSet<TechType> { TechType.BigCoralTubes, TechType.CoralShellPlate, TechType.GenericJeweledDisk, TechType.JeweledDiskPiece, TechType.CoralChunk };
-        static HashSet<string> plantsWithNoTechtype = new HashSet<string> { "Coral_reef_small_deco_03(Clone)", "Coral_reef_small_deco_05(Clone)", "Coral_reef_small_deco_08(Clone)" };
+        static HashSet<string> plantsWithNoTechtype = new HashSet<string> { "Coral_reef_small_deco_05(Clone)", "Coral_reef_small_deco_08(Clone)" };
 
         static HashSet<TechType> techTypesToRemoveWavingShader = new HashSet<TechType> { TechType.BulboTree, TechType.PurpleVasePlant, TechType.OrangePetalsPlant, TechType.PinkMushroom, TechType.PurpleRattle, TechType.PinkFlower };
 
@@ -116,7 +121,6 @@ namespace Tweaks_Fixes
              {"ExplorableWreck_Grassy_13(Clone)", new List<string>{ "ExteriorProps", "Vent/explorable_wreckage_modular_room_details_15(Clone)/explorable_wreckage_modular_room_details_15", "Vent/explorable_wreckage_modular_room_details_19(Clone)/explorable_wreckage_modular_room_details_19" }},
         };
 
-
         public static bool spawningNearPlayer;
 
         static Dictionary<Vector3Int, List<PosRotData>> newPosRots = new Dictionary<Vector3Int, List<PosRotData>>  {
@@ -128,6 +132,22 @@ namespace Tweaks_Fixes
                 new PosRotData("Moon_Pool_fragment_05(Clone)", default, new Vector3(0, 300, 0)),
                 new PosRotData("Moon_Pool_fragment_06(Clone)", default, new Vector3(0, 300, 0)),
             }},
+            {new Vector3Int(100, -266, -375), new List<PosRotData>{
+                new PosRotData("Moon_Pool_fragment_01(Clone)", default, new Vector3(0, 300, 0)),
+                new PosRotData("Moon_Pool_fragment_02(Clone)", default, new Vector3(0, 300, 0)),
+                new PosRotData("Moon_Pool_fragment_03(Clone)", new Vector3(float.NaN, -266f, float.NaN), new Vector3(0, 300, 180)),
+                new PosRotData("Moon_Pool_fragment_04(Clone)", new Vector3(101f, -266.35f, -379f)),
+                new PosRotData("Moon_Pool_fragment_05(Clone)", default, new Vector3(0, 300, 0)),
+                new PosRotData("Moon_Pool_fragment_06(Clone)", default, new Vector3(0, 300, 0)),
+            }},
+            //{new Vector3Int(105, -267, -365), new List<PosRotData>{
+            //    new PosRotData("Moon_Pool_fragment_01(Clone)", default, new Vector3(0, 300, 0)),
+            //    new PosRotData("Moon_Pool_fragment_02(Clone)", default, new Vector3(0, 300, 0)),
+            //    new PosRotData("Moon_Pool_fragment_03(Clone)", new Vector3(float.NaN, -266f, float.NaN), new Vector3(0, 300, 180)),
+            //    //new PosRotData("Moon_Pool_fragment_04(Clone)", new Vector3(101f, -266.35f, -379f)),
+            //    new PosRotData("Moon_Pool_fragment_05(Clone)", default, new Vector3(0, 300, 0)),
+            //    new PosRotData("Moon_Pool_fragment_06(Clone)", default, new Vector3(0, 300, 0)),
+            //}},
             {new Vector3Int(280, -40, -195), new List<PosRotData>{
                 new PosRotData("CrashHome(Clone)", new Vector3(float.NaN, -40, float.NaN), new Vector3(70, 0, 0)),
                 new PosRotData("CrashPowder(Clone)", new Vector3(float.NaN, -40, float.NaN), new Vector3(70, 0, 0)),
@@ -146,34 +166,76 @@ namespace Tweaks_Fixes
             {new Vector3Int(47, -34, -6),new List<PosRotData>{
                 new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, float.NaN, -6.815f), default) }},
             {new Vector3Int(-20, -28, -381),new List<PosRotData>{
-                new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, -28.62f, float.NaN), default) }},
+                new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, -28.62f, float.NaN)) }},
             {new Vector3Int(86, -33, -334),new List<PosRotData>{
                 new PosRotData("Coral_reef_shell_tunnel_01(Clone)", new Vector3(float.NaN, -33.4f, float.NaN), new Vector3(350, 100, 90)) }},
             {new Vector3Int(448, -77, -8), new List<PosRotData>{
-                new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, float.NaN, -6.5f), default) }},
+                new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, float.NaN, -6.5f)) }},
+            {new Vector3Int(724, -12, -42), new List<PosRotData>{
+                new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, -12.5f, float.NaN)) }},
+
+            {new Vector3Int(490, -49, -169), new List<PosRotData>{
+                new PosRotData("Coral_reef_shell_tunnel_03(Clone)", new Vector3(504, -40, -187), new Vector3(0, 240, 59)) }},
+
             {new Vector3Int(1256, -220, 634), new List<PosRotData>{
-                new PosRotData("Coral_reef_koosh_bush_small(Clone)", new Vector3(float.NaN, -220.5f,  float.NaN), default) }},
+                new PosRotData("Coral_reef_koosh_bush_small(Clone)", new Vector3(float.NaN, -220.5f,  float.NaN)) }},
             {new Vector3Int(1257, -220, 635), new List<PosRotData>{
                 new PosRotData("Coral_reef_koosh_bush_medium(Clone)", new Vector3(float.NaN, -220.1f,  float.NaN), default) }},
             {new Vector3Int(1249, -219, 622), new List<PosRotData>{
                 new PosRotData("Coral_reef_koosh_bush_small(Clone)", new Vector3(float.NaN, -220.1f,  float.NaN)) }},
             {new Vector3Int(1237, -239, 463), new List<PosRotData>{
                 new PosRotData("SupplyCrate_FirstAidKit(Clone)", new Vector3(float.NaN, -240f,  float.NaN)) }},
-            {new Vector3Int(-73, -9, -47), new List<PosRotData>{
-                new PosRotData("Coral_reef_shell_tunnel_01(Clone)", new Vector3(float.NaN, float.NaN,  -46.85f)) }},// clips with fragment crate
-         };
+            {new Vector3Int(-73, -9, -47), new List<PosRotData>{ new PosRotData("Coral_reef_shell_tunnel_01(Clone)", new Vector3(float.NaN, float.NaN,  -46.85f)) }},// clips with fragment crate
 
-        static Dictionary<TechType, VFXSurfaceTypes> surfaceTypes_ = new Dictionary<TechType, VFXSurfaceTypes> { {TechType.SeamothFragment, VFXSurfaceTypes.metal },
-            {TechType.Trashcans, VFXSurfaceTypes.metal},
-            {TechType.StarshipDesk, VFXSurfaceTypes.metal},
-            {TechType.SingleWallShelf, VFXSurfaceTypes.metal},
-            {TechType.ExosuitFragment, VFXSurfaceTypes.metal},
-            {TechType.LabCounter, VFXSurfaceTypes.metal},
-            {TechType.BarTable, VFXSurfaceTypes.glass},
-            {TechType.VendingMachine, VFXSurfaceTypes.glass},
-            {TechType.PictureFrame, VFXSurfaceTypes.glass},
-            {TechType.Floater, VFXSurfaceTypes.organic},
-        };
+            {new Vector3Int(-1085, -705, -523), new List<PosRotData>{ new PosRotData("precursor_cables_start_01(Clone)") }},
+            {new Vector3Int(-1084, -705, -523), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1083, -705, -524), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)") }},
+            {new Vector3Int(-1082, -705, -524), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_01(Clone)")  }},
+            {new Vector3Int(-1081, -705, -524), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)") }},
+            {new Vector3Int(-1080, -705, -524), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1080, -704, -525), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1079, -704, -525), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1078, -704, -525), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)") }},
+            {new Vector3Int(-1077, -704, -525), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1076, -704, -525), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1075, -704, -525), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1075, -704, -526), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)") }},
+            {new Vector3Int(-1074, -704, -526), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1073, -704, -526), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)") }},
+            {new Vector3Int(-1072, -703, -526), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)")  }},
+            {new Vector3Int(-1071, -703, -526), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)")  }},
+            {new Vector3Int(-1070, -703, -527), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1069, -703, -527), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1069, -703, -528), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1068, -703, -528), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1067, -703, -528), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1067, -703, -529), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)")  }},
+            {new Vector3Int(-1066, -703, -529), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)")  }},
+            {new Vector3Int(-1066, -703, -530), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1065, -703, -530), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1065, -703, -531), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)")}},
+            {new Vector3Int(-1064, -703, -531), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1064, -703, -532), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1063, -704, -532), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1063, -704, -533), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)"), new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)") }},
+            {new Vector3Int(-1063, -704, -534), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)") }},
+            {new Vector3Int(-1062, -704, -534), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1062, -704, -535), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)")  }},
+            {new Vector3Int(-1062, -705, -536), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)"), new PosRotData("precursor_cables_middle_03(Clone)"), new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1062, -705, -537), new List<PosRotData>{ new PosRotData("precursor_cables_middle_02(Clone)") }},
+            {new Vector3Int(-1061, -706, -537), new List<PosRotData>{ new PosRotData("precursor_cables_middle_01(Clone)") }},
+            {new Vector3Int(-1061, -706, -539), new List<PosRotData>{ new PosRotData("Precursor_prison_exterior_box_01(Clone)") }},
+            {new Vector3Int(-1088, -706, -521), new List<PosRotData>{ new PosRotData("precursor_block_solid_04_04_08_v2(Clone)") }},
+            {new Vector3Int(-1087, -710, -522), new List<PosRotData>{ new PosRotData("precursor_block_deco_06_02_06(Clone)") }},
+            {new Vector3Int(-1087, -707, -523), new List<PosRotData>{ new PosRotData("precursor_block_deco_08_04_08_v4(Clone)") }},
+            {new Vector3Int(-1086, -705, -522), new List<PosRotData>{ new PosRotData("precursor_block_deco_08_04_08_v4(Clone)") }},
+            {new Vector3Int(-1062, -705, -535), new List<PosRotData>{ new PosRotData("precursor_cables_middle_03(Clone)") }},
+            {new Vector3Int(-1061, -707, -539), new List<PosRotData>{ new PosRotData("Skeleton_Cave_Spotlight(Clone)") }},
+            {new Vector3Int(-1061, -706, -538), new List<PosRotData>{ new PosRotData("precursor_cables_end_01(Clone)"), new PosRotData("precursor_deco_props_01(Clone)"), new PosRotData("precursor_deco_props_01(Clone)") }},
+
+            //{new Vector3Int(-58, -183, -1035), new List<PosRotData>{ new PosRotData("descent_plaza_shelf_cap_02(Clone)", new Vector3()) }},
+
+         };
 
         private static IEnumerator SetNewPosRot(GameObject go, PosRotData data)
         {
@@ -223,11 +285,41 @@ namespace Tweaks_Fixes
         }
 
         public static HashSet<string> fruitPlants = new HashSet<string>();
-        public static HashSet<string> creepvines = new HashSet<string>();
+        public static HashSet<Vector3Int> lights = new HashSet<Vector3Int>();
 
         [HarmonyPatch(typeof(LargeWorldEntity))]
         class LargeWorldEntity_Patch
         {
+            [HarmonyPrefix, HarmonyPatch("Awake")]
+            public static void AwakePrefix(LargeWorldEntity __instance)
+            {
+                if (__instance.name == "SerializerEmptyGameObject")
+                {
+                    if (__instance.transform.childCount == 0 && __instance.TryGetComponent(out Light light))
+                    {// light with no renderer
+                        //AddDebug($"SerializerEmptyGameObject Light {entity.cellLevel}");
+                        //Main.logger.LogDebug($"SerializerEmptyGameObject Light {(int)__instance.transform.position.x} {(int)__instance.transform.position.y} {(int)__instance.transform.position.z} {entity.cellLevel}");
+                        __instance.initialCellLevel = LargeWorldEntity.CellLevel.Far;
+                        __instance.cellLevel = LargeWorldEntity.CellLevel.Far;
+                    }
+                }
+                //else if (__instance.name == "DeepGrandReefAbandonedBase(Clone)")
+                //{
+                //    Transform baseCell = __instance.transform.GetChild(3);
+                //    Transform coral = baseCell.GetChild(0);
+                //    Renderer[] renderers = coral.GetComponentsInChildren<Renderer>();
+                //    foreach (var r in renderers)
+                {
+                    //Texture decalTexture = r.material.mainTexture;
+                    //r.sharedMaterial = AuroraDecalFix.materialForDecals;
+                    //if (r.material.IsKeywordEnabled("UWE_WAVING"))
+                    //{
+                    //    AddDebug("UWE_WAVING " + r.name);
+                    //    r.sharedMaterial.EnableKeyword("UWE_WAVING");
+                    //}
+                }
+                //}
+            }
             [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(LargeWorldEntity __instance)
             { // runs for every LWE only if loading saved game first time 
@@ -246,23 +338,14 @@ namespace Tweaks_Fixes
                     //} 
                     //creepvines.Add(identifier.classId);
                 }
-                // Moon_Pool_fragment_01 30189aca-d5b5-4363-8398-11d6a109addb
-                // Moon_Pool_fragment_02 85259b00-2672-497e-bec9-b200a1ab012f
-                // Moon_Pool_fragment_03 f744e6d9-f719-4653-906b-34ed5dbdb230
                 if (newPosRots.ContainsKey(posV3int))
                 {
-                    foreach (var newPosRot in newPosRots[posV3int])
-                        UWE.CoroutineHost.StartCoroutine(SetNewPosRot(__instance.gameObject, newPosRot));
-                }
-                if (ConfigToEdit.propCannonGrabsAnyPlant.Value == false)
-                {
-                    //if (techType != TechType.Creepvine && techType != TechType.Cyclops && techType != TechType.BigCoralTubes && techType != TechType.None && techType != TechType.BloodVine && techType != TechType.Seamoth)
+                    foreach (PosRotData posRotData in newPosRots[posV3int])
                     {
-                        //bool decoPlant = Util.IsDecoPlant(__instance.gameObject);
-                        //AddDebug($"{__instance.name} decoPlant {decoPlant}");
-                        //Main.logger.LogDebug($"{__instance.name} decoPlant {decoPlant}");
-                        //if (decoPlant)
-                        //    Util.MakeUnmovable(__instance.gameObject);
+                        if (posRotData.newPos == default && posRotData.newRot == default)
+                            Util.DestroyEntity(__instance.gameObject);
+                        else
+                            UWE.CoroutineHost.StartCoroutine(SetNewPosRot(__instance.gameObject, posRotData));
                     }
                 }
                 //if (techType == TechType.NarrowBed || techType == TechType.Bed1)
@@ -293,7 +376,6 @@ namespace Tweaks_Fixes
                         }
                         if (hotMetalDebris.ContainsKey(__instance.name) && __instance.transform.position.y < Ocean.GetOceanLevel() + .5)
                         {
-
                             //AddDebug($"hotMetalDebris {__instance.name} {__instance.transform.position.y}");
                             var list = hotMetalDebris[__instance.name];
                             if (list == null)
@@ -309,12 +391,6 @@ namespace Tweaks_Fixes
                             }
                         }
                     }
-                    //else if (__instance.name == "ExplorableWreck_KooshZone_3(Clone)")
-                    //{ // 910, -199, 612
-                    //    Transform interactable = __instance.transform.GetChild(1);
-                    //    Transform t = interactable.Find("CyclopsSonarModuleDataboxSpawner(Placeholder)");
-                    //    t.position = new Vector3(t.position.x, -202.4f, t.position.z);
-                    //}
                 }
             }
 

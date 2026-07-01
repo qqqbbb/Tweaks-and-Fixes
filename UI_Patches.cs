@@ -110,7 +110,7 @@ namespace Tweaks_Fixes
         {
             HandReticle.main.SetTextRaw(HandReticle.TextType.Use, toggleBaseLightsString);
             if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                Base_.ToggleBaseLight(subRoot);
+                Base_Light.ToggleBaseLight(subRoot);
         }
 
         [HarmonyPatch(typeof(GUIHand))]
@@ -399,6 +399,26 @@ namespace Tweaks_Fixes
                 }
             }
 
+            //[HarmonyPostfix, HarmonyPatch("ItemActions")]
+            static void ItemActionsPostfix(StringBuilder sb, InventoryItem item)
+            {
+                TechType techType = item.item.GetTechType();
+                if (techType == TechType.SmallStorage || techType == TechType.LuggageBag)
+                {
+                    TooltipFactory.WriteAction(sb, TooltipFactory.stringButton0, TooltipFactory.GetUseActionString(ItemAction.Use));
+                    if (GameInput.GetButtonDown(GameInput.Button.LeftHand))
+                    {
+                        StorageContainer container = item.item.GetComponentInChildren<StorageContainer>();
+                        container?.OnHandClick(Player.main.guiHand);
+                        AddDebug("ItemActions SmallStorage ");
+                    }
+                    //Main.logger.LogMessage("TooltipFactory Initialize " );
+                    //StringBuilder stringBuilder = new StringBuilder(Language.main.Get(__instance.hoverText));
+                    //stringBuilder.Append(" (");
+                    //stringBuilder.Append(UI_Patches.leftHandButton);
+                }
+            }
+
             [HarmonyPostfix]
             [HarmonyPatch("OnLanguageChanged")]
             static void OnLanguageChangedPostfix()
@@ -406,6 +426,7 @@ namespace Tweaks_Fixes
                 //AddDebug("TooltipFactory OnLanguageChanged ");
                 GetStrings();
             }
+
             [HarmonyPostfix]
             [HarmonyPatch("OnBindingsChanged")]
             static void OnBindingsChangedPostfix()
@@ -413,6 +434,7 @@ namespace Tweaks_Fixes
                 //AddDebug("TooltipFactory OnBindingsChanged ");
                 GetStrings();
             }
+
             [HarmonyPrefix]
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
@@ -502,17 +524,23 @@ namespace Tweaks_Fixes
                 }
                 if (ConfigMenu.invMultLand.Value > 0f || ConfigMenu.invMultWater.Value > 0f)
                 {
-                    Rigidbody rb = obj.GetComponent<Rigidbody>();
-                    if (rb)
+                    float massTotal = 0;
+                    StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_mass"));
+                    if (techType == TechType.LuggageBag || techType == TechType.SmallStorage)
                     {
-                        StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_mass"));
-                        sb_.Append(rb.mass);
-                        sb_.Append(Language.main.Get("TF_kg"));
-                        TooltipFactory.WriteDescription(sb, sb_.ToString());
+                        PickupableStorage ps = obj.GetComponentInChildren<PickupableStorage>();
+                        if (ps)
+                        {
+                            foreach (InventoryItem inventoryItem in ps.storageContainer.container)
+                                massTotal += Util.GetItemMass(inventoryItem);
+                        }
                     }
+                    massTotal += Util.GetItemMass(techType);
+                    sb_.Append(massTotal);
+                    sb_.Append(Language.main.Get("TF_kg"));
+                    TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
             }
-
 
             public static void InsertBeforeLastLine(StringBuilder sb, string textToInsert)
             {

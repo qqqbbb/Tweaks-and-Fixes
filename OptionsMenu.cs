@@ -89,7 +89,11 @@ namespace Tweaks_Fixes
             ModSliderOption batteryChargeSlider = ConfigMenu.batteryChargeMult.ToModSliderOption(0.5f, 3f, .1f, "{0:0.#}");
             ModSliderOption craftedBatteryChargeSlider = ConfigMenu.craftedBatteryCharge.ToModSliderOption(0, 100, 1);
             ModSliderOption invMultLandSlider = ConfigMenu.invMultLand.ToModSliderOption(0f, 1f, .01f, "{0:0.##}");
+            invMultLandSlider.OnChanged += SaveInventoryItemMass;
+
             ModSliderOption invMultWaterSlider = ConfigMenu.invMultWater.ToModSliderOption(0f, 1f, .01f, "{0:0.##}");
+            invMultWaterSlider.OnChanged += SaveInventoryItemMass;
+
             ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodHealThreshold.ToModSliderOption(100, 400, 10);
@@ -186,6 +190,12 @@ namespace Tweaks_Fixes
             //AddDebug("UpdateTimeSpeed");
             if (DayNightCycle.main)
                 DayNightCycle.main._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
+        }
+
+        void SaveInventoryItemMass(object sender, SliderChangedEventArgs e)
+        {
+            //AddDebug("SaveInventoryItemMass " + e.Value);
+            Util.SaveInventoryItemMass();
         }
 
         void UpdateGroundSpeed(object sender, SliderChangedEventArgs e)

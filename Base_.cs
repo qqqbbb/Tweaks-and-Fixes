@@ -3,6 +3,7 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
@@ -12,15 +13,6 @@ namespace Tweaks_Fixes
 {
     public class Base_
     {
-        public static void ToggleBaseLight(SubRoot subRoot)
-        {
-            subRoot.subLightsOn = !subRoot.subLightsOn;
-            if (subRoot.subLightsOn)
-                Main.configMain.DeleteBaseLights(subRoot.transform.position);
-            else
-                Main.configMain.SaveBaseLights(subRoot.transform.position);
-        }
-
         [HarmonyPatch(typeof(SubRoot))]
         public static class SubRoot_Patch
         {
@@ -156,7 +148,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(FMOD_CustomEmitter), "Awake")]
+        //[HarmonyPatch(typeof(FMOD_CustomEmitter), "Awake")]
         class FMOD_CustomEmitter_Awake_Patch
         {
             static bool Prefix(FMOD_CustomEmitter __instance)
@@ -194,6 +186,32 @@ namespace Tweaks_Fixes
             }
         }
 
+
+        [HarmonyPatch(typeof(BaseUpgradeConsoleGeometry), "GetVehicleInfo")]
+        class BaseUpgradeConsoleGeometry_GetVehicleInfo_patch
+        {
+            public static void Postfix(BaseUpgradeConsoleGeometry __instance, Vehicle vehicle, ref string __result)
+            {
+                if (vehicle is Exosuit)
+                {// show correct value if left battery is removed
+                    float energyScalar = vehicle.GetComponent<EnergyMixin>().GetEnergyScalar();
+                    //AddDebug("EnergyMixin energyScalar " + energyScalar);
+                    if (energyScalar == 0)
+                    {
+                        vehicle.GetEnergyValues(out float charge, out float capacity);
+                        energyScalar = charge / capacity;
+                        int energyPercent = (int)(energyScalar * 100f);
+                        //AddDebug(" energyPercent " + energyPercent);
+                        if (energyPercent == 100)
+                        {
+                            __result = $"{__result.Substring(0, __result.Length - 18)}{Language.main.Get("SubmersibleFullyCharged")}";
+                            return;
+                        }
+                        __result = $"{__result.Substring(0, __result.Length - 9)}{energyPercent}%</size>";
+                    }
+                }
+            }
+        }
 
         //[HarmonyPatch(typeof(BaseDeconstructable))]
         class BaseDeconstructable_Patch

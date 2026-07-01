@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 using UWE;
@@ -17,13 +16,44 @@ namespace Tweaks_Fixes
         static GameObject seamothLightCone;
         public static Color seamothLightColor;
         public static Color exosuitLightColor;
-        static Vector3 exosuitLightBeamPos = new Vector3(0, 0.4f, -0.8f); // y changes after entering exosuit
+        static Vector3 exosuitLightBeamPos = new Vector3(0, 0.1f, -0.6f); // y changes after entering exosuit
+
+        public static IEnumerator FixExosuit()
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.Exosuit);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            Transform lights_parent = prefab.transform.Find("lights_parent");
+            Exosuit exosuit = prefab.GetComponent<Exosuit>();
+            lights_parent.SetParent(exosuit.leftArmAttach);
+            FixExosuitLight(exosuit);
+        }
+
+        private static void FixExosuitLight(Exosuit exosuit)
+        {
+            Transform lightTransform = Util.GetExosuitLightsTransform(exosuit);
+            Light[] Lights = lightTransform.GetComponentsInChildren<Light>(true);
+
+            foreach (Light light in Lights)
+            {
+                //Main.logger.LogInfo("Exosuit light color " + light.color);
+                if (ConfigToEdit.exosuitLightIntensityMult.Value < 1)
+                    light.intensity *= ConfigToEdit.exosuitLightIntensityMult.Value;
+
+                //AddDebug("exosuitLightColor " + exosuitLightColor);
+                if (exosuitLightColor != default)
+                    light.color = exosuitLightColor;
+
+                AddVolLight(light.gameObject, exosuitLightBeamPos);
+                //AddVolLight(light.gameObject);
+            }
+        }
 
         public static void AddVolLight(GameObject parent, Vector3 pos = default, Vector3 scale = default)
         {
             if (seamothLightCone == null)
             {
-                Main.logger.LogWarning("can not add vol Light to " + parent.name);
+                Main.logger.LogError("can not add vol Light to " + parent.name);
                 return;
             }
             GameObject lightCone = UnityEngine.Object.Instantiate(seamothLightCone, Vector3.zero, Quaternion.identity);
@@ -69,6 +99,7 @@ namespace Tweaks_Fixes
             //AddDebug("ToggleLights hasCharge " + exosuit.energyInterface.hasCharge);
             if (!lightsTransform.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
             {
+                //AddDebug("Toggle Lights on hasCharge " + exosuit.energyInterface.hasCharge);
                 lightsTransform.gameObject.SetActive(true);
                 Main.configMain.DeleteExosuitLights(exosuit.gameObject);
                 if (Exosuit_Sounds.lightOnSound)
@@ -76,6 +107,7 @@ namespace Tweaks_Fixes
             }
             else if (lightsTransform.gameObject.activeSelf)
             {
+                //AddDebug("Toggle Lights off ");
                 lightsTransform.gameObject.SetActive(false);
                 Main.configMain.SaveExosuitLights(exosuit.gameObject);
                 if (Exosuit_Sounds.lightOffSound)
@@ -96,30 +128,9 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Exosuit))]
         class Exosuit_Patch
         {
-            private static void FixExosuitLight(Exosuit exosuit)
-            {
-                Transform lightTransform = Util.GetExosuitLightsTransform(exosuit);
-                Light[] Lights = lightTransform.GetComponentsInChildren<Light>(true);
-
-                foreach (var light in Lights)
-                {
-                    //Main.logger.LogInfo("Exosuit light color " + light.color);
-                    if (ConfigToEdit.exosuitLightIntensityMult.Value < 1)
-                        light.intensity *= ConfigToEdit.exosuitLightIntensityMult.Value;
-
-                    //AddDebug("exosuitLightColor " + exosuitLightColor);
-                    if (exosuitLightColor != default)
-                        light.color = exosuitLightColor;
-
-                    AddVolLight(light.gameObject, exosuitLightBeamPos);
-                }
-            }
-
             [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(Exosuit __instance)
             {
-                Util.GetExosuitLightsTransform(__instance).SetParent(__instance.leftArmAttach);
-                FixExosuitLight(__instance);
                 if (Main.configMain.GetExosuitLights(__instance.gameObject))
                     SetLights(__instance, false);
             }
@@ -204,12 +215,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SeaMoth))]
         class SeaMoth_patch
         {
-            [HarmonyPostfix, HarmonyPatch("Awake")]
-            public static void AwakePrefix(SeaMoth __instance)
-            {
-                UWE.CoroutineHost.StartCoroutine(GetSeaMothVolLight(__instance));
-            }
-
             [HarmonyPrefix, HarmonyPatch("Start")]
             public static void StartPrefix(SeaMoth __instance)
             {
@@ -239,27 +244,22 @@ namespace Tweaks_Fixes
                 }
             }
 
-            private static IEnumerator GetSeaMothVolLight(SeaMoth seaMoth)
-            {
-                if (seamothLightCone != null)
-                    yield break;
-
-                Transform lightTr = seaMoth.transform.Find("lights_parent/light_left");
-                while (lightTr == null)
-                {
-                    yield return null;
-                    lightTr = seaMoth.transform.Find("lights_parent/light_left");
-                }
-                Transform fakeLightTr = lightTr.Find("x_FakeVolumletricLight");
-                while (fakeLightTr == null)
-                {
-                    yield return null;
-                    fakeLightTr = lightTr.Find("x_FakeVolumletricLight");
-                }
-                seamothLightCone = fakeLightTr.gameObject;
-                seamothVFXVolumetricLight = lightTr.GetComponent<VFXVolumetricLight>();
-            }
-
         }
+
+        public static IEnumerator GetSeaMothVolLight()
+        {
+            if (seamothLightCone != null)
+                yield break;
+
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.Seamoth);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            Transform lightTr = prefab.transform.Find("lights_parent/light_left");
+            Transform fakeLightTr = lightTr.Find("x_FakeVolumletricLight");
+            seamothLightCone = fakeLightTr.gameObject;
+            seamothVFXVolumetricLight = lightTr.GetComponent<VFXVolumetricLight>();
+        }
+
+
     }
 }

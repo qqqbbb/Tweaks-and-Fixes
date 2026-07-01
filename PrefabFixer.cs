@@ -24,10 +24,13 @@ namespace Tweaks_Fixes
             "78009225-a9fa-4d21-9580-8719a3368373", // precursor_deco_props_01
             "1673ee4a-6c28-4651-8d5e-929de26dc25f",// Precursor_Prison_EggLab
             "ef375125-885f-4289-8577-c7a4a5f218b3",// Precursor_Prison_DissectionRoom
+            "df9aed66-c131-4570-9dcd-1e3d2109dcaa",// Precursor_Lab_table_LabCache
         };
 
         readonly Dictionary<string, RendererData> prefabsWithoutShadows_ = new Dictionary<string, RendererData> {
-            {"68254d33-2d67-48a8-b485-9929f23a8ba8", new RendererData("", new List<string>{"Pipes", "Eggs", "___New Group" }) }//Precursor_Prison_EggLab_Extras
+            {"68254d33-2d67-48a8-b485-9929f23a8ba8", new RendererData(null, new List<string>{"Pipes", "Eggs", "___New Group" }) },//Precursor_Prison_EggLab_Extras
+            {"a3476419-0a2f-40e7-b325-0a592f0ebea3", new RendererData("Precursor_lab_container_02", new List<string>{ "Precursor_lab_container_02_bottom", "Precursor_lab_container_02_top" }) },//Precursor_lab_container_02_LabCache
+            {"2213b907-3231-4c7a-aeaf-03e7c7d349d8", new RendererData(null, new List<string>{ "precursor_block_maze_04_04_04_v4/precursor_block_maze_04_04_04_v4", "precursor_block_deco_06_02_06" }) },//IonCrystalPedestal_Cache
         };
 
         readonly Dictionary<string, MaterialZoffsetData> materialZoffsets = new Dictionary<string, MaterialZoffsetData>
@@ -36,8 +39,11 @@ namespace Tweaks_Fixes
             { "3894aeaf-e1f9-426a-9249-6a4968ac2d8b", new MaterialZoffsetData("life_pod_exploded_02_01/exterior/Life_pod_no_pontoons", 1) },// life_pod_exploded_19
             { "56b5ed17-2bff-4f7e-aba0-275b6a2398f9", new MaterialZoffsetData("life_pod_exploded_02_03/exterior/life_pod_damaged", -1) },// life_pod_exploded_17
             { "00037e80-3037-48cf-b769-dc97c761e5f6", new MaterialZoffsetData("life_pod_exploded_02_02/exterior", -1) },// life_pod_exploded_13
-            { "85ae70e0-176c-4de6-8c4d-48c4f504cc79", new MaterialZoffsetData("life_pod_exploded_02_02/exterior", -1) },// life_pod_exploded_6
+            { "85ae70e0-176c-4de6-8c4d-48c4f504cc79", new MaterialZoffsetData("life_pod_exploded_02_02/exterior", -1, true) },// life_pod_exploded_6
             { "00891fdf-7264-4c55-b569-732cdcded701", new MaterialZoffsetData("life_pod_exploded_02_03/exterior/life_pod_damaged", -1) },// life_pod_exploded_12
+            { "2aa237f6-2103-4a78-aaa7-104216551f0a", new MaterialZoffsetData("life_pod_exploded_02_01/exterior/life_pod_damaged", -1) },// life_pod_exploded_3
+            { "d3b9095f-fcac-46de-83f7-762e3275e837", new MaterialZoffsetData("life_pod_exploded_02/life_pod_pontoons _damaged", 0) },// life_pod_exploded_7
+
             { "d88147fb-007c-481f-aa75-ebcbab24e4a8", new MaterialZoffsetData("Starship_exploded_debris_19", 1) },
             { "b88a2b71-db4c-47e5-807d-c57fdf90f5ce", new MaterialZoffsetData("coridor_02/corridor_02", 9) },// CrashedShip_locker_room_coridor_02
             { "52175781-b8d5-4956-8d06-650619324934", new MaterialZoffsetData("T_hallway/hallway", 11) },// CrashedShip_T_hallway
@@ -45,6 +51,8 @@ namespace Tweaks_Fixes
             { "8f5046b4-b727-4359-9d5a-2640ae6bf5d6", new MaterialZoffsetData("entrance_02_01/entrance_02_01_MeshPart0", new int[]{16, 17}) },// CrashedShip_entrance_02_01
             {"dedee57d-6a84-4bbb-92e3-d9b2249acc15", new MaterialZoffsetData("locker_room/locker_room 2_MeshPart0", 4, 500) },// CrashedShip_locker_room
             {"6f9e2e29-9eba-4261-ba7b-ed5eac120b91", new MaterialZoffsetData("Map_Room_fragment_01", 3, 5000) },// Map_Room_fragment_01
+            {"30fb51ee-73b6-4609-8e02-2804201987fb", new MaterialZoffsetData("Starship_exploded_debris_13", 1) },// Starship_exploded_debris_13
+            {"669d26ab-81a0-4e4f-8bba-fac0d6cf8dab", new MaterialZoffsetData("Starship_exploded_debris_04", 1) },// Starship_exploded_debris_04
 
         };
 
@@ -110,7 +118,7 @@ namespace Tweaks_Fixes
             {TechType.Seamoth, "Model/Submersible_SeaMoth/Submersible_seaMoth_geo/Submersible_SeaMoth_glass_geo" },
             {TechType.Exosuit, "exosuit_01/root/Exosuit_cabin_01_glass" },
             //{TechType.NuclearReactorFragment, "Nuclear_reactor_damaged_02/Nuclear_reactor_damaged_02_glass" },
-            {TechType.BaseFiltrationMachine, "model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass" }, // in wreck
+            //{TechType.BaseFiltrationMachine, "model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass" }, //
             {TechType.BlueAmoeba, "lost_river_plant_04/lost_river_plant_04_membrane" },
             {TechType.BarTable, barTableGlassPath},
             {TechType.Aquarium, "model/Aquarium_animation2/Aquarium_geo/Aquarium_glass" },
@@ -144,6 +152,7 @@ namespace Tweaks_Fixes
             {"083e02b8-9ea2-40e5-b8d1-22d236f284b9", "starship_exploded_interior_T_room"},// CrashedShip_interior_T_room
             {"7193a410-ee7b-4bba-85a6-80aa00e2ca68", "entrance_01_03"},// CrashedShip_entrance_01_03
             {"e7f9c5e7-3906-4efd-b239-28783bce17a5", "biodome_lab_containers_close_01/biodome_lab_containers_close_01_glass"},// biodome_lab_containers_close_01
+            {"3d625dbb-d15a-4351-bca0-0a0526f01e6e", "precursor_column_maze_08_06_08_hlpr/precursor_column_maze_08_06_08_ctrl/precursor_column_maze_08_06_08/precursor_column_maze_08_06_08_glass_01"},// Precursor_Gun_ControlRoom_CentralColumn
 
         };
 
@@ -227,6 +236,14 @@ namespace Tweaks_Fixes
         "210fdf87-54e0-4c83-9bf3-31bbc06f38a6",// coral_reef_plant_small_01_03 BluePalm
         "601d2007-f7ea-4bfd-822d-4775ec02bf6f",// coral_reef_brown_coral_tubes_02_04
         "06c5f749-5e38-4a0c-92a3-28783988f907",// coral_reef_brown_coral_tubes_02_01
+        "d8efe522-5355-48b8-b4fb-4d077bbc621d",// Coral_reef_cave_root_small_04_blood
+        "1c28891f-df08-4eee-a081-118955b0d303",// Coral_reef_Kelp_blood_01_Light
+        "ac2b0798-e311-4cb1-9074-fae59cd7347a",// SkeletonCave_Precursor_Scanner_03
+        "4f5905f8-ea50-49e8-b24f-44139c6bddcf",// SkeletonCave_Precursor_Scanner_01
+        "ebc943e4-200c-4789-92f3-e675cd982dbe",// SkeletonCave_Precursor_Scanner_02
+        "69cd7462-7cd2-456c-bfff-50903c391737",// precursor_cables_middle_01
+        "94933bb3-0587-4e8d-a38d-b7ec4c859b1a",// precursor_cables_middle_02
+        "31f84eba-d435-438c-a58e-f3f7bae8bfbd",// precursor_cables_middle_03
         //"",// Coral_reef_floating_stones_big_02
         };
 
@@ -246,12 +263,14 @@ namespace Tweaks_Fixes
             "291856e5-9d72-4cc6-b09f-ac09a5a6206e",// coral_reef_brown_coral_tubes_01
             "73a14237-46a5-4603-a91e-125a4ed04375",// coral_reef_brown_coral_tubes_02_02
             "361bea51-183b-4eab-998d-fd61d07d6a65",// coral_reef_brown_coral_tubes_02_03
+
+
         //"",// 
         };
 
         List<TechType> techTypesToMakeUnmovable = new List<TechType> { TechType.BulboTree, TechType.PurpleBrainCoral, TechType.HangingFruitTree, TechType.SpikePlant };
 
-        List<string> classIDToMakeUnmovable = new List<string> { "c9d84dfd-6802-41bd-a7b1-34d9b3a31531",// Base_exterior_Planter_Tray_01_abandoned
+        List<string> classIDsToMakeUnmovable = new List<string> { "c9d84dfd-6802-41bd-a7b1-34d9b3a31531",// Base_exterior_Planter_Tray_01_abandoned
             "5cd34124-935f-4628-b694-a266bc2f5517",// Starship_exploded_debris_01
             "df36cdfb-abee-41f1-bdc6-fec6566d3557",// Starship_exploded_debris_06 
             "d88147fb-007c-481f-aa75-ebcbab24e4a8",// Starship_exploded_debris_19
@@ -364,14 +383,14 @@ namespace Tweaks_Fixes
             {"41399588-124d-4e01-92b7-f5b10c882ac8", VFXSurfaceTypes.glass},// docking_bar_bottle_05
             {"d53cfbf1-f14d-4e9b-b8bb-cc65e734a9c5", VFXSurfaceTypes.glass},// docking_bar_bottle_03
             {"ff9b4394-e7d3-42e6-b924-585af2d0e03f", VFXSurfaceTypes.glass},// docking_bar_bottle_02
-            {"da7341c3-e6a3-4cd3-ad57-49a4dc732ac9", VFXSurfaceTypes.vegetation},// Coral_reef_cave_root_01_blood_Light
-            {"b0cae640-b155-4bac-9ed5-29ba64a1ee9f", VFXSurfaceTypes.vegetation},// Coral_reef_cave_root_02_blood_Light
-            {"5beba896-bccf-4993-8bcb-1cdabb68e706", VFXSurfaceTypes.vegetation}, // Coral_reef_cave_root_03_blood_Light
-            {"db79ee0b-65e9-4ea1-8b8b-948bbae128f7", VFXSurfaceTypes.vegetation},// Coral_reef_cave_root_04_blood_Light
-            {"1c28891f-df08-4eee-a081-118955b0d303", VFXSurfaceTypes.vegetation},// Coral_reef_Kelp_blood_01_Light
-            {"a4912ba2-5643-46ee-bd69-6be53dd55d45", VFXSurfaceTypes.vegetation},// Coral_reef_Kelp_blood_02_Light
-            {"e0ae8532-a6d5-436f-bdc0-846061d91686", VFXSurfaceTypes.vegetation},// Coral_reef_Kelp_blood_03_Light
-            {"66f2188b-b537-49ac-b6e7-08f446eca9e8", VFXSurfaceTypes.vegetation},// Coral_reef_Kelp_blood_04_Light
+            {"da7341c3-e6a3-4cd3-ad57-49a4dc732ac9", VFXSurfaceTypes.wood},// Coral_reef_cave_root_01_blood_Light
+            {"b0cae640-b155-4bac-9ed5-29ba64a1ee9f", VFXSurfaceTypes.wood},// Coral_reef_cave_root_02_blood_Light
+            {"5beba896-bccf-4993-8bcb-1cdabb68e706", VFXSurfaceTypes.wood}, // Coral_reef_cave_root_03_blood_Light
+            {"db79ee0b-65e9-4ea1-8b8b-948bbae128f7", VFXSurfaceTypes.wood},// Coral_reef_cave_root_04_blood_Light
+            {"1c28891f-df08-4eee-a081-118955b0d303", VFXSurfaceTypes.wood},// Coral_reef_Kelp_blood_01_Light
+            {"a4912ba2-5643-46ee-bd69-6be53dd55d45", VFXSurfaceTypes.wood},// Coral_reef_Kelp_blood_02_Light
+            {"e0ae8532-a6d5-436f-bdc0-846061d91686", VFXSurfaceTypes.wood},// Coral_reef_Kelp_blood_03_Light
+            {"66f2188b-b537-49ac-b6e7-08f446eca9e8", VFXSurfaceTypes.wood},// Coral_reef_Kelp_blood_04_Light
             {"57a31bf5-5b86-4bf6-9a14-9291c6e8a79c", VFXSurfaceTypes.vegetation},// coral_reef_plant_small_01_01 BluePalm
             {"50ebde28-dcd9-46be-bafd-9e2b483a1d22", VFXSurfaceTypes.vegetation},// coral_reef_plant_small_01_02 BluePalm
             {"210fdf87-54e0-4c83-9bf3-31bbc06f38a6", VFXSurfaceTypes.vegetation},// coral_reef_plant_small_01_03 BluePalm
@@ -424,6 +443,7 @@ namespace Tweaks_Fixes
             {TechType.DrillableUranium, CellLevel.Medium },
             {TechType.ShellGrass, CellLevel.Medium },
             {TechType.BrainCoral, CellLevel.Medium },
+            {TechType.RedBasketPlant, CellLevel.Medium },
             {TechType.LargeFloater, CellLevel.Far },
         };
 
@@ -443,7 +463,14 @@ namespace Tweaks_Fixes
         {"6f5c4850-b8bd-461a-999d-1c49d69ffe3a",  CellLevel.Medium},// Spiral_blue_thing_cluster_02
         {"94d7ed83-abb8-49af-9f27-10771dcd1485",  CellLevel.Medium},// Spiral_blue_thing_cluster_05
         {"82287160-87eb-4fdd-ae33-945ba666ae60",  CellLevel.Medium},// Spiral_blue_thing_cluster_07
+        {"fe145621-5b25-4000-a3dd-74c1aaa961e2",  CellLevel.Medium},// Coral_reef_ball_clusters_01
+        {"f3de21af-550b-4901-a6e8-e45e31c1509d",  CellLevel.Medium},// Coral_reef_ball_clusters_02
+        { "60fdf752-bc74-4f85-8a9c-72f86031a52f", CellLevel.Medium},// coral_reef_blood_mushrooms_01_01 WhiteMushroom
+        {"29ab9e04-a045-413b-886b-e03fa6b86aee", CellLevel.Medium},// coral_reef_blood_mushrooms_01_02 WhiteMushroom
+        { "e4ea0e38-7baa-49ce-b85c-89a22935574f", CellLevel.Medium},// coral_reef_blood_mushrooms_01_03 WhiteMushroom
+        {"a6dac068-6f8d-4e32-b5e7-2e34a9f97d11", CellLevel.Medium},// coral_reef_blood_mushrooms_01_04 WhiteMushroom
         //{"",  CellLevel.Medium},// coral_reef_plant_middle_12
+
         };
 
         List<string> decoPlants = new List<string> {
@@ -452,6 +479,14 @@ namespace Tweaks_Fixes
             "94d7ed83-abb8-49af-9f27-10771dcd1485",// Spiral_blue_thing_cluster_05
             "82287160-87eb-4fdd-ae33-945ba666ae60",// Spiral_blue_thing_cluster_07
             "6d9e37de-f808-4621-a762-e0d6340b30dc",// Coral_reef_small_deco_03
+            "3dbe5ecd-0c60-46f5-a310-506817b02670",// Coral_reef_small_deco_06
+            "fb941ab6-9c74-4673-b6a5-2dcb40720d34",// Coral_reef_small_deco_08
+            "a1f8e7cf-83ae-438c-9197-3321374eca56",// Coral_reef_ball_clusters_01_Light
+            "961194a9-e88b-40d7-900d-a48c5b739352",// Coral_reef_ball_clusters_03
+            "375a4ade-a7d9-401d-9ecf-08e1dce38d6b",// lost_river_plant_04 BlueAmoeba
+            "1dc87b04-84d4-42e1-afbf-ee8c2a9a236f",// Coral_reef_barnacle_suckers_01 BarnacleSuckers
+            "2e57e9d2-ddda-4063-9540-ca2f0fae775e",// Coral_reef_barnacle_suckers_02 BarnacleSuckers
+            "e80b22ff-064d-46ca-b71e-456d6b3426ab",// Coral_reef_purple_fan PurpleFan
         };
 
         List<TechType> techTypeToRemoveCollision = new List<TechType> {
@@ -652,7 +687,7 @@ namespace Tweaks_Fixes
             {
                 UWE.CoroutineHost.StartCoroutine(MakeUnmovable(tt));
             }
-            foreach (string classID in classIDToMakeUnmovable)
+            foreach (string classID in classIDsToMakeUnmovable)
             {
                 UWE.CoroutineHost.StartCoroutine(MakeUnmovable(classID));
             }
@@ -696,12 +731,40 @@ namespace Tweaks_Fixes
             {
                 UWE.CoroutineHost.StartCoroutine(EnableDitherAlpha(kv.Key, kv.Value));
             }
+            if (ConfigToEdit.propCannonGrabsAnyPlant.Value == false)
+            {
+                foreach (string classID in decoPlants)
+                    UWE.CoroutineHost.StartCoroutine(MakeUnmovable(classID));
+            }
             UWE.CoroutineHost.StartCoroutine(FixPrisonTeleporterRoom03Shadows());
             UWE.CoroutineHost.StartCoroutine(FixOrangeMushroomCollider());
             UWE.CoroutineHost.StartCoroutine(FixBiohazardTrashCanDesc());
             UWE.CoroutineHost.StartCoroutine(FixPrisonTankGlass());
             UWE.CoroutineHost.StartCoroutine(FixStones());
+
+            if (ConfigToEdit.newStorageUI.Value && Main.pickupFullCarryallIsLoaded == false)
+                UWE.CoroutineHost.StartCoroutine(FixSmallStorage());
+
             prefabsFixed = true;
+        }
+
+
+        public IEnumerator FixSmallStorage()
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.SmallStorage);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            LiveMixin lm = prefab.GetComponent<LiveMixin>();
+            UnityEngine.Object.Destroy(lm);
+            Transform colliderT = prefab.transform.GetChild(2);
+            Collider collider = colliderT.GetComponent<Collider>();
+            UnityEngine.Object.Destroy(collider);
+            colliderT = prefab.transform.Find("LidLabel/Label");
+            collider = colliderT.GetComponent<Collider>();
+            UnityEngine.Object.Destroy(collider);
+            FPModel[] fPModels = prefab.GetComponents<FPModel>();
+            if (fPModels.Length > 1)
+                UnityEngine.Object.Destroy(fPModels[fPModels.Length - 1]);
         }
 
         private static IEnumerator EnableDitherAlpha(string classID, string path)
@@ -711,7 +774,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("EnableDitherAlpha No prefab for " + classID);
+                Main.logger.LogError("EnableDitherAlpha no prefab for " + classID);
                 yield break;
             }
             EnableDitherAlpha(prefab, path);
@@ -724,7 +787,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("EnableDitherAlpha No prefab for " + classID);
+                Main.logger.LogError("EnableDitherAlpha no prefab for " + classID);
                 yield break;
             }
             EnableDitherAlpha(prefab, data);
@@ -774,7 +837,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("EnableAlphaClip No prefab for " + classID);
+                Main.logger.LogError("EnableAlphaClip no prefab for " + classID);
                 yield break;
             }
             //Main.logger.LogDebug($"EnableAlphaClip classID {classID}");
@@ -827,7 +890,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("AddVFXsurfaceComponent No prefab for " + techType);
+                Main.logger.LogError("AddVFXsurfaceComponent no prefab for " + techType);
                 yield break;
             }
             prefab.AddVFXsurfaceComponent(surfaceType);
@@ -840,7 +903,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("FixMaterialZoffset No prefab for " + classID);
+                Main.logger.LogError("FixMaterialZoffset no prefab for " + classID);
                 yield break;
             }
             SetMaterialZoffset(prefab, data);
@@ -853,22 +916,22 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("FixMaterialZoffset No prefab for " + classID);
+                Main.logger.LogError("FixMaterialZoffset no prefab for " + classID);
                 yield break;
             }
             foreach (MaterialZoffsetData data in dataList)
                 SetMaterialZoffset(prefab, data);
         }
 
-        private static void SetMaterialZoffset(GameObject prefab, MaterialZoffsetData data)
+        private static void SetMaterialZoffset(Renderer renderer, MaterialZoffsetData data)
         {
-            Transform t = prefab.transform.Find(data.rendererPath);
-            if (t == null)
+            if (data.materialIndex < 0)
             {
-                Main.logger.LogError($"SetMaterialZoffset {prefab.name} has no child {data.rendererPath}");
+                foreach (Material m in renderer.materials)
+                    m.SetFloat(zOffset, data.offsetValue);
+
                 return;
             }
-            Renderer renderer = t.GetComponentInChildren<Renderer>();
             if (data.materialIndexes != null)
             {
                 foreach (int i in data.materialIndexes)
@@ -882,13 +945,6 @@ namespace Tweaks_Fixes
                 }
                 return;
             }
-            if (data.materialIndex < 0)
-            {
-                foreach (Material m in renderer.materials)
-                    m.SetFloat(zOffset, data.offsetValue);
-
-                return;
-            }
             Material material = renderer.materials[data.materialIndex];
             if (material == null)
             {
@@ -898,6 +954,25 @@ namespace Tweaks_Fixes
             material.SetFloat(zOffset, data.offsetValue);
         }
 
+        private static void SetMaterialZoffset(GameObject prefab, MaterialZoffsetData data)
+        {
+            Transform t = prefab.transform.Find(data.rendererPath);
+            if (t == null)
+            {
+                Main.logger.LogError($"SetMaterialZoffset {prefab.name} has no child {data.rendererPath}");
+                return;
+            }
+            if (data.children)
+            {
+                foreach (Renderer r in t.GetComponentsInChildren<Renderer>())
+                    SetMaterialZoffset(r, data);
+
+                return;
+            }
+            Renderer renderer = t.GetComponentInChildren<Renderer>();
+            SetMaterialZoffset(renderer, data);
+        }
+
         IEnumerator FixFragment(string classID)
         {
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
@@ -905,7 +980,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("FixFragment No prefab for " + classID);
+                Main.logger.LogError("FixFragment no prefab for " + classID);
                 yield break;
             }
             ResourceTracker resourceTracker = prefab.GetComponent<ResourceTracker>();
@@ -914,21 +989,23 @@ namespace Tweaks_Fixes
                 Main.logger.LogError("FixFragment No ResourceTracker for " + prefab.name);
                 yield break;
             }
+            resourceTracker.overrideTechType = TechType.Fragment;
             //Main.logger.LogError($"FixFragment {prefab.name} RT TT {resourceTracker.techType} RT OTT {resourceTracker.overrideTechType}");
             foreach (Renderer renderer in prefab.GetAllComponentsInChildren<Renderer>())
             {
                 foreach (var m in renderer.materials)
                 {
-                    if (m.GetFloat(zOffset) < 0)
+                    //if (m.IsKeywordEnabled("_ZOffset"))
                     {
-                        //m.EnableKeyword("MARMO_ALPHA_CLIP");
-                        m.SetFloat(zOffset, 0);
+                        //if (m.GetFloat(zOffset) < 0)
+                        {
+                            //m.EnableKeyword("MARMO_ALPHA_CLIP");
+                            m.SetFloat(zOffset, 0);
+                        }
                     }
                 }
             }
-            resourceTracker.overrideTechType = TechType.Fragment;
-            Pickupable pickupable = prefab.GetComponent<Pickupable>();
-            if (pickupable)
+            if (prefab.TryGetComponent(out Pickupable pickupable))
                 UnityEngine.Object.Destroy(pickupable);
         }
 
@@ -939,7 +1016,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("EnsureFruits No prefab for " + classID);
+                Main.logger.LogError("EnsureFruits no prefab for " + classID);
                 yield break;
             }
             Util.EnsureFruits(prefab);
@@ -952,7 +1029,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("AddWorldForces No prefab for " + techType);
+                Main.logger.LogError("AddWorldForces no prefab for " + techType);
                 yield break;
             }
             Rigidbody rb = prefab.GetComponent<Rigidbody>();
@@ -976,7 +1053,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("DisableCollision No prefab for " + classID);
+                Main.logger.LogError("DisableCollision no prefab for " + classID);
                 yield break;
             }
             Util.DisableCollision(prefab);
@@ -989,7 +1066,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("DisableCollision No prefab for " + techType);
+                Main.logger.LogError("DisableCollision no prefab for " + techType);
                 yield break;
             }
             Util.DisableCollision(prefab);
@@ -1003,7 +1080,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("SetCellLevel No prefab for " + classID);
+                Main.logger.LogError("SetCellLevel no prefab for " + classID);
                 yield break;
             }
             Util.SetEntityCellLevel(prefab, newLevel);
@@ -1016,7 +1093,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("SetCellLevel No prefab for " + techType);
+                Main.logger.LogError("SetCellLevel no prefab for " + techType);
                 yield break;
             }
             Util.SetEntityCellLevel(prefab, newLevel);
@@ -1029,7 +1106,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("FixStones No prefab for FloatingStone5");
+                Main.logger.LogError("FixStones no prefab for FloatingStone5");
                 yield break;
             }
             LargeWorldEntity lwe = prefab.GetComponent<LargeWorldEntity>();
@@ -1043,7 +1120,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("AddVFXsurfaceComponent No prefab for " + classID);
+                Main.logger.LogError("AddVFXsurfaceComponent no prefab for " + classID);
                 yield break;
             }
             prefab.AddVFXsurfaceComponent(surfaceType);
@@ -1056,7 +1133,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("RemoveGlow No prefab for " + classID);
+                Main.logger.LogError("RemoveGlow no prefab for " + classID);
                 yield break;
             }
             RendererData data = classIDtoRemoveGlow[classID];
@@ -1070,7 +1147,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("MakeUnmovable No prefab for" + techType);
+                Main.logger.LogError("MakeUnmovable no prefab for " + techType);
                 yield break;
             }
             Util.MakeUnmovable(prefab);
@@ -1083,7 +1160,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("MakeUnmovable No prefab for " + classID);
+                Main.logger.LogError("MakeUnmovable no prefab for " + classID);
                 yield break;
             }
             Util.MakeUnmovable(prefab);
@@ -1096,10 +1173,10 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("DisableLODs No prefab for" + techType);
+                Main.logger.LogError("DisableLODs no prefab for " + techType);
                 yield break;
             }
-            prefab.DisableLODs();
+            prefab.ForceLOD();
         }
 
         IEnumerator DisableLODs(string classID)
@@ -1109,10 +1186,10 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("DisableLODs No prefab for " + classID);
+                Main.logger.LogError("DisableLODs no prefab for " + classID);
                 yield break;
             }
-            prefab.DisableLODs();
+            prefab.ForceLOD();
         }
 
         IEnumerator FixBulboTree()
@@ -1122,10 +1199,10 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("FixBulboTree No prefab for BulboTree");
+                Main.logger.LogError("FixBulboTree no prefab for BulboTree");
                 yield break;
             }
-            prefab.DisableLODs();
+            prefab.ForceLOD();
             //prefab.DisableGlowShader();
         }
 
@@ -1136,7 +1213,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("ForceLOD No prefab for " + classID);
+                Main.logger.LogError("IncreaseLODdistane no prefab for " + classID);
                 yield break;
             }
             Util.IncreaseLODdistane(prefab);
@@ -1149,7 +1226,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("ForceLOD No prefab for " + techType);
+                Main.logger.LogError("ForceLOD no prefab for " + techType);
                 yield break;
             }
             Util.IncreaseLODdistane(prefab);
@@ -1162,7 +1239,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("MakeEatable No prefab for LabTrashcan");
+                Main.logger.LogError("MakeEatable no prefab for LabTrashcan");
                 yield break;
             }
             Trashcan trashcan = prefab.GetComponent<Trashcan>();
@@ -1176,7 +1253,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("MakeEatable No prefab for " + techType);
+                Main.logger.LogError("MakeEatable no prefab for " + techType);
                 yield break;
             }
             Util.MakeEatable(prefab, eatables[techType]);
@@ -1189,7 +1266,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("DisableShadowCasting No prefab for " + classID);
+                Main.logger.LogError("DisableShadowCasting no prefab for " + classID);
                 yield break;
             }
             prefab.transform.DisableShadowCastingInChildren();
@@ -1202,7 +1279,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("DisableShadowCasting No prefab for " + techType);
+                Main.logger.LogError("DisableShadowCasting no prefab for " + techType);
                 yield break;
             }
             prefab.transform.DisableShadowCastingInChildren();
@@ -1215,7 +1292,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("DisableShadowCasting No prefab for " + classID);
+                Main.logger.LogError("DisableShadowCasting no prefab for " + classID);
                 yield break;
             }
             prefab.transform.DisableShadowCasting(path);
@@ -1228,7 +1305,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("DisableShadowCasting No prefab for " + classID);
+                Main.logger.LogError("DisableShadowCasting no prefab for " + classID);
                 yield break;
             }
             prefab.transform.DisableShadowCasting(data);
@@ -1241,7 +1318,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("DisableShadowCasting No prefab for " + techType);
+                Main.logger.LogError("DisableShadowCasting no prefab for " + techType);
                 yield break;
             }
             prefab.transform.DisableShadowCasting(path);
@@ -1254,7 +1331,7 @@ namespace Tweaks_Fixes
             GameObject prefab = request.GetResult();
             if (prefab == null)
             {
-                Main.logger.LogError("DisableShadowCasting No prefab for " + techType);
+                Main.logger.LogError("DisableShadowCasting no prefab for " + techType);
                 yield break;
             }
             prefab.transform.DisableShadowCasting(data);
@@ -1268,13 +1345,13 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("EnableShadowCasting No prefab for " + classID);
+                Main.logger.LogError("EnableShadowCasting no prefab for " + classID);
                 yield break;
             }
             prefab.transform.EnableShadowCastingInChildren();
         }
 
-        IEnumerator EnableShadowCasting(string classID, RendererData value)
+        IEnumerator EnableShadowCasting(string classID, RendererData data)
         {
             //Main.logger.LogDebug("EnableShadowCasting RendererData " + classID);
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
@@ -1282,13 +1359,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("EnableShadowCasting No prefab for " + classID);
-                yield break;
-            }
-            RendererData data = prefabsWithoutShadows_[classID];
-            if (data == null)
-            {
-                Main.logger.LogError("EnableShadowCasting No RendererData for " + classID);
+                Main.logger.LogError("EnableShadowCasting no prefab for " + classID);
                 yield break;
             }
             prefab.transform.EnableShadowCasting(data);
@@ -1301,7 +1372,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("FixPrisonTankGlass No prefab for PrisonTankGlass");
+                Main.logger.LogError("FixPrisonTankGlass no prefab for PrisonTankGlass");
                 yield break;
             }
             prefab.AddComponent<PrisonTankGlassFixer>();
@@ -1314,7 +1385,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("No prefab for Precursor_Prison_TeleporterRoom_03");
+                Main.logger.LogError("no prefab for Precursor_Prison_TeleporterRoom_03");
                 yield break;
             }
             Transform meshes = prefab.transform.GetChild(1);
@@ -1334,7 +1405,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("No prefab for Precursor_lab_container_01");
+                Main.logger.LogError("no prefab for Precursor_lab_container_01");
                 yield break;
             }
             Renderer[] renderers = prefab.transform.GetComponentsInChildren<Renderer>();
@@ -1351,7 +1422,7 @@ namespace Tweaks_Fixes
             GameObject prefab;
             if (request.TryGetPrefab(out prefab) == false)
             {
-                Main.logger.LogError("No prefab for Precursor_Prison_DissectionRoom_EmperorTank");
+                Main.logger.LogError("no prefab for Precursor_Prison_DissectionRoom_EmperorTank");
                 yield break;
             }
             for (int i = 2; i < 5; i++)
@@ -1385,23 +1456,27 @@ namespace Tweaks_Fixes
         public int[] materialIndexes;
         public int materialIndex;
         public int offsetValue;
+        public bool children;
 
-        public MaterialZoffsetData(string rendererPath, int materialIndex, int offsetValue)
+        public MaterialZoffsetData(string rendererPath, int materialIndex, int offsetValue, bool children = false)
         {
             this.rendererPath = rendererPath;
             this.materialIndex = materialIndex;
             this.offsetValue = offsetValue;
+            this.children = children;
         }
 
-        public MaterialZoffsetData(string rendererPath, int[] materialIndexes)
+        public MaterialZoffsetData(string rendererPath, int[] materialIndexes, bool children = false)
         {
             this.rendererPath = rendererPath;
             this.materialIndexes = materialIndexes;
+            this.children = children;
         }
-        public MaterialZoffsetData(string rendererPath, int materialIndex)
+        public MaterialZoffsetData(string rendererPath, int materialIndex, bool children = false)
         {
             this.rendererPath = rendererPath;
             this.materialIndex = materialIndex;
+            this.children = children;
         }
     }
 

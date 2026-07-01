@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -35,6 +36,7 @@ namespace Tweaks_Fixes
                         //Main.logger.LogDebug($"ResourceTracker {go.name} {rt.techType} {rt.overrideTechType} ");
                     }
                 }
+
                 if (ConfigToEdit.grassCastShadow.Value && go.name == "ChunkGrass(Clone)")
                 {
                     Renderer renderer = go.GetComponent<Renderer>();

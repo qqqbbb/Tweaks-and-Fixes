@@ -94,23 +94,35 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PowerSystem), "ConsumeEnergy")]
         class PowerSystem_ConsumeEnergy_Patch
         {
-            static void Prefix(ref float amount, IPowerInterface powerInterface)
+            static float amount_;
+            static void Prefix(ref float amount, IPowerInterface powerInterface, float amountConsumed)
             {
                 if (ConfigMenu.vehicleEnergyConsMult.Value == 1 && ConfigMenu.baseEnergyConsMult.Value == 1)
                     return;
 
+                amount_ = float.MinValue;
                 PowerRelay pr = powerInterface as PowerRelay;
                 //AddDebug("PowerSystem ConsumeEnergy " + pr.name);
                 if (pr && subPowerRelays.Contains(pr))
                 {
                     //AddDebug("Sub Consume Energy ");
+                    if (ConfigMenu.vehicleEnergyConsMult.Value < 1)
+                        amount_ = amount;
                     amount *= ConfigMenu.vehicleEnergyConsMult.Value;
                 }
                 else
                 {
                     //AddDebug("base Consume Energy ");
+                    if (ConfigMenu.baseEnergyConsMult.Value < 1)
+                        amount_ = amount;
                     amount *= ConfigMenu.baseEnergyConsMult.Value;
                 }
+            }
+            static void Postfix(ref float amount, IPowerInterface powerInterface, ref float amountConsumed)
+            {// allow docked vehicles to charge if baseEnergyConsMult is 0
+                //AddDebug("base Consume Energy Postfix " + amount_);
+                if (amount_ > float.MinValue)
+                    amountConsumed = amount_;
             }
         }
 

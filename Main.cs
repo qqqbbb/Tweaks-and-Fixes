@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.19.3";
+            VERSION = "4.20.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -43,12 +43,14 @@ namespace Tweaks_Fixes
         public static bool torpedoImprovementsLoaded;
         public static bool cyclopsOverheatLoaded;
         public static bool aggressiveFaunaLoaded;
+        //public static bool devMenuLoaded;
         static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public static ConfigMain configMain = new ConfigMain();
         internal static OptionsMenu options;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
+        public static WaitForSeconds oneSecondInterval = new WaitForSeconds(1f);
 
         public void CleanUp()
         {
@@ -254,9 +256,10 @@ namespace Tweaks_Fixes
             cyclopsOverheatLoaded = Chainloader.PluginInfos.ContainsKey("CyclopsOverheat");
             torpedoImprovementsLoaded = Chainloader.PluginInfos.ContainsKey("com.TorpedoImprovements.mod");
             aggressiveFaunaLoaded = Chainloader.PluginInfos.ContainsKey("com.lee23.aggressivefauna");
+            //devMenuLoaded = Chainloader.PluginInfos.ContainsKey("aedenthorn.DeveloperMenu");
             //com.github.tinyhoot.DeathrunRemade
             //foreach (KeyValuePair<string, PluginInfo> plugin in Chainloader.PluginInfos)
-            //    logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.GUID);
+            //    logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.Name);
         }
 
         private void StartLoadingSetup()
@@ -279,6 +282,8 @@ namespace Tweaks_Fixes
                 AbandonedBaseFixer abandonedBaseFixer = new AbandonedBaseFixer();
                 abandonedBaseFixer.FixAbandonedBases();
             }
+            UWE.CoroutineHost.StartCoroutine(VehicleLightFix.GetSeaMothVolLight());
+            UWE.CoroutineHost.StartCoroutine(VehicleLightFix.FixExosuit());
         }
 
         private void FixCraftDataTables()
@@ -292,8 +297,8 @@ namespace Tweaks_Fixes
             // Adding to techMapping fixes CraftData.GetPrefabForTechTypeAsync
             CraftData.techMapping[TechType.DrillableKyanite] = "853a9c5b-aba3-4d6b-a547-34553aa73fa9";
             CraftData.techMapping[TechType.Cyclops] = "4f59199f-7049-4e13-9e57-5ee82c8732c5";
+            //CraftData.techMapping[TechType.SpikePlant] = "84794dd0-2c70-4239-9536-230d56811ad4";
         }
-
 
         [HarmonyPatch(typeof(ApplicationFocus), "OnRunInBackgroundChanged")]
         class ApplicationFocus_OnRunInBackgroundChanged_Patch

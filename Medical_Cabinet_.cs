@@ -15,6 +15,7 @@ namespace Tweaks_Fixes
     internal class Medical_Cabinet_
     {
         public static MedicalCabinet escapePodMedCabinet;
+        static Vector3 posFix = new Vector3(0, 0, .02f);
 
         public static bool IsMedCabinetInEscapePod(MedicalCabinet medicalCabinet)
         {
@@ -75,13 +76,17 @@ namespace Tweaks_Fixes
                 CoroutineHost.StartCoroutine(SetupAlert(medicalCabinet));
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("Start")]
+        [HarmonyPrefix, HarmonyPatch("Start")]
         public static bool StartPrefix(MedicalCabinet __instance)
         {
-            //AddDebug("MedicalCabinet Start CanProduceMedkit " + CanProduceMedkit());
-            if (ConfigToEdit.medkitFabAlertSound.Value == false)
-                __instance.playSound.evt.setVolume(0);
+            //AddDebug($"MedicalCabinet Start hasMedKit {__instance.hasMedKit} timeSpawnMedKit {__instance.timeSpawnMedKit}");
+            if (__instance.timeSpawnMedKit == -1)
+            {
+                __instance.transform.Translate(posFix);
+                //__instance.ToggleDoorState();
+            }
+            //if (ConfigToEdit.medkitFabAlertSound.Value == false)
+            //    __instance.playSound.evt.setVolume(0);
 
             if (!IsMedCabinetInEscapePod(__instance))
                 return true;
@@ -94,12 +99,11 @@ namespace Tweaks_Fixes
             return true;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("Start")]
+        [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(MedicalCabinet __instance)
         {
-            //AddDebug(__instance.transform.parent.name + " MedicalCabinet Start hasMedKit " + __instance.hasMedKit + " CanProduceMedkit " + CanProduceMedkit());
             if (!Main.gameLoaded && __instance.hasMedKit)
+            {
                 if (IsMedCabinetInEscapePod(__instance))
                 {
                     if (CanProduceMedkit())
@@ -107,6 +111,7 @@ namespace Tweaks_Fixes
                 }
                 else
                     CoroutineHost.StartCoroutine(SetupAlert(__instance));
+            }
         }
 
         [HarmonyPrefix]
@@ -123,7 +128,7 @@ namespace Tweaks_Fixes
         static IEnumerator SetupAlert(MedicalCabinet medicalCabinet)
         {
             yield return new WaitUntil(() => Main.gameLoaded == true);
-            yield return new WaitForSeconds(1);
+            yield return Main.oneSecondInterval;
             //AddDebug(medicalCabinet.transform.parent.name + " MedicalCabinet SetupAlert ");
             medicalCabinet.InvokeRepeating("BlinkRepeat", 0f, 1f);
             medicalCabinet.playSound.Play();

@@ -2,6 +2,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
@@ -468,60 +470,35 @@ namespace Tweaks_Fixes
                 if (Main.gameLoaded == false)
                     UWE.CoroutineHost.StartCoroutine(FixFPModel(__instance));
                 //AddDebug("DeployableStorage Awake " + __instance.transform.parent.name);
-                LiveMixin lm = __instance.GetComponent<LiveMixin>();
-                UnityEngine.Object.Destroy(lm);
-                if (ConfigToEdit.newStorageUI.Value && Main.pickupFullCarryallIsLoaded == false)
-                    UWE.CoroutineHost.StartCoroutine(RemoveCollider(__instance));
             }
 
             private static IEnumerator FixFPModel(DeployableStorage ds)
             {
                 yield return new WaitUntil(() => Main.gameLoaded);
-
+                //FPModel[] fPModel = ds.GetComponents<FPModel>();
+                //AddDebug("fPModel " + fPModel.Length);
                 Pickupable p = ds.GetComponent<Pickupable>();
                 if (p && p.inventoryItem == null) // always null on awake
                 { // fix bug: when game loads 1st_person_model used for containers in world
                     FPModel fPModel = ds.GetComponent<FPModel>();
-                    if (fPModel)
-                    {
-                        //AddDebug("FixFPModel");
-                        fPModel.SetState(false);
-                    }
+                    fPModel?.SetState(false);
                 }
             }
 
-            private static IEnumerator RemoveCollider(DeployableStorage ds)
-            {
-                Transform tr = ds.transform.Find("collider_main");
-                while (tr == null)
+            [HarmonyPrefix, HarmonyPatch("Throw")]
+            static bool ThrowPrefix(DeployableStorage __instance)
+            {// do not drop to seafloor
+                //AddDebug("DeployableStorage Throw");
+                __instance._isInUse = false;
+                //__instance.pickupable.Drop(__instance.transform.position, MainCameraControl.main.transform.forward * 2f);
+                __instance.pickupable.Drop(__instance.transform.position, MainCameraControl.main.transform.forward * 2f, false);
+                if (__instance.throwSound && Player.main.IsUnderwater())
                 {
-                    yield return null;
-                    tr = ds.transform.Find("collider_main");
+                    Utils.PlayFMODAsset(__instance.throwSound, __instance.transform);
                 }
-                //AddDebug("DeployableStorage PickupableStorage");
-                Collider collider = tr.GetComponent<Collider>();
-                if (collider)
-                    UnityEngine.Object.Destroy(collider);
-
-                tr = ds.transform.Find("LidLabel/Label");
-                while (tr == null)
-                {
-                    yield return null;
-                    tr = ds.transform.Find("LidLabel/Label");
-                }
-                collider = tr.GetComponent<Collider>();
-                if (collider)
-                {
-                    //AddDebug("RemoveCollider");
-                    UnityEngine.Object.Destroy(collider);
-                }
+                return false;
             }
 
-            //[HarmonyPostfix, HarmonyPatch("Throw")]
-            static void ThrowPostfix(DeployableStorage __instance)
-            { // does not run during loading if in inventory
-                AddDebug("DeployableStorage Throw");
-            }
             //[HarmonyPostfix, HarmonyPatch("OnProtoDeserialize")]
             static void OnDroppedPostfix(DeployableStorage __instance)
             {

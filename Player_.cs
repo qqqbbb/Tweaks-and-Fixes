@@ -111,6 +111,13 @@ namespace Tweaks_Fixes
                 if (aggrOff)
                     __result = false;
             }
+            [HarmonyPatch("CheckSubValid")]
+            public static void CheckSubValidPostfix(Player __instance, SubRoot sub, ref bool __result)
+            {// fix: player respawns in flooded base
+                //AddDebug($" CheckSubValid {sub.name} {__result}");
+                if (__result && sub.IsLeaking())
+                    __result = false;
+            }
         }
 
         [HarmonyPatch(typeof(Inventory), "LoseItems")]

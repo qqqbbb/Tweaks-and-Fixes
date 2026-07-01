@@ -12,7 +12,6 @@ namespace Tweaks_Fixes
     class Player_Movement
     {
         public static float invItemsMod = 1;
-        static Dictionary<TechType, float> itemMassDic = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> waterSpeedEquipment = new Dictionary<TechType, float>();
         public static Dictionary<TechType, float> groundSpeedEquipment = new Dictionary<TechType, float>();
         public static float playerSidewardSpeedMod;
@@ -50,18 +49,6 @@ namespace Tweaks_Fixes
             UpdateModifiers();
         }
 
-        private static float GetItemMass(InventoryItem inventoryItem)
-        {
-            if (itemMassDic.ContainsKey(inventoryItem._techType))
-                return itemMassDic[inventoryItem._techType];
-            else
-            {
-                Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
-                itemMassDic[inventoryItem._techType] = rb.mass;
-                return rb.mass;
-            }
-        }
-
         public static void GetInvMod()
         {
             if (ConfigMenu.invMultWater.Value == 0 && ConfigMenu.invMultLand.Value == 0)
@@ -72,11 +59,11 @@ namespace Tweaks_Fixes
             float massTotal = 0;
             foreach (InventoryItem inventoryItem in Inventory.main._container)
             {
-                massTotal += GetItemMass(inventoryItem);
+                massTotal += Util.GetItemMass(inventoryItem);
             }
             foreach (InventoryItem inventoryItem in (IItemsContainer)Inventory.main._equipment)
             {
-                massTotal += GetItemMass(inventoryItem);
+                massTotal += Util.GetItemMass(inventoryItem);
             }
             if (Player.main.IsUnderwaterForSwimming())
                 invItemsMod = 100f - massTotal * ConfigMenu.invMultWater.Value;

@@ -18,6 +18,9 @@ namespace Tweaks_Fixes
             [HarmonyPrefix, HarmonyPatch("Open")]
             public static bool OpenPrefix(PDA __instance, ref bool __result)
             {
+                if (ConfigMenu.invMultWater.Value > 0 || ConfigMenu.invMultLand.Value > 0)
+                    Util.SaveInventoryItemMass();
+
                 if (ConfigToEdit.dontOpenPDAwhenAltTabbing.Value && Keyboard.current.leftAltKey.IsPressed())
                 {
                     string pdaBinding = GameInput.GetBinding(GameInput.Device.Keyboard, GameInput.Button.PDA, GameInput.BindingSet.Primary);

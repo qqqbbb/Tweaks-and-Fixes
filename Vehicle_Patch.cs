@@ -8,7 +8,6 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 
 namespace Tweaks_Fixes
@@ -70,8 +69,7 @@ namespace Tweaks_Fixes
             //}
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("Start")]
+        [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(Vehicle __instance)
         {
             if (decoyPrefab)
@@ -89,8 +87,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("TorpedoShot")]
+        [HarmonyPrefix, HarmonyPatch("TorpedoShot")]
         public static bool TorpedoShotPrefix(Vehicle __instance, ItemsContainer container, ref TorpedoType torpedoType, Transform muzzle, ref bool __result)
         { // __instance is null !
           //if (__instance == null)
@@ -134,8 +131,7 @@ namespace Tweaks_Fixes
                 return true;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("TorpedoShot")]
+        [HarmonyPostfix, HarmonyPatch("TorpedoShot")]
         public static void TorpedoShotPostfix(Vehicle __instance, ItemsContainer container, ref TorpedoType torpedoType, Transform muzzle)
         { // __instance is null !
             //if (SeaMoth_patch.selectedTorpedo == null)
@@ -164,8 +160,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("EnterVehicle")]
+        [HarmonyPostfix, HarmonyPatch("EnterVehicle")]
         public static void EnterVehiclePostfix(Vehicle __instance)
         {
             //foreach (TorpedoType t in __instance.torpedoTypes)
@@ -177,8 +172,7 @@ namespace Tweaks_Fixes
             //AddDebug("EnterVehicle " + currentLights.Length);
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnPilotModeEnd")]
+        [HarmonyPostfix, HarmonyPatch("OnPilotModeEnd")]
         public static void OnPilotModeEndPostfix(Vehicle __instance)
         {
             SeaMoth_patch.selectedTorpedo = null;
@@ -202,8 +196,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnUpgradeModuleChange")]
+        [HarmonyPostfix, HarmonyPatch("OnUpgradeModuleChange")]
         public static void OnUpgradeModuleChangePostfix(Vehicle __instance, TechType techType)
         {
             //AddDebug("OnUpgradeModuleChange");
@@ -227,8 +220,7 @@ namespace Tweaks_Fixes
         }
 
 
-        [HarmonyPrefix]
-        [HarmonyPatch("OnKill")]
+        [HarmonyPrefix, HarmonyPatch("OnKill")]
         public static void OnKillPrefix(Vehicle __instance)
         {
             StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
@@ -242,7 +234,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPostfix, HarmonyPatch("OnDockedChanged")]
+        //[HarmonyPostfix, HarmonyPatch("OnDockedChanged")]
         public static void OnDockedChangedPrefix(Vehicle __instance, bool docked, Vehicle.DockType dockType)
         {
             //AddDebug("OnDockedChanged  " + docked);
@@ -267,54 +259,8 @@ namespace Tweaks_Fixes
         {
             //AddDebug("SetPlayerInside " + inside);
         }
-        //[HarmonyPrefix]
-        //[HarmonyPatch("ToggleSlot", new Type[] { typeof(int), typeof(bool) })]
-        public static bool ToggleSlotPrefix(int slotID, bool state, Vehicle __instance)
-        {
-            //AddDebug(" Vehicle ToggleSlot  " + slotID + " " + state);
-            if (!Main.exosuitTorpedoDisplayLoaded && __instance is Exosuit && GameInput.GetButtonHeld(GameInput.Button.AltTool))
-            {
-                ItemsContainer container = null;
-                int torpedoSlot = -1;
-                float changeTorpedoTime = 0f;
-                if (Exosuit_Patch.torpedoStorageLeft != null && GameInput.GetButtonDown(GameInput.Button.CycleNext))
-                {
-                    container = Exosuit_Patch.torpedoStorageLeft;
-                    torpedoSlot = 0;
-                    //AddDebug("ToggleSlot torpedoStorageLeft");
-                    changeTorpedoTime = changeTorpedoTimeLeft;
-                }
-                if (Exosuit_Patch.torpedoStorageRight != null && GameInput.GetButtonDown(GameInput.Button.CyclePrev))
-                {
-                    container = Exosuit_Patch.torpedoStorageRight;
-                    torpedoSlot = 1;
-                    //AddDebug("ToggleSlot torpedoStorageRight");
-                    changeTorpedoTime = changeTorpedoTimeRight;
-                }
-                if (container == null)
-                {
-                    //AddDebug("ToggleSlot return false");
-                    return false;
-                }
-                //List<TorpedoType> torpedoTypes = GetTorpedos(__instance, container);
-                //AddDebug("TorpedoShot torpedoTypes " + torpedoTypes.Count);
-                //Main.Log("timePassedAsFloat " + Time.time);
-                if (Time.time - changeTorpedoTime > changeTorpedoInterval)
-                {
-                    //Main.Log("changeTorpedoTime " + changeTorpedoTime);
-                    Exosuit_Patch.ChangeTorpedo(__instance as Exosuit, container);
-                    if (torpedoSlot == 0)
-                        changeTorpedoTimeLeft = Time.time;
-                    else if (torpedoSlot == 1)
-                        changeTorpedoTimeRight = Time.time;
-                    return false;
-                }
-            }
-            return true;
-        }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnProtoDeserialize")]
+        [HarmonyPostfix, HarmonyPatch("OnProtoDeserialize")]
         static void OnProtoDeserializePostfix(Vehicle __instance)
         {
             //AddDebug("Vehicle OnProtoDeserialize ");
@@ -322,24 +268,6 @@ namespace Tweaks_Fixes
             {
                 Util.FreezeObject(__instance.gameObject, true);
             }
-        }
-
-        //[HarmonyPostfix]
-        //[HarmonyPatch("SlotKeyDown")]
-        public static void SlotKeyDownPostfix(Vehicle __instance, int slotID)
-        {
-            AddDebug("SlotKeyDown " + slotID);
-            TechType currentModule = __instance.modules.GetTechTypeInSlot(__instance.slotIDs[slotID]);
-            Exosuit exosuit = __instance as Exosuit;
-            if (exosuit)
-            {
-                AddDebug("SlotKeyDown leftArmType " + exosuit.leftArmType);
-                AddDebug("SlotKeyDown rightArmType " + exosuit.rightArmType);
-                AddDebug("SlotKeyDown HasMoreThan1TorpedoType " + Exosuit_Patch.HasMoreThan1TorpedoType(exosuit));
-            }
-            else
-                AddDebug("SlotKeyDown " + currentModule);
-
         }
 
     }
@@ -968,12 +896,12 @@ namespace Tweaks_Fixes
                     primary.Append(leftArm);
                     primary.Append(' ');
                     primary.Append(UI_Patches.leftHandButton);
-                    primary.Append("  ");
+                    primary.Append("   ");
                 }
                 if (!string.IsNullOrEmpty(rightArm))
                 {
-                    if (!string.IsNullOrEmpty(leftArm))
-                        primary.Append(", ");
+                    //if (!string.IsNullOrEmpty(leftArm))
+                    //    primary.Append(", ");
 
                     if (__instance.currentRightArmType == TechType.ExosuitClawArmModule)
                     {

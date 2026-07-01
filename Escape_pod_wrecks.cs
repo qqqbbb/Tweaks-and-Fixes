@@ -10,10 +10,10 @@ namespace Tweaks_Fixes
 {
     internal class Escape_pod_wrecks
     {
-        [HarmonyPatch(typeof(ResourceTracker))]
+        //[HarmonyPatch(typeof(ResourceTracker))]
         class ResourceTracker_Patch
         {
-            [HarmonyPostfix, HarmonyPatch("Start")]
+            //[HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(ResourceTracker __instance)
             {
                 if (__instance.techType == TechType.Wreck && __instance.name == "life_pod_exploded_3(Clone)")

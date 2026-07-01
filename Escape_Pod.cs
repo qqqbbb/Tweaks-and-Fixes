@@ -3,6 +3,7 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -176,15 +177,20 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Radio), "OnHandHover")]
-        class Radior_OnHandHover_Patch
+        //[HarmonyPatch(typeof(uGUI_EscapePod), "Awake")]
+        class uGUI_EscapePod_Awake_Patch
         {
-            public static void Postfix(Radio __instance)
+            public static void Postfix(uGUI_EscapePod __instance)
             {
-                if (!__instance.IsFullHealth())
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, "DamagedRadio", true);
+                //TextMeshProUGUI
+                AddDebug("uGUI_EscapePod shader " + __instance.content.fontMaterial.name);
+                //__instance.content.fontMaterial.shader = null;
+                //__instance.content.enabled = false;
+                //__instance.content.enabled = true;
             }
         }
+
+
 
     }
 }

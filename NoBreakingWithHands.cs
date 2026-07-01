@@ -81,6 +81,7 @@ namespace Tweaks_Fixes
     {
         public static HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium, TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal, TechType.JellyPlant  };
+        static WaitForSeconds makeKinematicWaitTime = new WaitForSeconds(.25f);
 
         [HarmonyPrefix]
         [HarmonyPatch("AllowedToPickUp")]
@@ -153,7 +154,7 @@ namespace Tweaks_Fixes
 
         static IEnumerator MakeKinematic(Rigidbody rb)
         {
-            yield return new WaitForSeconds(.25f);
+            yield return makeKinematicWaitTime;
             rb.isKinematic = false;
         }
 

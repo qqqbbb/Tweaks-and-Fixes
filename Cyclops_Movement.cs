@@ -20,12 +20,13 @@ namespace Tweaks_Fixes
         static float cyclopsForwardOrig;
         static bool autoMove = false;
         static int collisionLayerMask = Voxeland.GetTerrainLayerMask();
+        static WaitForSeconds cyclopsCollisionDetectionInterval = new WaitForSeconds(.1f);
 
         static IEnumerator DetectCollision(CyclopsProximitySensors sensors)
         { // detects only terrain
             while (autoMove)
             {
-                yield return new WaitForSeconds(.1f);
+                yield return cyclopsCollisionDetectionInterval;
                 //AddDebug("my DetectCollision");
                 var data = sensors.sensorCastData[0];
                 float distance = data.distance * 3;

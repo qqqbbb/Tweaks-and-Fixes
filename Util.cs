@@ -9,12 +9,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     public static class Util
     {
+        static Dictionary<TechType, float> itemMassDic = new Dictionary<TechType, float>();
 
         public static bool GetTarget(Vector3 startPos, Vector3 dir, float distance, out RaycastHit hitInfo)
         {
@@ -489,6 +491,36 @@ namespace Tweaks_Fixes
             LargeWorldEntity_.spawningNearPlayer = false;
         }
 
+        public static void SaveInventoryItemMass()
+        {
+            if (Inventory.main == null || Inventory.main._container == null)
+                return;
+
+            foreach (InventoryItem inventoryItem in Inventory.main._container)
+            {
+                Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
+                itemMassDic[inventoryItem._techType] = rb.mass;
+            }
+        }
+
+        public static float GetItemMass(InventoryItem inventoryItem)
+        {
+            if (itemMassDic.TryGetValue(inventoryItem._techType, out float mass))
+                return mass;
+
+            Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
+            itemMassDic[inventoryItem._techType] = rb.mass;
+            return rb.mass;
+        }
+
+        public static float GetItemMass(TechType techType)
+        {
+            if (itemMassDic.TryGetValue(techType, out float mass))
+                return mass;
+
+            return 0;
+        }
+
         public static IEnumerator AddToContainerAsync(TechType techType, ItemsContainer container, bool pickupSound)
         {
             TaskResult<GameObject> prefabResult = new TaskResult<GameObject>();
@@ -609,9 +641,12 @@ namespace Tweaks_Fixes
         public static Transform GetExosuitLightsTransform(Exosuit exosuit)
         {
             //Main.logger.LogDebug("GetLightsTransform");
-            Transform t = exosuit.leftArmAttach.transform.Find("lights_parent");
+            Transform t = exosuit.leftArmAttach.Find("lights_parent");
             if (t == null)
-                return exosuit.transform.Find("lights_parent");
+                t = exosuit.transform.Find("lights_parent");
+
+            if (t == null)
+                Main.logger.LogError("GetExosuitLightsTransform could not get light transform");
 
             return t;
         }
@@ -874,10 +909,11 @@ namespace Tweaks_Fixes
                 Main.logger.LogError($"DisableShadowCasting {root.name} RendererData  null ");
                 return;
             }
+            //Main.logger.LogDebug($"DisableShadowCasting root {root.name}  data.parentPath {data.parentPath} ");
             Transform parent = root.Find(data.parentPath);
             if (parent == null)
             {
-                Main.logger.LogError($"DisableShadowCasting {root.name} {root.childCount} RendererData parent null " + data.parentPath);
+                Main.logger.LogWarning($"DisableShadowCasting {root.name} {root.childCount} RendererData parent null " + data.parentPath);
                 return;
             }
             if (data.renderers == null)
@@ -1069,8 +1105,6 @@ namespace Tweaks_Fixes
         {
             //AddDebug("DisableLODs " + go.name);
             LODGroup[] lods = go.GetComponentsInChildren<LODGroup>();
-            if (lods == null)
-                return;
 
             foreach (LODGroup lod in lods)
             {
@@ -1128,6 +1162,16 @@ namespace Tweaks_Fixes
             }
         }
 
+        public static void AddElement<T>(ref T[] array, T element)
+        {
+            if (array.Length == 0)
+            {
+                array = new T[] { element };
+                return;
+            }
+            Array.Resize(ref array, array.Length + 1);
+            array[array.Length - 1] = element;
+        }
 
     }
 }

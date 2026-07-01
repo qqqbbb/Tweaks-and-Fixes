@@ -78,7 +78,7 @@ namespace Tweaks_Fixes
 
         private static IEnumerator RemoveRockParticles(Geyser geyser)
         {
-            yield return new WaitForSeconds(1);
+            yield return Main.oneSecondInterval;
             Transform t = geyser.transform.Find("xGeyser_Warning(Clone)/xMeshFrag");
             if (t)
             {

@@ -195,6 +195,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> disableHotMetalGlow;
         public static ConfigEntry<bool> grassCastShadow;
         public static ConfigEntry<bool> dontOpenPDAwhenAltTabbing;
+        public static ConfigEntry<bool> pressShiftToOpenConsole;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -206,11 +207,11 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
-
-            dontOpenPDAwhenAltTabbing = Main.configToEdit.Bind("UI", "Do not open PDA when alt tabbing out of the game", false, "");
+            pressShiftToOpenConsole = Main.configToEdit.Bind("MISC", "Need to press shift to open command console", true);
+            dontOpenPDAwhenAltTabbing = Main.configToEdit.Bind("UI", "Do not open PDA when alt tabbing out of the game", false, "This breaks PDA for some users");
             grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "");
             disableHotMetalGlow = Main.configToEdit.Bind("MISC", "Remove hot metal glow from Aurora debris that is underwater", false, "");
-            fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", true, "");
+            fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", false, "For some users this does not work as intended");
             vegan = Main.configToEdit.Bind("PLAYER", "Vegan diet", false, "You will not be able to eat fish if this is true");
             sunbeamTimerShowsGameTime = Main.configToEdit.Bind("UI", "Sunbeam arrival timer shows game time instread of real time", false, "");
             radioIcon = Main.configToEdit.Bind("UI", "Show icon on the UI when a new radio message is received", true, "");
@@ -247,7 +248,7 @@ namespace Tweaks_Fixes
             crushDepthEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush depth equipment", "ReinforcedDiveSuit 0", "Equipment in this list increases your safe diving depth. The format is: item ID, space, number of meters that will be added to your safe diving depth. Every entry is separated by comma.");
             damageModifiers = Main.configToEdit.Bind("CREATURES", "Damage modifiers", "", "Use this to modify damage taken by things. Negative numbers reduce damage. Positive numbers increase damage. The format is: ID, space, damage percent that will be added or subtracted. Every entry is separated by comma.");
             crushDamageEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush damage equipment", "ReinforcedDiveSuit 0", "Equipment in this list reduces your crush damage. The format is: item ID, space, crush damage percent that will be blocked. Every entry is separated by comma.");
-            itemMass = Main.configToEdit.Bind("ITEMS", "Item mass", "PrecursorKey_Blue 5, PrecursorKey_Orange 5, PrecursorKey_Purple 5, PrecursorKey_Red 5, PrecursorKey_White 5", "This allows you to change mass of pickupable items. The format is: item ID, space, item mass in kg as a decimal point number. Every entry is separated by comma.");
+            itemMass = Main.configToEdit.Bind("ITEMS", "Item mass", "LuggageBag 2, SmallStorage 4, PrecursorKey_Blue 5, PrecursorKey_Orange 5, PrecursorKey_Purple 5, PrecursorKey_Red 5, PrecursorKey_White 5", "This allows you to change mass of pickupable items. The format is: item ID, space, item mass in kg as a decimal point number. Every entry is separated by comma.");
             unmovableItems = Main.configToEdit.Bind("ITEMS", "Unmovable items", "", "Contains pickupable items that can not be moved by bumping into them. You will always find them where you dropped them.  Every entry is separated by comma.");
             bloodColor = Main.configToEdit.Bind("CREATURES", "Blood color", "0.784 1.0 0.157", "Creatures‛ blood color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
             gravTrappable = Main.configToEdit.Bind("TOOLS", "Gravtrappable items", "seaglide, airbladder, flare, flashlight, builder, lasercutter, ledlight, divereel, propulsioncannon, welder, repulsioncannon, scanner, stasisrifle, knife, heatblade, precursorkey_blue, precursorkey_orange, precursorkey_purple, precursorkey_red, precursorkey_white, compass, fins, fireextinguisher, firstaidkit, doubletank, plasteeltank, radiationsuit, radiationhelmet, radiationgloves, rebreather, reinforceddivesuit, maproomhudchip, tank, stillsuit, swimchargefins, ultraglidefins, highcapacitytank,", "List of items affected by grav trap. This list does not replace vanilla list. Items from this list will be added to vanilla one.");
@@ -259,7 +260,7 @@ namespace Tweaks_Fixes
             eatableHealthValue = Main.configToEdit.Bind("ITEMS", "Eatable health value", "", "Items from this list will be made eatable and will restore player's health. Negative values will damage player. The format is: item ID, space, health value. Every entry is separated by comma.");
             fixMelons = Main.configToEdit.Bind("PLANTS", "Fix melons", false, "You will be able to plant only 1 melon in a pot and only 4 in a planter if this is true.");
             randomPlantRotation = Main.configToEdit.Bind("PLANTS", "Random plant rotation", true, "Plants in planters will have random rotation if this is true.");
-            silentReactor = Main.configToEdit.Bind("BASE", "Silent nuclear reactor", false);
+            //silentReactor = Main.configToEdit.Bind("BASE", "Silent nuclear reactor", false);
             removeFragmentCrate = Main.configToEdit.Bind("FRAGMENTS", "Remove fragment crate", false, "When you scan a blueprint fragment, the crate holding the fragment will be removed if this is true.");
             creepvineLights = Main.configToEdit.Bind("PLANTS", "Real creepvine lights", true, "Creepvine seed cluster light intensity will depend on number of seed clusters on the vine if this is true.");
             vehicleUItweaks = Main.configToEdit.Bind("UI", "Vehicle UI tweaks", true, "UI prompts for toggling lights in seamoth and prawn suit. UI shows installed seamoth upgrade modules. UI shows installed prawn suit arms. Ability to change current torpedo for seamoth and prawn suit.");
@@ -334,7 +335,7 @@ namespace Tweaks_Fixes
             cyclopsSonar = Main.configToEdit.Bind("CYCLOPS", "Cyclops sonar", true, "Cyclops sonar that detects aggresive creatures will be off if this is false");
             playerBreathBubbles = Main.configToEdit.Bind("PLAYER", "Player breath bubbles particle effect", true);
             playerBreathBubblesSoundFX = Main.configToEdit.Bind("PLAYER", "Player breath bubbles sound effect", true);
-            medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
+            //medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
             consistentHungerUpdateTime = Main.configToEdit.Bind("PLAYER", "Consistent hunger update time", false, "In vanilla game your hunger updates every 10 real time seconds. If this is true, hunger update interval will be divided by 'time flow speed multiplier' setting.");
             removeBigParticlesWhenKnifing = Main.configToEdit.Bind("CREATURES", "Remove big particles when slashing creatures with knife", false, "You will see less blood particles when slashing creatures with knife if this is true.");
             permPoisonDamage = Main.configToEdit.Bind("PLAYER", "Permanent poison damage percent", 0, new ConfigDescription("If this is more than 0 you will take not temporary but permanent health damage when poisoned. For example if this is 90, you will lose 0.9 health permanantly for every point of poison damage.", percentRange));

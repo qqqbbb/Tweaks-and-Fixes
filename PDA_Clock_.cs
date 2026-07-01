@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
                     //AddDebug("ApplyTimeToText " + Player.main.pda.isInUse);
                     DateTime dateTime = DayNightCycle.ToGameDateTime(DayNightCycle.main.timePassedAsFloat);
                     textComponent.text = dateTime.Hour.ToString("00") + " : " + dateTime.Minute.ToString("00");
-                    yield return new WaitForSeconds(1);
+                    yield return Main.oneSecondInterval;
                     //AddDebug($"ApplyTimeToText isOpen {Player.main.pda.isOpen} isInUse {Player.main.pda.isInUse}");
                     //AddDebug("ApplyTimeToText " + gameObject.activeSelf + " " + gameObject.activeInHierarchy);
                     //float dayScalar = DayNightCycle.main.GetDayScalar();

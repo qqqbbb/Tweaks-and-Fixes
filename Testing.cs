@@ -26,7 +26,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     public class Testing
-    {// drillable ion cube 257 -1433 -333
+    {// drillable ion cube 257 -1433 -333   -52 -1211 115
         // geyser -50 -11 -430
         // sealed door 905 -195 613
         // spike plant 360 -106 98
@@ -160,24 +160,6 @@ namespace Tweaks_Fixes
         }
 
 
-        //[HarmonyPatch(typeof(DistanceCull), "Start")]
-        class DistanceCull_Start_patch
-        {
-            public static void Postfix(DistanceCull __instance)
-            {
-                AddDebug($"DistanceCull.Start {__instance.name} parent {__instance.transform.parent.name}");
-            }
-        }
-
-        //[HarmonyPatch(typeof(StoryGoal), "Trigger")]
-        class StoryGoal_Trigger_patch
-        {
-            public static void Postfix(StoryGoal __instance)
-            {
-                AddDebug("StoryGoal Trigger " + __instance.key + " delay " + __instance.delay);
-            }
-        }
-
         //[HarmonyPatch(typeof(DamageSystem), "CalculateDamage")]
         class DamageSystem_CalculateDamage_Prefix_Patch
         {
@@ -299,24 +281,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(LiveMixin), "TakeDamage")]   
-        public static class LiveMixin_UpdateActiveTarget_Patch
-        {
-            public static void Prefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, ref DamageType type, GameObject dealer)
-            {
-                if (__instance.name == "Cyclops-MainPrefab(Clone)")
-                {
-                    if (dealer == null)
-                        AddDebug("cyclops TakeDamage dealer null");
-                    else
-                        AddDebug("cyclops TakeDamage " + dealer.name);
-
-                }
-            }
-        }
-
-
-
         public static void SimulateKeyPress(Key k)
         {
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
@@ -369,15 +333,6 @@ namespace Tweaks_Fixes
                 //float fps = 1.0f / deltaTime;
                 //Util.Message("FPS " + Mathf.RoundToInt(fps));
                 //AddDebug("mode " + __instance.mode);
-                if (__instance.currentSub && __instance.currentSub is BaseRoot)
-                {
-                    BaseRoot baseRoot = __instance.currentSub as BaseRoot;
-                    //AddDebug("Leak Amount " + baseRoot.GetLeakAmount());
-                    //AddDebug("BaseFloodSim IsLeaking " + baseRoot.flood.tIsLeaking());
-                    //AddDebug("currentSub IsLeaking " + __instance.currentSub.IsLeaking());
-                    //AddDebug("leakers.Count " + baseRoot.flood.leakers.Count);
-                    //AddDebug("IsLeaking " + __instance.currentSub.IsLeaking());
-                }
                 if (Keyboard.current.bKey.wasPressedThisFrame)
                 {
                     //if (Player.main.IsInBase())
@@ -396,23 +351,22 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    //PrintBiomeNames();
                     ShowColliderName();
-                    //if (Input.GetKey(KeyCode.LeftShift))
-                    //    Time.timeScale = 0;
-                    //else
-                    //    Time.timeScale = 1;
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    ShowTargetInfo(true, false, false);
+                    ShowTargetInfo(true, false, false, false);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
-                    PrintClosestObjects(Player.mainObject.transform.position, 2f);
+                    PrintClosestObjects(Player.mainObject.transform.position, 3f);
                 }
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
+                    Vector3Int playerPos = Util.Vecto3ToVecto3int(__instance.transform.position);
+                    string playerPosSS = $"playerPos {playerPos.x}, {playerPos.y}, {playerPos.z}";
+                    Main.logger.LogDebug(playerPosSS);
+                    AddDebug(playerPosSS);
                     //AddDebug("Light Scalar " + DayNightCycle.main.GetLocalLightScalar());
                     //GameObject goToTest = Player.main.guiHand.activeTarget;
                     //AddDebug("PDAScanner " + PDAScanner.complete.Contains(TechType.SeaglideFragment));
@@ -437,7 +391,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        private static void PrintClosestObjects(Vector3 pos, float radius)
+        private static void PrintClosestObjects(Vector3 pos, float radius, string name = null)
         {
             AddDebug($" Objects in radius of {radius}");
             Main.logger.LogInfo($"Objects in radius of {radius}");
@@ -446,8 +400,15 @@ namespace Tweaks_Fixes
                 if (go.GetComponentInParent<Player>())
                     continue;
 
-                AddDebug($"{go.name} ");
-                Main.logger.LogInfo($"{go.name} ");
+                if (name == null || go.name.ContainsIgnoreCase(name))
+                {
+                    if (go.TryGetComponent(out Light light))
+                    {
+                        go.SetActive(false);
+                        AddDebug($"{go.name} ");
+                        Main.logger.LogInfo($"{go.name} ");
+                    }
+                }
             }
         }
 
@@ -581,7 +542,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static void ShowTargetInfo(bool position = false, bool health = false, bool showCollider = false)
+        public static void ShowTargetInfo(bool position = false, bool health = false, bool showCollider = false, bool disable = false)
         {
             GameObject target = Player.main.guiHand.activeTarget;
             RaycastHit hitInfo = new RaycastHit();
@@ -690,6 +651,15 @@ namespace Tweaks_Fixes
                 //        AddDebug("harvest_Type " + harvestType);
                 //}
             }
+            if (disable)
+            {
+                int x = (int)target.transform.position.x;
+                int y = (int)target.transform.position.y;
+                int z = (int)target.transform.position.z;
+                string s = $"{{new Vector3Int({x}, {y}, {z}), new List<PosRotData>{{ new PosRotData(\"{target.name}\") }}}},";
+                Main.logger.LogDebug(s);
+                target.SetActive(false);
+            }
         }
 
         private static GameObject GetRootGameobjectWithoutIdentifier(GameObject go)
@@ -787,17 +757,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Story.StoryGoal), "Execute")]
-        class StoryGoal_Execute_Patch
-        {
-            public static void Postfix(Story.StoryGoal __instance, string key, Story.GoalType goalType)
-            {
-                AddDebug("StoryGoal " + key);
-                AddDebug("goalType " + goalType);
-                //return false;
-            }
-        }
-
         //[HarmonyPatch(typeof(PDAEncyclopedia), "AddAndPlaySound")]
         class PDAEncyclopedia_AddAndPlaySound_Patch
         {
@@ -809,27 +768,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(FreecamController), "Update")]
-        class FreecamController_Update_patch
-        {
-            public static void Prefix(FreecamController __instance)
-            {
-                if (__instance.GetActive() == false)
-                    return;
 
-                Vector2 scrollValue = Mouse.current.scroll.ReadValue();
-                if (scrollValue.y != 0)
-                {
-                    if (scrollValue.y > 0)
-                        __instance.speed *= 1.5f;
-                    else
-                        __instance.speed *= .375f;
-
-                    if (__instance.speed < 1)
-                        __instance.speed = 1;
-                }
-            }
-        }
 
         static void Debug(GameObject go)
         {
@@ -987,31 +926,24 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(GotoConsoleCommand))]
-        class GotoConsoleCommand_Patch
+        //[HarmonyPatch(typeof(WorldEntityDatabase), "TryGetInfo", new Type[] { typeof(string), typeof(WorldEntityInfo) }, new[] { ArgumentType.Normal, ArgumentType.Out })]
+        class WorldEntityDatabase_TryGetInfo_PostfixPatch
         {
-            //[HarmonyPostfix, HarmonyPatch("Awake")]
-            public static void AwakePostfix(GotoConsoleCommand __instance)
+            public static void Postfix(WorldEntityDatabase __instance, string classId, ref WorldEntityInfo info)
             {
-                List<TeleportPosition> tps = new List<TeleportPosition>();
-                foreach (TeleportPosition tp in __instance.data.locations)
+                //AddDebug("TryGetInfo " + info.techType);
+                if (info.techType == TechType.MoonpoolFragment)
                 {
-                    if (tp.name.StartsWith("escapepod"))
-                    //if (tp.name.StartsWith("wreck"))
-                    {
-                        //Main.logger.LogMessage("scatter TeleportPosition: " + tp.name);
-                        //AddDebug("GotoConsoleCommand TeleportPosition: " + tp.name);
-                        tps.Add(tp);
-                    }
+                    AddDebug("Moon_Pool_fragment " + info.techType);
+                    info.prefabZUp = !info.prefabZUp;
                 }
-                __instance.data.locations = tps.ToArray();
-            }
-            //[HarmonyPostfix, HarmonyPatch("GotoLocation")]
-            public static void GotoLocationPostfix(GotoConsoleCommand __instance)
-            {
+                //if (classId == "30189aca-d5b5-4363-8398-11d6a109addb" || classId == "85259b00-2672-497e-bec9-b200a1ab012f" || classId == "f744e6d9-f719-4653-906b-34ed5dbdb230" || classId == "498a843d-efed-4fc0-8243-13453aee2559" || classId == "72a8c169-ca00-48aa-94f9-d92d932548e0" || classId == "bd3c0070-3af4-4e44-b50d-506c438829ec")// Moon_Pool_fragment
+                {
 
+                }
             }
         }
+
 
 
     }
