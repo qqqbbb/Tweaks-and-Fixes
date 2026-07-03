@@ -69,7 +69,7 @@ namespace Tweaks_Fixes
 
             static IEnumerator FixVehicleDockingBayLights(VehicleDockingBay vehicleDockingBay)
             {
-                yield return new WaitUntil(() => Main.gameLoaded);
+                yield return Main.waitUntilGameLoaded;
                 //Main.logger.LogMessage("FixVehicleDockingBayLights " + vehicleDockingBay.name);
                 //AddDebug("FixVehicleDockingBayLights " + vehicleDockingBay.name);
                 List<Light> lights = GetPillarLights(vehicleDockingBay);

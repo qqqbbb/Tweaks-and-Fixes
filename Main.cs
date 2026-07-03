@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.20.0";
+            VERSION = "4.20.1";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -43,14 +43,14 @@ namespace Tweaks_Fixes
         public static bool torpedoImprovementsLoaded;
         public static bool cyclopsOverheatLoaded;
         public static bool aggressiveFaunaLoaded;
-        //public static bool devMenuLoaded;
         static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public static ConfigMain configMain = new ConfigMain();
         internal static OptionsMenu options;
         public static ConfigFile configMenu;
         public static ConfigFile configToEdit;
-        public static WaitForSeconds oneSecondInterval = new WaitForSeconds(1f);
+        public static WaitForSeconds oneSecond = new WaitForSeconds(1f);
+        public static WaitUntil waitUntilGameLoaded = new WaitUntil(() => gameLoaded);
 
         public void CleanUp()
         {

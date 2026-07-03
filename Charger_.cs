@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 using UWE;
@@ -22,10 +23,17 @@ namespace Tweaks_Fixes
             charger.ui.SetActive(false);
         }
 
-        [HarmonyPrefix, HarmonyPatch("ToggleUI")]
+        public static IEnumerator DisableAnimatorWhenOpened(Charger charger)
+        {
+            yield return Main.waitUntilGameLoaded;
+            yield return new WaitForSeconds(charger.animTimeOpen);
+            charger.animator.enabled = false;
+        }
+
+        //[HarmonyPrefix, HarmonyPatch("ToggleUI")]
         public static bool ToggleUIPrefix(Charger __instance, bool active)
         {
-            //AddDebug($"ToggleUI {active}");
+            AddDebug($"ToggleUI {active}");
             if (active == false)
             {
                 CoroutineHost.StartCoroutine(CloseUIafterAnimationFinished(__instance));
@@ -34,7 +42,23 @@ namespace Tweaks_Fixes
             return true;
         }
 
-        [HarmonyPostfix, HarmonyPatch("ToggleUIPowered")]
+        [HarmonyPostfix, HarmonyPatch("OnOpen")]
+        public static void OnOpenPostfix(Charger __instance)
+        {
+            //AddDebug($"OnOpen ");
+            if (__instance is PowerCellCharger)
+                CoroutineHost.StartCoroutine(DisableAnimatorWhenOpened(__instance));
+        }
+
+        [HarmonyPrefix, HarmonyPatch("OnCloseCallback")]
+        public static void OnCloseCallbackPrefix(Charger __instance)
+        {
+            //AddDebug($"OnCloseCallback HasChargables " + __instance.HasChargables());
+            if (__instance is PowerCellCharger && __instance.HasChargables() == false)
+                __instance.animator.enabled = true;
+        }
+
+        //[HarmonyPostfix, HarmonyPatch("ToggleUIPowered")]
         public static void ToggleUIPoweredPostfix(Charger __instance, bool powered)
         {
             if (powered && __instance.ui.activeSelf)
@@ -46,30 +70,23 @@ namespace Tweaks_Fixes
             __instance.ui.SetActive(powerRelay.IsPowered());
         }
 
-        [HarmonyPrefix, HarmonyPatch("OnHandClick")]
+        //[HarmonyPrefix, HarmonyPatch("OnHandClick")]
         public static bool OnHandClickPrefix(Charger __instance)
         {
-            if (__instance.enabled && __instance.opened == false)
-            {
-                PowerRelay powerRelay = PowerSource.FindRelay(__instance.transform);
-                //AddDebug($"OnHandClick IsPowered {powerRelay.IsPowered()}");
-                if (powerRelay.IsPowered() == false)
-                    return false;
-            }
             bool animPlaying = Util.IsAnimationPlaying(__instance.animator);
             //AddDebug($"OnHandClick {animPlaying}");
             return animPlaying == false;
         }
 
-        [HarmonyPrefix, HarmonyPatch("OnCloseCallback")]
-        public static bool OnCloseCallbackPreix(Charger __instance)
+        //[HarmonyPrefix, HarmonyPatch("Update")]
+        public static bool UpdatePostix(Charger __instance)
         {
-            if (__instance.enabled && __instance.opened)
-            { // dont play animation when unpowered
-                PowerRelay powerRelay = PowerSource.FindRelay(__instance.transform);
-                //AddDebug($"OnHandClick IsPowered {powerRelay.IsPowered()}");
-                if (powerRelay.IsPowered() == false)
-                    return false;
+            if (Input.GetKey(KeyCode.Z))
+            {
+                AddDebug("stop Charger Update");
+                //__instance.animator.enabled = false;
+                __instance.sequence.ForceState(false);
+                return false;
             }
             return true;
         }
@@ -78,11 +95,15 @@ namespace Tweaks_Fixes
         public static void UpdatePostfix(Charger __instance)
         {
             //AddDebug("nextChargeAttemptTimer " + __instance.nextChargeAttemptTimer.ToString("0.0"));
+            //AddDebug("ChargerInsufficientPower " + Language.main.GetFormat("ChargerInsufficientPower", 11));
         }
 
         [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(Charger __instance)
         {
+            if (__instance is PowerCellCharger && __instance.opened)
+                CoroutineHost.StartCoroutine(DisableAnimatorWhenOpened(__instance));
+
             //__instance.uiUnpoweredText.color = Color.white;
             __instance.chargeSpeed *= ConfigToEdit.batteryChargeSpeedMult.Value;
             //AddDebug($"{__instance.name}  Charger Start {s} mod {__instance.chargeSpeed}");
@@ -102,7 +123,6 @@ namespace Tweaks_Fixes
             //foreach (var tt in __instance.allowedTech)
             //    Main.logger.LogMessage(__instance.name + " allowedTech " + tt);
         }
-
 
     }
 }

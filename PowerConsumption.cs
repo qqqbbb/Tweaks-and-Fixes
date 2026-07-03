@@ -94,7 +94,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PowerSystem), "ConsumeEnergy")]
         class PowerSystem_ConsumeEnergy_Patch
         {
-            static float amount_;
+            static float amount_ = float.MinValue;
             static void Prefix(ref float amount, IPowerInterface powerInterface, float amountConsumed)
             {
                 if (ConfigMenu.vehicleEnergyConsMult.Value == 1 && ConfigMenu.baseEnergyConsMult.Value == 1)
@@ -118,9 +118,10 @@ namespace Tweaks_Fixes
                     amount *= ConfigMenu.baseEnergyConsMult.Value;
                 }
             }
+
             static void Postfix(ref float amount, IPowerInterface powerInterface, ref float amountConsumed)
             {// allow docked vehicles to charge if baseEnergyConsMult is 0
-                //AddDebug("base Consume Energy Postfix " + amount_);
+             //AddDebug("base Consume Energy Postfix " + amount_);
                 if (amount_ > float.MinValue)
                     amountConsumed = amount_;
             }

@@ -1,10 +1,7 @@
-﻿using FMOD.Studio;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -25,8 +22,11 @@ namespace Tweaks_Fixes
             return medicalCabinet.transform.parent.name == "MedCabRoot";
         }
 
-        public static bool CanProduceMedkit()
+        public static bool CanProduceMedkit(MedicalCabinet medicalCabinet)
         {
+            if (IsMedCabinetInEscapePod(medicalCabinet) == false)
+                return true;
+
             if (ConfigToEdit.escapePodMedkitCabinetWorks.Value == ConfigToEdit.EscapePodMedicalCabinetWorks.Never)
                 return false;
 
@@ -72,7 +72,7 @@ namespace Tweaks_Fixes
             }
             medicalCabinet.hasMedKit = true;
             medicalCabinet.medKitModel.SetActive(true);
-            if (medicalCabinet.hasMedKit && CanProduceMedkit())
+            if (medicalCabinet.hasMedKit && CanProduceMedkit(medicalCabinet))
                 CoroutineHost.StartCoroutine(SetupAlert(medicalCabinet));
         }
 
@@ -88,10 +88,7 @@ namespace Tweaks_Fixes
             //if (ConfigToEdit.medkitFabAlertSound.Value == false)
             //    __instance.playSound.evt.setVolume(0);
 
-            if (!IsMedCabinetInEscapePod(__instance))
-                return true;
-
-            if (!CanProduceMedkit())
+            if (!CanProduceMedkit(__instance))
             {
                 Initialize(__instance);
                 return false;
@@ -104,11 +101,8 @@ namespace Tweaks_Fixes
         {
             if (!Main.gameLoaded && __instance.hasMedKit)
             {
-                if (IsMedCabinetInEscapePod(__instance))
-                {
-                    if (CanProduceMedkit())
-                        CoroutineHost.StartCoroutine(SetupAlert(__instance));
-                }
+                if (CanProduceMedkit(__instance))
+                    CoroutineHost.StartCoroutine(SetupAlert(__instance));
                 else
                     CoroutineHost.StartCoroutine(SetupAlert(__instance));
             }
@@ -118,17 +112,14 @@ namespace Tweaks_Fixes
         [HarmonyPatch("ForceSpawnMedKit")]
         public static bool ForceSpawnMedKitPrefix(MedicalCabinet __instance)
         { // wtf calls this?
-            if (!IsMedCabinetInEscapePod(__instance) || CanProduceMedkit())
-                return true;
-
             //AddDebug("ForceSpawnMedKit ");
-            return false;
+            return CanProduceMedkit(__instance);
         }
 
         static IEnumerator SetupAlert(MedicalCabinet medicalCabinet)
         {
-            yield return new WaitUntil(() => Main.gameLoaded == true);
-            yield return Main.oneSecondInterval;
+            yield return Main.waitUntilGameLoaded;
+            yield return Main.oneSecond;
             //AddDebug(medicalCabinet.transform.parent.name + " MedicalCabinet SetupAlert ");
             medicalCabinet.InvokeRepeating("BlinkRepeat", 0f, 1f);
             medicalCabinet.playSound.Play();
@@ -141,11 +132,8 @@ namespace Tweaks_Fixes
             if (!Main.gameLoaded)
                 return false;
 
-            if (!IsMedCabinetInEscapePod(__instance))
-                return true;
-
             //AddDebug("escapePodMedkitCabinet " + ConfigToEdit.escapePodMedkitCabinet.Value);
-            if (!CanProduceMedkit())
+            if (CanProduceMedkit(__instance) == false)
             {
                 //__instance.medKitModel.SetActive(__instance.hasMedKit);
                 if (__instance.changeDoorState)
@@ -160,10 +148,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandClick")]
         public static bool OnHandClickPrefix(MedicalCabinet __instance)
         {
-            if (!IsMedCabinetInEscapePod(__instance))
-                return true;
-
-            if (!CanProduceMedkit())
+            if (CanProduceMedkit(__instance) == false)
             {
                 bool invRoom = Player.main.HasInventoryRoom(1, 1);
                 //AddDebug("doorOpen " + __instance.doorOpen);
@@ -190,10 +175,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandHover")]
         public static bool OnHandHoverPrefix(MedicalCabinet __instance, GUIHand hand)
         {
-            if (!IsMedCabinetInEscapePod(__instance))
-                return true;
             //AddDebug("CanProduceMedkit " + CanProduceMedkit());
-            if (!CanProduceMedkit())
+            if (CanProduceMedkit(__instance) == false)
             {
                 string text = __instance.doorOpen ? "MedicalCabinet_DoorClose" : "MedicalCabinet_DoorOpen";
                 HandReticle.main.SetText(HandReticle.TextType.Hand, nameof(MedicalCabinet), true, GameInput.Button.LeftHand);

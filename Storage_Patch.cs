@@ -115,7 +115,7 @@ namespace Tweaks_Fixes
             if (door.GetComponentInChildren<Sign>())
                 yield break;
 
-            yield return new WaitUntil(() => Main.gameLoaded == true);
+            yield return Main.waitUntilGameLoaded;
             //Main.logger.LogMessage("AddLabel 1 " + door.name);
             //AddDebug("AddLabel  " + locker.name + " " + type);
             TaskResult<GameObject> result = new TaskResult<GameObject>();
@@ -474,7 +474,7 @@ namespace Tweaks_Fixes
 
             private static IEnumerator FixFPModel(DeployableStorage ds)
             {
-                yield return new WaitUntil(() => Main.gameLoaded);
+                yield return Main.waitUntilGameLoaded;
                 //FPModel[] fPModel = ds.GetComponents<FPModel>();
                 //AddDebug("fPModel " + fPModel.Length);
                 Pickupable p = ds.GetComponent<Pickupable>();

@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
                 float damageToDeal = poisonDamageTotal < 1 ? poisonDamageTotal : 1;
                 liveMixin.TakeDamage(damageToDeal, liveMixin.transform.position, DamageType.Poison, Player.mainObject);
                 poisonDamageTotal--;
-                yield return Main.oneSecondInterval;
+                yield return Main.oneSecond;
             }
             poisonDamageTotal = 0;
         }
@@ -74,7 +74,7 @@ namespace Tweaks_Fixes
                     damageInfo.dealer = Player.mainObject;
                     liveMixin.NotifyAllAttachedDamageReceivers(damageInfo);
                 }
-                yield return Main.oneSecondInterval;
+                yield return Main.oneSecond;
             }
             foodDamageTotal = 0;
         }

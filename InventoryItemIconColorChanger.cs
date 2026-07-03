@@ -32,13 +32,14 @@ namespace Tweaks_Fixes
                 else
                     icon.SetChroma(0);
 
-                if (IsCharger(openContainer))
-                    DoBattery(item, icon);
+                //if (IsCharger(openContainer))
+                //    DoBattery(item, icon);
             }
         }
 
         private static void DoBattery(InventoryItem item, uGUI_ItemIcon icon)
         {
+            //AddDebug("DoBattery");
             Battery battery = item.item.GetComponent<Battery>();
             //if (battery != null)
             //    AddDebug($"battery.charge {battery.charge} battery.capacity {battery.capacity}");
@@ -97,7 +98,7 @@ namespace Tweaks_Fixes
                                     pair.Value.SetChroma(0f);
                                     continue;
                                 }
-                                DoBattery(pair.Key, pair.Value);
+                                //DoBattery(pair.Key, pair.Value);
                             }
                         }
                         else

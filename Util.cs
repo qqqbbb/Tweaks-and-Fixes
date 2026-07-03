@@ -1081,7 +1081,7 @@ namespace Tweaks_Fixes
 
         public static IEnumerator ExecuteAfterGameLoaded(Action action)
         { //UWE.CoroutineHost.StartCoroutine(ExecuteAfterDelay(() => SetupPickupable(__instance)));
-            yield return new WaitUntil(() => Main.gameLoaded);
+            yield return Main.waitUntilGameLoaded;
             action?.Invoke();
         }
 

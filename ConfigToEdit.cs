@@ -86,7 +86,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> lowOxygenAudioWarning;
         public static ConfigEntry<bool> builderToolBuildsInsideWithoutPower;
         public static ConfigEntry<bool> cameraBobbing;
-        public static ConfigEntry<bool> disableHints;
+        public static ConfigEntry<bool> tutorial;
+        public static ConfigEntry<bool> hints;
         public static ConfigEntry<bool> cyclopsHUDalwaysOn;
         public static ConfigEntry<bool> cameraShake;
         public static ConfigEntry<bool> removeDeadCreaturesOnLoad;
@@ -314,7 +315,8 @@ namespace Tweaks_Fixes
             lowOxygenAudioWarning = Main.configToEdit.Bind("PLAYER", "Low oxygen audio warning", true);
             builderToolBuildsInsideWithoutPower = Main.configToEdit.Bind("TOOLS", "Builder tool does not need power when building inside", true);
             cameraBobbing = Main.configToEdit.Bind("PLAYER", "Screen bobbing when swimming", true);
-            disableHints = Main.configToEdit.Bind("MISC", "Disable tutorial messages", true, "This disables messages that tell you to 'eat something', 'break limestone', etc.");
+            tutorial = Main.configToEdit.Bind("MISC", "Tutorial messages", false, "This disables messages that tell you to 'eat something', 'break limestone', etc.");
+            hints = Main.configToEdit.Bind("MISC", "Hints", true, "Blueprint name will not be shown when you look at databox. When you look at drillable resource you will not be told you need prawn suit to drill it. ");
             cyclopsHUDalwaysOn = Main.configToEdit.Bind("CYCLOPS", "Cyclops HUD always on", false);
             cameraShake = Main.configToEdit.Bind("CYCLOPS", "Screen shakes when exploring Aurora or when taking damage", true);
             removeDeadCreaturesOnLoad = Main.configToEdit.Bind("CREATURES", "Remove dead creatures when loading saved game", true, "");

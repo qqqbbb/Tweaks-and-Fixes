@@ -18,7 +18,7 @@ namespace Tweaks_Fixes
 
         public static IEnumerator SetupPickupable(Pickupable pickupable)
         {
-            yield return new WaitUntil(() => Main.gameLoaded); // wait for parents to load
+            yield return Main.waitUntilGameLoaded; // wait for parents to load
             if (pickupable == null || pickupable.inventoryItem != null)
                 yield break;
 

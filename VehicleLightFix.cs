@@ -6,6 +6,7 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 
 namespace Tweaks_Fixes
@@ -16,7 +17,7 @@ namespace Tweaks_Fixes
         static GameObject seamothLightCone;
         public static Color seamothLightColor;
         public static Color exosuitLightColor;
-        static Vector3 exosuitLightBeamPos = new Vector3(0, 0.1f, -0.6f); // y changes after entering exosuit
+        static Vector3 exosuitLightBeamPos = new Vector3(0, 0f, -0.6f); // y changes after entering exosuit
 
         public static IEnumerator FixExosuit()
         {
@@ -91,29 +92,29 @@ namespace Tweaks_Fixes
 
         private static void ToggleLights(Exosuit exosuit)
         {
-            Transform lightsTransform = Util.GetExosuitLightsTransform(exosuit);
-            if (lightsTransform == null)
+            Transform lightParent = Util.GetExosuitLightsTransform(exosuit);
+            if (lightParent == null)
                 return;
 
             //AddDebug("ToggleLights lightsTransform activeSelf " + lightsTransform.gameObject.activeSelf);
             //AddDebug("ToggleLights hasCharge " + exosuit.energyInterface.hasCharge);
-            if (!lightsTransform.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
+            if (!lightParent.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
             {
-                //AddDebug("Toggle Lights on hasCharge " + exosuit.energyInterface.hasCharge);
-                lightsTransform.gameObject.SetActive(true);
+                lightParent.gameObject.SetActive(true);
                 Main.configMain.DeleteExosuitLights(exosuit.gameObject);
+                foreach (Transform light in lightParent)
+                    light.gameObject.SetActive(true);
+
                 if (Exosuit_Sounds.lightOnSound)
                     Utils.PlayFMODAsset(Exosuit_Sounds.lightOnSound, exosuit.transform.position);
             }
-            else if (lightsTransform.gameObject.activeSelf)
+            else if (lightParent.gameObject.activeSelf)
             {
-                //AddDebug("Toggle Lights off ");
-                lightsTransform.gameObject.SetActive(false);
+                lightParent.gameObject.SetActive(false);
                 Main.configMain.SaveExosuitLights(exosuit.gameObject);
                 if (Exosuit_Sounds.lightOffSound)
                     Utils.PlayFMODAsset(Exosuit_Sounds.lightOffSound, exosuit.transform.position);
             }
-            //AddDebug("lights " + lightsT.gameObject.activeSelf);
         }
 
         private static void SetLights(Exosuit exosuit, bool on)
@@ -121,18 +122,54 @@ namespace Tweaks_Fixes
             if (on && !exosuit.energyInterface.hasCharge)
                 return;
 
-            Util.GetExosuitLightsTransform(exosuit).gameObject.SetActive(on);
-            //AddDebug("SetLights " + active);
+            //AddDebug("SetLights " + on);
+            Transform lightParent = Util.GetExosuitLightsTransform(exosuit);
+            lightParent.gameObject.SetActive(on);
+            if (on)
+            {
+                foreach (Transform light in lightParent)
+                    light.gameObject.SetActive(true);
+            }
+        }
+
+        [HarmonyPatch(typeof(Vehicle))]
+        class Vehicle_Patch
+        {
+            [HarmonyPostfix, HarmonyPatch("OnPoweredChanged")]
+            public static void OnPoweredChangedPostfix(Vehicle __instance, bool powered)
+            {
+                //AddDebug("Vehicle OnPoweredChanged " + powered);
+                Exosuit exosuit = __instance as Exosuit;
+                if (exosuit)
+                {
+                    Transform lightParent = Util.GetExosuitLightsTransform(exosuit);
+                    lightParent.gameObject.SetActive(powered);
+                    if (powered)
+                    {
+                        foreach (Transform light in lightParent)
+                            light.gameObject.SetActive(true);
+                    }
+                }
+            }
         }
 
         [HarmonyPatch(typeof(Exosuit))]
         class Exosuit_Patch
         {
+            public static IEnumerator TurnOffLightsOnStart(Exosuit exosuit)
+            {
+                yield return Main.waitUntilGameLoaded;
+                //Transform lightParent = Util.GetExosuitLightsTransform(exosuit);
+                //foreach (Transform light in lightParent)
+                //    light.gameObject.SetActive(true);
+                bool off = Main.configMain.GetExosuitLights(exosuit.gameObject);
+                SetLights(exosuit, !off);
+            }
             [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(Exosuit __instance)
             {
-                if (Main.configMain.GetExosuitLights(__instance.gameObject))
-                    SetLights(__instance, false);
+                //AddDebug("Exosuit Start ");
+                UWE.CoroutineHost.StartCoroutine(TurnOffLightsOnStart(__instance));
             }
 
             [HarmonyPostfix, HarmonyPatch("Update")]
@@ -156,14 +193,14 @@ namespace Tweaks_Fixes
 
             static IEnumerator DisableLightBeam(Exosuit exosuit)
             {
-                yield return new WaitUntil(() => Main.gameLoaded);
+                yield return Main.waitUntilGameLoaded;
                 ToggleLightBeam(exosuit, false);
             }
 
             static void ToggleLightBeam(Exosuit exosuit, bool on)
             {
                 Transform lightT = Util.GetExosuitLightsTransform(exosuit);
-                VFXVolumetricLight[] volLights = lightT.GetComponentsInChildren<VFXVolumetricLight>();
+                VFXVolumetricLight[] volLights = lightT.GetComponentsInChildren<VFXVolumetricLight>(true);
                 foreach (var volL in volLights)
                 {
                     if (on)

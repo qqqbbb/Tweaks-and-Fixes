@@ -96,7 +96,7 @@ namespace Tweaks_Fixes
         [HarmonyPostfix, HarmonyPatch("HoverDrillable")]
         public static void HoverDrillablePostfix(Drillable __instance)
         {
-            if (ConfigToEdit.disableHints.Value)
+            if (ConfigToEdit.hints.Value == false)
                 HandReticle.main.SetText(HandReticle.TextType.HandSubscript, null, false);
         }
     }

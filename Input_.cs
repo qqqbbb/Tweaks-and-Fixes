@@ -120,7 +120,6 @@ namespace Tweaks_Fixes
                 .ThrowIfInvalid("Could not find autoMove field store in UpdateMove");
                 // Go back one instruction to find what's being stored
                 codeMatcher.Advance(-1);
-                // Replace the loading instruction (ldc.i4.0 or whatever) with your delegate
                 codeMatcher.SetInstructionAndAdvance(Transpilers.EmitDelegate<Func<bool>>(GetAutoMove));
 
                 return codeMatcher.InstructionEnumeration();
