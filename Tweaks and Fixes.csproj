@@ -139,9 +139,10 @@
     <Compile Include="Base_Collision.cs" />
     <Compile Include="Base_.cs" />
     <Compile Include="Aurora_terminals.cs" />
-    <Compile Include="AuroraDecalFix.cs" />
+    <Compile Include="AuroraFixer.cs" />
     <Compile Include="AbandonedBaseFixer.cs" />
     <Compile Include="BasePrefabFixer.cs" />
+    <Compile Include="AlienFacilityPrefabFixer.cs" />
     <Compile Include="Command_Console.cs" />
     <Compile Include="WaterPlane_.cs" />
     <Compile Include="Trashcan_.cs" />
@@ -176,7 +177,6 @@
     <Compile Include="Drop_items_anywhere.cs" />
     <Compile Include="Escape_Pod.cs" />
     <Compile Include="Exosuit_Drill.cs" />
-    <Compile Include="Exosuit_Sounds.cs" />
     <Compile Include="FiltrationMachine_.cs" />
     <Compile Include="Flare_.cs" />
     <Compile Include="FlashingLightsDisclaimer_.cs" />

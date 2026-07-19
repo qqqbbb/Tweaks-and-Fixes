@@ -70,9 +70,9 @@ namespace Tweaks_Fixes
             {
                 Light light = lights[i];
                 if (i == 0)
-                    VehicleLightFix.AddVolLight(light.gameObject, lightPosLeft);
+                    UWE.CoroutineHost.StartCoroutine(VehicleLightFix.AddVolLight(light.gameObject, lightPosLeft));
                 else
-                    VehicleLightFix.AddVolLight(light.gameObject, lightPosRight);
+                    UWE.CoroutineHost.StartCoroutine(VehicleLightFix.AddVolLight(light.gameObject, lightPosRight));
 
                 if (lightColor != default)
                     light.color = lightColor;

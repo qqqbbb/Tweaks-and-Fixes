@@ -30,6 +30,28 @@ namespace Tweaks_Fixes
             charger.animator.enabled = false;
         }
 
+        public static void TrimUnpoweredNotifyStrings(Charger charger)
+        {
+            string s = Language.main.Get("ChargerInsufficientPower");
+            s = RemoveAfterNewLine(s);
+            //AddDebug(s);
+            for (int i = 0; i <= Charger.chargeAttemptInterval; i++)
+                charger.unpoweredNotifyStrings[i] = s;
+        }
+
+        public static string RemoveAfterNewLine(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            int newLineIndex = input.IndexOfAny(new char[] { '\n', '\r' });
+
+            if (newLineIndex == -1)
+                return input;
+
+            return input.Substring(0, newLineIndex);
+        }
+
         //[HarmonyPrefix, HarmonyPatch("ToggleUI")]
         public static bool ToggleUIPrefix(Charger __instance, bool active)
         {
@@ -81,11 +103,14 @@ namespace Tweaks_Fixes
         //[HarmonyPrefix, HarmonyPatch("Update")]
         public static bool UpdatePostix(Charger __instance)
         {
-            if (Input.GetKey(KeyCode.Z))
+            if (Input.GetKeyDown(KeyCode.Z))
             {
-                AddDebug("stop Charger Update");
+                AddDebug("unpoweredNotifyStrings " + __instance.unpoweredNotifyStrings.Count);
+                foreach (var kv in __instance.unpoweredNotifyStrings)
+                    Main.logger.LogDebug($"unpoweredNotifyStrings {kv.Key} {kv.Value}");
+
                 //__instance.animator.enabled = false;
-                __instance.sequence.ForceState(false);
+                //__instance.sequence.ForceState(false);
                 return false;
             }
             return true;
@@ -101,6 +126,7 @@ namespace Tweaks_Fixes
         [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(Charger __instance)
         {
+            //AddDebug("Start unpoweredNotifyStrings " + __instance.unpoweredNotifyStrings.Count);
             if (__instance is PowerCellCharger && __instance.opened)
                 CoroutineHost.StartCoroutine(DisableAnimatorWhenOpened(__instance));
 
@@ -119,6 +145,8 @@ namespace Tweaks_Fixes
                     //AddDebug("remove " + tt + " from " + __instance.name);
                 }
             }
+            if (ConfigToEdit.hints.Value == false)
+                TrimUnpoweredNotifyStrings(__instance);
             //Main.logger.LogMessage(__instance.name + " Charger Start");
             //foreach (var tt in __instance.allowedTech)
             //    Main.logger.LogMessage(__instance.name + " allowedTech " + tt);

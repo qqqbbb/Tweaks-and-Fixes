@@ -15,10 +15,7 @@ namespace Tweaks_Fixes
         public static Color spotlightColor;
         public static Color spotlightWrongColor = new Color(0.779f, 0.89f, 1f, 1f);
         public static Color spotlightDefaultColor = new Color(0.373f, 0.463f, 0.502f, 1f);
-        public static Color vehicleDockingBayLightColor;
-        static Vector3[] vehicleDockingBayLightBeamPos = new Vector3[] { new Vector3(0, 0, -0.95f), new Vector3(0, 0, -1.25f), new Vector3(0, 0, -1.17f), new Vector3(0, 0, -0.93f) };
-        static Vector3 vehicleDockingBayLightScale = new Vector3(40f, 40f, 40f);
-        static Dictionary<SubRoot, Moonpool> moonpooks = new Dictionary<SubRoot, Moonpool>();
+
 
         [HarmonyPatch(typeof(BaseSpotLight), "Start")]
         internal class BaseSpotLight__
@@ -27,7 +24,8 @@ namespace Tweaks_Fixes
             {
                 Light light = __instance.light.GetComponent<Light>();
                 //Main.logger.LogError("BaseSpotLight light.intensity " + light.intensity);
-                //Main.logger.LogError("BaseSpotLight light.a " + light.color.a);
+                //Main.logger.LogDebug("BaseSpotLight light " + light.color);
+                //Main.logger.LogDebug("BaseSpotLight spotlightColor " + spotlightColor);
 
                 if (ConfigToEdit.spotlightIntensityMult.Value < 1)
                     light.intensity *= ConfigToEdit.spotlightIntensityMult.Value;
@@ -43,136 +41,6 @@ namespace Tweaks_Fixes
                     light.color = spotlightColor;
                     mr.material.color = new Color(spotlightColor.r, spotlightColor.g, spotlightColor.b, mr.material.color.a);
                 }
-                //Main.logger.LogError("spotlightLightColor " + spotlightColor);
-                //Main.logger.LogError("BaseSpotLight light.intensity ! " + light.intensity);
-                //Main.logger.LogError("BaseSpotLight light.a ! " + light.color.a);
-                //Main.logger.LogError("BaseSpotLight MeshRenderer material ! " + mr.material.color);
-            }
-        }
-
-        //[HarmonyPatch(typeof(VehicleDockingBay))]
-        public class VehicleDockingBay_Patch
-        {
-            public static Dictionary<VehicleDockingBay, PowerSystem.Status> savedPowerStatus = new Dictionary<VehicleDockingBay, PowerSystem.Status>();
-
-            //[HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(VehicleDockingBay __instance)
-            {
-                //if (__instance.transform.parent.parent.name != "BaseMoonpool(Clone)")
-                //    return;
-                if (__instance.subRoot == null || __instance.subRoot.isCyclops)
-                    return;
-
-                //AddDebug("VehicleDockingBay Start " + __instance.transform.parent.parent.name);
-                CoroutineHost.StartCoroutine(FixVehicleDockingBayLights(__instance));
-            }
-
-            static IEnumerator FixVehicleDockingBayLights(VehicleDockingBay vehicleDockingBay)
-            {
-                yield return Main.waitUntilGameLoaded;
-                //Main.logger.LogMessage("FixVehicleDockingBayLights " + vehicleDockingBay.name);
-                //AddDebug("FixVehicleDockingBayLights " + vehicleDockingBay.name);
-                List<Light> lights = GetPillarLights(vehicleDockingBay);
-                if (lights == null || lights.Count == 0)
-                    yield break;
-
-                //AddDebug("FixVehicleDockingBayLights  " + lights.Count);
-                for (int i = 0; i < lights.Count; i++)
-                {// no VFXVolumetricLight
-                    Light light = lights[i];
-                    Vector3 lightBeamPos = vehicleDockingBayLightBeamPos[i];
-                    VehicleLightFix.AddVolLight(light.gameObject, lightBeamPos, vehicleDockingBayLightScale);
-                    //Main.logger.LogInfo("VehicleDockingBay lightColor " + light.color);
-                    light.range = 20;
-                    if (vehicleDockingBayLightColor != default) // 0.361, 1.000, 1.000
-                        light.color = vehicleDockingBayLightColor;
-
-                    //Main.logger.LogInfo("VehicleDockingBay light intensity " + light.intensity);
-                    if (ConfigToEdit.vehicleDockingBayLightIntensityMult.Value < 1) // 1.73
-                        light.intensity *= ConfigToEdit.vehicleDockingBayLightIntensityMult.Value;
-                }
-            }
-
-            private static List<Light> GetPillarLights(VehicleDockingBay vehicleDockingBay)
-            {
-                //AddDebug("GetPillarLights " + vehicleDockingBay.transform.parent.parent.name);
-                Transform pillars = vehicleDockingBay.transform.parent.parent.Find("pillars");
-                if (pillars == null)
-                    return null;
-
-                List<Light> lights = new List<Light>();
-                foreach (Transform pillar in pillars.transform)
-                {
-                    //AddDebug("GetPillarLights pillar " + pillar.name + " activeSelf " + pillar.gameObject.activeSelf);
-                    Transform lightT = pillar.Find("light");
-                    if (lightT != null)
-                        lights.Add(lightT.GetComponent<Light>());
-                }
-                return lights;
-            }
-
-            //[HarmonyPostfix, HarmonyPatch("LateUpdate")]
-            public static void LateUpdatePostfix(VehicleDockingBay __instance)
-            {
-                if (Main.gameLoaded == false || __instance.subRoot == null || __instance.subRoot.isCyclops)
-                    return;
-
-                //AddDebug("VehicleDockingBay LateUpdate  " + __instance.name);
-                PowerSystem.Status currentStatus = __instance.powerRelay.powerStatus;
-                if (!savedPowerStatus.ContainsKey(__instance) || currentStatus != savedPowerStatus[__instance])
-                {
-                    //AddDebug("VehicleDockingBay Update lights ");
-                    savedPowerStatus[__instance] = currentStatus;
-                    List<Light> lights = GetPillarLights(__instance);
-                    if (lights == null || lights.Count == 0)
-                        return;
-
-                    bool on = currentStatus != PowerSystem.Status.Offline;
-                    foreach (Light light in lights)
-                    {
-                        if (on == light.gameObject.activeSelf)
-                            continue;
-
-                        light.gameObject.SetActive(on);
-                    }
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(Moonpool))]
-        public class Moonpool_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void PowerUpEventPostfix(Moonpool __instance)
-            {
-                SubRoot subRoot = __instance.GetComponentInParent<SubRoot>();
-                if (subRoot)
-                    moonpooks[subRoot] = __instance;
-
-                for (int i = 0; i < __instance.lights.Length; i++)
-                {
-                    Light light = __instance.lights[i];
-                    Vector3 lightBeamPos = vehicleDockingBayLightBeamPos[i];
-                    VehicleLightFix.AddVolLight(light.gameObject, lightBeamPos, vehicleDockingBayLightScale);
-                    //Main.logger.LogInfo("VehicleDockingBay lightColor " + light.color);
-                    light.range = 20;
-                    if (vehicleDockingBayLightColor != default) // 0.361, 1.000, 1.000
-                        light.color = vehicleDockingBayLightColor;
-
-                    //Main.logger.LogInfo("VehicleDockingBay light intensity " + light.intensity);
-                    if (ConfigToEdit.vehicleDockingBayLightIntensityMult.Value < 1) // 1.73
-                        light.intensity *= ConfigToEdit.vehicleDockingBayLightIntensityMult.Value;
-                }
-            }
-            //[HarmonyPostfix, HarmonyPatch("PowerDownEvent")]
-            public static void PowerDownEventPostfix(Moonpool __instance)
-            {
-                AddDebug("Moonpool PowerDownEvent");
-            }
-            //[HarmonyPostfix, HarmonyPatch("SetLights")]
-            public static void SetLightsPostfix(Moonpool __instance, bool powered)
-            {
-                AddDebug("Moonpool SetLights " + powered);
             }
         }
 
@@ -183,9 +51,6 @@ namespace Tweaks_Fixes
                 Main.configMain.DeleteBaseLights(subRoot.transform.position);
             else
                 Main.configMain.SaveBaseLights(subRoot.transform.position);
-
-            if (moonpooks.ContainsKey(subRoot))
-                moonpooks[subRoot].SetLights(subRoot.subLightsOn);
         }
 
     }

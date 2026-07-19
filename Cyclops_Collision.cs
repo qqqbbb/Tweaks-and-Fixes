@@ -424,12 +424,12 @@ namespace Tweaks_Fixes
         private static void DoCyclopsFabricator(Transform cyclopsFabricator)
         { // it is not in prefab
             //AddDebug("CyclopsFabricator");
-            BoxCollider collider = cyclopsFabricator.GetComponent<BoxCollider>();
-            UnityEngine.Object.Destroy(collider);
             Transform mesh = cyclopsFabricator.Find("submarine_fabricator_03");
-            collider = mesh.GetComponent<BoxCollider>();
+            BoxCollider collider = mesh.GetComponent<BoxCollider>();
             collider.center = new Vector3(collider.center.x, collider.center.y, 0);
             collider.size = new Vector3(collider.size.x, collider.size.y, .20f);
+            collider = cyclopsFabricator.GetComponent<BoxCollider>();
+            UnityEngine.Object.Destroy(collider);
         }
 
     }

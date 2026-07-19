@@ -311,7 +311,7 @@ namespace Tweaks_Fixes
                 foreach (Renderer renderer in decals.GetComponentsInChildren<Renderer>())
                 {
                     Texture decalTexture = renderer.material.mainTexture;
-                    renderer.material = AuroraDecalFix.materialForDecals;
+                    renderer.material = AuroraFixer.materialForDecals;
                     renderer.material.mainTexture = decalTexture;
                     renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 }

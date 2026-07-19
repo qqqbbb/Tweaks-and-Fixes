@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
 
                 //Main.logger.LogMessage("MapRoomCamera light color " + light.color);
             }
-            VehicleLightFix.AddVolLight(lights[1].gameObject, cameraVolLightPos);
+            UWE.CoroutineHost.StartCoroutine(VehicleLightFix.AddVolLight(lights[1].gameObject, cameraVolLightPos));
         }
         [HarmonyPostfix, HarmonyPatch("ControlCamera")]
         private static void ControlCameraPostfix(MapRoomCamera __instance)

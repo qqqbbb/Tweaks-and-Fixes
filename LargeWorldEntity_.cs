@@ -165,6 +165,8 @@ namespace Tweaks_Fixes
                 new PosRotData("Coral_reef_kelp_young_01(Clone)", new Vector3(float.NaN, -55, float.NaN), default) }},
             {new Vector3Int(47, -34, -6),new List<PosRotData>{
                 new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, float.NaN, -6.815f), default) }},
+            {new Vector3Int(213, -61, -96),new List<PosRotData>{
+                new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, -61, float.NaN)) }},
             {new Vector3Int(-20, -28, -381),new List<PosRotData>{
                 new PosRotData("Coral_reef_shell_tunnel_02(Clone)", new Vector3(float.NaN, -28.62f, float.NaN)) }},
             {new Vector3Int(86, -33, -334),new List<PosRotData>{
@@ -233,7 +235,9 @@ namespace Tweaks_Fixes
             {new Vector3Int(-1061, -707, -539), new List<PosRotData>{ new PosRotData("Skeleton_Cave_Spotlight(Clone)") }},
             {new Vector3Int(-1061, -706, -538), new List<PosRotData>{ new PosRotData("precursor_cables_end_01(Clone)"), new PosRotData("precursor_deco_props_01(Clone)"), new PosRotData("precursor_deco_props_01(Clone)") }},
 
-            //{new Vector3Int(-58, -183, -1035), new List<PosRotData>{ new PosRotData("descent_plaza_shelf_cap_02(Clone)", new Vector3()) }},
+            {new Vector3Int(362, -1590, -366), new List<PosRotData>{ new PosRotData("Coral_reef_purple_mushrooms_01_04(Clone)", new Vector3(363.5f, -1591.4f, float.NaN)) }},
+            {new Vector3Int(362, -1590, -367), new List<PosRotData>{ new PosRotData("Coral_reef_purple_mushrooms_01_04(Clone)", new Vector3(363, -1591.9f, float.NaN)) }},
+            {new Vector3Int(362, -1590, -372), new List<PosRotData>{ new PosRotData("Coral_reef_purple_mushrooms_01_04(Clone)", new Vector3(float.NaN, -1591.3f, -371.5f)) }},
 
          };
 

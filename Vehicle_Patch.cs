@@ -1353,17 +1353,20 @@ namespace Tweaks_Fixes
         }
     }
 
-    //[HarmonyPatch(typeof(SeamothTorpedo), "Awake")]
-    class SeamothTorpedo_Awake_Patch
+    [HarmonyPatch(typeof(CollisionSound), "OnCollisionEnter")]
+    class CollisionSound_OnCollisionEnter_Patch
     {
-        static void Postfix(SeamothTorpedo __instance)
+        static bool Prefix(CollisionSound __instance, Collision col)
         {
-            //AddDebug("SeamothTorpedo Awake ");
-            if (__instance.fireSound)
-            {
-                //AddDebug("SeamothTorpedo Awake fireSound");
-
+            Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
+            //AddDebug("OnCollisionEnter " + col.gameObject.name);
+            if (exosuit && col.gameObject.name == "ChunkCollider(Clone)")
+            {// no collision sound when walking on ground
+                Exosuit exosuit_ = __instance.GetComponent<Exosuit>();
+                if (exosuit_ == exosuit)
+                    return false;
             }
+            return true;
         }
     }
 

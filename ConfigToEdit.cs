@@ -197,6 +197,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> grassCastShadow;
         public static ConfigEntry<bool> dontOpenPDAwhenAltTabbing;
         public static ConfigEntry<bool> pressShiftToOpenConsole;
+        public static ConfigEntry<bool> checkWaterDepthWhenConstructingCyclops;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -208,6 +209,7 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
+            checkWaterDepthWhenConstructingCyclops = Main.configToEdit.Bind("MISC", "Check water depth when constructing cyclops or launch platform", true);
             pressShiftToOpenConsole = Main.configToEdit.Bind("MISC", "Need to press shift to open command console", true);
             dontOpenPDAwhenAltTabbing = Main.configToEdit.Bind("UI", "Do not open PDA when alt tabbing out of the game", false, "This breaks PDA for some users");
             grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "");
@@ -231,7 +233,7 @@ namespace Tweaks_Fixes
             alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show numbers for health, food and water meters in UI", false);
             pdaClock = Main.configToEdit.Bind("PDA", "PDA clock", true);
 
-            gameStartWarningText = Main.configToEdit.Bind("MISC", "Game start warning text", "", "Text shown when the game starts. If this field is empty the warning will be skipped.");
+            gameStartWarningText = Main.configToEdit.Bind("MISC", "Game start warning text", "", "Text shown when the game starts.");
             newGameLoot = Main.configToEdit.Bind("LIFE POD", "Life pod items", "FilteredWater 2, NutrientBlock 2, Flare 2", "Items you find in your life pod when you start a new game. The format is item ID, space, number of items. Every entry is separated by comma.");
 
 
@@ -316,7 +318,7 @@ namespace Tweaks_Fixes
             builderToolBuildsInsideWithoutPower = Main.configToEdit.Bind("TOOLS", "Builder tool does not need power when building inside", true);
             cameraBobbing = Main.configToEdit.Bind("PLAYER", "Screen bobbing when swimming", true);
             tutorial = Main.configToEdit.Bind("MISC", "Tutorial messages", false, "This disables messages that tell you to 'eat something', 'break limestone', etc.");
-            hints = Main.configToEdit.Bind("MISC", "Hints", true, "Blueprint name will not be shown when you look at databox. When you look at drillable resource you will not be told you need prawn suit to drill it. ");
+            hints = Main.configToEdit.Bind("MISC", "Hints", true, "Blueprint name will be shown when you look at databox. When you look at drillable resource you will be told you need prawn suit to drill it. Battery charger will tell you number of seconds until next charge attempt.");
             cyclopsHUDalwaysOn = Main.configToEdit.Bind("CYCLOPS", "Cyclops HUD always on", false);
             cameraShake = Main.configToEdit.Bind("CYCLOPS", "Screen shakes when exploring Aurora or when taking damage", true);
             removeDeadCreaturesOnLoad = Main.configToEdit.Bind("CREATURES", "Remove dead creatures when loading saved game", true, "");
@@ -639,7 +641,7 @@ namespace Tweaks_Fixes
             Tools.flashLightLightColor = ParseColor(flashlightLightColor.Value);
             Flare_.flareLightColor = ParseColor(flareLightColor.Value);
             Base_Light.spotlightColor = ParseColor(spotlightColor.Value);
-            Base_Light.vehicleDockingBayLightColor = ParseColor(vehicleDockingBayLightColor.Value);
+            BasePrefabFixer.vehicleDockingBayLightColor = ParseColor(vehicleDockingBayLightColor.Value);
 
             Damage_.damageModifiers = ParseFloatDicFromPercentString(damageModifiers.Value);
             //Main.logger.LogMessage("ParseConfig done ");

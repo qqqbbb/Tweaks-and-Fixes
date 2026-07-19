@@ -7,7 +7,7 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(FlashingLightsDisclaimer))]
     internal class FlashingLightsDisclaimer_
     {
-        [HarmonyPrefix, HarmonyPatch("TryToShow")]
+        //[HarmonyPrefix, HarmonyPatch("TryToShow")]
         static bool TryToShowPrefix(FlashingLightsDisclaimer __instance)
         {
             bool noText = String.IsNullOrEmpty(ConfigToEdit.gameStartWarningText.Value);

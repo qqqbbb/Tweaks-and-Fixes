@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
 using UnityEngine.UI;
 using UWE;
@@ -17,20 +18,6 @@ namespace Tweaks_Fixes
 
         HashSet<TechType> techTypesToAddWorldForces = new HashSet<TechType> { TechType.CoralChunk, 
         //TechType.CreepvineSeedCluster, TechType.HangingFruit,TechType.KooshChunk
-        };
-
-        List<string> prefabsWithoutShadows = new List<string> {
-            "6a01a336-fb46-469a-9f7d-1659e07d11d7", // Precursor_Lab_surgical_machine
-            "78009225-a9fa-4d21-9580-8719a3368373", // precursor_deco_props_01
-            "1673ee4a-6c28-4651-8d5e-929de26dc25f",// Precursor_Prison_EggLab
-            "ef375125-885f-4289-8577-c7a4a5f218b3",// Precursor_Prison_DissectionRoom
-            "df9aed66-c131-4570-9dcd-1e3d2109dcaa",// Precursor_Lab_table_LabCache
-        };
-
-        readonly Dictionary<string, RendererData> prefabsWithoutShadows_ = new Dictionary<string, RendererData> {
-            {"68254d33-2d67-48a8-b485-9929f23a8ba8", new RendererData(null, new List<string>{"Pipes", "Eggs", "___New Group" }) },//Precursor_Prison_EggLab_Extras
-            {"a3476419-0a2f-40e7-b325-0a592f0ebea3", new RendererData("Precursor_lab_container_02", new List<string>{ "Precursor_lab_container_02_bottom", "Precursor_lab_container_02_top" }) },//Precursor_lab_container_02_LabCache
-            {"2213b907-3231-4c7a-aeaf-03e7c7d349d8", new RendererData(null, new List<string>{ "precursor_block_maze_04_04_04_v4/precursor_block_maze_04_04_04_v4", "precursor_block_deco_06_02_06" }) },//IonCrystalPedestal_Cache
         };
 
         readonly Dictionary<string, MaterialZoffsetData> materialZoffsets = new Dictionary<string, MaterialZoffsetData>
@@ -53,6 +40,11 @@ namespace Tweaks_Fixes
             {"6f9e2e29-9eba-4261-ba7b-ed5eac120b91", new MaterialZoffsetData("Map_Room_fragment_01", 3, 5000) },// Map_Room_fragment_01
             {"30fb51ee-73b6-4609-8e02-2804201987fb", new MaterialZoffsetData("Starship_exploded_debris_13", 1) },// Starship_exploded_debris_13
             {"669d26ab-81a0-4e4f-8bba-fac0d6cf8dab", new MaterialZoffsetData("Starship_exploded_debris_04", 1) },// Starship_exploded_debris_04
+            {"a523a6be-7358-479f-b07a-71a492e62247", new MaterialZoffsetData(null, 2) },// Precursor_cube_03_damaged_piece_02
+            {"583f8885-20fd-4c69-aa5a-5fcd7c58804b", new MaterialZoffsetData("Precursor_cube_03_damaged_piece_04", 4) },// Precursor_cube_03_damaged_piece_04
+            {"199894b7-cfd5-4d38-89e8-2117ce43824c", new MaterialZoffsetData("Precursor_cube_03_damaged_piece_05", 5) },// Precursor_cube_03_damaged_piece_05
+            {"e42243eb-4f38-42cd-acec-1d38d9b1b120", new MaterialZoffsetData("Precursor_cube_03_damaged_piece_06", 4) },// Precursor_cube_03_damaged_piece_06
+            {"ae06567b-4afd-4aff-9904-e518c1e8e30a", new MaterialZoffsetData("Precursor_cube_03_damaged_piece_07", 5) },// Precursor_cube_03_damaged_piece_07
 
         };
 
@@ -156,7 +148,7 @@ namespace Tweaks_Fixes
 
         };
 
-        List<TechType> glassRendererTechtypeList = new List<TechType> { };
+        //List<TechType> glassRendererTechtypeList = new List<TechType> { };
 
         List<string> glassRendererList = new List<string> {
             "76470f15-8918-4194-8191-4a40f1f3e32c",// starfish_01
@@ -263,6 +255,7 @@ namespace Tweaks_Fixes
             "291856e5-9d72-4cc6-b09f-ac09a5a6206e",// coral_reef_brown_coral_tubes_01
             "73a14237-46a5-4603-a91e-125a4ed04375",// coral_reef_brown_coral_tubes_02_02
             "361bea51-183b-4eab-998d-fd61d07d6a65",// coral_reef_brown_coral_tubes_02_03
+
 
 
         //"",// 
@@ -445,6 +438,7 @@ namespace Tweaks_Fixes
             {TechType.BrainCoral, CellLevel.Medium },
             {TechType.RedBasketPlant, CellLevel.Medium },
             {TechType.LargeFloater, CellLevel.Far },
+            {TechType.Sulphur, CellLevel.Medium },
         };
 
         Dictionary<string, CellLevel> cellLevels = new Dictionary<string, CellLevel> {
@@ -469,6 +463,8 @@ namespace Tweaks_Fixes
         {"29ab9e04-a045-413b-886b-e03fa6b86aee", CellLevel.Medium},// coral_reef_blood_mushrooms_01_02 WhiteMushroom
         { "e4ea0e38-7baa-49ce-b85c-89a22935574f", CellLevel.Medium},// coral_reef_blood_mushrooms_01_03 WhiteMushroom
         {"a6dac068-6f8d-4e32-b5e7-2e34a9f97d11", CellLevel.Medium},// coral_reef_blood_mushrooms_01_04 WhiteMushroom
+        {"ec6fa336-2f55-468e-9bfe-626e655e146d", CellLevel.Far },// Precursor_Prison_Vent
+
         //{"",  CellLevel.Medium},// coral_reef_plant_middle_12
 
         };
@@ -621,16 +617,6 @@ namespace Tweaks_Fixes
                 {
                     UWE.CoroutineHost.StartCoroutine(DisableLODs(tt));
                 }
-                foreach (string classID in prefabsWithoutShadows)
-                {
-                    UWE.CoroutineHost.StartCoroutine(EnableShadowCasting(classID));
-                }
-                foreach (var kv in prefabsWithoutShadows_)
-                {
-                    UWE.CoroutineHost.StartCoroutine(EnableShadowCasting(kv.Key, kv.Value));
-                }
-                UWE.CoroutineHost.StartCoroutine(FixPrecursorLabContainerShadow());
-                UWE.CoroutineHost.StartCoroutine(FixDissectionRoomEmperorTankShadow());
             }
             foreach (var kv in materialZoffsets)
             {
@@ -699,10 +685,10 @@ namespace Tweaks_Fixes
             {
                 UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(classID));
             }
-            foreach (TechType tt in glassRendererTechtypeList)
-            {
-                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(tt));
-            }
+            //foreach (TechType tt in glassRendererTechtypeList)
+            //{
+            //    UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(tt));
+            //}
             foreach (var kv in glassRenderers)
             {
                 UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
@@ -736,18 +722,16 @@ namespace Tweaks_Fixes
                 foreach (string classID in decoPlants)
                     UWE.CoroutineHost.StartCoroutine(MakeUnmovable(classID));
             }
-            UWE.CoroutineHost.StartCoroutine(FixPrisonTeleporterRoom03Shadows());
             UWE.CoroutineHost.StartCoroutine(FixOrangeMushroomCollider());
             UWE.CoroutineHost.StartCoroutine(FixBiohazardTrashCanDesc());
-            UWE.CoroutineHost.StartCoroutine(FixPrisonTankGlass());
             UWE.CoroutineHost.StartCoroutine(FixStones());
 
             if (ConfigToEdit.newStorageUI.Value && Main.pickupFullCarryallIsLoaded == false)
                 UWE.CoroutineHost.StartCoroutine(FixSmallStorage());
 
+            UWE.CoroutineHost.StartCoroutine(FixCrashFish());
             prefabsFixed = true;
         }
-
 
         public IEnumerator FixSmallStorage()
         {
@@ -956,20 +940,25 @@ namespace Tweaks_Fixes
 
         private static void SetMaterialZoffset(GameObject prefab, MaterialZoffsetData data)
         {
-            Transform t = prefab.transform.Find(data.rendererPath);
-            if (t == null)
+            Transform rendererTr;
+            if (data.rendererPath == null)
+                rendererTr = prefab.transform;
+            else
+                rendererTr = prefab.transform.Find(data.rendererPath);
+
+            if (rendererTr == null)
             {
                 Main.logger.LogError($"SetMaterialZoffset {prefab.name} has no child {data.rendererPath}");
                 return;
             }
             if (data.children)
             {
-                foreach (Renderer r in t.GetComponentsInChildren<Renderer>())
+                foreach (Renderer r in rendererTr.GetComponentsInChildren<Renderer>())
                     SetMaterialZoffset(r, data);
 
                 return;
             }
-            Renderer renderer = t.GetComponentInChildren<Renderer>();
+            Renderer renderer = rendererTr.GetComponentInChildren<Renderer>();
             SetMaterialZoffset(renderer, data);
         }
 
@@ -1337,100 +1326,6 @@ namespace Tweaks_Fixes
             prefab.transform.DisableShadowCasting(data);
         }
 
-        IEnumerator EnableShadowCasting(string classID)
-        {
-            //Main.logger.LogDebug("EnableShadowCasting " + classID);
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
-            yield return request;
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("EnableShadowCasting no prefab for " + classID);
-                yield break;
-            }
-            prefab.transform.EnableShadowCastingInChildren();
-        }
-
-        IEnumerator EnableShadowCasting(string classID, RendererData data)
-        {
-            //Main.logger.LogDebug("EnableShadowCasting RendererData " + classID);
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
-            yield return request;
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("EnableShadowCasting no prefab for " + classID);
-                yield break;
-            }
-            prefab.transform.EnableShadowCasting(data);
-        }
-
-        IEnumerator FixPrisonTankGlass()
-        {
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("ac6dd6fe-5835-41b9-96e8-2ec4120699ff");
-            yield return request; // Precursor_Prison_TankGlassSmall  188 -1440 -420
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("FixPrisonTankGlass no prefab for PrisonTankGlass");
-                yield break;
-            }
-            prefab.AddComponent<PrisonTankGlassFixer>();
-        }
-
-        IEnumerator FixPrisonTeleporterRoom03Shadows()
-        { //  334 -1430 -278
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("8c3cc489-cb05-42a0-830d-b9dc73a841c0"); // Precursor_Prison_TeleporterRoom_03
-            yield return request;
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("no prefab for Precursor_Prison_TeleporterRoom_03");
-                yield break;
-            }
-            Transform meshes = prefab.transform.GetChild(1);
-            foreach (int i in new int[] { 19, 20, 40, 41 })
-            {
-                Transform t = meshes.GetChild(i);
-                Renderer renderer = t.GetComponentInChildren<Renderer>();
-                //Main.logger.LogDebug("FixPrisonTeleporterRoom03Shadows Renderer " + renderer.name);
-                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-            }
-        }
-
-        IEnumerator FixPrecursorLabContainerShadow()
-        { //  183 -1440 -423
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("d0fea4da-39f2-47b4-aece-bb12fe7f9410"); // Precursor_lab_container_01
-            yield return request;
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("no prefab for Precursor_lab_container_01");
-                yield break;
-            }
-            Renderer[] renderers = prefab.transform.GetComponentsInChildren<Renderer>();
-            renderers[0].receiveShadows = true;
-            renderers[0].shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-            renderers[2].receiveShadows = true;
-            renderers[2].shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-        }
-
-        IEnumerator FixDissectionRoomEmperorTankShadow()
-        { //  225 -1428 -282
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("44974fcd-c47a-41aa-a279-43eaf234bfa6"); // Precursor_Prison_DissectionRoom_EmperorTank
-            yield return request;
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("no prefab for Precursor_Prison_DissectionRoom_EmperorTank");
-                yield break;
-            }
-            for (int i = 2; i < 5; i++)
-            {
-                Transform child = prefab.transform.GetChild(i);
-                child.EnableShadowCastingInChildren();
-            }
-        }
 
         IEnumerator FixOrangeMushroomCollider()
         { // land_plant_middle_05_01    center y 0.54 rad 0.7864308  h 2
@@ -1447,6 +1342,17 @@ namespace Tweaks_Fixes
             cc.center = new Vector3(0, .3f, 0);
         }
 
+        private static IEnumerator FixCrashFish()
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.Crash);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            LiveMixin liveMixin = prefab.GetComponent<LiveMixin>();
+            //Main.logger.LogDebug($"FixCrashFish health {liveMixin.health}");
+            liveMixin.health = 20;
+            TechTag techTag = prefab.GetComponent<TechTag>();
+            UnityEngine.Object.Destroy(techTag);
+        }
 
     }
 
@@ -1508,21 +1414,6 @@ namespace Tweaks_Fixes
         public RendererData(string parentPath)
         {
             this.parentPath = parentPath;
-        }
-    }
-
-    public class PrisonTankGlassFixer : MonoBehaviour
-    {
-        public void Start()
-        {
-            //Main.logger.LogDebug("Prison Tank glass Start " + transform.parent.name);
-            if (transform.parent.name == "CellRoot(Clone)")
-            {
-                //AddDebug("Destroy Prison Tank glass");
-                Destroy(transform.gameObject);
-            }
-            else
-                Destroy(this);
         }
     }
 

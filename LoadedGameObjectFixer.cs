@@ -15,17 +15,50 @@ namespace Tweaks_Fixes
 
         public void IterateRootGameObjects()
         {
+            bool highDetail = Util.IsGraphicsPresetHighDetail();
+            if (highDetail == false && ConfigToEdit.grassCastShadow.Value == false && bloodColor == defaultBloodColor)
+            {
+                return;
+            }
             foreach (GameObject go in Util.FindAllRootGameObjects())
             {
                 //if (go.name == "CellRoot(Clone)" || go.name == "ChunkCollider(Clone)" || go.name == "ChunkGrass(Clone)" || go.name == "ChunkLayer(Clone)" || go.name == "Chunk(Clone)" || go.name.StartsWith("Batch"))
-                //{
                 //    continue;
-                //}
+
                 //UniqueIdentifier pi = go.GetComponentInChildren<UniqueIdentifier>();
                 //if (pi != null)
                 //    logger.LogDebug($"{go.name} {pi.classId}");
                 //else
                 //    logger.LogDebug($"{go.name} no UniqueIdentifier");
+                if (highDetail)
+                {
+                    if (go.name == "Precursor_Prison_Interior_Aquarium_NonStreaming")
+                    {
+                        Transform meshes = go.transform.GetChild(1);
+                        foreach (Transform child in meshes.transform)
+                        {
+                            if (child.name.Contains("wall"))
+                                Util.IncreaseLODdistane(child.gameObject);
+                        }
+                    }
+                    else if (go.name == "Precursor_LostRiverBase_NonStreaming")
+                    {
+                        Transform meshes = go.transform.GetChild(0);
+                        foreach (Transform child in meshes.transform)
+                        {
+                            Util.IncreaseLODdistane(child.gameObject);
+                            Renderer[] renderers = child.GetComponentsInChildren<Renderer>();
+                            foreach (Renderer renderer in renderers)
+                            {
+                                foreach (Material material in renderer.materials)
+                                {
+                                    material.SetFloat(PrefabFixer.zOffset, 0);
+                                    material.EnableKeyword("MARMO_ALPHA_CLIP");
+                                }
+                            }
+                        }
+                    }
+                }
                 //if (go.name.Contains("Fragment"))
                 {
                     //AddDebug($"Fragment {go.name} ");
@@ -36,7 +69,6 @@ namespace Tweaks_Fixes
                         //Main.logger.LogDebug($"ResourceTracker {go.name} {rt.techType} {rt.overrideTechType} ");
                     }
                 }
-
                 if (ConfigToEdit.grassCastShadow.Value && go.name == "ChunkGrass(Clone)")
                 {
                     Renderer renderer = go.GetComponent<Renderer>();

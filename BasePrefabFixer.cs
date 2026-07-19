@@ -9,6 +9,7 @@ namespace Tweaks_Fixes
     internal class BasePrefabFixer
     {
         public static bool basePrefabsFixed;
+        public static Color vehicleDockingBayLightColor;
 
         public IEnumerator FixBasePrefabs()
         {
@@ -101,12 +102,38 @@ namespace Tweaks_Fixes
                     continue;
 
                 string name = piece.prefab.name;
+                if (name == "BaseMoonpool")
+                    FixMoonpoolLights(piece);
+
                 if (baseGlassRenderers.ContainsKey(name))
                     piece.prefab.DisableShadowCasting(baseGlassRenderers[name]);
             }
             FixObservatoryCover();
             FixMapRoomConnector();
             basePrefabsFixed = true;
+        }
+
+        private static void FixMoonpoolLights(Base.PieceDef piece)
+        {
+            Transform pillars = piece.prefab.transform.Find("pillars");
+            Vector3[] vehicleDockingBayLightBeamPos = new Vector3[] { new Vector3(0, 0, -1), new Vector3(-0.15f, 0, -1.3f), new Vector3(-0.06f, 0, -1.3f), new Vector3(-0.07f, 0, -1) };
+            Vector3 moonpoolLightBeamScale = new Vector3(40f, 40f, 40f);
+
+            for (int i = 0; i < pillars.childCount; i++)
+            {
+                Transform pillar = pillars.GetChild(i);
+                Transform head = pillar.Find("head");
+                head.localScale = Vector3.one;
+                Light light = pillar.GetComponentInChildren<Light>();
+                Vector3 lightBeamPos = vehicleDockingBayLightBeamPos[i];
+                UWE.CoroutineHost.StartCoroutine(VehicleLightFix.AddVolLight(light.gameObject, lightBeamPos, moonpoolLightBeamScale));
+                light.range = 20;
+                if (vehicleDockingBayLightColor != default) // 0.361, 1, 1
+                    light.color = vehicleDockingBayLightColor;
+
+                if (ConfigToEdit.vehicleDockingBayLightIntensityMult.Value < 1) // 1.73
+                    light.intensity *= ConfigToEdit.vehicleDockingBayLightIntensityMult.Value;
+            }
         }
 
         void FixMapRoomConnector()

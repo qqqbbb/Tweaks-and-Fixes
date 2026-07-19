@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.20.1";
+            VERSION = "4.21.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -81,6 +81,7 @@ namespace Tweaks_Fixes
             Pickupable_.pickupableStorage_.Clear();
             Radiation.auroraRadiation = null;
             Floater_.pickupableFloaters.Clear();
+            Medical_Cabinet_.escapePodMedCabinet = null;
             configToEdit.Reload();
             configMain.Load();
         }
@@ -264,9 +265,8 @@ namespace Tweaks_Fixes
 
         private void StartLoadingSetup()
         {
-            Application.runInBackground = true;
             FixCraftDataTables();
-            UWE.CoroutineHost.StartCoroutine(AuroraDecalFix.GetMaterialForDecals());
+            UWE.CoroutineHost.StartCoroutine(AuroraFixer.GetMaterialForDecals());
             if (PrefabFixer.prefabsFixed == false)
             {
                 PrefabFixer prefabFixer = new PrefabFixer();
@@ -282,8 +282,25 @@ namespace Tweaks_Fixes
                 AbandonedBaseFixer abandonedBaseFixer = new AbandonedBaseFixer();
                 abandonedBaseFixer.FixAbandonedBases();
             }
-            UWE.CoroutineHost.StartCoroutine(VehicleLightFix.GetSeaMothVolLight());
-            UWE.CoroutineHost.StartCoroutine(VehicleLightFix.FixExosuit());
+            if (VehicleLightFix.fixed_ == false)
+            {
+                VehicleLightFix vehicleLightFix = new VehicleLightFix();
+                UWE.CoroutineHost.StartCoroutine(vehicleLightFix.GetSeaMothVolLight());
+                UWE.CoroutineHost.StartCoroutine(vehicleLightFix.FixExosuit());
+                UWE.CoroutineHost.StartCoroutine(vehicleLightFix.FixSeamothLights());
+                VehicleLightFix.fixed_ = true;
+            }
+            if (Constructor_.fixed_ == false)
+            {
+                Constructor_ constructor = new Constructor_();
+                UWE.CoroutineHost.StartCoroutine(constructor.FixConstructor());
+            }
+            if (Util.IsGraphicsPresetHighDetail() && AlienFacilityPrefabFixer.alienFacilityPrefabsFixed == false)
+            {
+                AlienFacilityPrefabFixer alienFacilityPrefabFixer = new AlienFacilityPrefabFixer();
+                alienFacilityPrefabFixer.FixAlienFacilityPrefabs();
+            }
+            Application.runInBackground = true;
         }
 
         private void FixCraftDataTables()

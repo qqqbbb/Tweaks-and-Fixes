@@ -587,7 +587,7 @@ namespace Tweaks_Fixes
             return null;
         }
 
-        public static void AttachPing(GameObject go, PingType pingType = PingType.Signal, string name = "", Transform origin = null)
+        public static void AttachPing(GameObject go, PingType pingType = PingType.Signal, string name = null, Transform origin = null)
         {
             PingInstance pi = go.EnsureComponent<PingInstance>();
             pi.pingType = pingType;
@@ -1026,16 +1026,6 @@ namespace Tweaks_Fixes
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
-        public static void ForceLOD(this GameObject go, int index = 0)
-        {
-            //AddDebug("ForceLODs " + go.name);
-            //Main.logger.LogDebug("ForceLODs " + go.name);
-            LODGroup[] lods = go.GetComponentsInChildren<LODGroup>();
-
-            foreach (LODGroup lod in lods)
-                lod.ForceLOD(index);
-        }
-
         public static void DisableGlowShader(this GameObject gameObject)
         {
             foreach (Renderer mr in gameObject.GetComponentsInChildren<Renderer>())
@@ -1099,6 +1089,16 @@ namespace Tweaks_Fixes
                 lODGroup.SetLODs(lods);
                 lODGroup.RecalculateBounds();
             }
+        }
+
+        public static void ForceLOD(this GameObject go, int index = 0)
+        {
+            //AddDebug("ForceLODs " + go.name);
+            //Main.logger.LogDebug("ForceLODs " + go.name);
+            LODGroup[] lods = go.GetComponentsInChildren<LODGroup>();
+
+            foreach (LODGroup lod in lods)
+                lod.ForceLOD(index);
         }
 
         public static void DisableLODs(this GameObject go)

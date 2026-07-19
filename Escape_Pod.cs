@@ -84,13 +84,13 @@ namespace Tweaks_Fixes
             {
                 Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
                 FixHatchGlass(__instance.transform);
+                //FixMedKitFabricator(__instance.transform);
             }
 
             private static void FixHatchGlass(Transform escapePod)
             {
                 Transform t = escapePod.Find("models/Life_Pod_damaged_03/lifepod_damaged_03_geo/submarine_hatch_06_base/submarine_hatch_06Glass");
-                Renderer renderer = t.GetComponent<Renderer>();
-                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                t.DisableShadowCasting();
             }
 
             [HarmonyPostfix, HarmonyPatch("OnRepair")]
