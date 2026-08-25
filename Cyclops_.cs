@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -747,6 +748,54 @@ namespace Tweaks_Fixes
                 }
             }
         }
+
+        [HarmonyPatch(typeof(CyclopsEngineChangeState), "Update")]
+        class CyclopsEngineChangeState_Update_Patch
+        {
+            public static void Postfix(CyclopsEngineChangeState __instance)
+            {
+                if (__instance.mouseHover)
+                    HandReticle.main.SetIcon(HandReticle.IconType.Interact);
+            }
+        }
+
+        [HarmonyPatch(typeof(LeftHandButton), "ManagedUpdate")]
+        class LeftHandButton_ManagedUpdate_Patch
+        {
+            public static void Postfix(LeftHandButton __instance)
+            {
+                //AddDebug("LeftHandButton ManagedUpdate");
+                HandReticle.main.SetIcon(HandReticle.IconType.Interact);
+            }
+        }
+
+        [HarmonyPatch(typeof(CyclopsVehicleStorageTerminalManager), "OnEnable")]
+        class CyclopsVehicleStorageTerminalManager_OnEnable_Patch
+        {
+            public static void Postfix(CyclopsVehicleStorageTerminalManager __instance)
+            {
+                UWE.CoroutineHost.StartCoroutine(RemoveGenericHandTargetFromCyclopsVehicleStorageTerminalManager(__instance));
+            }
+        }
+
+        public static IEnumerator RemoveGenericHandTargetFromCyclopsVehicleStorageTerminalManager(CyclopsVehicleStorageTerminalManager cvstm)
+        {// remove 'cyclops' text when hand over terminal
+            Transform transform = cvstm.transform;
+            yield return new WaitUntil(() => transform.childCount == 4);
+            Transform collision = transform.GetChild(2);
+            GenericHandTarget ght = collision.GetComponent<GenericHandTarget>();
+            UnityEngine.Object.Destroy(ght);
+        }
+
+        //[HarmonyPatch(typeof(LeftHandButton), "OnMouseEnter")]
+        class LeftHandButton_OnMouseEnter_Patch
+        {
+            public static void Postfix(LeftHandButton __instance)
+            {
+                AddDebug("LeftHandButton OnMouseEnter");
+            }
+        }
+
 
 
 

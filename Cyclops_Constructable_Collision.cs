@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
     {
         static Dictionary<SubControl, Collider[]> subColliders = new Dictionary<SubControl, Collider[]>();
 
-        public static void CleanUp()
+        public static void ResetState()
         {
             subColliders.Clear();
         }

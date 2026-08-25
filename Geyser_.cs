@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
         static Dictionary<Geyser, Vector3> eruptionForce = new Dictionary<Geyser, Vector3>();
         static Dictionary<Geyser, Vector3> rotationForce = new Dictionary<Geyser, Vector3>();
 
-        public static void CleanUp()
+        public static void ResetState()
         {
             eruptionForce.Clear();
             rotationForce.Clear();

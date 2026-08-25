@@ -1,8 +1,6 @@
-﻿using HarmonyLib;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
 using UnityEngine.UI;
 using UWE;
@@ -90,6 +88,8 @@ namespace Tweaks_Fixes
             {"8c3d54c0-4330-4949-91ad-f046cfd67c7c", new MaterialZoffsetData("Starship_cargo_damaged_opened_01", 1)},// Starship_cargo_damaged_opened_01
             { "8f5046b4-b727-4359-9d5a-2640ae6bf5d6", new MaterialZoffsetData("entrance_02_01/entrance_02_01_MeshPart0", 18) },// CrashedShip_entrance_02_01
             { "3331fe35-7be9-4f59-87ae-9cc54452b136", new MaterialZoffsetData("entrance_02_02", 8) },// CrashedShip_entrance_02_02
+
+
 
         };
 
@@ -236,6 +236,7 @@ namespace Tweaks_Fixes
         "69cd7462-7cd2-456c-bfff-50903c391737",// precursor_cables_middle_01
         "94933bb3-0587-4e8d-a38d-b7ec4c859b1a",// precursor_cables_middle_02
         "31f84eba-d435-438c-a58e-f3f7bae8bfbd",// precursor_cables_middle_03
+        "32219baf-314f-429b-8327-f492cba760fe",// coral_reef_small_deco_09_big
         //"",// Coral_reef_floating_stones_big_02
         };
 
@@ -255,9 +256,6 @@ namespace Tweaks_Fixes
             "291856e5-9d72-4cc6-b09f-ac09a5a6206e",// coral_reef_brown_coral_tubes_01
             "73a14237-46a5-4603-a91e-125a4ed04375",// coral_reef_brown_coral_tubes_02_02
             "361bea51-183b-4eab-998d-fd61d07d6a65",// coral_reef_brown_coral_tubes_02_03
-
-
-
         //"",// 
         };
 
@@ -288,6 +286,7 @@ namespace Tweaks_Fixes
             "a4912ba2-5643-46ee-bd69-6be53dd55d45",// Coral_reef_Kelp_blood_02_Light
             "e0ae8532-a6d5-436f-bdc0-846061d91686",// Coral_reef_Kelp_blood_03_Light
             "66f2188b-b537-49ac-b6e7-08f446eca9e8",// Coral_reef_Kelp_blood_04_Light
+
         };
 
         Dictionary<string, RendererData> classIDtoRemoveGlow = new Dictionary<string, RendererData> {
@@ -483,6 +482,8 @@ namespace Tweaks_Fixes
             "1dc87b04-84d4-42e1-afbf-ee8c2a9a236f",// Coral_reef_barnacle_suckers_01 BarnacleSuckers
             "2e57e9d2-ddda-4063-9540-ca2f0fae775e",// Coral_reef_barnacle_suckers_02 BarnacleSuckers
             "e80b22ff-064d-46ca-b71e-456d6b3426ab",// Coral_reef_purple_fan PurpleFan
+            "32219baf-314f-429b-8327-f492cba760fe",// coral_reef_small_deco_09_big
+            "032360a5-4478-4446-92c7-3f631a7f2ba4",// coral_reef_small_deco_09_small
         };
 
         List<TechType> techTypeToRemoveCollision = new List<TechType> {
@@ -596,8 +597,156 @@ namespace Tweaks_Fixes
 
         public void FixPrefabs()
         {
+            //Main.logger.LogDebug("FixPrefabs prefabsFixed  " + prefabsFixed);
+            //Main.logger.LogDebug("FixPrefabs IsGraphicsPresetHighDetail  " + Util.IsGraphicsPresetHighDetail());
+            //Main.logger.LogDebug("FixPrefabs GetQualityLevel " + GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()].detail);
+
             if (prefabsFixed)
                 return;
+
+            if (Util.IsGraphicsPresetHighDetail())
+            {
+                foreach (TechType tt in badLODs)
+                {
+                    UWE.CoroutineHost.StartCoroutine(IncreaseLODdistane(tt));
+                }
+                foreach (string classID in badLODs_)
+                {
+                    UWE.CoroutineHost.StartCoroutine(IncreaseLODdistane(classID));
+                }
+                foreach (string classID in terribleLODs_)
+                {
+                    UWE.CoroutineHost.StartCoroutine(DisableLODs(classID));
+                }
+                foreach (TechType tt in terribleLODs)
+                {
+                    UWE.CoroutineHost.StartCoroutine(DisableLODs(tt));
+                }
+            }
+            foreach (var kv in materialZoffsets)
+            {
+                UWE.CoroutineHost.StartCoroutine(SetMaterialZoffset(kv.Key, kv.Value));
+            }
+            foreach (var kv in materialZoffsets_)
+            {
+                UWE.CoroutineHost.StartCoroutine(SetMaterialZoffset(kv.Key, kv.Value));
+            }
+            foreach (string classID in fragments)
+            {
+                UWE.CoroutineHost.StartCoroutine(FixFragment(classID));
+            }
+            if (ConfigToEdit.fruitGrowTime.Value > 0)
+            {
+                foreach (string classID in fruitPlants)
+                {
+                    UWE.CoroutineHost.StartCoroutine(EnsureFruits(classID));
+                }
+            }
+            foreach (TechType techType in techTypesToAddWorldForces)
+            {
+                UWE.CoroutineHost.StartCoroutine(AddWorldForces(techType));
+            }
+            foreach (string classID in classIDToRemoveCollision)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableCollision(classID));
+            }
+            foreach (TechType techType in techTypeToRemoveCollision)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableCollision(techType));
+            }
+            foreach (var kv in cellLevels)
+            {
+                UWE.CoroutineHost.StartCoroutine(SetCellLevel(kv.Key, kv.Value));
+            }
+            foreach (var kv in cellLevels_)
+            {
+                UWE.CoroutineHost.StartCoroutine(SetCellLevel(kv.Key, kv.Value));
+            }
+            foreach (var kv in surfaceTypes)
+            {
+                UWE.CoroutineHost.StartCoroutine(AddVFXsurfaceComponent(kv.Key, kv.Value));
+            }
+            foreach (var kv in surfaceTypes_)
+            {
+                UWE.CoroutineHost.StartCoroutine(AddVFXsurfaceComponent(kv.Key, kv.Value));
+            }
+            foreach (var kv in classIDtoRemoveGlow)
+            {
+                UWE.CoroutineHost.StartCoroutine(RemoveGlow(kv.Key));
+            }
+            foreach (TechType tt in techTypesToMakeUnmovable)
+            {
+                UWE.CoroutineHost.StartCoroutine(MakeUnmovable(tt));
+            }
+            foreach (string classID in classIDsToMakeUnmovable)
+            {
+                UWE.CoroutineHost.StartCoroutine(MakeUnmovable(classID));
+            }
+            foreach (var kv in eatables)
+            {
+                UWE.CoroutineHost.StartCoroutine(MakeEatable(kv.Key));
+            }
+            foreach (string classID in glassRendererList)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(classID));
+            }
+            //foreach (TechType tt in glassRendererTechtypeList)
+            //{
+            //    UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(tt));
+            //}
+            foreach (var kv in glassRenderers)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
+            }
+            foreach (var kv in glassRenderers_)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
+            }
+            foreach (var kv in glassRenderers__)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
+            }
+            foreach (var kv in glassRenderers___)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
+            }
+            foreach (var kv in materialsToEnableAlphaClip)
+            {
+                UWE.CoroutineHost.StartCoroutine(EnableAlphaClip(kv.Key, kv.Value));
+            }
+            foreach (var kv in prefabsToEnableDitherAlpha)
+            {
+                UWE.CoroutineHost.StartCoroutine(EnableDitherAlpha(kv.Key, kv.Value));
+            }
+            foreach (var kv in materialsToEnableDitherAlpha)
+            {
+                UWE.CoroutineHost.StartCoroutine(EnableDitherAlpha(kv.Key, kv.Value));
+            }
+            if (ConfigToEdit.propCannonGrabsAnyPlant.Value == false)
+            {
+                foreach (string classID in decoPlants)
+                    UWE.CoroutineHost.StartCoroutine(MakeUnmovable(classID));
+            }
+            UWE.CoroutineHost.StartCoroutine(FixOrangeMushroomCollider());
+            UWE.CoroutineHost.StartCoroutine(FixBiohazardTrashCanDesc());
+            UWE.CoroutineHost.StartCoroutine(FixStones());
+
+            if (ConfigToEdit.newStorageUI.Value && Main.pickupFullCarryallIsLoaded == false)
+                UWE.CoroutineHost.StartCoroutine(FixSmallStorage());
+
+            UWE.CoroutineHost.StartCoroutine(FixCrashFish());
+            UWE.CoroutineHost.StartCoroutine(FixWreck());
+            prefabsFixed = true;
+        }
+
+        public IEnumerator FixPrefabsAsync()
+        {
+            //Main.logger.LogDebug("FixPrefabsAsync prefabsFixed  " + prefabsFixed);
+            //Main.logger.LogDebug("FixPrefabsAsync IsGraphicsPresetHighDetail  " + Util.IsGraphicsPresetHighDetail());
+            //Main.logger.LogDebug("FixPrefabsAsync GetQualityLevel " + GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()].detail);
+
+            if (prefabsFixed)
+                yield break;
 
             if (Util.IsGraphicsPresetHighDetail())
             {
@@ -867,6 +1016,17 @@ namespace Tweaks_Fixes
             material.EnableKeyword("MARMO_ALPHA_CLIP");
         }
 
+        private static IEnumerator FixWreck()
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("740f385f-ae35-4e06-a88f-023db82cbf6b");
+            yield return request;
+            GameObject prefab;
+            request.TryGetPrefab(out prefab);
+            Util.MakeUnmovable(prefab);
+            EnableAlphaClip(prefab, new MaterialZoffsetData("explorable_wreckage/Explorable_wreckage_exterior", 7));
+            EnableAlphaClip(prefab, new MaterialZoffsetData("explorable_wreckage/Explorable_wreckage_interior", 7));
+        }
+
         private IEnumerator AddVFXsurfaceComponent(TechType techType, VFXSurfaceTypes surfaceType)
         {
             CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
@@ -1061,7 +1221,6 @@ namespace Tweaks_Fixes
             Util.DisableCollision(prefab);
         }
 
-
         IEnumerator SetCellLevel(string classID, CellLevel newLevel)
         {
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
@@ -1170,6 +1329,7 @@ namespace Tweaks_Fixes
 
         IEnumerator DisableLODs(string classID)
         {
+            Main.logger.LogDebug("DisableLODs " + classID);
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
             yield return request;
             GameObject prefab;
@@ -1181,6 +1341,33 @@ namespace Tweaks_Fixes
             prefab.ForceLOD();
         }
 
+        IEnumerator IncreaseLODdistane(string classID)
+        {
+            Main.logger.LogDebug("IncreaseLODdistane " + classID);
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("IncreaseLODdistane no prefab for " + classID);
+                yield break;
+            }
+            Util.IncreaseLODdistane(prefab);
+        }
+
+        IEnumerator IncreaseLODdistane(TechType techType)
+        {
+            Main.logger.LogDebug("IncreaseLODdistane " + techType);
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            if (prefab == null)
+            {
+                Main.logger.LogError("IncreaseLODdistane no prefab for " + techType);
+                yield break;
+            }
+            Util.IncreaseLODdistane(prefab);
+        }
         IEnumerator FixBulboTree()
         {
             CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.BulboTree);
@@ -1195,42 +1382,11 @@ namespace Tweaks_Fixes
             //prefab.DisableGlowShader();
         }
 
-        IEnumerator IncreaseLODdistane(string classID)
-        {
-            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
-            yield return request;
-            GameObject prefab;
-            if (request.TryGetPrefab(out prefab) == false)
-            {
-                Main.logger.LogError("IncreaseLODdistane no prefab for " + classID);
-                yield break;
-            }
-            Util.IncreaseLODdistane(prefab);
-        }
-
-        IEnumerator IncreaseLODdistane(TechType techType)
-        {
-            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
-            yield return request;
-            GameObject prefab = request.GetResult();
-            if (prefab == null)
-            {
-                Main.logger.LogError("ForceLOD no prefab for " + techType);
-                yield break;
-            }
-            Util.IncreaseLODdistane(prefab);
-        }
-
         IEnumerator FixBiohazardTrashCanDesc()
         {
             CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.LabTrashcan);
             yield return request;
             GameObject prefab = request.GetResult();
-            if (prefab == null)
-            {
-                Main.logger.LogError("MakeEatable no prefab for LabTrashcan");
-                yield break;
-            }
             Trashcan trashcan = prefab.GetComponent<Trashcan>();
             trashcan.storageContainer.hoverText = Language.main.Get("LabTrashcan");
         }

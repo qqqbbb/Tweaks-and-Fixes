@@ -1,8 +1,6 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -14,11 +12,14 @@ namespace Tweaks_Fixes
 
         static bool IsDoorSaved(Openable openable)
         {
+            if (openable.name == null)
+                return false;
+
             if (!closedDoorsAngles.ContainsKey(openable.name))
                 return false;
 
             PrefabIdentifier prefabIdentifier = openable.GetComponentInParent<PrefabIdentifier>();
-            if (prefabIdentifier == null || prefabIdentifier.name != "Cyclops-MainPrefab(Clone)")
+            if (prefabIdentifier == null || prefabIdentifier.id == null || prefabIdentifier.name != "Cyclops-MainPrefab(Clone)")
                 return false;
 
             //AddDebug("IsDoorClosed prefabIdentifier " + prefabIdentifier.name);

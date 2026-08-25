@@ -757,17 +757,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(PDAEncyclopedia), "AddAndPlaySound")]
-        class PDAEncyclopedia_AddAndPlaySound_Patch
-        {
-            public static void Postfix(string key, PDAEncyclopedia.EntryData __result)
-            {
-                AddDebug("AddAndPlaySound " + key);
-                AddDebug("EntryData " + __result.key);
-                //return false;
-            }
-        }
-
 
 
         static void Debug(GameObject go)

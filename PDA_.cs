@@ -1,5 +1,4 @@
-﻿using FMOD.Studio;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -38,6 +37,9 @@ namespace Tweaks_Fixes
             [HarmonyTranspiler, HarmonyPatch("Open")]
             public static IEnumerable<CodeInstruction> Openranspiler(IEnumerable<CodeInstruction> instructions)
             {
+                if (Main.pdaDelayLoaded)
+                    return instructions;
+
                 var codeMatcher = new CodeMatcher(instructions)
                 .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, PDA.timeDraw))
                 .ThrowIfInvalid("Could not find Ldc_R4 timeDraw in PDA.Open")
@@ -50,6 +52,9 @@ namespace Tweaks_Fixes
             [HarmonyTranspiler, HarmonyPatch("Close")]
             public static IEnumerable<CodeInstruction> CloseTranspiler(IEnumerable<CodeInstruction> instructions)
             {
+                if (Main.pdaDelayLoaded)
+                    return instructions;
+
                 var codeMatcher = new CodeMatcher(instructions)
                 .MatchForward(false, new CodeMatch(OpCodes.Ldc_R4, PDA.timeHolster))
                 .ThrowIfInvalid("Could not find Ldc_R4 timeHolster in PDA.Close")

@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.21.0";
+            VERSION = "4.21.1";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -43,6 +43,8 @@ namespace Tweaks_Fixes
         public static bool torpedoImprovementsLoaded;
         public static bool cyclopsOverheatLoaded;
         public static bool aggressiveFaunaLoaded;
+        public static bool deathrunRemadeLoaded;
+        public static bool pdaDelayLoaded;
         static string configToEditPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
         static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
         public static ConfigMain configMain = new ConfigMain();
@@ -52,15 +54,15 @@ namespace Tweaks_Fixes
         public static WaitForSeconds oneSecond = new WaitForSeconds(1f);
         public static WaitUntil waitUntilGameLoaded = new WaitUntil(() => gameLoaded);
 
-        public void CleanUp()
+        public void ResetState()
         {
-            //logger.LogInfo("CleanUp");
+            //logger.LogInfo("ResetState");
             gameLoaded = false;
             QuickSlot_Cycle.invChanged = true;
             Crush_Damage.extraCrushDepth = 0;
             Crush_Damage.crushDamageResistance = 0;
-            Cyclops_Constructable_Collision.CleanUp();
-            Geyser_.CleanUp();
+            Cyclops_Constructable_Collision.ResetState();
+            Geyser_.ResetState();
             Gravsphere_.gasPods.Clear();
             Gravsphere_.gravSphereFish.Clear();
             Decoy_Patch.decoysToDestroy.Clear();
@@ -203,11 +205,11 @@ namespace Tweaks_Fixes
             ConfigToEdit.Bind();
             options = new OptionsMenu();
             ConfigToEdit.ParseConfig();
-            harmony.PatchAll();
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
             WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => StartLoadingSetup());
+            //WaitScreenHandler.RegisterEarlyAsyncLoadTask(MODNAME, task => StartLoadingSetupAsync());
             OptionsPanelHandler.RegisterModOptions(options);
-            SaveUtils.RegisterOnQuitEvent(CleanUp);
+            SaveUtils.RegisterOnQuitEvent(ResetState);
             CraftDataHandler.SetEatingSound(TechType.Coffee, "event:/player/drink");
             GetLoadedMods();
             if (ConfigToEdit.coralShellPlateGivesTableCoral.Value)
@@ -216,6 +218,7 @@ namespace Tweaks_Fixes
             }
             Application.runInBackground = MiscSettings.runInBackground;
             SaveLoadManager.notificationSaveInProgress += SaveData;
+            harmony.PatchAll();
             Logger.LogInfo($"Plugin {MODNAME} {VERSION} is loaded ");
             //SceneManager.sceneLoaded += new UnityAction<Scene, LoadSceneMode>(OnSceneLoaded);
         }
@@ -257,10 +260,21 @@ namespace Tweaks_Fixes
             cyclopsOverheatLoaded = Chainloader.PluginInfos.ContainsKey("CyclopsOverheat");
             torpedoImprovementsLoaded = Chainloader.PluginInfos.ContainsKey("com.TorpedoImprovements.mod");
             aggressiveFaunaLoaded = Chainloader.PluginInfos.ContainsKey("com.lee23.aggressivefauna");
+            deathrunRemadeLoaded = Chainloader.PluginInfos.ContainsKey("com.github.tinyhoot.DeathrunRemade");
             //devMenuLoaded = Chainloader.PluginInfos.ContainsKey("aedenthorn.DeveloperMenu");
             //com.github.tinyhoot.DeathrunRemade
-            //foreach (KeyValuePair<string, PluginInfo> plugin in Chainloader.PluginInfos)
-            //    logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.Name);
+            pdaDelayLoaded = Chainloader.PluginInfos.ContainsKey("com.essence.NoPdaDelay");
+            foreach (KeyValuePair<string, PluginInfo> plugin in Chainloader.PluginInfos)
+                logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.Name);
+        }
+
+        private IEnumerator StartLoadingSetupAsync()
+        {
+            if (PrefabFixer.prefabsFixed == false)
+            {
+                PrefabFixer prefabFixer = new PrefabFixer();
+                yield return prefabFixer.FixPrefabsAsync();
+            }
         }
 
         private void StartLoadingSetup()
