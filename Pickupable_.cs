@@ -117,12 +117,12 @@ namespace Tweaks_Fixes
                 SetupPickupable(__instance);
             }
 
-            //[HarmonyPostfix, HarmonyPatch("Activate")]
+            //[HarmonyPostfix, HarmonyPatch("Activate")]__
             static void ActivatePostfix(Pickupable __instance)
             {
                 AddDebug("Pickupable Activate " + __instance.GetTechType());
             }
-            //[HarmonyPostfix, HarmonyPatch("Initialize")]
+            //[HarmonyPostfix, HarmonyPatch("Initialize")]__
             static void InitializePostfix(Pickupable __instance)
             {
                 AddDebug("Pickupable Initialize " + __instance.GetTechType());
@@ -177,7 +177,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPrefix, HarmonyPatch("OnHandClick")]
+            //[HarmonyPrefix, HarmonyPatch("OnHandClick")]__
             public static bool OnHandClickPrefix(Pickupable __instance, GUIHand hand)
             {
                 //AddDebug(__instance.name + " Pickupable OnHandClick AllowedToPickUp " + __instance.AllowedToPickUp());

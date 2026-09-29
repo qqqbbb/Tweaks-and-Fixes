@@ -647,7 +647,7 @@ namespace Tweaks_Fixes
                     Transform storage = __instance.transform.Find("Model/Submersible_SeaMoth_extras/Submersible_seaMoth_geo/seaMoth_storage_01_R_geo");
                     if (storage)
                     {
-                        //AddDebug("fux right storage");
+                        //AddDebug("fix right storage");
                         storage.localPosition = new Vector3(-0.01f, 0f, 0f);
                         storage.localEulerAngles = new Vector3(0f, 0f, 0.6f);
                     }

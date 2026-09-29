@@ -585,7 +585,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(CyclopsDestructionEvent))]
-        class CyclopsDestructionEvent_SwapToDamagedModels_Patch
+        class CyclopsDestructionEvent_DestroyCyclops_Patch
         {
             [HarmonyPrefix, HarmonyPatch("DestroyCyclops")]
             static void DestroyCyclopsPrefix(CyclopsDestructionEvent __instance)
@@ -597,7 +597,6 @@ namespace Tweaks_Fixes
             static void SwapToDamagedModelsPostfix(CyclopsDestructionEvent __instance)
             {
                 RemoveStuffFromDestroyedCyclops(__instance.gameObject);
-
             }
         }
 

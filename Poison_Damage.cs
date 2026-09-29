@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         static float poisonDamageTotal;
         static float foodDamageTotal;
 
-        public static void ResetVars()
+        public static void ResetState()
         {
             poisonDamageTotal = 0;
             foodDamageTotal = 0;

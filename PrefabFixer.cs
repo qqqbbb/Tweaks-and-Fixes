@@ -1329,7 +1329,7 @@ namespace Tweaks_Fixes
 
         IEnumerator DisableLODs(string classID)
         {
-            Main.logger.LogDebug("DisableLODs " + classID);
+            //Main.logger.LogDebug("DisableLODs " + classID);
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
             yield return request;
             GameObject prefab;
@@ -1343,7 +1343,7 @@ namespace Tweaks_Fixes
 
         IEnumerator IncreaseLODdistane(string classID)
         {
-            Main.logger.LogDebug("IncreaseLODdistane " + classID);
+            //Main.logger.LogDebug("IncreaseLODdistane " + classID);
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
             yield return request;
             GameObject prefab;
@@ -1357,7 +1357,7 @@ namespace Tweaks_Fixes
 
         IEnumerator IncreaseLODdistane(TechType techType)
         {
-            Main.logger.LogDebug("IncreaseLODdistane " + techType);
+            //Main.logger.LogDebug("IncreaseLODdistane " + techType);
             CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
             yield return request;
             GameObject prefab = request.GetResult();

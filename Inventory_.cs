@@ -131,8 +131,10 @@ namespace Tweaks_Fixes
             static void GetItemActionPostfix(Inventory __instance, ref ItemAction __result, InventoryItem item)
             {
                 //AddDebug("GetItemAction " + __result);
-                if (__result == ItemAction.Eat && Util.CanPlayerEat(item.item.gameObject) == false)
+                if (__result == ItemAction.Eat && item.item.TryGetComponent<Eatable>(out _) && Util.CanPlayerEat(item.item.gameObject) == false)
+                { // AlienBuildingBlock from Prototype sub mod has no Eatable but can be eaten
                     __result = ItemAction.None;
+                }
                 else if (__result == ItemAction.Use && ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwater() && item.item.GetTechType() == TechType.FirstAidKit)
                 {
                     __result = ItemAction.None;

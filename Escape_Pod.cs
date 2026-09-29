@@ -84,6 +84,12 @@ namespace Tweaks_Fixes
             {
                 Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
                 FixHatchGlass(__instance.transform);
+                if (Utils.GetContinueMode())
+                {
+                    Transform modulesRoot = __instance.transform.Find("ModulesRoot");
+                    foreach (var q in modulesRoot.GetComponentsInChildren<MoveAndRotateWithTransform>())
+                        UnityEngine.Object.Destroy(q);
+                }
                 //FixMedKitFabricator(__instance.transform);
             }
 
@@ -118,7 +124,7 @@ namespace Tweaks_Fixes
             public static void OnTopHatchCinematicEnd(EscapePodFirstUseCinematicsController __instance)
             {
                 //AddDebug("OnTopHatchCinematicEnd ");
-                if (__instance.escapePod.damageEffectsShowing)
+                if (Main.configMain.GetEscapePodSmoke() == false)
                     StopSmoke();
             }
         }
@@ -128,8 +134,8 @@ namespace Tweaks_Fixes
         { // patched method is static
             public static void Postfix(GameObject gameObject)
             { // entering escape pod using top hatch
-              //AddDebug("position.y " + gameObject.transform.position.y);
-                if (Player.main.currentEscapePod && EscapePod.main.damageEffectsShowing && gameObject.transform.position.y > 2f)
+                //Main.logger.LogDebug("EnterExitHelper Enter " + gameObject.name);
+                if (Player.main.currentEscapePod && Main.configMain.GetEscapePodSmoke() == false && gameObject.transform.name == "top_in_trigger")
                 {
                     StopSmoke();
                 }

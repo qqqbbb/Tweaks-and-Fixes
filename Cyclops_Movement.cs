@@ -9,7 +9,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UWE;
 using static ErrorMessage;
-using static GameInput;
 
 namespace Tweaks_Fixes
 {
@@ -18,22 +17,18 @@ namespace Tweaks_Fixes
         static float cyclopsVerticalMod = 1;
         static float cyclopsBackwardMod = 1;
         static float cyclopsForwardOrig;
-        static bool autoMove = false;
+        public static bool autoMove = false;
         static int collisionLayerMask = Voxeland.GetTerrainLayerMask();
         static WaitForSeconds cyclopsCollisionDetectionInterval = new WaitForSeconds(.1f);
 
-        static IEnumerator DetectCollision(CyclopsProximitySensors sensors)
+        static IEnumerator DetectCollision(float distance, float radius, Transform sensorTr)
         { // detects only terrain
             while (autoMove)
             {
                 yield return cyclopsCollisionDetectionInterval;
                 //AddDebug("my DetectCollision");
-                var data = sensors.sensorCastData[0];
-                float distance = data.distance * 3;
-                float radius = data.radius * 2;
-                var sensor = sensors.sensor[0];
-                Vector3 position = sensor.transform.position + new Vector3(0, 3, 0);
-                Vector3 dir = sensor.transform.forward;
+                Vector3 position = sensorTr.position + new Vector3(0, 3, 0);
+                Vector3 dir = sensorTr.forward;
                 if (Physics.SphereCast(position, radius, dir, out var hitInfo, distance, collisionLayerMask))
                 {
                     //AddDebug("my DetectCollision hit " + hitInfo.transform.name);
@@ -91,13 +86,20 @@ namespace Tweaks_Fixes
 
             private static void StartCollisionDetection(SubControl __instance)
             {
-                //if (ConfigToEdit.disableCyclopsProximitySensor.Value == false)
+                Transform t = __instance.transform.Find("ProximityWarning");
+                if (t == null)
                 {
-                    Transform t = __instance.transform.Find("ProximityWarning");
-                    CyclopsProximitySensors sensors = t.GetComponent<CyclopsProximitySensors>();
-                    //sensors.InvokeRepeating("DetectCollision", sensors.sensorTime, sensors.sensorTime);
-                    CoroutineHost.StartCoroutine(DetectCollision(sensors));
+                    //AddDebug("StartCollisionDetection no ProximityWarning transform");
+                    return;
                 }
+                CyclopsProximitySensors sensors = t.GetComponent<CyclopsProximitySensors>();
+                if (sensors == null)
+                    return;
+
+                var data = sensors.sensorCastData[0];
+                float distance = data.distance * 3;
+                float radius = data.radius * 2;
+                CoroutineHost.StartCoroutine(DetectCollision(distance, radius, sensors.sensor[0].transform));
             }
 
             [HarmonyPostfix, HarmonyPatch("Update")]
@@ -111,9 +113,10 @@ namespace Tweaks_Fixes
                     //StartCollisionDetection(__instance);
                     //ShowSensors(__instance);
                 }
-                //AddDebug($"GameInput.autoMove {GameInput.autoMove} autoMove {autoMove}");
                 if (__instance.controlMode != SubControl.Mode.GameObjects || GameModeUtils.RequiresPower() && __instance.powerRelay.isPowered == false)
                     return;
+
+                //AddDebug($"{__instance.name} GameInput.autoMove {GameInput.autoMove} autoMove {autoMove}");
 
                 //if (GameInput.GetButtonDown(GameInput.Button.AutoMove))
                 //{
@@ -269,7 +272,7 @@ namespace Tweaks_Fixes
 
         static void ShowSensors(SubControl subControl)
         {
-            AddDebug("ShowSensors");
+            //AddDebug("ShowSensors");
             Transform t = subControl.transform.Find("ProximityWarning");
             CyclopsProximitySensors sensors = t.GetComponent<CyclopsProximitySensors>();
             //var data = sensors.sensorCastData[3];

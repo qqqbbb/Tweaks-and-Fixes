@@ -2,13 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class AlienFacilityPrefabFixer
+    internal class PrecursorBasePrefabFixer
     {
         internal static bool alienFacilityPrefabsFixed;
         List<string> prefabsWithoutShadows = new List<string> {
@@ -23,6 +24,8 @@ namespace Tweaks_Fixes
             {"68254d33-2d67-48a8-b485-9929f23a8ba8", new RendererData(null, new List<string>{"Pipes", "Eggs", "___New Group" }) },//Precursor_Prison_EggLab_Extras
             {"a3476419-0a2f-40e7-b325-0a592f0ebea3", new RendererData("Precursor_lab_container_02", new List<string>{ "Precursor_lab_container_02_bottom", "Precursor_lab_container_02_top" }) },//Precursor_lab_container_02_LabCache
             {"2213b907-3231-4c7a-aeaf-03e7c7d349d8", new RendererData(null, new List<string>{ "precursor_block_maze_04_04_04_v4/precursor_block_maze_04_04_04_v4", "precursor_block_deco_06_02_06" }) },//IonCrystalPedestal_Cache
+
+            {"7e1e5d12-7169-4ff9-abcd-520f11196764", new RendererData("precursor_block_maze_04_04_04_v4/precursor_block_maze_04_04_04_v4") }, // IonCrystalPedestal
         };
 
         IEnumerator EnableShadowCasting(string classID)
@@ -54,7 +57,7 @@ namespace Tweaks_Fixes
         }
 
 
-        internal void FixAlienFacilityPrefabs()
+        internal void FixPrecursorBasePrefabs()
         {
             UWE.CoroutineHost.StartCoroutine(FixGunBase());
             UWE.CoroutineHost.StartCoroutine(FixPrison());
@@ -205,6 +208,7 @@ namespace Tweaks_Fixes
 
         private IEnumerator FixPrison()
         {
+            //AddDebug("FixPrison");
             UWE.CoroutineHost.StartCoroutine(FixPrisonOutpost("c5512e00-9959-4f57-98ae-9a9962976eaa"));// Precursor_Prison_Outpost1
             UWE.CoroutineHost.StartCoroutine(FixPrisonOutpost("542aaa41-26df-4dba-b2bc-3fa3aa84b777"));// Precursor_Prison_Outpost2
             UWE.CoroutineHost.StartCoroutine(FixPrisonOutpost("5bcaefae-2236-4082-9a44-716b0598d6ed"));// Precursor_Prison_Outpost3
@@ -220,7 +224,11 @@ namespace Tweaks_Fixes
             yield return request;// Precursor_Prison_Interior_Antechamber
             GameObject prefab;
             request.TryGetPrefab(out prefab);
-            Transform meshes = prefab.transform.Find("Precursor_Prison_Interior_Antechamber/mesh");
+            Transform antechamber = prefab.transform.Find("Precursor_Prison_Interior_Antechamber");
+            Transform meshes = antechamber.Find("mesh");
+            Transform pillar = antechamber.Find("anim_PrecPillar_root");
+            meshes.EnableShadowCastingInChildren();
+            pillar.EnableShadowCastingInChildren();
             foreach (Transform child in meshes.transform)
             {
                 if (child.name.Contains("ceiling") == false)
@@ -275,16 +283,52 @@ namespace Tweaks_Fixes
             yield return request;// Precursor_Prison_Interior_Moon_Pool
             request.TryGetPrefab(out prefab);
             meshes = prefab.transform.Find("Precursor_Prison_Interior_Moon_Pool/mesh");
+            //meshes.EnableShadowCastingInChildren();
+            foreach (Renderer r in meshes.GetComponentsInChildren<Renderer>())
+            {
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                r.receiveShadows = true;
+            }
             foreach (Transform child in meshes.transform)
             {
                 if (child.name.Contains("floor"))
                     Util.IncreaseLODdistane(child.gameObject);
             }
+            UWE.CoroutineHost.StartCoroutine(AddMissingColliders());
             //request = PrefabDatabase.GetPrefabAsync("c27611ce-de24-46fb-9d4b-9cb16b7c94a0");
             //yield return request;// Precursor_Prison_MoonPoolSurface
             //request.TryGetPrefab(out prefab);
 
             //Main.logger.LogDebug(" FixPrisonFacility !!!");
+        }
+
+        IEnumerator AddMissingColliders()
+        {
+            //AddDebug("AddMissingColliders");
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("871a5ca9-1f2e-4124-8f1e-fac967a464b8");
+            yield return request; // precursor_prison
+            GameObject prefab;
+            request.TryGetPrefab(out prefab);
+            Transform col = prefab.transform.Find("precursor_prison/collisions");
+            //Transform col_ = col.GetChild(0);
+            //BoxCollider collider = col_.GetComponent<BoxCollider>();
+            //UnityEngine.Object.Destroy(collider);
+            CreateCableCollider(col, "TweaksFixesCollider_1", new Vector3(16.3f, 133, 10.7f), new Vector3(18, 0, 352));
+            CreateCableCollider(col, "TweaksFixesCollider_2", new Vector3(-16.3f, 133, 10.7f), new Vector3(18, 0, 8));
+            CreateCableCollider(col, "TweaksFixesCollider_3", new Vector3(-16.3f, 133, -48.700f), new Vector3(342, 0, 8));
+            CreateCableCollider(col, "TweaksFixesCollider_4", new Vector3(16.3f, 133, -48.700f), new Vector3(342, 0, 352));
+        }
+
+        private static void CreateCableCollider(Transform parent, string name, Vector3 localPos, Vector3 localEulerAngles)
+        {
+            GameObject myCol_1 = new GameObject(name);
+            myCol_1.transform.SetParent(parent);
+            myCol_1.transform.localPosition = localPos;
+            myCol_1.transform.localEulerAngles = localEulerAngles;
+            CapsuleCollider collider = myCol_1.AddComponent<CapsuleCollider>();
+            collider.radius = 1.5f;
+            collider.height = 16;
+            //Testing.ShowDebugCollider(collider);
         }
 
         private IEnumerator FixPrisonOutpost(string classID)
@@ -370,10 +414,13 @@ namespace Tweaks_Fixes
                 Transform child = meshes.GetChild(i);
                 Util.IncreaseLODdistane(child.gameObject);
             }
-            UWE.CoroutineHost.StartCoroutine(FuxGunRoom("4a5670a3-1459-45b9-81b4-44ecc7af5996"));// Precursor_Gun_TerminalHallway_01
-            UWE.CoroutineHost.StartCoroutine(FuxGunRoom("1160ef75-8bf6-4bf4-a7d7-6718956e22f1"));// Precursor_Gun_Terminal_Room_01
-            UWE.CoroutineHost.StartCoroutine(FuxGunRoom("10ff8700-c95a-44d9-9be6-d16f29332c83"));// Precursor_Gun_TerminalHallway_02
-            UWE.CoroutineHost.StartCoroutine(FuxGunRoom("14cd4cc9-93ef-4104-ae95-f8cee52a5698"));// Gun_LargeHallway
+            Util.EnableShadowCastingInChildren(meshes);
+
+            UWE.CoroutineHost.StartCoroutine(FixGunRoomShadowsAndLOD("4a5670a3-1459-45b9-81b4-44ecc7af5996"));// Precursor_Gun_TerminalHallway_01
+            UWE.CoroutineHost.StartCoroutine(FixGunRoomShadowsAndLOD("1160ef75-8bf6-4bf4-a7d7-6718956e22f1"));// Precursor_Gun_Terminal_Room_01
+            UWE.CoroutineHost.StartCoroutine(FixGunRoomShadows("74ee7292-f385-4063-91e6-d9448e95de6e"));// Precursor_Gun_TerminalRoom_02
+            UWE.CoroutineHost.StartCoroutine(FixGunRoomShadowsAndLOD("10ff8700-c95a-44d9-9be6-d16f29332c83"));// Precursor_Gun_TerminalHallway_02
+            UWE.CoroutineHost.StartCoroutine(FixGunRoomLOD("14cd4cc9-93ef-4104-ae95-f8cee52a5698"));// Gun_LargeHallway
 
             request = PrefabDatabase.GetPrefabAsync("74ee7292-f385-4063-91e6-d9448e95de6e");
             yield return request;// Precursor_Gun_TerminalRoom_02
@@ -393,7 +440,7 @@ namespace Tweaks_Fixes
             yield return request;// Precursor_Gun_Elevator
             request.TryGetPrefab(out prefab);
             meshes = prefab.transform.GetChild(1);
-            //Main.logger.LogDebug("Precursor_Gun_Elevator ");
+            FixGunRoomShadows(meshes);
             for (int i = 18; i < 22; i++)
             {
                 Transform child = meshes.GetChild(i);
@@ -403,6 +450,7 @@ namespace Tweaks_Fixes
             yield return request;// Precursor_Gun_MoonPool
             request.TryGetPrefab(out prefab);
             meshes = prefab.transform.GetChild(2);
+            FixGunRoomShadows(meshes);
             for (int i = 4; i < meshes.childCount; i++)
             {
                 Transform child = meshes.GetChild(i);
@@ -422,7 +470,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        private IEnumerator FuxGunRoom(string classID)
+        private IEnumerator FixGunRoomLOD(string classID)
         {
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
             yield return request;
@@ -431,6 +479,79 @@ namespace Tweaks_Fixes
             Transform meshes = prefab.transform.GetChild(1);
             foreach (Transform child in meshes)
                 Util.IncreaseLODdistane(child.gameObject);
+        }
+
+        private IEnumerator FixGunRoomShadows(string classID)
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            request.TryGetPrefab(out prefab);
+            Transform meshes = prefab.transform.GetChild(1);
+            foreach (Renderer renderer in meshes.GetComponentsInChildren<Renderer>())
+            {
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                foreach (var m in renderer.materials)
+                    m.SetFloat(PrefabFixer.zOffset, 0);
+            }
+        }
+
+        private void FixGunRoomShadows(Transform parent)
+        {
+            foreach (Renderer renderer in parent.GetComponentsInChildren<Renderer>())
+            {
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                foreach (var m in renderer.materials)
+                    m.SetFloat(PrefabFixer.zOffset, 0);
+            }
+        }
+
+        private IEnumerator FixGunRoomShadowsAndLOD(string classID)
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            request.TryGetPrefab(out prefab);
+            Transform meshes = prefab.transform.GetChild(1);
+            //Util.EnableShadowCastingInChildren(meshes);
+            foreach (Renderer renderer in meshes.GetComponentsInChildren<Renderer>())
+            {
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                foreach (var m in renderer.materials)
+                {
+                    //if (m.IsKeywordEnabled("_ZOffset"))
+                    {
+                        m.SetFloat(PrefabFixer.zOffset, 0);
+                    }
+                }
+            }
+            foreach (Transform child in meshes)
+                Util.IncreaseLODdistane(child.gameObject);
+        }
+
+        IEnumerator FixZoffset(string classID)
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("FixZoffset no prefab for " + classID);
+                yield break;
+            }
+            //Main.logger.LogError($"FixFragment {prefab.name} RT TT {resourceTracker.techType} RT OTT {resourceTracker.overrideTechType}");
+            foreach (Renderer renderer in prefab.GetAllComponentsInChildren<Renderer>())
+            {
+                foreach (var m in renderer.materials)
+                {
+                    //if (m.IsKeywordEnabled("_ZOffset"))
+                    {
+                        m.SetFloat(PrefabFixer.zOffset, 0);
+                    }
+                }
+            }
+            if (prefab.TryGetComponent(out Pickupable pickupable))
+                UnityEngine.Object.Destroy(pickupable);
         }
 
     }

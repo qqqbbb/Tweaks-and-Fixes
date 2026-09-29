@@ -198,6 +198,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> dontOpenPDAwhenAltTabbing;
         public static ConfigEntry<bool> pressShiftToOpenConsole;
         public static ConfigEntry<bool> checkWaterDepthWhenConstructingCyclops;
+        public static ConfigEntry<float> medkitProdMult;
+        public static ConfigEntry<bool> respawnCrashPowder;
+        public static ConfigEntry<bool> disableSlowFlashes;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -208,12 +211,15 @@ namespace Tweaks_Fixes
         public static AcceptableValueRange<int> freeTorpedosRange = new AcceptableValueRange<int>(0, 6);
 
         public static void Bind()
-        {  // “ ” ‛
+        {  // “ ” ‛ ’
+            disableSlowFlashes = Main.configToEdit.Bind("VISUAL", "Do not slow down particle effects when ‛Lightning flashes’ setting is on", false);
+            respawnCrashPowder = Main.configToEdit.Bind("CREATURES", "Respawn sulfur in sulfur plant when crashfish respawns", false);
+            medkitProdMult = Main.configToEdit.Bind("MISC", "First aid kit production time multiplier", 1f);
             checkWaterDepthWhenConstructingCyclops = Main.configToEdit.Bind("MISC", "Check water depth when constructing cyclops or launch platform", true);
             pressShiftToOpenConsole = Main.configToEdit.Bind("MISC", "Need to press shift to open command console", true);
             dontOpenPDAwhenAltTabbing = Main.configToEdit.Bind("UI", "Do not open PDA when alt tabbing out of the game", false, "This breaks PDA for some users");
             grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "");
-            disableHotMetalGlow = Main.configToEdit.Bind("MISC", "Remove hot metal glow from Aurora debris that is underwater", false, "");
+            disableHotMetalGlow = Main.configToEdit.Bind("VISUAL", "Remove hot metal glow from Aurora debris that is underwater", false, "");
             fixCyclopsCollision = Main.configToEdit.Bind("CYCLOPS", "Fix collision inside cyclops", false, "For some users this does not work as intended");
             vegan = Main.configToEdit.Bind("PLAYER", "Vegan diet", false, "You will not be able to eat fish if this is true");
             sunbeamTimerShowsGameTime = Main.configToEdit.Bind("UI", "Sunbeam arrival timer shows game time instread of real time", false, "");
@@ -632,7 +638,7 @@ namespace Tweaks_Fixes
             CreatureDeath_.respawnTime = ParseIntDicFromString(respawnTime.Value);
             //LargeWorldEntity_Patch.techTypesToDespawn = ParseIntDicFromString(spawnChance.Value);
             Charger_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
-            LoadedGameObjectFixer.bloodColor = ParseColor(bloodColor.Value);
+            GameObjectFixer.bloodColor = ParseColor(bloodColor.Value);
             MapRoomCamera_.lightColor = ParseColor(cameraLightColor.Value);
             Seaglide_.lightColor = ParseColor(seaglideLightColor.Value);
             VehicleLightFix.seamothLightColor = ParseColor(seamothLightColor.Value);

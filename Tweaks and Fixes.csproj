@@ -145,11 +145,13 @@
     <Compile Include="AuroraFixer.cs" />
     <Compile Include="AbandonedBaseFixer.cs" />
     <Compile Include="BasePrefabFixer.cs" />
-    <Compile Include="AlienFacilityPrefabFixer.cs" />
-    <Compile Include="Command_Console.cs" />
+    <Compile Include="Flashes.cs" />
+    <Compile Include="CrashHome_.cs" />
     <Compile Include="WaterPlane_.cs" />
+    <Compile Include="PrecursorBasePrefabFixer.cs" />
+    <Compile Include="Command_Console.cs" />
     <Compile Include="Trashcan_.cs" />
-    <Compile Include="LoadedGameObjectFixer.cs" />
+    <Compile Include="GameObjectFixer.cs" />
     <Compile Include="Escape_pod_wrecks.cs" />
     <Compile Include="PrefabFixer.cs" />
     <Compile Include="Radiation.cs" />

@@ -13,23 +13,6 @@ namespace Tweaks_Fixes
     {
         public static Material materialForDecals;
 
-        [HarmonyPatch(typeof(WaterPlane), "Start")]
-        internal class WaterPlane_Start_Patch
-        {
-            static void Postfix(WaterPlane __instance)
-            { // water surface in Aurora and in prison
-                __instance.transform.DisableShadowCasting();
-                float a = 1;
-                if (__instance.name == "Precursor_Prison_MoonPoolSurface(Clone)")
-                    a = .3f;
-
-                Renderer renderer = __instance.GetComponent<Renderer>();
-                Color oldColor = renderer.sharedMaterial.color;
-                //AddDebug($"WaterPlane {__instance.name} {oldColor}");
-                renderer.sharedMaterial.color = new Color(oldColor.r, oldColor.g, oldColor.b, a);
-            }
-        }
-
         [HarmonyPatch(typeof(CrashedShipExploder), "Start")]
         class CrashedShipExploder_Start_Patch
         {

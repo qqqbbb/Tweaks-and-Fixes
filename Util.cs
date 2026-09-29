@@ -558,6 +558,11 @@ namespace Tweaks_Fixes
             return GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()].detail == 2;
         }
 
+        public static bool IsGraphicsPresetDetailMediumOrHigh()
+        {
+            return GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()].detail > 0;
+        }
+
         public static string GetRawBiomeName()
         {
             AtmosphereDirector atmosphereDirector = AtmosphereDirector.main;

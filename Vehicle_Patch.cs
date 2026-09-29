@@ -272,18 +272,6 @@ namespace Tweaks_Fixes
 
     }
 
-    [HarmonyPatch(typeof(VFXSeamothDamages))]
-    class VFXSeamothDamages_patch
-    {
-        [HarmonyPostfix]
-        [HarmonyPatch("Start")]
-        public static void StartPostfix(VFXSeamothDamages __instance)
-        {
-            //Transform t = __instance.transform.Find("xDrips");
-            __instance.dripsParticles = null;
-        }
-    }
-
     [HarmonyPatch(typeof(SeaMoth))]
     class SeaMoth_patch
     {
@@ -1370,6 +1358,17 @@ namespace Tweaks_Fixes
         }
     }
 
+    //[HarmonyPatch(typeof(VFXSeamothDamages))]
+    class VFXSeamothDamages_patch
+    {
+        //[HarmonyPostfix]
+        //[HarmonyPatch("Start")]
+        public static void StartPostfix(VFXSeamothDamages __instance)
+        {
+            //Transform t = __instance.transform.Find("xDrips");
+            __instance.dripsParticles = null;
+        }
+    }
 }
 
 

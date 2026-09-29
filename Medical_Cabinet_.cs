@@ -82,6 +82,10 @@ namespace Tweaks_Fixes
         public static bool StartPrefix(MedicalCabinet __instance)
         {
             //AddDebug($"MedicalCabinet Start hasMedKit {__instance.hasMedKit} timeSpawnMedKit {__instance.timeSpawnMedKit}");
+            if (ConfigToEdit.medkitProdMult.Value != 1)
+            {
+                __instance.medKitSpawnInterval *= ConfigToEdit.medkitProdMult.Value;
+            }
             if (IsMedCabinetInEscapePod(__instance))
             {
                 if (ConfigToEdit.escapePodMedkitCabinetWorks.Value != ConfigToEdit.EscapePodMedicalCabinetWorks.Always)

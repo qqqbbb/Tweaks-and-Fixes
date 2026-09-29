@@ -5,7 +5,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class LoadedGameObjectFixer
+    internal class GameObjectFixer
     {
         //public bool loadedObjectsFixed;
         HashSet<string> bloodPrefabs = new HashSet<string> {

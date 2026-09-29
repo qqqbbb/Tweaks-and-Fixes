@@ -27,8 +27,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnCollisionEnter")]
+            //[HarmonyPrefix, HarmonyPatch("OnCollisionEnter")]
             public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
                 if (!ConfigToEdit.replaceDealDamageOnImpactScript.Value)
@@ -188,16 +187,10 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnCollisionEnter")]
+            //[HarmonyPostfix, HarmonyPatch("OnCollisionEnter")]
             public static void OnCollisionEnterPostfix(DealDamageOnImpact __instance, Collision collision)
             {
-                //if (__instance.GetComponentInChildren<Player>())
-                //{
-                //    AddDebug("velocity Postfix " + __instance.GetComponent<Rigidbody>().velocity);
-                //}
-                //else
-                //AddDebug(__instance.name + " OnCollisionEnter" );
+                AddDebug(__instance.name + " OnCollisionEnter");
 
             }
         }

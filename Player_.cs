@@ -29,7 +29,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Player))]
         class Player_Patch
         {
-            private static float crushTime = 0f;
+            private static float nextCrushTime = 0f;
 
             static IEnumerator Test()
             {
@@ -45,7 +45,7 @@ namespace Tweaks_Fixes
             static void Finalizer(Player __instance)
             { // using finalizer bc some mod throws exception in prefix
                 //__instance.StartCoroutine(Test());
-                crushTime = 0;
+                nextCrushTime = 0;
             }
 
             [HarmonyPostfix]
@@ -60,9 +60,9 @@ namespace Tweaks_Fixes
                 //else if (__instance.currentSub && __instance.currentSub.isCyclops && __instance.isPiloting)
                 //    Light_Control.UpdateLights();
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (ConfigMenu.crushDamage.Value > 0f && Crush_Damage.crushInterval + crushTime < Time.time)
+                if (ConfigMenu.crushDamage.Value > 0f && nextCrushTime < Time.time)
                 {
-                    crushTime = Time.time;
+                    nextCrushTime = Time.time + Crush_Damage.crushInterval;
                     Crush_Damage.CrushDamagePlayer();
                 }
                 float hpToHeal = Main.configMain.GetHPtoHeal();

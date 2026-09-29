@@ -309,6 +309,16 @@ namespace Tweaks_Fixes
             }
         }
 
+        //[HarmonyPatch(typeof(MainCameraControl), "UpdateStrafeTilt")]
+        class MainCameraControl_Awake_Patch
+        {
+            static void Prefix(MainCameraControl __instance)
+            {
+                //AddDebug("UpdateStrafeTilt  ");
+                //return false;
+            }
+        }
+
         //[HarmonyPatch(typeof(PrefabPlaceholder), "Spawn")]
         class PrefabPlaceholder_Spawn_Patch
         {
@@ -332,7 +342,9 @@ namespace Tweaks_Fixes
                 //deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
                 //float fps = 1.0f / deltaTime;
                 //Util.Message("FPS " + Mathf.RoundToInt(fps));
-                //AddDebug("mode " + __instance.mode);
+                //AddDebug("graphics detail level " + GraphicsPreset.GetPresets()[QualitySettings.GetQualityLevel()].detail);
+                //AddDebug("IsGraphicsPresetDetailMediumOrHigh " + Util.IsGraphicsPresetDetailMediumOrHigh());
+
                 if (Keyboard.current.bKey.wasPressedThisFrame)
                 {
                     //if (Player.main.IsInBase())
@@ -356,6 +368,7 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
                     ShowTargetInfo(true, false, false, false);
+                    //AddDebug("MiscSettings.flashes " + MiscSettings.flashes);
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
@@ -802,14 +815,13 @@ namespace Tweaks_Fixes
         }
 
         //[HarmonyPatch(typeof(ExampleClass), MethodType.Constructor)]
-        //[HarmonyPatch(new Type[] { typeof(int) })]
-        //class ExampleClassConstructorPatch
-        //{
-        //    static void Postfix(int value)
-        //    {
-        //        Console.WriteLine($"Postfix: {value}");
-        //    }
-        //}
+        class ExampleClassConstructorPatch
+        {
+            static void Postfix(int value)
+            {
+                Console.WriteLine($"Postfix: {value}");
+            }
+        }
 
         //[HarmonyPatch(typeof(DamageSystem), nameof(DamageSystem.CalculateDamage))]
         public static class DamageSystem_CalculateDamage_Patch
@@ -843,7 +855,7 @@ namespace Tweaks_Fixes
                 return;
 
             CreateDebugCollider(collider);
-            AddDebug("ShowDebugCollider " + collider.name);
+            //AddDebug("ShowDebugCollider " + collider.name);
         }
 
         public static void CreateDebugCollider(Collider collider)
@@ -866,7 +878,28 @@ namespace Tweaks_Fixes
             debugCollider.transform.SetParent(collider.transform, false);
             debugCollider.transform.localEulerAngles = Vector3.zero;
             MatchColliderSize(debugCollider, collider);
-            //AddDebug("ShowDebugCollider " + collider.name);
+            //AddDebug("CreateDebugCollider " + collider.name);
+        }
+
+        internal static IEnumerator UpdateDebugCollider(Collider collider)
+        {
+            Transform debugTransform = collider.transform.Find("Debug collider");
+            while (true)
+            {
+                if (Main.gameLoaded == false)
+                    yield return Main.oneSecond;
+
+                if (debugTransform == null)
+                {
+                    AddDebug("UpdateDebugCollider  yield break");
+                    yield break;
+                }
+
+                UnityEngine.Object.DestroyImmediate(debugTransform.gameObject);
+                CreateDebugCollider(collider);
+                AddDebug("UpdateDebugCollider " + collider.name);
+                yield return Main.oneSecond;
+            }
         }
 
         internal static void MatchColliderSize(GameObject debugObj, Collider collider)

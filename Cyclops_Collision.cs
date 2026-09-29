@@ -21,6 +21,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
             {// Start runs for prefab too
+                //AddDebug($"{__instance.name} SubRoot Start isCyclops {__instance.isCyclops}");
                 if (__instance.isCyclops && ConfigToEdit.fixCyclopsCollision.Value)
                 {
                     //AddDebug("SubRoot Start " + __instance.name);
@@ -414,7 +415,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             public static void Postfix(Fabricator __instance)
             {
-                if (__instance.name == "CyclopsFabricator(Clone)")
+                if (ConfigToEdit.fixCyclopsCollision.Value && __instance.name == "CyclopsFabricator(Clone)")
                 {
                     DoCyclopsFabricator(__instance.transform);
                 }

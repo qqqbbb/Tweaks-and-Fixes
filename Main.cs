@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnautica.tweaksAndFixes",
-            VERSION = "4.21.1";
+            VERSION = "4.22.0";
 
         public static ManualLogSource logger;
         public static bool gameLoaded;  // WaitScreen.IsWaiting
@@ -76,7 +76,7 @@ namespace Tweaks_Fixes
             Drop_items_anywhere.droppedInBase.Clear();
             Drop_items_anywhere.droppedInEscapePod.Clear();
             Player_.healTime = 0;
-            Poison_Damage.ResetVars();
+            Poison_Damage.ResetState();
             Cyclops_unpowered.poweredSubs.Clear();
             Pickupable_.beacons.Clear();
             Pickupable_.pickupableStorage.Clear();
@@ -84,6 +84,7 @@ namespace Tweaks_Fixes
             Radiation.auroraRadiation = null;
             Floater_.pickupableFloaters.Clear();
             Medical_Cabinet_.escapePodMedCabinet = null;
+            Cyclops_Movement.autoMove = false;
             configToEdit.Reload();
             configMain.Load();
         }
@@ -104,7 +105,7 @@ namespace Tweaks_Fixes
             { // unlock fibermesh by scanning creepvine
                 PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
             }
-            LoadedGameObjectFixer loadedGameObjectFixer = new LoadedGameObjectFixer();
+            GameObjectFixer loadedGameObjectFixer = new GameObjectFixer();
             loadedGameObjectFixer.IterateRootGameObjects();
 
             if (configMain.activeSlot != -1 && Player.main.mode == Player.Mode.Normal)
@@ -264,8 +265,8 @@ namespace Tweaks_Fixes
             //devMenuLoaded = Chainloader.PluginInfos.ContainsKey("aedenthorn.DeveloperMenu");
             //com.github.tinyhoot.DeathrunRemade
             pdaDelayLoaded = Chainloader.PluginInfos.ContainsKey("com.essence.NoPdaDelay");
-            foreach (KeyValuePair<string, PluginInfo> plugin in Chainloader.PluginInfos)
-                logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.Name);
+            //foreach (KeyValuePair<string, PluginInfo> plugin in Chainloader.PluginInfos)
+            //    logger.LogInfo(plugin.Key + " loaded Mod " + plugin.Value.Metadata.Name);
         }
 
         private IEnumerator StartLoadingSetupAsync()
@@ -309,10 +310,10 @@ namespace Tweaks_Fixes
                 Constructor_ constructor = new Constructor_();
                 UWE.CoroutineHost.StartCoroutine(constructor.FixConstructor());
             }
-            if (Util.IsGraphicsPresetHighDetail() && AlienFacilityPrefabFixer.alienFacilityPrefabsFixed == false)
+            if (Util.IsGraphicsPresetHighDetail() && PrecursorBasePrefabFixer.alienFacilityPrefabsFixed == false)
             {
-                AlienFacilityPrefabFixer alienFacilityPrefabFixer = new AlienFacilityPrefabFixer();
-                alienFacilityPrefabFixer.FixAlienFacilityPrefabs();
+                PrecursorBasePrefabFixer alienFacilityPrefabFixer = new PrecursorBasePrefabFixer();
+                alienFacilityPrefabFixer.FixPrecursorBasePrefabs();
             }
             Application.runInBackground = true;
         }

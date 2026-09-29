@@ -387,8 +387,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(TooltipFactory))]
         class TooltipFactory_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Initialize")]
+            [HarmonyPostfix, HarmonyPatch("Initialize")]
             static void InitializePostfix()
             {
                 if (string.IsNullOrEmpty(altToolButton))
@@ -399,7 +398,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPostfix, HarmonyPatch("ItemActions")]
+            //[HarmonyPostfix, HarmonyPatch("ItemActions")]__
             static void ItemActionsPostfix(StringBuilder sb, InventoryItem item)
             {
                 TechType techType = item.item.GetTechType();
@@ -419,24 +418,21 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnLanguageChanged")]
+            [HarmonyPostfix, HarmonyPatch("OnLanguageChanged")]
             static void OnLanguageChangedPostfix()
             {
                 //AddDebug("TooltipFactory OnLanguageChanged ");
                 GetStrings();
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnBindingsChanged")]
+            [HarmonyPostfix, HarmonyPatch("OnBindingsChanged")]
             static void OnBindingsChangedPostfix()
             {
                 //AddDebug("TooltipFactory OnBindingsChanged ");
                 GetStrings();
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("ItemCommons")]
+            [HarmonyPrefix, HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
             {
                 if (!ConfigToEdit.flareTweaks.Value)
@@ -454,8 +450,7 @@ namespace Tweaks_Fixes
 
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("ItemCommons")]
+            [HarmonyPostfix, HarmonyPatch("ItemCommons")]
             static void ItemCommonsPostfix(StringBuilder sb, TechType techType, GameObject obj)
             {
                 if (techType == TechType.Battery)
