@@ -201,6 +201,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> medkitProdMult;
         public static ConfigEntry<bool> respawnCrashPowder;
         public static ConfigEntry<bool> disableSlowFlashes;
+        public static ConfigEntry<bool> simplifyBagUI;
 
 
         public static ConfigEntry<bool> disableIonCubeFabricator;
@@ -212,6 +213,7 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛ ’
+            simplifyBagUI = Main.configToEdit.Bind("MISC", "Simplify carry-all UI", false, "Some users report bugs when this is enabled and carry-all bag dropped in cyclops.");
             disableSlowFlashes = Main.configToEdit.Bind("VISUAL", "Do not slow down particle effects when ‛Lightning flashes’ setting is on", false);
             respawnCrashPowder = Main.configToEdit.Bind("CREATURES", "Respawn sulfur in sulfur plant when crashfish respawns", false);
             medkitProdMult = Main.configToEdit.Bind("MISC", "First aid kit production time multiplier", 1f);

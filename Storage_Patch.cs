@@ -288,7 +288,7 @@ namespace Tweaks_Fixes
                 //if (parent && parent.name == "docking_luggage_01_bag4(Clone)")
                 {
                     //AddDebug("CreateContainer LuggageBag");
-                    if (Main.pickupFullCarryallIsLoaded)
+                    if (Main.pickupFullCarryallIsLoaded || ConfigToEdit.simplifyBagUI.Value == false)
                         return;
 
                     Pickupable p = parent.GetComponent<Pickupable>();
@@ -368,6 +368,7 @@ namespace Tweaks_Fixes
                 //AddDebug("StorageContainer IsEmpty " + __instance.IsEmpty());
                 Transform parent = __instance.transform.parent;
                 TechTag parentTT = parent.GetComponent<TechTag>();
+                bool smallStorage = false;
                 if (parentTT)
                 {
                     //AddDebug("parent TechTag " + parentTT.type.ToString());
@@ -376,6 +377,7 @@ namespace Tweaks_Fixes
                 if (__instance.GetComponent<SmallStorage>())
                 {
                     //AddDebug("OnHandHover SmallStorage");
+                    smallStorage = true;
                     Transform tr = parent.Find("LidLabel/Label");
                     //cl = __instance.transform.parent.GetComponentInChildren<ColoredLabel>();
                     label = tr.GetComponent<ColoredLabel>();
@@ -385,19 +387,21 @@ namespace Tweaks_Fixes
                 }
                 else if (parent.name == "docking_luggage_01_bag4(Clone)")
                 {
-                    ps = parent.GetComponentInChildren<PickupableStorage>();
+                    if (ConfigToEdit.simplifyBagUI.Value && Main.pickupFullCarryallIsLoaded == false)
+                        ps = parent.GetComponentInChildren<PickupableStorage>();
+                    else
+                        return true;
                     //AddDebug("OnHandHover luggage " + ps.name);
                 }
                 else
                     label = __instance.GetComponentInChildren<ColoredLabel>();
 
-                if (ps && Main.pickupFullCarryallIsLoaded)
-                    return true;
-
                 StringBuilder stringBuilder = new StringBuilder(Language.main.Get(__instance.hoverText));
                 stringBuilder.Append(" (");
                 stringBuilder.Append(UI_Patches.leftHandButton);
-                stringBuilder.Append(")\n");
+                stringBuilder.Append(")");
+                if (smallStorage == false)
+                    stringBuilder.Append("\n");
                 //string text = __instance.hoverText + " (" + TooltipFactory.stringLeftHand + ")\n";
                 //string textEmpty = __instance.IsEmpty() ? "Empty" : string.Empty;
                 string textEmpty = string.Empty;

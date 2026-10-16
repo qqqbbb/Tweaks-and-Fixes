@@ -1358,11 +1358,10 @@ namespace Tweaks_Fixes
         }
     }
 
-    //[HarmonyPatch(typeof(VFXSeamothDamages))]
+    [HarmonyPatch(typeof(VFXSeamothDamages))]
     class VFXSeamothDamages_patch
     {
-        //[HarmonyPostfix]
-        //[HarmonyPatch("Start")]
+        [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(VFXSeamothDamages __instance)
         {
             //Transform t = __instance.transform.Find("xDrips");
